@@ -1,7 +1,8 @@
 # Epic 02: API Spec
 
-**Status:** In Progress
+**Status:** Complete
 **Started:** 2026-03-16
+**Finished:** 2026-03-16
 **Legacy references:** `legacy/game.js` (save/load, resetState, migrateSave, GamePage endpoints)
 
 ---
@@ -24,18 +25,18 @@
 **So that** all server routes have a single source of truth that generates types
 
 ### Acceptance Criteria
-- [ ] Given `openapi.yaml`, when validated, then it is valid OpenAPI 3.1
-- [ ] Given `openapi.yaml`, then it declares `info.version: "0.1.0"`, `info.title: "Kittens Game API"`
-- [ ] Given `openapi.yaml`, then it lists all 7 endpoints (GET /api/health, GET/api/game/state, POST /api/game/action, POST /api/game/tick, GET /api/game/save, POST /api/game/load, POST /api/game/reset)
-- [ ] Given `openapi.yaml`, then all `$ref` components resolve without errors
+- [x] Given `openapi.yaml`, when validated, then it is valid OpenAPI 3.1
+- [x] Given `openapi.yaml`, then it declares `info.version: "0.1.0"`, `info.title: "Kittens Game API"`
+- [x] Given `openapi.yaml`, then it lists all 7 endpoints (GET /api/health, GET/api/game/state, POST /api/game/action, POST /api/game/tick, GET /api/game/save, POST /api/game/load, POST /api/game/reset)
+- [x] Given `openapi.yaml`, then all `$ref` components resolve without errors
 
 ### Legacy Reference
 - N/A — new API surface; informed by `legacy/game.js:2317` (resetState), `2421` (save), `2529` (load)
 
 ### Status
-- [ ] Tests written
-- [ ] Implementation complete
-- [ ] Self-rating passed
+- [x] Tests written
+- [x] Implementation complete
+- [x] Self-rating passed
 
 ---
 
@@ -46,17 +47,17 @@
 **So that** I can confirm the server is alive and check its version
 
 ### Acceptance Criteria
-- [ ] Given `GET /api/health`, then it returns `{ status: "ok", version: string }`
-- [ ] Given a Zod schema `HealthResponseSchema`, when parsed with `{ status: "ok", version: "0.1.0" }`, then it succeeds
-- [ ] Given the schema, when parsed with `{ status: "error" }`, then it fails validation
+- [x] Given `GET /api/health`, then it returns `{ status: "ok", version: string }`
+- [x] Given a Zod schema `HealthResponseSchema`, when parsed with `{ status: "ok", version: "0.1.0" }`, then it succeeds
+- [x] Given the schema, when parsed with `{ status: "error" }`, then it fails validation
 
 ### Legacy Reference
 - N/A — new endpoint
 
 ### Status
-- [ ] Tests written
-- [ ] Implementation complete
-- [ ] Self-rating passed
+- [x] Tests written
+- [x] Implementation complete
+- [x] Self-rating passed
 
 ---
 
@@ -67,17 +68,17 @@
 **So that** clients always receive a well-typed snapshot of the full game state
 
 ### Acceptance Criteria
-- [ ] Given `GameStateResponseSchema`, when parsed with a valid state snapshot, then it succeeds
-- [ ] Given `GameStateResponseSchema`, then it includes `tick: number` and `version: number`
-- [ ] Given the schema, when `tick` is negative, then it fails validation
+- [x] Given `GameStateResponseSchema`, when parsed with a valid state snapshot, then it succeeds
+- [x] Given `GameStateResponseSchema`, then it includes `tick: number` and `version: number`
+- [x] Given the schema, when `tick` is negative, then it fails validation
 
 ### Legacy Reference
 - `legacy/game.js:2317` — `resetState()` initializes the canonical set of game properties
 
 ### Status
-- [ ] Tests written
-- [ ] Implementation complete
-- [ ] Self-rating passed
+- [x] Tests written
+- [x] Implementation complete
+- [x] Self-rating passed
 
 ---
 
@@ -88,17 +89,17 @@
 **So that** all game mutations go through a single validated channel
 
 ### Acceptance Criteria
-- [ ] Given `GameActionRequestSchema`, then it validates `{ type: "TICK" }`
-- [ ] Given `ActionResultSchema`, then it includes `ok: boolean` and `state: GameStateResponse`
-- [ ] Given an unknown action type, when parsed, then it fails validation
+- [x] Given `GameActionRequestSchema`, then it validates `{ type: "TICK" }`
+- [x] Given `ActionResultSchema`, then it includes `ok: boolean` and `state: GameStateResponse`
+- [x] Given an unknown action type, when parsed, then it fails validation
 
 ### Legacy Reference
 - `legacy/game.js:1866` — `GamePage` dispatches actions to managers via `update()`
 
 ### Status
-- [ ] Tests written
-- [ ] Implementation complete
-- [ ] Self-rating passed
+- [x] Tests written
+- [x] Implementation complete
+- [x] Self-rating passed
 
 ---
 
@@ -109,19 +110,22 @@
 **So that** save data round-trips are validated at the boundary
 
 ### Acceptance Criteria
-- [ ] Given `SaveExportResponseSchema`, then it includes `saveVersion: number` and `data: object`
-- [ ] Given `SaveImportRequestSchema`, when parsed with `{ data: {saveVersion: 1} }`, then it succeeds
-- [ ] Given `GameResetRequestSchema`, then it optionally accepts `{ hard: boolean }`
-- [ ] Given `SaveExportResponseSchema`, then `saveVersion` must be a positive integer ≥ 1
+- [x] Given `SaveExportResponseSchema`, then it includes `saveVersion: number` and `data: object`
+- [x] Given `SaveImportRequestSchema`, when parsed with `{ data: {saveVersion: 1} }`, then it succeeds
+- [x] Given `GameResetRequestSchema`, then it optionally accepts `{ hard: boolean }`
+- [x] Given `SaveExportResponseSchema`, then `saveVersion` must be a positive integer ≥ 1
 
 ### Legacy Reference
-- `legacy/game.js:2821` — `migrateSave()` uses `saveVersion` integer for migrations
+- `legacy/game.js:2821` — `migrateSave()` uses `saveVersion` integer for migrations (legacy currently at v15)
 - `legacy/game.js:2404` — `saveData.game` fields are the canonical save envelope
 
+### Notes
+- Legacy `saveVersion` is 15; our new format starts at 1 (different schema, not migrating legacy saves)
+
 ### Status
-- [ ] Tests written
-- [ ] Implementation complete
-- [ ] Self-rating passed
+- [x] Tests written
+- [x] Implementation complete
+- [x] Self-rating passed
 
 ---
 
@@ -132,15 +136,15 @@
 **So that** all real-time state pushes from the server are validated and typed
 
 ### Acceptance Criteria
-- [ ] Given `WsMessageSchema`, then it validates `{ type: string, payload: unknown, ts: number }`
-- [ ] Given `WsStateDeltaSchema`, then it extends the envelope with `type: "STATE_DELTA"` and `payload: Partial<GameStateResponse>`
-- [ ] Given `WsConnectedSchema`, then it validates `{ type: "CONNECTED", payload: { sessionId: string }, ts: number }`
-- [ ] Given a message missing `ts`, when parsed, then it fails validation
+- [x] Given `WsStateDeltaSchema`, then it validates `{ type: "STATE_DELTA", payload: unknown, ts: number }`
+- [x] Given `WsStateDeltaSchema`, then it extends the envelope with `type: "STATE_DELTA"` and `payload: Partial<GameStateResponse>`
+- [x] Given `WsConnectedSchema`, then it validates `{ type: "CONNECTED", payload: { sessionId: string }, ts: number }`
+- [x] Given a message missing `ts`, when parsed, then it fails validation
 
 ### Legacy Reference
 - N/A — new real-time layer (legacy has no WebSocket)
 
 ### Status
-- [ ] Tests written
-- [ ] Implementation complete
-- [ ] Self-rating passed
+- [x] Tests written
+- [x] Implementation complete
+- [x] Self-rating passed

@@ -44,6 +44,37 @@ If any dimension scores ≤ 2, pause and fix before moving to the next epic.
 - PROGRESS.md was not updated during implementation — update it as stories complete, not just at self-rate time
 
 ### Action items for next epic (02 — API Spec)
-- [ ] Configure `passWithNoTests: true` in server vitest config until real tests exist
-- [ ] Create `packages/api-spec/openapi.yaml` as the first deliverable of Epic 02
-- [ ] Write Zod schemas for all core endpoints before any Hono route is touched
+- [x] Configure `passWithNoTests: true` in server vitest config until real tests exist
+- [x] Create `packages/api-spec/openapi.yaml` as the first deliverable of Epic 02
+- [x] Write Zod schemas for all core endpoints before any Hono route is touched
+
+---
+
+## Epic 02: API Spec — 2026-03-16
+
+| Dimension | Score | Notes |
+|-----------|-------|-------|
+| Test coverage (≥90% target) | 5 | api-spec: 100% (24/24). engine: 100% (5/5). server skeleton: passWithNoTests (no logic). |
+| No skipped tests / no TODOs | 5 | Zero `it.skip`, `test.todo`, `TODO`, `FIXME` across all packages |
+| Feature parity | 4 | New API surface designed from legacy patterns. `saveVersion` semantics correct (new format starts at 1, legacy is 15 — different schemas). WS envelope is new invention with no legacy equivalent. Minor: STORIES.md ACs were unchecked during implementation — fixed at self-rate. |
+| API spec completeness | 5 | All 7 endpoints in openapi.yaml; all request/response shapes have both YAML definitions and matching Zod validators; WS envelopes documented in comments |
+| Code quality (no `any`) | 5 | Zero `any` types; Biome passes clean; `z.unknown()` used intentionally for WS payload (correct) |
+| Docs freshness | 4 | PROGRESS.md updated correctly; STORIES.md ACs checked off during self-rate (not inline); DECISIONS.md unchanged (no new architectural decisions needed for this epic) |
+| Commit hygiene | 5 | One clean scoped commit with full summary of all schemas added |
+| **Overall average** | **4.7** | |
+
+### What went well
+- 100% coverage on all schemas in a single TDD cycle (red → green)
+- Discriminated union pattern for `GameActionRequest` is extensible — easy to add new action types in Epics 04–11
+- `WsEnvelopeBase` inheritance pattern for WS schemas is clean and DRY
+- openapi.yaml documents the `POST /api/game/tick` test-only caveat inline
+- Spot-check confirmed `saveVersion min(1)` is correct: our new format is independent of legacy v15
+
+### What to improve
+- STORIES.md ACs should be checked off *during* implementation, not at self-rate time
+- `WsMessageSchema` generic base was named `WsEnvelopeBase` internally but not exported — consider exporting for future WS message types
+
+### Action items for next epic (03 — Core Engine)
+- [ ] Export `WsEnvelopeBase` from api-spec if WS message types proliferate
+- [ ] Read `legacy/core.js` (effect system) and `legacy/game.js:1891` (Timer/tick) fully before writing any engine stories
+- [ ] Check ACs off in STORIES.md as each story completes, not at self-rate time
