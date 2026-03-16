@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { applyAction } from "./actions.js";
 import { NullManager } from "./manager.js";
+import { createInitialResources } from "./resources.js";
 import { createInitialState, deserialize, serialize } from "./state.js";
 
 describe("createInitialState", () => {
@@ -14,6 +15,18 @@ describe("createInitialState", () => {
 
   it("starts with empty effectCache", () => {
     expect(createInitialState().effectCache).toEqual({});
+  });
+
+  it("starts with initial resources (all zero)", () => {
+    const state = createInitialState();
+    expect(state.resources.catnip?.value).toBe(0);
+    expect(state.resources.catnip?.maxValue).toBe(0);
+  });
+
+  it("resources field has all resource names", () => {
+    const state = createInitialState();
+    const initial = createInitialResources();
+    expect(Object.keys(state.resources)).toEqual(Object.keys(initial));
   });
 });
 
@@ -36,6 +49,61 @@ describe("applyAction TICK", () => {
       state = applyAction(state, { type: "TICK" });
     }
     expect(state.tick).toBe(5);
+  });
+});
+
+describe("applyAction GATHER_CATNIP", () => {
+  it("increments catnip by 1", () => {
+    const state = {
+      ...createInitialState(),
+      resources: {
+        ...createInitialResources(),
+        catnip: { value: 0, maxValue: 100 },
+      },
+    };
+    const next = applyAction(state, { type: "GATHER_CATNIP" });
+    expect(next.resources.catnip?.value).toBe(1);
+  });
+
+  it("does not exceed maxValue", () => {
+    const state = {
+      ...createInitialState(),
+      resources: {
+        ...createInitialResources(),
+        catnip: { value: 100, maxValue: 100 },
+      },
+    };
+    const next = applyAction(state, { type: "GATHER_CATNIP" });
+    expect(next.resources.catnip?.value).toBe(100);
+  });
+
+  it("clamps to 0 when maxValue is 0", () => {
+    const state = createInitialState();
+    const next = applyAction(state, { type: "GATHER_CATNIP" });
+    expect(next.resources.catnip?.value).toBe(0);
+  });
+
+  it("does not mutate input state", () => {
+    const state = {
+      ...createInitialState(),
+      resources: {
+        ...createInitialResources(),
+        catnip: { value: 5, maxValue: 100 },
+      },
+    };
+    applyAction(state, { type: "GATHER_CATNIP" });
+    expect(state.resources.catnip?.value).toBe(5);
+  });
+
+  it("handles missing catnip entry gracefully (stays at 0)", () => {
+    // Create a state where catnip is explicitly absent — covers the fallback branch
+    const noResources: Record<string, { value: number; maxValue: number }> = {};
+    const state = {
+      ...createInitialState(),
+      resources: noResources,
+    };
+    const next = applyAction(state, { type: "GATHER_CATNIP" });
+    expect(next.resources.catnip?.value ?? 0).toBe(0);
   });
 });
 
@@ -80,6 +148,25 @@ describe("serialize / deserialize", () => {
     const raw = { version: 1, tick: 0 } as ReturnType<typeof serialize>;
     const restored = deserialize(raw);
     expect(restored.effectCache).toEqual({});
+  });
+
+  it("resources are preserved through round-trip", () => {
+    const state = {
+      ...createInitialState(),
+      resources: {
+        ...createInitialResources(),
+        catnip: { value: 42.5, maxValue: 5000 },
+      },
+    };
+    const restored = deserialize(serialize(state));
+    expect(restored.resources.catnip?.value).toBe(42.5);
+    expect(restored.resources.catnip?.maxValue).toBe(5000);
+  });
+
+  it("deserialize falls back to initial resources if field is missing", () => {
+    const raw = { version: 1, tick: 0 } as ReturnType<typeof serialize>;
+    const restored = deserialize(raw);
+    expect(restored.resources.catnip?.value).toBe(0);
   });
 });
 

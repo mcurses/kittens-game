@@ -9,3 +9,10 @@ export type { Manager } from "./manager.js";
 export { NullManager } from "./manager.js";
 export { getLimitedDR, buildEffectCache, getEffect } from "./effects.js";
 export { tick, resetState } from "./tick.js";
+export type { ResourceEntry, ResourceState } from "./resources.js";
+export {
+  RESOURCE_NAMES,
+  ResourceManager,
+  calcResourcePerTick,
+  createInitialResources,
+} from "./resources.js";

@@ -45,7 +45,7 @@ Stories: 6 / 6 complete
 ---
 
 ## Epic 04: Resources
-**Status:** Not Started
+**Status:** In Progress | **Started:** 2026-03-16
 Prerequisites: Epic 03
 
 ---

@@ -3,7 +3,7 @@ import type { Manager } from "./manager.js";
 import type { GameState } from "./state.js";
 
 /** Discriminated union of all possible game actions */
-export type GameAction = { readonly type: "TICK" };
+export type GameAction = { readonly type: "TICK" } | { readonly type: "GATHER_CATNIP" };
 
 /**
  * Pure reducer: apply an action to a state and return the next state.
@@ -25,6 +25,17 @@ export function applyAction(
         next = manager.update(next);
       }
       return next;
+    }
+    case "GATHER_CATNIP": {
+      const catnip = state.resources.catnip ?? { value: 0, maxValue: 0 };
+      const newValue = Math.min(catnip.value + 1, catnip.maxValue);
+      return {
+        ...state,
+        resources: {
+          ...state.resources,
+          catnip: { ...catnip, value: newValue },
+        },
+      };
     }
   }
 }
