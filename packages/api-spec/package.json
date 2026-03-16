@@ -1,0 +1,26 @@
+{
+  "name": "@kittens/api-spec",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsc --project tsconfig.json",
+    "typecheck": "tsc --noEmit",
+    "lint": "biome check ./src"
+  },
+  "dependencies": {
+    "@kittens/shared": "workspace:*",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "typescript": "*"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "rootDir": "./src",
+    "outDir": "./dist",
+    "composite": true,
+    "paths": {
+      "@kittens/shared": ["../shared/src/index.ts"],
+      "@kittens/engine": ["../engine/src/index.ts"]
+    }
+  },
+  "references": [{ "path": "../shared" }, { "path": "../engine" }],
+  "include": ["src/**/*"],
+  "exclude": ["dist", "node_modules"]
+}

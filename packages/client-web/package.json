@@ -1,0 +1,27 @@
+{
+  "name": "@kittens/client-web",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "vite build",
+    "dev": "vite",
+    "typecheck": "tsc --noEmit",
+    "lint": "biome check ./src",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@kittens/api-spec": "workspace:*",
+    "@kittens/shared": "workspace:*",
+    "@tanstack/react-query": "^5.62.16",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.0.7",
+    "@types/react-dom": "^19.0.3",
+    "@vitejs/plugin-react": "^4.3.4",
+    "typescript": "*",
+    "vite": "^6.0.11"
+  }
+}
