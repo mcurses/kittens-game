@@ -36,6 +36,6 @@
     }
   },
   "files": {
-    "ignore": ["node_modules", "dist", "coverage", "legacy", "*.config.ts"]
+    "ignore": ["node_modules", "dist", "coverage", "legacy", "*.config.ts", ".turbo"]
   }
 }

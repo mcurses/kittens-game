@@ -19,6 +19,7 @@ If any dimension scores ≤ 2, pause and fix before moving to the next epic.
 
 <!-- Self-rating entries will be appended below -->
 
+
 ## Epic 01: Foundation — 2026-03-16
 
 | Dimension | Score | Notes |
@@ -112,3 +113,35 @@ If any dimension scores ≤ 2, pause and fix before moving to the next epic.
 - [ ] Design `ResourceState` slice and add to `GameState` before writing any tests
 - [ ] Add a `ResourceManager` that implements `Manager` and register it in the engine
 - [ ] Extend `GameActionRequest` in api-spec with resource-related actions (gather, etc.)
+
+---
+
+## Epic 04: Resources — 2026-03-16
+
+| Dimension | Score | Notes |
+|-----------|-------|-------|
+| Test coverage (≥90% target) | 5 | 79/79 tests passing. 100% stmt/branch/func/line on all 6 source files. |
+| No skipped tests / no TODOs | 5 | Zero `it.skip`, `test.todo`, `TODO`, `FIXME`, `HACK` across all packages. |
+| Feature parity | 5 | `calcResourcePerTick` formula verified against legacy game.js:3174 (base * (1+ratio) + perTick + perTickCon). `gatherCatnip` increments by 1 with maxValue clamp. maxValue from effectCache rebuilt each tick — matches legacy. `RESOURCE_NAMES` covers all 56 legacy resources. |
+| API spec completeness | 4 | No new server routes. `GATHER_CATNIP` action added to engine's `GameAction` union but not yet reflected in api-spec's `GameActionRequest` discriminated union — that's a future task for the server epic. |
+| Code quality (no `any`) | 5 | Zero `any` types. Biome passes clean. Serializable load handling uses explicit type guards. Fixed build errors in tick.test.ts (MarkedState needed `resources` + `Tick`). Fixed `.turbo` not being excluded from biome (added to ignore list). |
+| Docs freshness | 5 | PROGRESS.md updated with completion. STORIES.md ACs checked. NOTES.md has design rationale. DECISIONS.md unchanged (no new ADR needed — ResourceState design follows existing patterns). |
+| Commit hygiene | 4 | One clean commit for main implementation. Build fix required an additional unstaged amendment (handled cleanly with separate git add + new commit structure). |
+| **Overall average** | **4.7** | |
+
+### What went well
+- 100% coverage on every file including branch coverage — required adding a handful of edge-case tests
+- The `calcResourcePerTick` formula maps cleanly to the effect cache key naming convention
+- Fixing the `tick.test.ts` `MarkedState` interface for `resources` field was quick — good that typecheck catches it
+- Biome `.turbo` ignore fix was a genuine cleanup needed for future epics
+
+### What to improve
+- Build (`tsc`) was not verified during TDD loop — only `vitest run` was checked; should run `pnpm turbo build` as part of the TDD loop
+- `api-spec` `GameActionRequest` should be extended with `GATHER_CATNIP` to stay in sync with engine actions
+- `tick.test.ts` `MarkedState` pattern is now a recurring smell — consider a helper or just keep updating it as GameState grows
+
+### Action items for next epic (05 — Buildings)
+- [ ] Run `pnpm turbo build` as part of each TDD iteration (not just `test`)
+- [ ] Read buildings.js lines 315–2500 fully for all static effects before writing stories
+- [ ] Implement `BUY_BUILDING` action handler that deducts resources AND increments building val/on in a single atomic state transition
+- [ ] Add `buildingMax` effect computation: effects ending in 'Max' use `bld.val`, others use `bld.on`

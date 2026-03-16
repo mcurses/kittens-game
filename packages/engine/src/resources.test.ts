@@ -1,3 +1,4 @@
+import type { Serializable } from "@kittens/shared";
 import { describe, expect, it } from "vitest";
 import {
   RESOURCE_NAMES,
@@ -219,7 +220,7 @@ describe("ResourceManager", () => {
         resources: createInitialResources(),
         effectCache: {},
       };
-      const restored = manager.load([] as unknown as Record<string, unknown>, state);
+      const restored = manager.load([] as Serializable, state);
       expect(restored.resources.catnip?.value).toBe(0);
     });
   });

@@ -45,7 +45,14 @@ Stories: 6 / 6 complete
 ---
 
 ## Epic 04: Resources
-**Status:** In Progress | **Started:** 2026-03-16
+**Status:** Complete | **Started:** 2026-03-16 | **Finished:** 2026-03-16
+Stories: 4 / 4 complete
+
+- [x] Resource state — ResourceState, ResourceEntry, RESOURCE_NAMES, createInitialResources()
+- [x] ResourceManager update — calcResourcePerTick(), clamp to [0, maxValue]
+- [x] Gather catnip action — GATHER_CATNIP increments catnip by 1, clamped
+- [x] Serialization — serialize/deserialize include resources field
+
 Prerequisites: Epic 03
 
 ---

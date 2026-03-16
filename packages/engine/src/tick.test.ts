@@ -1,3 +1,4 @@
+import type { Tick } from "@kittens/shared";
 import { describe, expect, it } from "vitest";
 import { NullManager } from "./manager.js";
 import { createInitialState } from "./state.js";
@@ -35,8 +36,9 @@ describe("tick", () => {
     // m1 adds a marker; m2 reads it
     interface MarkedState {
       version: number;
-      tick: number;
+      tick: Tick;
       effectCache: Record<string, number>;
+      resources: Record<string, { value: number; maxValue: number }>;
       marker?: boolean;
     }
     const m1 = new NullManager();
