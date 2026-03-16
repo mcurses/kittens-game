@@ -1,0 +1,227 @@
+openapi: "3.1.0"
+
+info:
+  title: Kittens Game API
+  version: "0.1.0"
+  description: |
+    HTTP + WebSocket API for the Kittens Game modern rewrite.
+    The OpenAPI spec is the source of truth for the client/server boundary.
+    All request/response shapes are validated by Zod schemas in `src/schemas.ts`.
+
+servers:
+  - url: http://localhost:3000
+    description: Local development
+
+paths:
+  /api/health:
+    get:
+      operationId: getHealth
+      summary: Health check
+      description: Returns server status and version. Used by CI and load balancers.
+      responses:
+        "200":
+          description: Server is healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthResponse"
+
+  /api/game/state:
+    get:
+      operationId: getGameState
+      summary: Get full game state snapshot
+      description: Returns the complete serialized game state. Clients use this on initial connect.
+      responses:
+        "200":
+          description: Full game state
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GameStateResponse"
+
+  /api/game/action:
+    post:
+      operationId: postGameAction
+      summary: Dispatch a game action
+      description: |
+        Applies a typed action to the current game state via the engine reducer.
+        Returns the updated state. The action type is a discriminated union —
+        new types are added as later epics are completed.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GameActionRequest"
+      responses:
+        "200":
+          description: Action applied successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ActionResult"
+        "400":
+          description: Invalid action
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ActionResult"
+
+  /api/game/tick:
+    post:
+      operationId: postGameTick
+      summary: Advance one tick (testing only)
+      description: |
+        Manually advances the game by one tick. Intended for test automation only.
+        Should be disabled or guarded in production builds.
+      responses:
+        "200":
+          description: Tick applied
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GameStateResponse"
+
+  /api/game/save:
+    get:
+      operationId: getGameSave
+      summary: Export save data
+      description: |
+        Returns the full serialized save snapshot as JSON.
+        The `saveVersion` field drives migration on import.
+      responses:
+        "200":
+          description: Save data exported
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SaveExportResponse"
+
+  /api/game/load:
+    post:
+      operationId: postGameLoad
+      summary: Import save data
+      description: |
+        Replaces the current game state with the provided save data.
+        The server validates the saveVersion and applies migrations if needed.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SaveImportRequest"
+      responses:
+        "200":
+          description: Save loaded successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GameStateResponse"
+        "400":
+          description: Invalid or unmigratable save data
+
+  /api/game/reset:
+    post:
+      operationId: postGameReset
+      summary: Reset game state
+      description: |
+        Soft reset: preserves prestige/paragon (default).
+        Hard reset: wipes everything including prestige.
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GameResetRequest"
+      responses:
+        "200":
+          description: Game reset to initial state
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GameStateResponse"
+
+components:
+  schemas:
+    HealthResponse:
+      type: object
+      required: [status, version]
+      properties:
+        status:
+          type: string
+          enum: [ok]
+        version:
+          type: string
+          example: "0.1.0"
+
+    GameStateResponse:
+      type: object
+      required: [version, tick]
+      properties:
+        version:
+          type: integer
+          minimum: 1
+          description: Save format version
+        tick:
+          type: integer
+          minimum: 0
+          description: Monotonically increasing tick counter
+
+    GameActionRequest:
+      oneOf:
+        - type: object
+          required: [type]
+          properties:
+            type:
+              type: string
+              enum: [TICK]
+      discriminator:
+        propertyName: type
+
+    ActionResult:
+      type: object
+      required: [ok, state]
+      properties:
+        ok:
+          type: boolean
+        error:
+          type: string
+          description: Error message when ok is false
+        state:
+          $ref: "#/components/schemas/GameStateResponse"
+
+    SaveExportResponse:
+      type: object
+      required: [saveVersion, data]
+      properties:
+        saveVersion:
+          type: integer
+          minimum: 1
+          description: Save format version number
+        data:
+          type: object
+          additionalProperties: true
+          description: Full serialized game state
+
+    SaveImportRequest:
+      type: object
+      required: [data]
+      properties:
+        data:
+          type: object
+          additionalProperties: true
+
+    GameResetRequest:
+      type: object
+      properties:
+        hard:
+          type: boolean
+          default: false
+          description: If true, wipes prestige/paragon. If false or absent, soft reset only.
+
+  # WebSocket messages are documented here for reference.
+  # They are not OpenAPI request/response bodies — they travel over WS /ws.
+  # Zod schemas for these live in src/schemas.ts.
+  #
+  # WsStateDelta: { type: "STATE_DELTA", payload: Partial<GameStateResponse>, ts: number }
+  # WsConnected:  { type: "CONNECTED",   payload: { sessionId: string },       ts: number }

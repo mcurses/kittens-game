@@ -19,8 +19,15 @@ Stories: 7 / 7 complete
 ---
 
 ## Epic 02: API Spec
-**Status:** Not Started
-Prerequisites: Epic 01
+**Status:** Complete | **Started:** 2026-03-16 | **Finished:** 2026-03-16
+Stories: 6 / 6 complete
+
+- [x] OpenAPI YAML skeleton — `packages/api-spec/openapi.yaml`
+- [x] Health endpoint schema — `HealthResponseSchema`
+- [x] Game state endpoint schemas — `GameStateResponseSchema`
+- [x] Action endpoint schema — `GameActionRequestSchema`, `ActionResultSchema`
+- [x] Save/load/reset schemas — `SaveExportResponseSchema`, `SaveImportRequestSchema`, `GameResetRequestSchema`
+- [x] WebSocket envelope schema — `WsStateDeltaSchema`, `WsConnectedSchema`
 
 ---
 
