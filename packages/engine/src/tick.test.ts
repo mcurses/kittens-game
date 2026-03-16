@@ -39,6 +39,7 @@ describe("tick", () => {
       tick: Tick;
       effectCache: Record<string, number>;
       resources: Record<string, { value: number; maxValue: number }>;
+      buildings: Record<string, { val: number; on: number }>;
       marker?: boolean;
     }
     const m1 = new NullManager();

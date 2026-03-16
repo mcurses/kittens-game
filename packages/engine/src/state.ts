@@ -1,4 +1,5 @@
 import type { Tick } from "@kittens/shared";
+import { type BuildingState, createInitialBuildings } from "./buildings.js";
 import { type ResourceState, createInitialResources } from "./resources.js";
 
 /**
@@ -12,6 +13,8 @@ export interface GameState {
   readonly effectCache: Record<string, number>;
   /** All resource pools (value + maxValue). */
   readonly resources: ResourceState;
+  /** All building counts (val + on). */
+  readonly buildings: BuildingState;
 }
 
 export function createInitialState(): GameState {
@@ -20,6 +23,7 @@ export function createInitialState(): GameState {
     tick: 0 as Tick,
     effectCache: {},
     resources: createInitialResources(),
+    buildings: createInitialBuildings(),
   };
 }
 
@@ -31,6 +35,7 @@ export interface SerializedGameState {
   tick: number;
   effectCache: Record<string, number>;
   resources: Record<string, { value: number; maxValue: number }>;
+  buildings: Record<string, { val: number; on: number }>;
 }
 
 /**
@@ -42,11 +47,18 @@ export function serialize(state: GameState): SerializedGameState {
   for (const [name, entry] of Object.entries(state.resources)) {
     resources[name] = { value: entry.value, maxValue: entry.maxValue };
   }
+
+  const buildings: Record<string, { val: number; on: number }> = {};
+  for (const [name, entry] of Object.entries(state.buildings)) {
+    buildings[name] = { val: entry.val, on: entry.on };
+  }
+
   return {
     version: state.version,
     tick: state.tick,
     effectCache: { ...state.effectCache },
     resources,
+    buildings,
   };
 }
 
@@ -66,10 +78,21 @@ export function deserialize(data: SerializedGameState): GameState {
     }
   }
 
+  const savedBuildings = data.buildings ?? {};
+  const buildings: Record<string, { val: number; on: number }> = {
+    ...createInitialBuildings(),
+  };
+  for (const [name, entry] of Object.entries(savedBuildings)) {
+    if (entry && typeof entry.val === "number" && typeof entry.on === "number") {
+      buildings[name] = { val: entry.val, on: entry.on };
+    }
+  }
+
   return {
     version: data.version,
     tick: data.tick as Tick,
     effectCache: data.effectCache ?? {},
     resources,
+    buildings,
   };
 }

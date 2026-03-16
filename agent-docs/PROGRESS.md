@@ -58,7 +58,14 @@ Prerequisites: Epic 03
 ---
 
 ## Epic 05: Buildings
-**Status:** Not Started
+**Status:** Complete | **Started:** 2026-03-16 | **Finished:** 2026-03-16
+Stories: 4 / 4 complete
+
+- [x] Building definitions — BUILDING_DEFS with 11 buildings, BuildingDef, PriceEntry
+- [x] BuildingManager effects — Max effects use val, others use on
+- [x] Buy building action — BUY_BUILDING deducts resources, increments val/on, price scales by priceRatio^count
+- [x] Serialization — buildings field in serialize/deserialize
+
 Prerequisites: Epic 04
 
 ---

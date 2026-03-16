@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { applyAction } from "./actions.js";
+import { createInitialBuildings } from "./buildings.js";
 import { NullManager } from "./manager.js";
 import { createInitialResources } from "./resources.js";
 import { createInitialState, deserialize, serialize } from "./state.js";
@@ -15,6 +16,18 @@ describe("createInitialState", () => {
 
   it("starts with empty effectCache", () => {
     expect(createInitialState().effectCache).toEqual({});
+  });
+
+  it("starts with initial buildings (all zero)", () => {
+    const state = createInitialState();
+    expect(state.buildings.field?.val).toBe(0);
+    expect(state.buildings.field?.on).toBe(0);
+  });
+
+  it("buildings field has all building names", () => {
+    const state = createInitialState();
+    const initial = createInitialBuildings();
+    expect(Object.keys(state.buildings)).toEqual(Object.keys(initial));
   });
 
   it("starts with initial resources (all zero)", () => {
@@ -167,6 +180,93 @@ describe("serialize / deserialize", () => {
     const raw = { version: 1, tick: 0 } as ReturnType<typeof serialize>;
     const restored = deserialize(raw);
     expect(restored.resources.catnip?.value).toBe(0);
+  });
+
+  it("buildings are preserved through round-trip", () => {
+    const state = {
+      ...createInitialState(),
+      buildings: {
+        ...createInitialBuildings(),
+        field: { val: 5, on: 5 },
+      },
+    };
+    const restored = deserialize(serialize(state));
+    expect(restored.buildings.field?.val).toBe(5);
+    expect(restored.buildings.field?.on).toBe(5);
+  });
+
+  it("deserialize falls back to initial buildings if field is missing", () => {
+    const raw = { version: 1, tick: 0 } as ReturnType<typeof serialize>;
+    const restored = deserialize(raw);
+    expect(restored.buildings.field?.val).toBe(0);
+  });
+});
+
+describe("applyAction BUY_BUILDING", () => {
+  it("buys a field when catnip is sufficient", () => {
+    const state = {
+      ...createInitialState(),
+      resources: {
+        ...createInitialResources(),
+        catnip: { value: 100, maxValue: 5000 },
+      },
+    };
+    const next = applyAction(state, { type: "BUY_BUILDING", name: "field" });
+    expect(next.buildings.field?.val).toBe(1);
+    expect(next.buildings.field?.on).toBe(1);
+    expect(next.resources.catnip?.value).toBeCloseTo(90); // 100 - 10
+  });
+
+  it("does nothing when resources are insufficient", () => {
+    const state = createInitialState();
+    const next = applyAction(state, { type: "BUY_BUILDING", name: "field" });
+    expect(next.buildings.field?.val).toBe(0);
+  });
+
+  it("does nothing for unknown building name", () => {
+    const state = createInitialState();
+    const next = applyAction(state, { type: "BUY_BUILDING", name: "unicornLair" });
+    expect(next).toBe(state);
+  });
+
+  it("scales price by priceRatio for 2nd purchase", () => {
+    const state = {
+      ...createInitialState(),
+      resources: {
+        ...createInitialResources(),
+        catnip: { value: 10000, maxValue: 50000 },
+      },
+      buildings: {
+        ...createInitialBuildings(),
+        field: { val: 1, on: 1 },
+      },
+    };
+    const next = applyAction(state, { type: "BUY_BUILDING", name: "field" });
+    expect(next.buildings.field?.val).toBe(2);
+    // 2nd field costs: 10 * 1.12^1 = 11.2
+    expect(next.resources.catnip?.value).toBeCloseTo(10000 - 11.2);
+  });
+
+  it("does not mutate input state", () => {
+    const state = {
+      ...createInitialState(),
+      resources: { ...createInitialResources(), catnip: { value: 100, maxValue: 5000 } },
+    };
+    applyAction(state, { type: "BUY_BUILDING", name: "field" });
+    expect(state.buildings.field?.val).toBe(0);
+    expect(state.resources.catnip?.value).toBe(100);
+  });
+
+  it("handles BUY_BUILDING when building not in state (uses fallback val=0)", () => {
+    // A state where 'field' is absent — covers the fallback branch
+    const state = {
+      ...createInitialState(),
+      resources: { ...createInitialResources(), catnip: { value: 100, maxValue: 5000 } },
+      buildings: {} as Record<string, { val: number; on: number }>,
+    };
+    const next = applyAction(state, { type: "BUY_BUILDING", name: "field" });
+    expect(next.buildings.field?.val).toBe(1);
+    expect(next.resources.catnip?.value).toBeCloseTo(90); // 100 - 10
   });
 });
 

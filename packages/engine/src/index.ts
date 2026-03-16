@@ -16,3 +16,11 @@ export {
   calcResourcePerTick,
   createInitialResources,
 } from "./resources.js";
+export type { BuildingDef, BuildingEntry, BuildingState, PriceEntry } from "./buildings.js";
+export {
+  BUILDING_DEFS,
+  BuildingManager,
+  canAfford,
+  createInitialBuildings,
+  getBuildingPrice,
+} from "./buildings.js";
