@@ -141,7 +141,41 @@ If any dimension scores ≤ 2, pause and fix before moving to the next epic.
 - `tick.test.ts` `MarkedState` pattern is now a recurring smell — consider a helper or just keep updating it as GameState grows
 
 ### Action items for next epic (05 — Buildings)
-- [ ] Run `pnpm turbo build` as part of each TDD iteration (not just `test`)
-- [ ] Read buildings.js lines 315–2500 fully for all static effects before writing stories
-- [ ] Implement `BUY_BUILDING` action handler that deducts resources AND increments building val/on in a single atomic state transition
-- [ ] Add `buildingMax` effect computation: effects ending in 'Max' use `bld.val`, others use `bld.on`
+- [x] Run `pnpm turbo build` as part of each TDD iteration (not just `test`)
+- [x] Read buildings.js lines 315–2500 fully for all static effects before writing stories
+- [x] Implement `BUY_BUILDING` action handler that deducts resources AND increments building val/on in a single atomic state transition
+- [x] Add `buildingMax` effect computation: effects ending in 'Max' use `bld.val`, others use `bld.on`
+
+---
+
+## Epic 05: Buildings — 2026-03-16
+
+| Dimension | Score | Notes |
+|-----------|-------|-------|
+| Test coverage (≥90% target) | 5 | 120/120 engine tests passing. 100% stmt/branch/func/line on all 7 source files. |
+| No skipped tests / no TODOs | 5 | Zero `it.skip`, `test.todo`, `TODO`, `FIXME`, `HACK` across all packages. |
+| Feature parity | 4 | All 11 building defs verified against legacy buildingsData. Known divergence: barn uses static base values without `addBarnWarehouseRatio` (workshop upgrade not yet implemented — correct for this epic). BUY_BUILDING price scaling matches legacy exactly. Max vs on effect scaling confirmed correct. |
+| API spec completeness | 4 | No new server routes. `BUY_BUILDING` action added to engine's `GameAction` union. api-spec `GameActionRequest` not updated yet — that's Epic 17 work. |
+| Code quality (no `any`) | 5 | Zero `any` types. Biome passes clean after --fix --unsafe. Build passes. Fixed `tick.test.ts` MarkedState again (needed `buildings` field). |
+| Docs freshness | 5 | PROGRESS.md updated (4/4 stories complete). STORIES.md ACs all checked. NOTES.md documents static-only design decision and buildings table. DECISIONS.md unchanged (no new ADR needed). |
+| Commit hygiene | 5 | One clean commit with all deliverables. Build verification confirmed before commit. Descriptive body listing all changes. |
+| **Overall average** | **4.7** | |
+
+### What went well
+- 100% branch coverage on first test run after adding edge-case tests
+- `BUY_BUILDING` atomic deduct+increment design works cleanly with pure state model
+- Effect scaling rule (Max uses val, others use on) is correct and verified against legacy
+- `getBuildingPrice` formula exactly matches legacy price scaling
+- Build errors caught immediately by running `pnpm turbo build` as planned
+
+### What to improve
+- `tick.test.ts` `MarkedState` interface is now a persistent maintenance burden — every time `GameState` gains a field, it needs updating. Consider replacing with `Partial<GameState> & Required<Pick<GameState, 'tick' | 'effectCache'>>` or similar
+- barn's `addBarnWarehouseRatio` is a known gap — needs a note in DECISIONS.md or NOTES.md
+- `BUY_BUILDING` doesn't validate that `building.on` matches `building.val` (no partial-off buildings) — intentional simplification but worth noting
+
+### Action items for next epic (06 — Village)
+- [ ] Replace `tick.test.ts` MarkedState with a helper type that automatically extends GameState
+- [ ] Implement VillageManager with kitten growth, death, and job assignment
+- [ ] Job production contributes to PerTickBase (so it IS multiplied by aqueduct ratio)
+- [ ] Catnip/luxury consumption in updateEffects via PerTickCon keys
+- [ ] Validate that sum of job workers ≤ total kittens
