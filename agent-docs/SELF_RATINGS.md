@@ -75,6 +75,40 @@ If any dimension scores ≤ 2, pause and fix before moving to the next epic.
 - `WsMessageSchema` generic base was named `WsEnvelopeBase` internally but not exported — consider exporting for future WS message types
 
 ### Action items for next epic (03 — Core Engine)
-- [ ] Export `WsEnvelopeBase` from api-spec if WS message types proliferate
-- [ ] Read `legacy/core.js` (effect system) and `legacy/game.js:1891` (Timer/tick) fully before writing any engine stories
-- [ ] Check ACs off in STORIES.md as each story completes, not at self-rate time
+- [x] Export `WsEnvelopeBase` from api-spec if WS message types proliferate (deferred — not yet needed)
+- [x] Read `legacy/core.js` (effect system) and `legacy/game.js:1891` (Timer/tick) fully before writing any engine stories
+- [x] Check ACs off in STORIES.md as each story completes, not at self-rate time (done — STORIES.md pre-checked)
+
+---
+
+## Epic 03: Core Engine — 2026-03-16
+
+| Dimension | Score | Notes |
+|-----------|-------|-------|
+| Test coverage (≥90% target) | 5 | 42/42 tests passing. 100% stmt/branch/func/line on all 5 source files (actions, effects, manager, state, tick). |
+| No skipped tests / no TODOs | 5 | Zero `it.skip`, `test.todo`, `TODO`, `FIXME`, `HACK` across all packages. |
+| Feature parity | 5 | `getLimitedDR` output verified against legacy formula for 7 test cases (exact match). DR applied to summed total — matches *intended* legacy behavior per game.js:140. `resetState` calls managers in order. All 5 DR-eligible effect names match legacy `_hasLimitedDiminishingReturn`. |
+| API spec completeness | 5 | No new server routes. openapi.yaml unchanged and complete. Engine exports `tick`/`resetState` which will map to `/api/game/tick` and `/api/game/reset` in Epic 17. |
+| Code quality (no `any`) | 5 | Zero `any` types. Biome passes clean. `z.unknown()` / `Serializable` used correctly at boundaries. |
+| Docs freshness | 5 | PROGRESS.md, EPICS.md, STORIES.md (all ACs pre-checked), DECISIONS.md (ADR-003 added for Manager interface design). |
+| Commit hygiene | 5 | One clean, well-scoped commit per epic. Descriptive multi-line body lists every deliverable. |
+| **Overall average** | **5.0** | |
+
+### What went well
+- 100% coverage on every file from the first test run — no coverage gaps to chase
+- `getLimitedDR` formula verified against running legacy JavaScript; exact match confirmed
+- DR "sum-first, apply-DR-after" approach correctly matches the *intended* (post-fix) legacy behavior
+- Manager interface is small and composable — easy to add domain managers in Epics 04–16
+- STORIES.md ACs were pre-checked during implementation (not deferred to self-rate)
+- ADR-003 captures a non-obvious design decision before it could be forgotten
+
+### What to improve
+- The `tick.test.ts` `MarkedState` interface workaround is a minor smell — `GameState` should be designed to be extended without runtime casts (consider an `extras` escape hatch or generic state for domain managers)
+- `applyAction` and `tick` have overlapping logic — consider whether `applyAction` should simply call `tick` or remain as a separate reducer (currently intentionally separate to avoid circular imports)
+
+### Action items for next epic (04 — Resources)
+- [ ] Read `legacy/js/resources.js` fully before writing stories
+- [ ] Check `legacy/test/` for resource behavior tests to inform ACs
+- [ ] Design `ResourceState` slice and add to `GameState` before writing any tests
+- [ ] Add a `ResourceManager` that implements `Manager` and register it in the engine
+- [ ] Extend `GameActionRequest` in api-spec with resource-related actions (gather, etc.)

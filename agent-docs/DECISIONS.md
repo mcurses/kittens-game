@@ -30,6 +30,24 @@ Need to choose a modern stack for a faithful rewrite of Kittens Game (legacy: ES
 
 ---
 
+## ADR-003: Manager Interface Design
+**Date:** 2026-03-16
+**Status:** Accepted
+
+### Context
+Legacy managers (TabManager subclasses) hold a `this.game` reference and mutate shared state. Need a pattern for the new engine that is both testable and composition-friendly.
+
+### Decision
+Each manager implements a pure `Manager` interface: `update(state) => state`, `updateEffects(state) => Record<string,number>`, `save/load/resetState`. No `this.game` pointers — state flows in and out. The engine calls managers in registration order; each sees the previous manager's output.
+
+### Consequences
+- Managers are trivially unit-testable (no game instance needed)
+- Update order is explicit and deterministic (registration order = call order)
+- Effect cache is rebuilt from scratch each tick (simple, correct; can optimize later)
+- Divergence from legacy: DR is applied to the *summed* total across managers, not per-manager. This matches the *intended* legacy behavior per game.js comment line 140–146.
+
+---
+
 ## ADR-002: Engine Purity Invariant
 **Date:** 2026-03-16
 **Status:** Accepted
