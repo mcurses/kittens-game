@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { applyAction } from "./actions.js";
-import { createInitialState } from "./state.js";
+import { NullManager } from "./manager.js";
+import { createInitialState, deserialize, serialize } from "./state.js";
 
 describe("createInitialState", () => {
   it("returns version 1", () => {
@@ -9,6 +10,10 @@ describe("createInitialState", () => {
 
   it("starts at tick 0", () => {
     expect(createInitialState().tick).toBe(0);
+  });
+
+  it("starts with empty effectCache", () => {
+    expect(createInitialState().effectCache).toEqual({});
   });
 });
 
@@ -31,5 +36,62 @@ describe("applyAction TICK", () => {
       state = applyAction(state, { type: "TICK" });
     }
     expect(state.tick).toBe(5);
+  });
+});
+
+describe("serialize / deserialize", () => {
+  it("round-trips a basic state", () => {
+    const state = createInitialState();
+    const restored = deserialize(serialize(state));
+    expect(restored.tick).toBe(state.tick);
+    expect(restored.version).toBe(state.version);
+    expect(restored.effectCache).toEqual(state.effectCache);
+  });
+
+  it("round-trips a state with tick=42", () => {
+    let state = createInitialState();
+    for (let i = 0; i < 42; i++) {
+      state = applyAction(state, { type: "TICK" });
+    }
+    const restored = deserialize(serialize(state));
+    expect(restored.tick).toBe(42);
+  });
+
+  it("serialized output is JSON.stringify-safe", () => {
+    const state = createInitialState();
+    const serialized = serialize(state);
+    expect(() => JSON.stringify(serialized)).not.toThrow();
+  });
+
+  it("deserialized output ignores unknown fields", () => {
+    const state = createInitialState();
+    const raw = { ...serialize(state), unknownFutureField: "hello" };
+    const restored = deserialize(raw as ReturnType<typeof serialize>);
+    expect(restored.tick).toBe(0);
+  });
+
+  it("effectCache is preserved through round-trip", () => {
+    const state = { ...createInitialState(), effectCache: { catnipPerTickBase: 2.5 } };
+    const restored = deserialize(serialize(state));
+    expect(restored.effectCache.catnipPerTickBase).toBe(2.5);
+  });
+
+  it("deserialize falls back to empty effectCache if field is missing", () => {
+    const raw = { version: 1, tick: 0 } as ReturnType<typeof serialize>;
+    const restored = deserialize(raw);
+    expect(restored.effectCache).toEqual({});
+  });
+});
+
+describe("applyAction with managers", () => {
+  it("calls manager.update during TICK", () => {
+    const m = new NullManager();
+    let called = false;
+    m.update = (s) => {
+      called = true;
+      return s;
+    };
+    applyAction(createInitialState(), { type: "TICK" }, [m]);
+    expect(called).toBe(true);
   });
 });

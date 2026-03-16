@@ -32,8 +32,15 @@ Stories: 6 / 6 complete
 ---
 
 ## Epic 03: Core Engine
-**Status:** Not Started
-Prerequisites: Epic 01
+**Status:** Complete | **Started:** 2026-03-16 | **Finished:** 2026-03-16
+Stories: 6 / 6 complete
+
+- [x] Manager interface — `Manager` interface + `NullManager` implementation
+- [x] Effect cache system — `buildEffectCache()`, `getEffect()`, DR-eligible effects
+- [x] Diminishing returns — `getLimitedDR()` ported faithfully from legacy game.js:2269
+- [x] Tick engine — `tick()` pure function, ordered manager dispatch
+- [x] Save/load serialization — `serialize()`, `deserialize()`, JSON-safe
+- [x] Reset state — `resetState()` calls all manager resets in order
 
 ---
 

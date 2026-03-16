@@ -6,7 +6,7 @@ Live status tracker. Update when epics start or complete.
 |---|------|--------------|----------|--------|
 | 01 | **Foundation** — monorepo, tooling, CI, package skeletons | — | P0 | ✅ Complete |
 | 02 | **API Spec** — OpenAPI schema, Zod types, WS envelope | 01 | P0 | ✅ Complete |
-| 03 | **Core Engine** — tick loop, effect system, base managers | 01 | P0 | ⏳ Not Started |
+| 03 | **Core Engine** — tick loop, effect system, base managers | 01 | P0 | ✅ Complete |
 | 04 | **Resources** — all resource types, storage, perTick calc | 03 | P0 | ⏳ Not Started |
 | 05 | **Buildings** — all buildings, prices, effects, stages | 04 | P0 | ⏳ Not Started |
 | 06 | **Village / Population / Jobs** — kittens, jobs, happiness | 04 | P0 | ⏳ Not Started |
