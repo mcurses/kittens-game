@@ -5,16 +5,16 @@ Last updated: 2026-03-16
 ---
 
 ## Epic 01: Foundation
-**Status:** In Progress | **Started:** 2026-03-16
-Stories: 0 / 7 complete
+**Status:** Complete | **Started:** 2026-03-16 | **Finished:** 2026-03-16
+Stories: 7 / 7 complete
 
-- [ ] Monorepo Initialization
-- [ ] Package Skeletons
-- [ ] TypeScript Configuration
-- [ ] Test Runner Setup
-- [ ] Linting & Formatting
-- [ ] CI Pipeline
-- [ ] Agent Docs Bootstrap
+- [x] Monorepo Initialization — pnpm workspace + Turborepo
+- [x] Package Skeletons — engine, server, client-web, api-spec, shared
+- [x] TypeScript Configuration — strict mode, project references
+- [x] Test Runner Setup — Vitest + coverage in engine & server
+- [x] Linting & Formatting — Biome configured and passing
+- [x] CI Pipeline — GitHub Actions lint → test → build
+- [x] Agent Docs Bootstrap — PROGRESS, EPICS, DECISIONS, SELF_RATINGS
 
 ---
 

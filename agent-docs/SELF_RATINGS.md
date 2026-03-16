@@ -18,3 +18,32 @@ If any dimension scores ≤ 2, pause and fix before moving to the next epic.
 ---
 
 <!-- Self-rating entries will be appended below -->
+
+## Epic 01: Foundation — 2026-03-16
+
+| Dimension | Score | Notes |
+|-----------|-------|-------|
+| Test coverage (≥90% target) | 4 | engine: 100% (5/5). server skeleton has no logic → no tests needed yet; vitest exits 1 on 0 files — acceptable for skeleton |
+| No skipped tests / no TODOs | 5 | Zero `it.skip`, `test.todo`, `TODO`, `FIXME` found across all packages |
+| Feature parity | 5 | Infrastructure epic — no game logic to port; all AC verified against actual files |
+| API spec completeness | 4 | No routes implemented yet (by design); `schemas.ts` stub in place; `openapi.yaml` deferred to Epic 02 |
+| Code quality (no `any`) | 5 | Zero `any` types; Biome passes clean; strict TS with `noUncheckedIndexedAccess` + `exactOptionalPropertyTypes` |
+| Docs freshness | 4 | PROGRESS.md initially stale (fixed during self-rate); DECISIONS.md has ADR-001 + ADR-002; STORIES.md ACs all verified |
+| Commit hygiene | 5 | One clean commit with full scope, summary, and co-author tag; descriptive message |
+| **Overall average** | **4.6** | |
+
+### What went well
+- 100% test coverage on all implemented engine logic from the first TDD cycle
+- Biome auto-fix resolved all formatting issues cleanly
+- TypeScript strict config with project references works across packages
+- Vitest alias resolution for workspace packages via `resolve.alias` works without building
+
+### What to improve
+- Server package's vitest exits code 1 with "No test files found" — add a smoke test or configure `passWithNoTests` for skeleton packages
+- `openapi.yaml` is absent; Epic 02 must create it before any server routes land
+- PROGRESS.md was not updated during implementation — update it as stories complete, not just at self-rate time
+
+### Action items for next epic (02 — API Spec)
+- [ ] Configure `passWithNoTests: true` in server vitest config until real tests exist
+- [ ] Create `packages/api-spec/openapi.yaml` as the first deliverable of Epic 02
+- [ ] Write Zod schemas for all core endpoints before any Hono route is touched

@@ -4,7 +4,7 @@ Live status tracker. Update when epics start or complete.
 
 | # | Epic | Prerequisites | Priority | Status |
 |---|------|--------------|----------|--------|
-| 01 | **Foundation** — monorepo, tooling, CI, package skeletons | — | P0 | 🔄 In Progress |
+| 01 | **Foundation** — monorepo, tooling, CI, package skeletons | — | P0 | ✅ Complete |
 | 02 | **API Spec** — OpenAPI schema, Zod types, WS envelope | 01 | P0 | ⏳ Not Started |
 | 03 | **Core Engine** — tick loop, effect system, base managers | 01 | P0 | ⏳ Not Started |
 | 04 | **Resources** — all resource types, storage, perTick calc | 03 | P0 | ⏳ Not Started |
