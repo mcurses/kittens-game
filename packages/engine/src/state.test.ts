@@ -4,6 +4,7 @@ import { createInitialBuildings } from "./buildings.js";
 import { NullManager } from "./manager.js";
 import { createInitialResources } from "./resources.js";
 import { createInitialState, deserialize, serialize } from "./state.js";
+import { createInitialVillage } from "./village.js";
 
 describe("createInitialState", () => {
   it("returns version 1", () => {
@@ -28,6 +29,18 @@ describe("createInitialState", () => {
     const state = createInitialState();
     const initial = createInitialBuildings();
     expect(Object.keys(state.buildings)).toEqual(Object.keys(initial));
+  });
+
+  it("starts with initial village (kittens=0)", () => {
+    const state = createInitialState();
+    expect(state.village.kittens).toBe(0);
+    expect(state.village.kittenProgress).toBe(0);
+  });
+
+  it("village field has all job names", () => {
+    const state = createInitialState();
+    const initial = createInitialVillage();
+    expect(Object.keys(state.village.jobs)).toEqual(Object.keys(initial.jobs));
   });
 
   it("starts with initial resources (all zero)", () => {
@@ -200,6 +213,43 @@ describe("serialize / deserialize", () => {
     const restored = deserialize(raw);
     expect(restored.buildings.field?.val).toBe(0);
   });
+
+  it("village is preserved through round-trip", () => {
+    const state = {
+      ...createInitialState(),
+      village: {
+        ...createInitialVillage(),
+        kittens: 3,
+        kittenProgress: 0.7,
+        jobs: { ...createInitialVillage().jobs, woodcutter: { value: 2 } },
+      },
+    };
+    const restored = deserialize(serialize(state));
+    expect(restored.village.kittens).toBe(3);
+    expect(restored.village.kittenProgress).toBe(0.7);
+    expect(restored.village.jobs.woodcutter?.value).toBe(2);
+  });
+
+  it("deserialize falls back to initial village if field is missing", () => {
+    const raw = { version: 1, tick: 0 } as ReturnType<typeof serialize>;
+    const restored = deserialize(raw);
+    expect(restored.village.kittens).toBe(0);
+  });
+
+  it("deserialize handles non-number kittens/kittenProgress in village", () => {
+    const raw = {
+      version: 1,
+      tick: 0,
+      village: {
+        kittens: "bad" as unknown as number,
+        kittenProgress: null as unknown as number,
+        jobs: {},
+      },
+    } as ReturnType<typeof serialize>;
+    const restored = deserialize(raw);
+    expect(restored.village.kittens).toBe(0);
+    expect(restored.village.kittenProgress).toBe(0);
+  });
 });
 
 describe("applyAction BUY_BUILDING", () => {
@@ -267,6 +317,88 @@ describe("applyAction BUY_BUILDING", () => {
     const next = applyAction(state, { type: "BUY_BUILDING", name: "field" });
     expect(next.buildings.field?.val).toBe(1);
     expect(next.resources.catnip?.value).toBeCloseTo(90); // 100 - 10
+  });
+});
+
+describe("applyAction ASSIGN_JOB", () => {
+  it("assigns a job when idle kittens exist", () => {
+    const state = {
+      ...createInitialState(),
+      village: { ...createInitialVillage(), kittens: 3 },
+    };
+    const next = applyAction(state, { type: "ASSIGN_JOB", job: "woodcutter" });
+    expect(next.village.jobs.woodcutter?.value).toBe(1);
+  });
+
+  it("does nothing when no idle kittens", () => {
+    const state = {
+      ...createInitialState(),
+      village: {
+        ...createInitialVillage(),
+        kittens: 1,
+        jobs: { ...createInitialVillage().jobs, woodcutter: { value: 1 } },
+      },
+    };
+    const next = applyAction(state, { type: "ASSIGN_JOB", job: "farmer" });
+    expect(next.village.jobs.farmer?.value).toBe(0);
+  });
+
+  it("does nothing for unknown job", () => {
+    const state = { ...createInitialState(), village: { ...createInitialVillage(), kittens: 5 } };
+    const next = applyAction(state, { type: "ASSIGN_JOB", job: "astronaut" });
+    expect(next).toBe(state);
+  });
+
+  it("handles ASSIGN_JOB when job not in state (uses fallback value=0)", () => {
+    const state = {
+      ...createInitialState(),
+      village: {
+        ...createInitialVillage(),
+        kittens: 3,
+        jobs: {} as Record<string, { value: number }>,
+      },
+    };
+    const next = applyAction(state, { type: "ASSIGN_JOB", job: "woodcutter" });
+    expect(next.village.jobs.woodcutter?.value).toBe(1);
+  });
+});
+
+describe("applyAction UNASSIGN_JOB", () => {
+  it("unassigns a job when workers exist", () => {
+    const state = {
+      ...createInitialState(),
+      village: {
+        ...createInitialVillage(),
+        kittens: 2,
+        jobs: { ...createInitialVillage().jobs, woodcutter: { value: 2 } },
+      },
+    };
+    const next = applyAction(state, { type: "UNASSIGN_JOB", job: "woodcutter" });
+    expect(next.village.jobs.woodcutter?.value).toBe(1);
+  });
+
+  it("does nothing when job value is 0", () => {
+    const state = { ...createInitialState(), village: createInitialVillage() };
+    const next = applyAction(state, { type: "UNASSIGN_JOB", job: "woodcutter" });
+    expect(next).toBe(state);
+  });
+
+  it("does nothing for unknown job", () => {
+    const state = createInitialState();
+    const next = applyAction(state, { type: "UNASSIGN_JOB", job: "astronaut" });
+    expect(next).toBe(state);
+  });
+
+  it("handles UNASSIGN_JOB when job not in state (value=0, no-op)", () => {
+    const state = {
+      ...createInitialState(),
+      village: {
+        ...createInitialVillage(),
+        jobs: {} as Record<string, { value: number }>,
+      },
+    };
+    const next = applyAction(state, { type: "UNASSIGN_JOB", job: "woodcutter" });
+    expect(next).toBe(state);
   });
 });
 

@@ -1,6 +1,7 @@
 import type { Tick } from "@kittens/shared";
 import { type BuildingState, createInitialBuildings } from "./buildings.js";
 import { type ResourceState, createInitialResources } from "./resources.js";
+import { type VillageState, createInitialVillage } from "./village.js";
 
 /**
  * Root game state — the single serializable snapshot of a game.
@@ -15,6 +16,8 @@ export interface GameState {
   readonly resources: ResourceState;
   /** All building counts (val + on). */
   readonly buildings: BuildingState;
+  /** Village population: kittens, growth progress, and job assignments. */
+  readonly village: VillageState;
 }
 
 export function createInitialState(): GameState {
@@ -24,6 +27,7 @@ export function createInitialState(): GameState {
     effectCache: {},
     resources: createInitialResources(),
     buildings: createInitialBuildings(),
+    village: createInitialVillage(),
   };
 }
 
@@ -36,6 +40,11 @@ export interface SerializedGameState {
   effectCache: Record<string, number>;
   resources: Record<string, { value: number; maxValue: number }>;
   buildings: Record<string, { val: number; on: number }>;
+  village: {
+    kittens: number;
+    kittenProgress: number;
+    jobs: Record<string, { value: number }>;
+  };
 }
 
 /**
@@ -53,12 +62,22 @@ export function serialize(state: GameState): SerializedGameState {
     buildings[name] = { val: entry.val, on: entry.on };
   }
 
+  const jobs: Record<string, { value: number }> = {};
+  for (const [name, entry] of Object.entries(state.village.jobs)) {
+    jobs[name] = { value: entry.value };
+  }
+
   return {
     version: state.version,
     tick: state.tick,
     effectCache: { ...state.effectCache },
     resources,
     buildings,
+    village: {
+      kittens: state.village.kittens,
+      kittenProgress: state.village.kittenProgress,
+      jobs,
+    },
   };
 }
 
@@ -88,11 +107,29 @@ export function deserialize(data: SerializedGameState): GameState {
     }
   }
 
+  const savedVillage = data.village;
+  let village = createInitialVillage();
+  if (savedVillage && typeof savedVillage === "object") {
+    const kittens = typeof savedVillage.kittens === "number" ? savedVillage.kittens : 0;
+    const kittenProgress =
+      typeof savedVillage.kittenProgress === "number" ? savedVillage.kittenProgress : 0;
+    const jobs: Record<string, { value: number }> = { ...createInitialVillage().jobs };
+    if (savedVillage.jobs && typeof savedVillage.jobs === "object") {
+      for (const [name, entry] of Object.entries(savedVillage.jobs)) {
+        if (entry && typeof entry.value === "number") {
+          jobs[name] = { value: entry.value };
+        }
+      }
+    }
+    village = { kittens, kittenProgress, jobs };
+  }
+
   return {
     version: data.version,
     tick: data.tick as Tick,
     effectCache: data.effectCache ?? {},
     resources,
     buildings,
+    village,
   };
 }

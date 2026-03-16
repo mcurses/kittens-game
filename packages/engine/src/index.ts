@@ -24,3 +24,10 @@ export {
   createInitialBuildings,
   getBuildingPrice,
 } from "./buildings.js";
+export type { JobDef, JobEntry, VillageState } from "./village.js";
+export {
+  JOB_DEFS,
+  VillageManager,
+  createInitialVillage,
+  totalAssignedKittens,
+} from "./village.js";

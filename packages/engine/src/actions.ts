@@ -2,12 +2,15 @@ import type { Tick } from "@kittens/shared";
 import { BUILDING_DEFS, canAfford, getBuildingPrice } from "./buildings.js";
 import type { Manager } from "./manager.js";
 import type { GameState } from "./state.js";
+import { JOB_DEFS, totalAssignedKittens } from "./village.js";
 
 /** Discriminated union of all possible game actions */
 export type GameAction =
   | { readonly type: "TICK" }
   | { readonly type: "GATHER_CATNIP" }
-  | { readonly type: "BUY_BUILDING"; readonly name: string };
+  | { readonly type: "BUY_BUILDING"; readonly name: string }
+  | { readonly type: "ASSIGN_JOB"; readonly job: string }
+  | { readonly type: "UNASSIGN_JOB"; readonly job: string };
 
 /**
  * Pure reducer: apply an action to a state and return the next state.
@@ -66,6 +69,43 @@ export function applyAction(
       };
 
       return { ...state, resources: newResources, buildings: newBuildings };
+    }
+    case "ASSIGN_JOB": {
+      const def = JOB_DEFS.find((j) => j.name === action.job);
+      if (!def) return state;
+
+      const assigned = totalAssignedKittens(state.village);
+      if (assigned >= state.village.kittens) return state;
+
+      const job = state.village.jobs[action.job] ?? { value: 0 };
+      return {
+        ...state,
+        village: {
+          ...state.village,
+          jobs: {
+            ...state.village.jobs,
+            [action.job]: { value: job.value + 1 },
+          },
+        },
+      };
+    }
+    case "UNASSIGN_JOB": {
+      const def = JOB_DEFS.find((j) => j.name === action.job);
+      if (!def) return state;
+
+      const job = state.village.jobs[action.job] ?? { value: 0 };
+      if (job.value <= 0) return state;
+
+      return {
+        ...state,
+        village: {
+          ...state.village,
+          jobs: {
+            ...state.village.jobs,
+            [action.job]: { value: job.value - 1 },
+          },
+        },
+      };
     }
   }
 }

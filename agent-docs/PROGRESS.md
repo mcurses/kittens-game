@@ -71,7 +71,16 @@ Prerequisites: Epic 04
 ---
 
 ## Epic 06: Village / Population / Jobs
-**Status:** Not Started
+**Status:** Complete | **Started:** 2026-03-16 | **Finished:** 2026-03-16
+Stories: 6 / 6 complete
+
+- [x] Village state — VillageState, JOB_DEFS, createInitialVillage()
+- [x] Kitten growth — progress accumulator, spawns when progress >= 1 and kittens < maxKittens
+- [x] Kitten death — kills 1 kitten/tick when catnip + perTick < 0, frees job slot
+- [x] Job production — updateEffects() outputs PerTickBase per job + consumption PerTickCon
+- [x] Job assignment — ASSIGN_JOB / UNASSIGN_JOB actions with idle-kitten validation
+- [x] Serialization — village field in serialize/deserialize
+
 Prerequisites: Epic 04
 
 ---

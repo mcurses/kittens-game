@@ -40,6 +40,11 @@ describe("tick", () => {
       effectCache: Record<string, number>;
       resources: Record<string, { value: number; maxValue: number }>;
       buildings: Record<string, { val: number; on: number }>;
+      village: {
+        kittens: number;
+        kittenProgress: number;
+        jobs: Record<string, { value: number }>;
+      };
       marker?: boolean;
     }
     const m1 = new NullManager();
