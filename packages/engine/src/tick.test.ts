@@ -45,6 +45,7 @@ describe("tick", () => {
         kittenProgress: number;
         jobs: Record<string, { value: number }>;
       };
+      calendar: { day: number; season: number; year: number };
       marker?: boolean;
     }
     const m1 = new NullManager();

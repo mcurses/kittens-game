@@ -86,7 +86,16 @@ Prerequisites: Epic 04
 ---
 
 ## Epic 07: Calendar & Seasons
-**Status:** Not Started
+**Status:** In Progress | **Started:** 2026-03-17
+Stories: 0/6 complete
+
+- [ ] Story 1: CalendarState shape and initial values
+- [ ] Story 2: Day advances each tick
+- [ ] Story 3: Season advancement
+- [ ] Story 4: Season catnip modifier via effect cache
+- [ ] Story 5: CalendarManager integrates with GameState and tick loop
+- [ ] Story 6: Save / load / reset
+
 Prerequisites: Epic 03
 
 ---

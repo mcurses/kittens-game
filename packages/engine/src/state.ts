@@ -1,5 +1,6 @@
 import type { Tick } from "@kittens/shared";
 import { type BuildingState, createInitialBuildings } from "./buildings.js";
+import { type CalendarState, createInitialCalendar } from "./calendar.js";
 import { type ResourceState, createInitialResources } from "./resources.js";
 import { type VillageState, createInitialVillage } from "./village.js";
 
@@ -18,6 +19,8 @@ export interface GameState {
   readonly buildings: BuildingState;
   /** Village population: kittens, growth progress, and job assignments. */
   readonly village: VillageState;
+  /** In-game calendar: day, season, year. */
+  readonly calendar: CalendarState;
 }
 
 export function createInitialState(): GameState {
@@ -28,6 +31,7 @@ export function createInitialState(): GameState {
     resources: createInitialResources(),
     buildings: createInitialBuildings(),
     village: createInitialVillage(),
+    calendar: createInitialCalendar(),
   };
 }
 
@@ -44,6 +48,11 @@ export interface SerializedGameState {
     kittens: number;
     kittenProgress: number;
     jobs: Record<string, { value: number }>;
+  };
+  calendar: {
+    day: number;
+    season: number;
+    year: number;
   };
 }
 
@@ -77,6 +86,11 @@ export function serialize(state: GameState): SerializedGameState {
       kittens: state.village.kittens,
       kittenProgress: state.village.kittenProgress,
       jobs,
+    },
+    calendar: {
+      day: state.calendar.day,
+      season: state.calendar.season,
+      year: state.calendar.year,
     },
   };
 }
@@ -124,6 +138,16 @@ export function deserialize(data: SerializedGameState): GameState {
     village = { kittens, kittenProgress, jobs };
   }
 
+  const savedCalendar = data.calendar;
+  let calendar = createInitialCalendar();
+  if (savedCalendar && typeof savedCalendar === "object") {
+    calendar = {
+      day: typeof savedCalendar.day === "number" ? savedCalendar.day : 0,
+      season: typeof savedCalendar.season === "number" ? savedCalendar.season : 0,
+      year: typeof savedCalendar.year === "number" ? savedCalendar.year : 0,
+    };
+  }
+
   return {
     version: data.version,
     tick: data.tick as Tick,
@@ -131,5 +155,6 @@ export function deserialize(data: SerializedGameState): GameState {
     resources,
     buildings,
     village,
+    calendar,
   };
 }

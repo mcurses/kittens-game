@@ -31,3 +31,12 @@ export {
   createInitialVillage,
   totalAssignedKittens,
 } from "./village.js";
+export type { CalendarState, SeasonDef } from "./calendar.js";
+export {
+  TICKS_PER_DAY,
+  DAYS_PER_SEASON,
+  SEASONS_PER_YEAR,
+  SEASON_DEFS,
+  CalendarManager,
+  createInitialCalendar,
+} from "./calendar.js";

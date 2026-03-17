@@ -236,6 +236,41 @@ describe("serialize / deserialize", () => {
     expect(restored.village.kittens).toBe(0);
   });
 
+  it("calendar is preserved through round-trip", () => {
+    const state = {
+      ...createInitialState(),
+      calendar: { day: 55.5, season: 3, year: 12 },
+    };
+    const restored = deserialize(serialize(state));
+    expect(restored.calendar.day).toBe(55.5);
+    expect(restored.calendar.season).toBe(3);
+    expect(restored.calendar.year).toBe(12);
+  });
+
+  it("deserialize falls back to initial calendar if field is missing", () => {
+    const raw = { version: 1, tick: 0 } as ReturnType<typeof serialize>;
+    const restored = deserialize(raw);
+    expect(restored.calendar.day).toBe(0);
+    expect(restored.calendar.season).toBe(0);
+    expect(restored.calendar.year).toBe(0);
+  });
+
+  it("deserialize handles non-number calendar fields gracefully", () => {
+    const raw = {
+      version: 1,
+      tick: 0,
+      calendar: {
+        day: "bad" as unknown as number,
+        season: null as unknown as number,
+        year: undefined as unknown as number,
+      },
+    } as ReturnType<typeof serialize>;
+    const restored = deserialize(raw);
+    expect(restored.calendar.day).toBe(0);
+    expect(restored.calendar.season).toBe(0);
+    expect(restored.calendar.year).toBe(0);
+  });
+
   it("deserialize handles non-number kittens/kittenProgress in village", () => {
     const raw = {
       version: 1,
