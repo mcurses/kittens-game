@@ -57,3 +57,19 @@ export {
   applyResearch,
   applyResearchPolicy,
 } from "./science.js";
+export type {
+  WorkshopState,
+  UpgradeDef,
+  UpgradeEntry,
+  UpgradeUnlocks,
+  CraftDef,
+  CraftEntry,
+} from "./workshop.js";
+export {
+  UPGRADE_DEFS,
+  CRAFT_DEFS,
+  WorkshopManager,
+  createInitialWorkshop,
+  applyPurchaseUpgrade,
+  applyCraft,
+} from "./workshop.js";

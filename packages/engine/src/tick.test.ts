@@ -50,6 +50,10 @@ describe("tick", () => {
         techs: Record<string, { unlocked: boolean; researched: boolean }>;
         policies: Record<string, { unlocked: boolean; blocked: boolean; researched: boolean }>;
       };
+      workshop: {
+        upgrades: Record<string, { unlocked: boolean; researched: boolean }>;
+        crafts: Record<string, { unlocked: boolean }>;
+      };
       marker?: boolean;
     }
     const m1 = new NullManager();

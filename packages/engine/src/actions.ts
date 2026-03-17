@@ -4,6 +4,7 @@ import type { Manager } from "./manager.js";
 import { applyResearch, applyResearchPolicy } from "./science.js";
 import type { GameState } from "./state.js";
 import { JOB_DEFS, totalAssignedKittens } from "./village.js";
+import { applyCraft, applyPurchaseUpgrade } from "./workshop.js";
 
 /** Discriminated union of all possible game actions */
 export type GameAction =
@@ -13,7 +14,9 @@ export type GameAction =
   | { readonly type: "ASSIGN_JOB"; readonly job: string }
   | { readonly type: "UNASSIGN_JOB"; readonly job: string }
   | { readonly type: "RESEARCH"; readonly name: string }
-  | { readonly type: "RESEARCH_POLICY"; readonly name: string };
+  | { readonly type: "RESEARCH_POLICY"; readonly name: string }
+  | { readonly type: "PURCHASE_UPGRADE"; readonly name: string }
+  | { readonly type: "CRAFT"; readonly name: string; readonly amount: number };
 
 /**
  * Pure reducer: apply an action to a state and return the next state.
@@ -115,6 +118,12 @@ export function applyAction(
     }
     case "RESEARCH_POLICY": {
       return applyResearchPolicy(state, action.name);
+    }
+    case "PURCHASE_UPGRADE": {
+      return applyPurchaseUpgrade(state, action.name);
+    }
+    case "CRAFT": {
+      return applyCraft(state, action.name, action.amount);
     }
   }
 }

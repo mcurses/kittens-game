@@ -4,6 +4,7 @@ import { type CalendarState, createInitialCalendar } from "./calendar.js";
 import { type ResourceState, createInitialResources } from "./resources.js";
 import { type ScienceState, createInitialScience } from "./science.js";
 import { type VillageState, createInitialVillage } from "./village.js";
+import { type WorkshopState, createInitialWorkshop } from "./workshop.js";
 
 /**
  * Root game state — the single serializable snapshot of a game.
@@ -24,6 +25,8 @@ export interface GameState {
   readonly calendar: CalendarState;
   /** Science: researched techs and policies. */
   readonly science: ScienceState;
+  /** Workshop: purchased upgrades and craft unlock state. */
+  readonly workshop: WorkshopState;
 }
 
 export function createInitialState(): GameState {
@@ -36,6 +39,7 @@ export function createInitialState(): GameState {
     village: createInitialVillage(),
     calendar: createInitialCalendar(),
     science: createInitialScience(),
+    workshop: createInitialWorkshop(),
   };
 }
 
@@ -61,6 +65,10 @@ export interface SerializedGameState {
   science: {
     techs: Record<string, { unlocked: boolean; researched: boolean }>;
     policies: Record<string, { unlocked: boolean; blocked: boolean; researched: boolean }>;
+  };
+  workshop: {
+    upgrades: Record<string, { unlocked: boolean; researched: boolean }>;
+    crafts: Record<string, { unlocked: boolean }>;
   };
 }
 
@@ -112,6 +120,17 @@ export function serialize(state: GameState): SerializedGameState {
           n,
           { unlocked: e.unlocked, blocked: e.blocked, researched: e.researched },
         ]),
+      ),
+    },
+    workshop: {
+      upgrades: Object.fromEntries(
+        Object.entries(state.workshop.upgrades).map(([n, e]) => [
+          n,
+          { unlocked: e.unlocked, researched: e.researched },
+        ]),
+      ),
+      crafts: Object.fromEntries(
+        Object.entries(state.workshop.crafts).map(([n, e]) => [n, { unlocked: e.unlocked }]),
       ),
     },
   };
@@ -173,6 +192,9 @@ export function deserialize(data: SerializedGameState): GameState {
   // Science state is handled entirely by ScienceManager.load() — start from initial
   const science = createInitialScience();
 
+  // Workshop state is handled entirely by WorkshopManager.load() — start from initial
+  const workshop = createInitialWorkshop();
+
   return {
     version: data.version,
     tick: data.tick as Tick,
@@ -182,5 +204,6 @@ export function deserialize(data: SerializedGameState): GameState {
     village,
     calendar,
     science,
+    workshop,
   };
 }
