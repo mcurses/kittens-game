@@ -249,3 +249,40 @@ If any dimension scores ≤ 2, pause and fix before moving to the next epic.
 - [x] Unlock conditions: `requires` array of tech names and/or resource thresholds
 - [x] ~100 technologies — define as static TECH_DEFS array (same pattern as BUILDING_DEFS)
 - [x] ScienceManager must integrate with GameState as a new `science` slice
+
+---
+
+## Epic 08: Science / Tech Tree — 2026-03-17
+
+| Dimension | Score | Notes |
+|-----------|-------|-------|
+| Test coverage (≥90% target) | 5 | 247/247 tests passing. 100% stmt/func/line on all 11 source files. science.ts branch: 98.7% — one unreachable defensive `?? false` on line 1276 (iterating over `Object.keys(techs)` guarantees key exists). Overall 99.65% branch. |
+| No skipped tests / no TODOs | 5 | Zero `it.skip`, `test.todo`, `TODO`, `FIXME`, `HACK` across all packages. |
+| Feature parity | 5 | ~60 TECH_DEFS and ~60 POLICY_DEFS ported from legacy science.js. resetState: only "calendar" unlocked, all policies false — confirmed against legacy lines 2313–2327. save/load: saves name/unlocked/researched/blocked fields, restores and re-applies unlock chains — matches legacy lines 2330–2367. policy blocking (liberty⟺tradition, governance set mutual exclusions) verified against legacy. updateEffects summing pattern matches legacy globalEffectsCached pattern. |
+| API spec completeness | 4 | RESEARCH and RESEARCH_POLICY added to engine `GameAction` union but not yet in api-spec `GameActionRequest`. Deferred to Epic 17 (server). No new server routes needed for this epic. |
+| Code quality (no `any`) | 5 | Zero `any` types. Biome passes clean (fixed import ordering in index.ts and science.test.ts). Build passes (`pnpm turbo build --filter=@kittens/engine`). tick.test.ts MarkedState updated with `science` field. |
+| Docs freshness | 5 | PROGRESS.md updated (Epic 08 complete, 7/7 stories). EPICS.md updated (08 marked ✅ Complete). STORIES.md all ACs checked. NOTES.md documents all key decisions (effectCache summing, policy blocking, ScienceManager.load unlock replay). |
+| Commit hygiene | 5 | One clean, well-scoped commit. Descriptive multi-line body. Build verified before commit. No WIP commits. |
+| **Overall average** | **4.9** | |
+
+### What went well
+- ~120 definitions (60 techs + 60 policies) ported faithfully in a single pass with zero runtime errors
+- Policy blocking (mutual exclusions between governance policies) verified against all legacy `blocks:[]` arrays
+- Unlock propagation (calendar → agriculture → mining/archery chain) passes all tests
+- `applyResearch` and `applyResearchPolicy` are clean pure functions with no side effects
+- `ScienceManager.updateEffects()` summing pattern maps directly to the flat effectCache convention
+- `ScienceManager.load()` correctly replays unlock chains on save restore (matches legacy "re-unlock on load" pattern)
+- 99.65% branch coverage with only one unreachable defensive branch remaining
+
+### What to improve
+- `tick.test.ts` MarkedState is now a 4-epic-old maintenance burden — it tracks all GameState fields manually. This is the fourth time it has been updated; should be replaced with a simpler type
+- api-spec `GameActionRequest` is now 5 epics behind (missing GATHER_CATNIP, BUY_BUILDING, ASSIGN_JOB, UNASSIGN_JOB, RESEARCH, RESEARCH_POLICY). Sync at start of Epic 17
+- The science state in `deserialize()` uses `createInitialScience()` as placeholder — the actual restoration relies on `ScienceManager.load()` being called separately. This split responsibility should be clearly documented (it is in NOTES.md)
+
+### Action items for next epic (09 — Workshop / Upgrades)
+- [ ] Read `legacy/js/workshop.js` fully before writing stories — upgrade unlock conditions reference tech names
+- [ ] Implement CRAFT action: convert resources to refined resources (iron → steel, wood → beam, etc.)
+- [ ] Implement PURCHASE_UPGRADE action: pay resource price, mark upgrade as purchased, contribute effects to effectCache
+- [ ] WorkshopManager.updateEffects() must contribute upgrade effects to effectCache (same summing pattern as ScienceManager)
+- [ ] Upgrade unlock conditions typically require a tech (e.g. "Engineering" unlocks "Reinforced Warehouses")
+- [ ] Add `workshop: WorkshopState` slice to GameState and update tick.test.ts MarkedState (or finally fix MarkedState pattern)

@@ -101,16 +101,16 @@ Prerequisites: Epic 03
 ---
 
 ## Epic 08: Science / Tech Tree
-**Status:** In Progress | **Started:** 2026-03-17
-Stories: 0/7 complete
+**Status:** Complete | **Started:** 2026-03-17 | **Finished:** 2026-03-17
+Stories: 7/7 complete
 
-- [ ] Story 1: TechDef and ScienceState shape
-- [ ] Story 2: PolicyDef and policy state
-- [ ] Story 3: RESEARCH action for technologies
-- [ ] Story 4: RESEARCH_POLICY action
-- [ ] Story 5: updateEffects — tech and policy effects in effectCache
-- [ ] Story 6: Tech unlock propagation on research
-- [ ] Story 7: Save / load / reset
+- [x] Story 1: TechDef and ScienceState shape
+- [x] Story 2: PolicyDef and policy state
+- [x] Story 3: RESEARCH action for technologies
+- [x] Story 4: RESEARCH_POLICY action
+- [x] Story 5: updateEffects — tech and policy effects in effectCache
+- [x] Story 6: Tech unlock propagation on research
+- [x] Story 7: Save / load / reset
 
 Prerequisites: Epics 05, 06
 
