@@ -46,6 +46,10 @@ describe("tick", () => {
         jobs: Record<string, { value: number }>;
       };
       calendar: { day: number; season: number; year: number };
+      science: {
+        techs: Record<string, { unlocked: boolean; researched: boolean }>;
+        policies: Record<string, { unlocked: boolean; blocked: boolean; researched: boolean }>;
+      };
       marker?: boolean;
     }
     const m1 = new NullManager();

@@ -179,3 +179,73 @@ If any dimension scores ≤ 2, pause and fix before moving to the next epic.
 - [ ] Job production contributes to PerTickBase (so it IS multiplied by aqueduct ratio)
 - [ ] Catnip/luxury consumption in updateEffects via PerTickCon keys
 - [ ] Validate that sum of job workers ≤ total kittens
+
+---
+
+## Epic 06: Village / Population / Jobs — 2026-03-16
+
+| Dimension | Score | Notes |
+|-----------|-------|-------|
+| Test coverage (≥90% target) | 5 | 163/163 engine tests passing. 100% stmt/branch/func/line on all 8 source files. 24/24 api-spec tests still green. |
+| No skipped tests / no TODOs | 5 | Zero `it.skip`, `test.todo`, `TODO`, `FIXME`, `HACK` across all packages. |
+| Feature parity | 4 | VillageManager kitten growth (progress accumulator), kitten death (catnip drain guard), job production via PerTickBase, and catnip/furs/ivory/spice consumption all verified against legacy. Known divergence: luxury consumption coefficients (furs 0.01, ivory 0.007, spice 0.001) match legacy defaults but no workshop upgrade multiplier yet. `freeOneJobSlot` removes from first assigned job, matching legacy iterate-and-remove approach. |
+| API spec completeness | 4 | No new server routes. `ASSIGN_JOB` and `UNASSIGN_JOB` added to engine `GameAction` union but not yet in api-spec `GameActionRequest`. That sync is deferred to Epic 17 (server). |
+| Code quality (no `any`) | 5 | Zero `any` types. Biome passes clean. Build passes. Fixed `tick.test.ts` `MarkedState` (extended with `village` shape). All type guards use `typeof x === "number"` patterns. |
+| Docs freshness | 5 | PROGRESS.md updated (6/6 stories complete, Epic 06 marked finished). STORIES.md ACs checked. No new ADR needed — village design follows established Manager pattern. |
+| Commit hygiene | 5 | One clean, well-scoped commit. Descriptive body. No WIP commits. Build verified before commit. |
+| **Overall average** | **4.7** | |
+
+### What went well
+- 100% branch coverage on first run — edge-case tests for every fallback branch were written proactively
+- `freeOneJobSlot` pure helper correctly frees exactly one assigned slot (first non-zero job) matching legacy
+- `totalAssignedKittens` helper simplifies both ASSIGN_JOB guard and death logic
+- Kitten growth accumulator pattern (progress >= 1.0 → spawn + carry remainder) is clean and matches legacy exactly
+- Catnip + perTick drain check before spawning is simpler than legacy because effectCache is already built
+- `tick.test.ts` `MarkedState` update was routine — no ambiguity about the required shape
+
+### What to improve
+- `tick.test.ts` `MarkedState` is still a recurring maintenance burden; should be replaced with a derived type in Epic 07 before it grows further
+- api-spec `GameActionRequest` is now two epics behind (missing GATHER_CATNIP, BUY_BUILDING, ASSIGN_JOB, UNASSIGN_JOB). Should sync at start of Epic 17 before writing any Hono routes
+- Luxury consumption rates (furs/ivory/spice) are hardcoded magic numbers; could benefit from a named constant or comment referencing legacy source line
+
+### Action items for next epic (07 — Calendar & Seasons)
+- [ ] Replace `tick.test.ts` `MarkedState` with a type derived from `GameState` (e.g. `GameState & { marker?: boolean }`) to eliminate the per-epic update ritual
+- [ ] Read legacy `calendar.js` fully before writing stories — season effect on catnip production is non-trivial
+- [ ] Add `CalendarState` to `GameState` and update `serialize`/`deserialize` accordingly
+- [ ] CalendarManager must apply season modifier to `catnipRatio` in `updateEffects`; confirm multiplier values against legacy
+- [ ] Year/season/day counters must all advance correctly — verify overflow/wrap behavior in tests
+
+---
+
+## Epic 07: Calendar & Seasons — 2026-03-17
+
+| Dimension | Score | Notes |
+|-----------|-------|-------|
+| Test coverage (≥90% target) | 5 | 194/194 tests passing. 100% stmt/branch/func/line on all 9 source files. calendar.ts: 100% branch (edge cases for out-of-bounds season and non-number load fields covered). |
+| No skipped tests / no TODOs | 5 | Zero `it.skip`, `test.todo`, `TODO`, `FIXME`, `HACK` across all packages. |
+| Feature parity | 5 | Day advancement formula matches legacy exactly (1/ticksPerDay per tick). Season wrap at daysPerSeason=100 verified with boundary test (day=99.9 → season+1). Year increment on winter→spring wrap verified. Season catnip modifier values (1.5/1.0/1.0/0.25) confirmed against legacy seasons array. Weather (+/-0.15) correctly deferred to challenges epic — noted in NOTES.md. All save/load/reset fields match legacy `calendar.save()` core fields. |
+| API spec completeness | 5 | No new server routes or actions needed for calendar (calendar advances automatically on tick — no player-initiated action). Existing `TICK` action covers it. |
+| Code quality (no `any`) | 5 | Zero `any` types. Biome passes clean (fixed 1 import-order issue). Build passes (`pnpm turbo build --filter=@kittens/engine`). tick.test.ts MarkedState updated with `calendar` field. |
+| Docs freshness | 5 | PROGRESS.md updated (Epic 07 complete, 6/6 stories). EPICS.md updated (07 marked complete). STORIES.md all ACs checked. NOTES.md thoroughly documents all deferred behaviors (weather, cycles, festivals, temporal paradox, crypto). No new ADR needed — CalendarManager follows existing Manager pattern. |
+| Commit hygiene | 5 | One clean, well-scoped commit. Descriptive multi-line body. Build verified before commit. No WIP commits. |
+| **Overall average** | **5.0** | |
+
+### What went well
+- 100% branch coverage achieved on first test run — proactive edge-case tests for out-of-bounds season index and non-number load fields
+- `roundToCentiday()` exactly mirrors legacy `_roundToCentiday()` — float drift test passes cleanly (10 ticks = exactly 1.0 day)
+- Season catnip modifier correctly translated to ratio delta (modifier - 1.0) matching the `calcResourcePerTick` formula
+- Spot-checks against all 3 key legacy behaviors (day formula, season wrap, catnip modifier) confirmed exact match
+- `tick.test.ts` MarkedState update was anticipated and handled in a single pass
+- NOTES.md clearly documents all deferred behaviors (weather, cycles, festivals, paradox, crypto) so future epics have context
+
+### What to improve
+- `tick.test.ts` MarkedState is still a manual maintenance burden — action item carried forward again. Consider a union or intersection helper type
+- STORIES.md ACs use `[ ]` checkboxes in the markdown source but tests/impl status is in the `### Status` line — slightly redundant format; consider consolidating
+
+### Action items for next epic (08 — Science / Tech Tree)
+- [x] Read `legacy/js/science.js` fully before writing stories — tech unlock chain logic is complex
+- [x] Science costs/effects must feed into effectCache using the same flat key pattern
+- [x] RESEARCH action: deduct science resource, mark tech as researched, rebuild effect cache
+- [x] Unlock conditions: `requires` array of tech names and/or resource thresholds
+- [x] ~100 technologies — define as static TECH_DEFS array (same pattern as BUILDING_DEFS)
+- [x] ScienceManager must integrate with GameState as a new `science` slice

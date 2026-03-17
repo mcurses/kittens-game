@@ -40,3 +40,20 @@ export {
   CalendarManager,
   createInitialCalendar,
 } from "./calendar.js";
+export type {
+  ScienceState,
+  TechDef,
+  TechEntry,
+  PolicyDef,
+  PolicyEntry,
+  TechUnlocks,
+  PolicyUnlocks,
+} from "./science.js";
+export {
+  TECH_DEFS,
+  POLICY_DEFS,
+  ScienceManager,
+  createInitialScience,
+  applyResearch,
+  applyResearchPolicy,
+} from "./science.js";

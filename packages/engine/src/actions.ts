@@ -1,6 +1,7 @@
 import type { Tick } from "@kittens/shared";
 import { BUILDING_DEFS, canAfford, getBuildingPrice } from "./buildings.js";
 import type { Manager } from "./manager.js";
+import { applyResearch, applyResearchPolicy } from "./science.js";
 import type { GameState } from "./state.js";
 import { JOB_DEFS, totalAssignedKittens } from "./village.js";
 
@@ -10,7 +11,9 @@ export type GameAction =
   | { readonly type: "GATHER_CATNIP" }
   | { readonly type: "BUY_BUILDING"; readonly name: string }
   | { readonly type: "ASSIGN_JOB"; readonly job: string }
-  | { readonly type: "UNASSIGN_JOB"; readonly job: string };
+  | { readonly type: "UNASSIGN_JOB"; readonly job: string }
+  | { readonly type: "RESEARCH"; readonly name: string }
+  | { readonly type: "RESEARCH_POLICY"; readonly name: string };
 
 /**
  * Pure reducer: apply an action to a state and return the next state.
@@ -106,6 +109,12 @@ export function applyAction(
           },
         },
       };
+    }
+    case "RESEARCH": {
+      return applyResearch(state, action.name);
+    }
+    case "RESEARCH_POLICY": {
+      return applyResearchPolicy(state, action.name);
     }
   }
 }

@@ -2,6 +2,7 @@ import type { Tick } from "@kittens/shared";
 import { type BuildingState, createInitialBuildings } from "./buildings.js";
 import { type CalendarState, createInitialCalendar } from "./calendar.js";
 import { type ResourceState, createInitialResources } from "./resources.js";
+import { type ScienceState, createInitialScience } from "./science.js";
 import { type VillageState, createInitialVillage } from "./village.js";
 
 /**
@@ -21,6 +22,8 @@ export interface GameState {
   readonly village: VillageState;
   /** In-game calendar: day, season, year. */
   readonly calendar: CalendarState;
+  /** Science: researched techs and policies. */
+  readonly science: ScienceState;
 }
 
 export function createInitialState(): GameState {
@@ -32,6 +35,7 @@ export function createInitialState(): GameState {
     buildings: createInitialBuildings(),
     village: createInitialVillage(),
     calendar: createInitialCalendar(),
+    science: createInitialScience(),
   };
 }
 
@@ -53,6 +57,10 @@ export interface SerializedGameState {
     day: number;
     season: number;
     year: number;
+  };
+  science: {
+    techs: Record<string, { unlocked: boolean; researched: boolean }>;
+    policies: Record<string, { unlocked: boolean; blocked: boolean; researched: boolean }>;
   };
 }
 
@@ -91,6 +99,20 @@ export function serialize(state: GameState): SerializedGameState {
       day: state.calendar.day,
       season: state.calendar.season,
       year: state.calendar.year,
+    },
+    science: {
+      techs: Object.fromEntries(
+        Object.entries(state.science.techs).map(([n, e]) => [
+          n,
+          { unlocked: e.unlocked, researched: e.researched },
+        ]),
+      ),
+      policies: Object.fromEntries(
+        Object.entries(state.science.policies).map(([n, e]) => [
+          n,
+          { unlocked: e.unlocked, blocked: e.blocked, researched: e.researched },
+        ]),
+      ),
     },
   };
 }
@@ -148,6 +170,9 @@ export function deserialize(data: SerializedGameState): GameState {
     };
   }
 
+  // Science state is handled entirely by ScienceManager.load() — start from initial
+  const science = createInitialScience();
+
   return {
     version: data.version,
     tick: data.tick as Tick,
@@ -156,5 +181,6 @@ export function deserialize(data: SerializedGameState): GameState {
     buildings,
     village,
     calendar,
+    science,
   };
 }

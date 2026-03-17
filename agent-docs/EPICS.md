@@ -7,10 +7,10 @@ Live status tracker. Update when epics start or complete.
 | 01 | **Foundation** — monorepo, tooling, CI, package skeletons | — | P0 | ✅ Complete |
 | 02 | **API Spec** — OpenAPI schema, Zod types, WS envelope | 01 | P0 | ✅ Complete |
 | 03 | **Core Engine** — tick loop, effect system, base managers | 01 | P0 | ✅ Complete |
-| 04 | **Resources** — all resource types, storage, perTick calc | 03 | P0 | ⏳ Not Started |
-| 05 | **Buildings** — all buildings, prices, effects, stages | 04 | P0 | ⏳ Not Started |
-| 06 | **Village / Population / Jobs** — kittens, jobs, happiness | 04 | P0 | ⏳ Not Started |
-| 07 | **Calendar & Seasons** — seasons, moon, year tick | 03 | P1 | ⏳ Not Started |
+| 04 | **Resources** — all resource types, storage, perTick calc | 03 | P0 | ✅ Complete |
+| 05 | **Buildings** — all buildings, prices, effects, stages | 04 | P0 | ✅ Complete |
+| 06 | **Village / Population / Jobs** — kittens, jobs, happiness | 04 | P0 | ✅ Complete |
+| 07 | **Calendar & Seasons** — seasons, moon, year tick | 03 | P1 | ✅ Complete |
 | 08 | **Science / Tech Tree** — 100+ techs, unlock chains | 05, 06 | P1 | ⏳ Not Started |
 | 09 | **Workshop / Upgrades** — crafting recipes, upgrade effects | 05, 08 | P1 | ⏳ Not Started |
 | 10 | **Religion & Faith** — faith, gods, praise mechanics | 08 | P1 | ⏳ Not Started |

@@ -86,22 +86,32 @@ Prerequisites: Epic 04
 ---
 
 ## Epic 07: Calendar & Seasons
-**Status:** In Progress | **Started:** 2026-03-17
-Stories: 0/6 complete
+**Status:** Complete | **Started:** 2026-03-17 | **Finished:** 2026-03-17
+Stories: 6/6 complete
 
-- [ ] Story 1: CalendarState shape and initial values
-- [ ] Story 2: Day advances each tick
-- [ ] Story 3: Season advancement
-- [ ] Story 4: Season catnip modifier via effect cache
-- [ ] Story 5: CalendarManager integrates with GameState and tick loop
-- [ ] Story 6: Save / load / reset
+- [x] Story 1: CalendarState shape and initial values
+- [x] Story 2: Day advances each tick
+- [x] Story 3: Season advancement
+- [x] Story 4: Season catnip modifier via effect cache
+- [x] Story 5: CalendarManager integrates with GameState and tick loop
+- [x] Story 6: Save / load / reset
 
 Prerequisites: Epic 03
 
 ---
 
 ## Epic 08: Science / Tech Tree
-**Status:** Not Started
+**Status:** In Progress | **Started:** 2026-03-17
+Stories: 0/7 complete
+
+- [ ] Story 1: TechDef and ScienceState shape
+- [ ] Story 2: PolicyDef and policy state
+- [ ] Story 3: RESEARCH action for technologies
+- [ ] Story 4: RESEARCH_POLICY action
+- [ ] Story 5: updateEffects — tech and policy effects in effectCache
+- [ ] Story 6: Tech unlock propagation on research
+- [ ] Story 7: Save / load / reset
+
 Prerequisites: Epics 05, 06
 
 ---
