@@ -152,7 +152,7 @@ describe("WsStateDeltaSchema", () => {
   it("accepts a valid state delta", () => {
     const result = WsStateDeltaSchema.safeParse({
       type: "STATE_DELTA",
-      payload: { tick: 5 },
+      payload: { version: 1, tick: 5 },
       ts: Date.now(),
     });
     expect(result.success).toBe(true);

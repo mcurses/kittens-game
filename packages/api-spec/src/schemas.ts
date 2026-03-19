@@ -12,23 +12,52 @@ export type HealthResponse = z.infer<typeof HealthResponseSchema>;
 
 /**
  * Serialized snapshot of the full game state.
- * This is the shape returned by GET /api/game/state and embedded in action results.
- * Extended by later epics as domain managers are added.
+ * Requires version + tick; all domain fields (resources, buildings, …) pass through
+ * unvalidated — use SerializedGameState from @kittens/engine for full typing.
  */
-export const GameStateResponseSchema = z.object({
-  version: z.number().int().positive(),
-  tick: z.number().int().min(0),
-});
+export const GameStateResponseSchema = z
+  .object({
+    version: z.number().int().positive(),
+    tick: z.number().int().min(0),
+  })
+  .passthrough();
 export type GameStateResponse = z.infer<typeof GameStateResponseSchema>;
 
 // ── Actions ───────────────────────────────────────────────────────────────────
 
+const s = z.string().min(1);
+const n = z.number();
+
 /**
- * Discriminated union of all game actions.
- * Extended by later epics as new action types are added.
+ * Discriminated union of all 26 game actions — mirrors GameAction in @kittens/engine.
  */
 export const GameActionRequestSchema = z.discriminatedUnion("type", [
   z.object({ type: z.literal("TICK") }),
+  z.object({ type: z.literal("GATHER_CATNIP") }),
+  z.object({ type: z.literal("BUY_BUILDING"), name: s }),
+  z.object({ type: z.literal("ASSIGN_JOB"), job: s }),
+  z.object({ type: z.literal("UNASSIGN_JOB"), job: s }),
+  z.object({ type: z.literal("RESEARCH"), name: s }),
+  z.object({ type: z.literal("RESEARCH_POLICY"), name: s }),
+  z.object({ type: z.literal("PURCHASE_UPGRADE"), name: s }),
+  z.object({ type: z.literal("CRAFT"), name: s, amount: n }),
+  z.object({ type: z.literal("BUY_ZIGGURAT_UPGRADE"), name: s }),
+  z.object({ type: z.literal("BUY_RELIGION_UPGRADE"), name: s }),
+  z.object({ type: z.literal("BUY_TRANSCENDENCE_UPGRADE"), name: s }),
+  z.object({ type: z.literal("PRAISE") }),
+  z.object({ type: z.literal("ADORE") }),
+  z.object({ type: z.literal("TRANSCEND") }),
+  z.object({ type: z.literal("PURCHASE_PERK"), name: s }),
+  z.object({ type: z.literal("SOFT_RESET") }),
+  z.object({ type: z.literal("START_CHALLENGE"), name: s }),
+  z.object({ type: z.literal("COMPLETE_CHALLENGE"), name: s }),
+  z.object({ type: z.literal("LAUNCH_MISSION"), name: s }),
+  z.object({ type: z.literal("BUY_SPACE_BUILDING"), name: s }),
+  z.object({ type: z.literal("SEND_EMBASSY"), name: s }),
+  z.object({ type: z.literal("TRADE"), name: s }),
+  z.object({ type: z.literal("BUY_CFU"), name: s }),
+  z.object({ type: z.literal("BUY_VSU"), name: s }),
+  z.object({ type: z.literal("SHATTER_TC") }),
 ]);
 export type GameActionRequest = z.infer<typeof GameActionRequestSchema>;
 
@@ -71,7 +100,7 @@ const WsEnvelopeBase = z.object({
 
 export const WsStateDeltaSchema = WsEnvelopeBase.extend({
   type: z.literal("STATE_DELTA"),
-  payload: GameStateResponseSchema.partial(),
+  payload: GameStateResponseSchema,
 });
 export type WsStateDelta = z.infer<typeof WsStateDeltaSchema>;
 

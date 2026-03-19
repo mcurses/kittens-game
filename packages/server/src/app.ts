@@ -1,6 +1,7 @@
 import {
   type ActionResult,
   ActionResultSchema,
+  GameActionRequestSchema,
   GameResetRequestSchema,
   GameStateResponseSchema,
   HealthResponseSchema,
@@ -54,21 +55,17 @@ export function createApp(store: GameStateStore): Hono {
       return c.json(ActionResultSchema.parse(result), 400);
     }
 
-    if (
-      typeof body !== "object" ||
-      body === null ||
-      !("type" in body) ||
-      typeof (body as Record<string, unknown>).type !== "string"
-    ) {
+    const parsed = GameActionRequestSchema.safeParse(body);
+    if (!parsed.success) {
       const result: ActionResult = {
         ok: false,
-        error: "Missing or invalid action type",
+        error: parsed.error.issues[0]?.message ?? "Invalid action",
         state: GameStateResponseSchema.parse(store.getSerialized()),
       };
       return c.json(ActionResultSchema.parse(result), 400);
     }
 
-    const actionResult = store.applyGameAction(body as Parameters<typeof store.applyGameAction>[0]);
+    const actionResult = store.applyGameAction(parsed.data);
     const responseBody: ActionResult = {
       ok: actionResult.ok,
       ...(actionResult.error !== undefined ? { error: actionResult.error } : {}),
