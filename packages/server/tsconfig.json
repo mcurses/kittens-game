@@ -6,10 +6,15 @@
     "composite": true,
     "paths": {
       "@kittens/shared": ["../shared/src/index.ts"],
-      "@kittens/engine": ["../engine/src/index.ts"]
+      "@kittens/engine": ["../engine/src/index.ts"],
+      "@kittens/api-spec": ["../api-spec/src/index.ts"]
     }
   },
-  "references": [{ "path": "../shared" }, { "path": "../engine" }],
+  "references": [
+    { "path": "../shared" },
+    { "path": "../engine" },
+    { "path": "../api-spec" }
+  ],
   "include": ["src/**/*"],
   "exclude": ["dist", "node_modules"]
 }

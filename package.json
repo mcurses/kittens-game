@@ -2,7 +2,9 @@
   "name": "kittens-mcp",
   "private": true,
   "packageManager": "pnpm@10.32.1",
-  "workspaces": ["packages/*"],
+  "workspaces": [
+    "packages/*"
+  ],
   "scripts": {
     "build": "turbo build",
     "test": "turbo test",
@@ -11,7 +13,13 @@
     "check": "biome check ."
   },
   "pnpm": {
-    "onlyBuiltDependencies": ["@biomejs/biome", "esbuild"]
+    "onlyBuiltDependencies": [
+      "@biomejs/biome",
+      "esbuild"
+    ],
+    "ignoredBuiltDependencies": [
+      "better-sqlite3"
+    ]
   },
   "devDependencies": {
     "@biomejs/biome": "^1.9.4",
