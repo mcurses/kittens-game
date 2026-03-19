@@ -487,11 +487,32 @@ export function applySoftReset(state: GameState, managers: readonly import("./ma
   const paragonValue = state.resources.paragon?.value ?? 0;
   const burnedParagonValue = state.resources.burnedParagon?.value ?? 0;
 
+  // Save challenge completion state before reset (on/researched/unlocked persist across soft resets)
+  // Inline to avoid circular import (challenges.ts → state.ts → prestige.ts)
+  const savedChallengeCompletions: Record<string, { on: number; researched: boolean; unlocked: boolean }> = {};
+  for (const [name, entry] of Object.entries(state.challenges.challenges)) {
+    savedChallengeCompletions[name] = { on: entry.on, researched: entry.researched, unlocked: entry.unlocked };
+  }
+
   // Reset all state
   let newState = resetState(managers);
 
   // Restore prestige perks
   newState = { ...newState, prestige: savedPrestige };
+
+  // Apply challenge soft-reset: restore on/researched/unlocked, cancel active/pending
+  const softResetChallenges: Record<string, { unlocked: boolean; active: boolean; researched: boolean; on: number; pending: boolean }> = {};
+  for (const [name, entry] of Object.entries(newState.challenges.challenges)) {
+    const saved = savedChallengeCompletions[name];
+    softResetChallenges[name] = {
+      unlocked: saved?.unlocked ?? entry.unlocked,
+      active: false,
+      researched: saved?.researched ?? entry.researched,
+      on: saved?.on ?? entry.on,
+      pending: false,
+    };
+  }
+  newState = { ...newState, challenges: { challenges: softResetChallenges } };
 
   // Restore paragon and burnedParagon resources (they persist across resets)
   const paragonEntry = newState.resources.paragon;

@@ -296,6 +296,24 @@ components:
             type:
               type: string
               enum: [SOFT_RESET]
+        - type: object
+          required: [type, name]
+          properties:
+            type:
+              type: string
+              enum: [START_CHALLENGE]
+            name:
+              type: string
+              description: Challenge name to start
+        - type: object
+          required: [type, name]
+          properties:
+            type:
+              type: string
+              enum: [COMPLETE_CHALLENGE]
+            name:
+              type: string
+              description: Challenge name to complete
       discriminator:
         propertyName: type
 

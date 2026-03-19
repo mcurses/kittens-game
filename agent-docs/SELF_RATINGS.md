@@ -387,9 +387,9 @@ If any dimension scores ≤ 2, pause and fix before moving to the next epic.
 - prestige.ts branch coverage 78.84% — the uncovered branches are defensive null-checks (e.g., `if (zu)` when a ziggurat upgrade key doesn't exist). These are intentional guards rather than dead code
 
 ### Action items for next epic (12 — Challenges)
-- [ ] Read `legacy/js/challenges.js` — challenge state, challenge types, LDR stacking, completions
-- [ ] ChallengeManager must add `challenges: ChallengeState` slice to GameState
-- [ ] Challenge completion tracking — challenges persist across resets (like prestige)
-- [ ] LDR stacking mechanic: each challenge completion compounds the DR bonus
-- [ ] START_CHALLENGE and COMPLETE_CHALLENGE actions + openapi.yaml entries
-- [ ] Challenges gate on adjustmentBureau perk being researched
+- [x] Read `legacy/js/challenges.js` — challenge state, challenge types, LDR stacking, completions
+- [x] ChallengeManager must add `challenges: ChallengeState` slice to GameState
+- [x] Challenge completion tracking — challenges persist across resets (like prestige)
+- [x] LDR stacking mechanic: each challenge completion compounds the DR bonus
+- [x] START_CHALLENGE and COMPLETE_CHALLENGE actions + openapi.yaml entries
+- [x] Challenges gate on adjustmentBureau perk being researched

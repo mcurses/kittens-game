@@ -1,5 +1,6 @@
 import type { Tick } from "@kittens/shared";
 import { BUILDING_DEFS, canAfford, getBuildingPrice } from "./buildings.js";
+import { applyCompleteChallenge, applyStartChallenge } from "./challenges.js";
 import type { Manager } from "./manager.js";
 import { applyPurchasePerk, applySoftReset } from "./prestige.js";
 import {
@@ -33,7 +34,9 @@ export type GameAction =
   | { readonly type: "ADORE" }
   | { readonly type: "TRANSCEND" }
   | { readonly type: "PURCHASE_PERK"; readonly name: string }
-  | { readonly type: "SOFT_RESET" };
+  | { readonly type: "SOFT_RESET" }
+  | { readonly type: "START_CHALLENGE"; readonly name: string }
+  | { readonly type: "COMPLETE_CHALLENGE"; readonly name: string };
 
 /**
  * Pure reducer: apply an action to a state and return the next state.
@@ -165,6 +168,12 @@ export function applyAction(
     }
     case "SOFT_RESET": {
       return applySoftReset(state, managers);
+    }
+    case "START_CHALLENGE": {
+      return applyStartChallenge(state, action.name);
+    }
+    case "COMPLETE_CHALLENGE": {
+      return applyCompleteChallenge(state, action.name);
     }
   }
 }

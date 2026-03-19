@@ -99,6 +99,24 @@ export {
   getTranscendTotalPrice,
   getSolarRevolutionRatio,
 } from "./religion.js";
+export type {
+  ChallengeState,
+  ChallengeDef,
+  ChallengeEntry,
+  StackOptions,
+} from "./challenges.js";
+export {
+  CHALLENGE_DEFS,
+  ChallengeManager,
+  createInitialChallenges,
+  applyStartChallenge,
+  applyCompleteChallenge,
+  getChallengeEffectValue,
+  getCountCompletions,
+  getCountUniqueCompletions,
+  anyChallengeActive,
+  applySoftResetChallenges,
+} from "./challenges.js";
 export type { PrestigeState, PerkDef, PerkEntry, PerkUnlocks } from "./prestige.js";
 export {
   PERK_DEFS,

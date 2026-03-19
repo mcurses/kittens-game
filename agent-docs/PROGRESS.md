@@ -169,7 +169,8 @@ Prerequisites: Epic 08
 ---
 
 ## Epic 12: Challenges
-**Status:** Not Started
+**Status:** In Progress | **Started:** 2026-03-19
+Stories: 0/8 complete
 Prerequisites: Epic 11
 
 ---

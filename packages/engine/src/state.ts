@@ -1,6 +1,7 @@
 import type { Tick } from "@kittens/shared";
 import { type BuildingState, createInitialBuildings } from "./buildings.js";
 import { type CalendarState, createInitialCalendar } from "./calendar.js";
+import { type ChallengeState, createInitialChallenges } from "./challenges.js";
 import { type PrestigeState, createInitialPrestige } from "./prestige.js";
 import { type ReligionState, createInitialReligion } from "./religion.js";
 import { type ResourceState, createInitialResources } from "./resources.js";
@@ -33,6 +34,8 @@ export interface GameState {
   readonly religion: ReligionState;
   /** Prestige: perks purchased with paragon, persist across soft resets. */
   readonly prestige: PrestigeState;
+  /** Challenges: active/completed challenges and their completion counts. */
+  readonly challenges: ChallengeState;
 }
 
 export function createInitialState(): GameState {
@@ -48,6 +51,7 @@ export function createInitialState(): GameState {
     workshop: createInitialWorkshop(),
     religion: createInitialReligion(),
     prestige: createInitialPrestige(),
+    challenges: createInitialChallenges(),
   };
 }
 
@@ -88,6 +92,12 @@ export interface SerializedGameState {
   };
   prestige?: {
     perks: Record<string, { unlocked: boolean; researched: boolean }>;
+  };
+  challenges?: {
+    challenges: Record<
+      string,
+      { unlocked: boolean; active: boolean; researched: boolean; on: number; pending: boolean }
+    >;
   };
 }
 
@@ -183,6 +193,20 @@ export function serialize(state: GameState): SerializedGameState {
         ]),
       ),
     },
+    challenges: {
+      challenges: Object.fromEntries(
+        Object.entries(state.challenges.challenges).map(([n, e]) => [
+          n,
+          {
+            unlocked: e.unlocked,
+            active: e.active,
+            researched: e.researched,
+            on: e.on,
+            pending: e.pending,
+          },
+        ]),
+      ),
+    },
   };
 }
 
@@ -251,6 +275,9 @@ export function deserialize(data: SerializedGameState): GameState {
   // Prestige state is handled entirely by PrestigeManager.load() — start from initial
   const prestige = createInitialPrestige();
 
+  // Challenges state is handled entirely by ChallengeManager.load() — start from initial
+  const challenges = createInitialChallenges();
+
   return {
     version: data.version,
     tick: data.tick as Tick,
@@ -263,5 +290,6 @@ export function deserialize(data: SerializedGameState): GameState {
     workshop,
     religion,
     prestige,
+    challenges,
   };
 }
