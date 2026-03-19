@@ -1,6 +1,14 @@
 import type { Tick } from "@kittens/shared";
 import { BUILDING_DEFS, canAfford, getBuildingPrice } from "./buildings.js";
 import type { Manager } from "./manager.js";
+import {
+  applyAdore,
+  applyBuyReligionUpgrade,
+  applyBuyTranscendenceUpgrade,
+  applyBuyZigguratUpgrade,
+  applyPraise,
+  applyTranscend,
+} from "./religion.js";
 import { applyResearch, applyResearchPolicy } from "./science.js";
 import type { GameState } from "./state.js";
 import { JOB_DEFS, totalAssignedKittens } from "./village.js";
@@ -16,7 +24,13 @@ export type GameAction =
   | { readonly type: "RESEARCH"; readonly name: string }
   | { readonly type: "RESEARCH_POLICY"; readonly name: string }
   | { readonly type: "PURCHASE_UPGRADE"; readonly name: string }
-  | { readonly type: "CRAFT"; readonly name: string; readonly amount: number };
+  | { readonly type: "CRAFT"; readonly name: string; readonly amount: number }
+  | { readonly type: "BUY_ZIGGURAT_UPGRADE"; readonly name: string }
+  | { readonly type: "BUY_RELIGION_UPGRADE"; readonly name: string }
+  | { readonly type: "BUY_TRANSCENDENCE_UPGRADE"; readonly name: string }
+  | { readonly type: "PRAISE" }
+  | { readonly type: "ADORE" }
+  | { readonly type: "TRANSCEND" };
 
 /**
  * Pure reducer: apply an action to a state and return the next state.
@@ -124,6 +138,24 @@ export function applyAction(
     }
     case "CRAFT": {
       return applyCraft(state, action.name, action.amount);
+    }
+    case "BUY_ZIGGURAT_UPGRADE": {
+      return applyBuyZigguratUpgrade(state, action.name);
+    }
+    case "BUY_RELIGION_UPGRADE": {
+      return applyBuyReligionUpgrade(state, action.name);
+    }
+    case "BUY_TRANSCENDENCE_UPGRADE": {
+      return applyBuyTranscendenceUpgrade(state, action.name);
+    }
+    case "PRAISE": {
+      return applyPraise(state);
+    }
+    case "ADORE": {
+      return applyAdore(state);
+    }
+    case "TRANSCEND": {
+      return applyTranscend(state);
     }
   }
 }

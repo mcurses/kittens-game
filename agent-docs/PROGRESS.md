@@ -117,16 +117,16 @@ Prerequisites: Epics 05, 06
 ---
 
 ## Epic 09: Workshop / Upgrades
-**Status:** In Progress | **Started:** 2026-03-17
-Stories: 0/7 complete
+**Status:** Complete | **Started:** 2026-03-17 | **Finished:** 2026-03-17
+Stories: 7/7 complete
 
-- [ ] Story 1: UpgradeDef and WorkshopState shape
-- [ ] Story 2: CraftDef and craft state
-- [ ] Story 3: PURCHASE_UPGRADE action
-- [ ] Story 4: Upgrade unlock chain propagation
-- [ ] Story 5: WorkshopManager.updateEffects — upgrade effects in effectCache
-- [ ] Story 6: CRAFT action
-- [ ] Story 7: Save / load / reset
+- [x] Story 1: UpgradeDef and WorkshopState shape
+- [x] Story 2: CraftDef and craft state
+- [x] Story 3: PURCHASE_UPGRADE action
+- [x] Story 4: Upgrade unlock chain propagation
+- [x] Story 5: WorkshopManager.updateEffects — upgrade effects in effectCache
+- [x] Story 6: CRAFT action
+- [x] Story 7: Save / load / reset
 
 Prerequisites: Epics 05, 08
 

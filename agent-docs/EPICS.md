@@ -12,7 +12,7 @@ Live status tracker. Update when epics start or complete.
 | 06 | **Village / Population / Jobs** — kittens, jobs, happiness | 04 | P0 | ✅ Complete |
 | 07 | **Calendar & Seasons** — seasons, moon, year tick | 03 | P1 | ✅ Complete |
 | 08 | **Science / Tech Tree** — 100+ techs, unlock chains | 05, 06 | P1 | ✅ Complete |
-| 09 | **Workshop / Upgrades** — crafting recipes, upgrade effects | 05, 08 | P1 | ⏳ Not Started |
+| 09 | **Workshop / Upgrades** — crafting recipes, upgrade effects | 05, 08 | P1 | ✅ Complete |
 | 10 | **Religion & Faith** — faith, gods, praise mechanics | 08 | P1 | ⏳ Not Started |
 | 11 | **Prestige / Reset** — paragon, perks, soft reset flow | 08 | P1 | ⏳ Not Started |
 | 12 | **Challenges** — challenge types, LDR stacking, completions | 11 | P2 | ⏳ Not Started |

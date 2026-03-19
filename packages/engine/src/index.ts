@@ -73,3 +73,29 @@ export {
   applyPurchaseUpgrade,
   applyCraft,
 } from "./workshop.js";
+export type {
+  ReligionState,
+  ZigguratUpgradeDef,
+  ZigguratUpgradeEntry,
+  ReligionUpgradeDef,
+  ReligionUpgradeEntry,
+  TranscendenceUpgradeDef,
+  TranscendenceUpgradeEntry,
+} from "./religion.js";
+export {
+  ZIGGURAT_UPGRADE_DEFS,
+  RELIGION_UPGRADE_DEFS,
+  TRANSCENDENCE_UPGRADE_DEFS,
+  ReligionManager,
+  createInitialReligion,
+  applyBuyZigguratUpgrade,
+  applyBuyReligionUpgrade,
+  applyBuyTranscendenceUpgrade,
+  applyPraise,
+  applyAdore,
+  applyTranscend,
+  getApocryphaBonus,
+  getTranscendNextPrice,
+  getTranscendTotalPrice,
+  getSolarRevolutionRatio,
+} from "./religion.js";

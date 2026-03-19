@@ -175,6 +175,112 @@ components:
             type:
               type: string
               enum: [TICK]
+        - type: object
+          required: [type]
+          properties:
+            type:
+              type: string
+              enum: [GATHER_CATNIP]
+        - type: object
+          required: [type, name]
+          properties:
+            type:
+              type: string
+              enum: [BUY_BUILDING]
+            name:
+              type: string
+        - type: object
+          required: [type, job]
+          properties:
+            type:
+              type: string
+              enum: [ASSIGN_JOB]
+            job:
+              type: string
+        - type: object
+          required: [type, job]
+          properties:
+            type:
+              type: string
+              enum: [UNASSIGN_JOB]
+            job:
+              type: string
+        - type: object
+          required: [type, name]
+          properties:
+            type:
+              type: string
+              enum: [RESEARCH]
+            name:
+              type: string
+        - type: object
+          required: [type, name]
+          properties:
+            type:
+              type: string
+              enum: [RESEARCH_POLICY]
+            name:
+              type: string
+        - type: object
+          required: [type, name]
+          properties:
+            type:
+              type: string
+              enum: [PURCHASE_UPGRADE]
+            name:
+              type: string
+        - type: object
+          required: [type, name, amount]
+          properties:
+            type:
+              type: string
+              enum: [CRAFT]
+            name:
+              type: string
+            amount:
+              type: number
+        - type: object
+          required: [type, name]
+          properties:
+            type:
+              type: string
+              enum: [BUY_ZIGGURAT_UPGRADE]
+            name:
+              type: string
+        - type: object
+          required: [type, name]
+          properties:
+            type:
+              type: string
+              enum: [BUY_RELIGION_UPGRADE]
+            name:
+              type: string
+        - type: object
+          required: [type, name]
+          properties:
+            type:
+              type: string
+              enum: [BUY_TRANSCENDENCE_UPGRADE]
+            name:
+              type: string
+        - type: object
+          required: [type]
+          properties:
+            type:
+              type: string
+              enum: [PRAISE]
+        - type: object
+          required: [type]
+          properties:
+            type:
+              type: string
+              enum: [ADORE]
+        - type: object
+          required: [type]
+          properties:
+            type:
+              type: string
+              enum: [TRANSCEND]
       discriminator:
         propertyName: type
 

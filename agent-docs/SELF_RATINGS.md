@@ -280,9 +280,46 @@ If any dimension scores ≤ 2, pause and fix before moving to the next epic.
 - The science state in `deserialize()` uses `createInitialScience()` as placeholder — the actual restoration relies on `ScienceManager.load()` being called separately. This split responsibility should be clearly documented (it is in NOTES.md)
 
 ### Action items for next epic (09 — Workshop / Upgrades)
-- [ ] Read `legacy/js/workshop.js` fully before writing stories — upgrade unlock conditions reference tech names
-- [ ] Implement CRAFT action: convert resources to refined resources (iron → steel, wood → beam, etc.)
-- [ ] Implement PURCHASE_UPGRADE action: pay resource price, mark upgrade as purchased, contribute effects to effectCache
-- [ ] WorkshopManager.updateEffects() must contribute upgrade effects to effectCache (same summing pattern as ScienceManager)
-- [ ] Upgrade unlock conditions typically require a tech (e.g. "Engineering" unlocks "Reinforced Warehouses")
-- [ ] Add `workshop: WorkshopState` slice to GameState and update tick.test.ts MarkedState (or finally fix MarkedState pattern)
+- [x] Read `legacy/js/workshop.js` fully before writing stories — upgrade unlock conditions reference tech names
+- [x] Implement CRAFT action: convert resources to refined resources (iron → steel, wood → beam, etc.)
+- [x] Implement PURCHASE_UPGRADE action: pay resource price, mark upgrade as purchased, contribute effects to effectCache
+- [x] WorkshopManager.updateEffects() must contribute upgrade effects to effectCache (same summing pattern as ScienceManager)
+- [x] Upgrade unlock conditions typically require a tech (e.g. "Engineering" unlocks "Reinforced Warehouses")
+- [x] Add `workshop: WorkshopState` slice to GameState and update tick.test.ts MarkedState (or finally fix MarkedState pattern)
+
+---
+
+## Epic 09: Workshop / Upgrades — 2026-03-17
+
+| Dimension | Score | Notes |
+|-----------|-------|-------|
+| Test coverage (≥90% target) | 5 | 302/302 tests passing. 100% stmt/func/line on all 12 source files. workshop.ts branch: 92.85% — 4 unreachable defensive `??` fallbacks when iterating over known keys (same pattern as science.ts). Overall 98.34% branch. |
+| No skipped tests / no TODOs | 5 | Zero `it.skip`, `test.todo`, `TODO`, `FIXME`, `HACK` across all packages. |
+| Feature parity | 5 | ~100 UPGRADE_DEFS ported from legacy workshop.js. 21 CRAFT_DEFS ported. Initial unlock sets (6 upgrades, 8 crafts) match legacy resetState() exactly. CRAFT output formula `amt * (1 + craftRatio)` matches legacy. Wood `ignoreBonuses=true` handled correctly. Unlock chain propagation (steelSaw→titaniumSaw→alloySaw, reinforcedBarns→titaniumBarns, etc.) confirmed. Known deferred: calculateEffects upgrades (compositeBow, unicornSelection), handler upgrades (advancedRefinement, seti), zebraUpgrades, engineer auto-crafting. All documented in NOTES.md. |
+| API spec completeness | 4 | PURCHASE_UPGRADE and CRAFT added to engine `GameAction` union but not yet in api-spec `GameActionRequest`. Deferred to Epic 17 (server). No new server routes needed for this epic. |
+| Code quality (no `any`) | 5 | Zero `any` types. Biome passes clean (fixed 2 files: workshop.test.ts import ordering, NullManager unused import removed). Build passes. tick.test.ts MarkedState updated with `workshop` field. |
+| Docs freshness | 5 | PROGRESS.md updated (Epic 09 complete, 7/7 stories). EPICS.md updated (09 marked ✅ Complete). STORIES.md all ACs checked. NOTES.md thoroughly documents deferred features and key decisions. |
+| Commit hygiene | 5 | One clean, well-scoped commit. Descriptive multi-line body. Build verified before commit. No WIP commits. |
+| **Overall average** | **4.9** | |
+
+### What went well
+- ~100 upgrade definitions and 21 craft definitions ported in a single pass with zero runtime errors
+- CRAFT action correctly handles `ignoreBonuses=true` for wood (no craftRatio bonus)
+- Upgrade unlock chain propagation handles multi-level chains (steelSaw→titaniumSaw→alloySaw)
+- `WorkshopManager.updateEffects()` summing pattern directly reuses the ScienceManager approach
+- `WorkshopManager.load()` correctly restores both upgrade and craft flags
+- 92.85% workshop.ts branch coverage — remaining branches are all unreachable defensive fallbacks
+- All deferred features (calculateEffects, handler, zebraUpgrades, engineer crafting) documented in NOTES.md
+
+### What to improve
+- `tick.test.ts` MarkedState is now a 5-epic maintenance burden — needs replacing with a derived/intersection type
+- api-spec `GameActionRequest` is now 7 epics behind (GATHER_CATNIP, BUY_BUILDING, ASSIGN_JOB, UNASSIGN_JOB, RESEARCH, RESEARCH_POLICY, PURCHASE_UPGRADE, CRAFT). Must sync at Epic 17
+- The `applyCraft` output caps at `Math.min(value + craftAmt, maxValue)` — if maxValue=0 (resource not in pool), output is silently discarded. This is correct behavior (can't store beyond cap) but worth noting
+- `strenghtenBuild` unlock includes `concreteWarehouses`, `concreteBarns`, `concreteHuts` — verified all 3 are in UPGRADE_DEFS
+
+### Action items for next epic (10 — Religion & Faith)
+- [ ] Read `legacy/js/religion.js` fully before writing stories — unicorn sacrifices, praise, and god tiers are complex
+- [ ] ReligionManager must add `religion: ReligionState` slice to GameState and update tick.test.ts MarkedState
+- [ ] Faith accumulates per tick (praise action) and is spent on improvements
+- [ ] Unicorn-related effects interact with workshop upgrade unicornSelection — coordinate carefully
+- [ ] Religion effects contribute to effectCache (same summing pattern as Science/Workshop)

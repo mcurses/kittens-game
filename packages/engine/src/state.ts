@@ -1,6 +1,7 @@
 import type { Tick } from "@kittens/shared";
 import { type BuildingState, createInitialBuildings } from "./buildings.js";
 import { type CalendarState, createInitialCalendar } from "./calendar.js";
+import { type ReligionState, createInitialReligion } from "./religion.js";
 import { type ResourceState, createInitialResources } from "./resources.js";
 import { type ScienceState, createInitialScience } from "./science.js";
 import { type VillageState, createInitialVillage } from "./village.js";
@@ -27,6 +28,8 @@ export interface GameState {
   readonly science: ScienceState;
   /** Workshop: purchased upgrades and craft unlock state. */
   readonly workshop: WorkshopState;
+  /** Religion: faith, worship, ziggurat/religion/transcendence upgrades. */
+  readonly religion: ReligionState;
 }
 
 export function createInitialState(): GameState {
@@ -40,6 +43,7 @@ export function createInitialState(): GameState {
     calendar: createInitialCalendar(),
     science: createInitialScience(),
     workshop: createInitialWorkshop(),
+    religion: createInitialReligion(),
   };
 }
 
@@ -69,6 +73,14 @@ export interface SerializedGameState {
   workshop: {
     upgrades: Record<string, { unlocked: boolean; researched: boolean }>;
     crafts: Record<string, { unlocked: boolean }>;
+  };
+  religion?: {
+    worship: number;
+    faithRatio: number;
+    transcendenceTier: number;
+    zu: Record<string, { val: number; on: number; unlocked: boolean }>;
+    ru: Record<string, { val: number; on: number }>;
+    tu: Record<string, { val: number; on: number; unlocked: boolean }>;
   };
 }
 
@@ -133,6 +145,29 @@ export function serialize(state: GameState): SerializedGameState {
         Object.entries(state.workshop.crafts).map(([n, e]) => [n, { unlocked: e.unlocked }]),
       ),
     },
+    religion: {
+      worship: state.religion.worship,
+      faithRatio: state.religion.faithRatio,
+      transcendenceTier: state.religion.transcendenceTier,
+      zu: Object.fromEntries(
+        Object.entries(state.religion.zigguratUpgrades).map(([n, e]) => [
+          n,
+          { val: e.val, on: e.on, unlocked: e.unlocked },
+        ]),
+      ),
+      ru: Object.fromEntries(
+        Object.entries(state.religion.religionUpgrades).map(([n, e]) => [
+          n,
+          { val: e.val, on: e.on },
+        ]),
+      ),
+      tu: Object.fromEntries(
+        Object.entries(state.religion.transcendenceUpgrades).map(([n, e]) => [
+          n,
+          { val: e.val, on: e.on, unlocked: e.unlocked },
+        ]),
+      ),
+    },
   };
 }
 
@@ -195,6 +230,9 @@ export function deserialize(data: SerializedGameState): GameState {
   // Workshop state is handled entirely by WorkshopManager.load() — start from initial
   const workshop = createInitialWorkshop();
 
+  // Religion state is handled entirely by ReligionManager.load() — start from initial
+  const religion = createInitialReligion();
+
   return {
     version: data.version,
     tick: data.tick as Tick,
@@ -205,5 +243,6 @@ export function deserialize(data: SerializedGameState): GameState {
     calendar,
     science,
     workshop,
+    religion,
   };
 }

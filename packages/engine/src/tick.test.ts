@@ -1,7 +1,6 @@
-import type { Tick } from "@kittens/shared";
 import { describe, expect, it } from "vitest";
 import { NullManager } from "./manager.js";
-import { createInitialState } from "./state.js";
+import { type GameState, createInitialState } from "./state.js";
 import { resetState, tick } from "./tick.js";
 
 describe("tick", () => {
@@ -34,28 +33,7 @@ describe("tick", () => {
 
   it("passes updated state from one manager to the next", () => {
     // m1 adds a marker; m2 reads it
-    interface MarkedState {
-      version: number;
-      tick: Tick;
-      effectCache: Record<string, number>;
-      resources: Record<string, { value: number; maxValue: number }>;
-      buildings: Record<string, { val: number; on: number }>;
-      village: {
-        kittens: number;
-        kittenProgress: number;
-        jobs: Record<string, { value: number }>;
-      };
-      calendar: { day: number; season: number; year: number };
-      science: {
-        techs: Record<string, { unlocked: boolean; researched: boolean }>;
-        policies: Record<string, { unlocked: boolean; blocked: boolean; researched: boolean }>;
-      };
-      workshop: {
-        upgrades: Record<string, { unlocked: boolean; researched: boolean }>;
-        crafts: Record<string, { unlocked: boolean }>;
-      };
-      marker?: boolean;
-    }
+    type MarkedState = GameState & { marker?: boolean };
     const m1 = new NullManager();
     const m2 = new NullManager();
     m1.update = (state) => ({ ...state, marker: true }) as MarkedState;
