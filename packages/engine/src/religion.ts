@@ -1,4 +1,5 @@
 import type { Serializable } from "@kittens/shared";
+import { produce } from "immer";
 import type { PriceEntry } from "./buildings.js";
 import { canAfford } from "./buildings.js";
 import type { Manager } from "./manager.js";
@@ -542,39 +543,31 @@ export function applyBuyZigguratUpgrade(state: GameState, name: string): GameSta
   const prices = getZigguratUpgradePrice(def, entry.val);
   if (!canAfford(prices, state.resources)) return state;
 
-  // Deduct resources
-  const newResources = { ...state.resources };
-  for (const price of prices) {
-    const existing = newResources[price.name];
-    if (existing) {
-      newResources[price.name] = { ...existing, value: existing.value - price.val };
-    }
-  }
-
-  // Increment val/on
-  const newZigguratUpgrades = {
-    ...state.religion.zigguratUpgrades,
-    [name]: { val: entry.val + 1, on: entry.on + 1, unlocked: entry.unlocked },
-  };
-
-  // Unlock next upgrades
-  if (def.unlocks?.zigguratUpgrades) {
-    for (const unlockName of def.unlocks.zigguratUpgrades) {
-      const current = newZigguratUpgrades[unlockName];
-      if (current) {
-        newZigguratUpgrades[unlockName] = { ...current, unlocked: true };
+  return produce(state, (draft) => {
+    // Deduct resources
+    for (const price of prices) {
+      const existing = draft.resources[price.name];
+      if (existing) {
+        existing.value -= price.val;
       }
     }
-  }
 
-  return {
-    ...state,
-    resources: newResources,
-    religion: {
-      ...state.religion,
-      zigguratUpgrades: newZigguratUpgrades,
-    },
-  };
+    // Increment val/on
+    const zu = draft.religion.zigguratUpgrades[name] ?? { val: 0, on: 0, unlocked: false };
+    zu.val += 1;
+    zu.on += 1;
+    draft.religion.zigguratUpgrades[name] = zu;
+
+    // Unlock next upgrades
+    if (def.unlocks?.zigguratUpgrades) {
+      for (const unlockName of def.unlocks.zigguratUpgrades) {
+        const current = draft.religion.zigguratUpgrades[unlockName];
+        if (current) {
+          current.unlocked = true;
+        }
+      }
+    }
+  });
 }
 
 // ── applyBuyReligionUpgrade ───────────────────────────────────────────────────
@@ -593,39 +586,32 @@ export function applyBuyReligionUpgrade(state: GameState, name: string): GameSta
 
   if (!canAfford(prices, state.resources)) return state;
 
-  // Deduct resources
-  const newResources = { ...state.resources };
-  for (const price of prices) {
-    const existing = newResources[price.name];
-    if (existing) {
-      newResources[price.name] = { ...existing, value: existing.value - price.val };
-    }
-  }
-
-  // Increment val/on
-  const newReligionUpgrades = {
-    ...state.religion.religionUpgrades,
-    [name]: { val: entry.val + 1, on: entry.on + 1 },
-  };
-
-  // If transcendence is bought, also increment the listed upgrades
-  if (def.upgradesReligion) {
-    for (const upgName of def.upgradesReligion) {
-      const upg = newReligionUpgrades[upgName];
-      if (upg) {
-        newReligionUpgrades[upgName] = { val: upg.val + 1, on: upg.on + 1 };
+  return produce(state, (draft) => {
+    // Deduct resources
+    for (const price of prices) {
+      const existing = draft.resources[price.name];
+      if (existing) {
+        existing.value -= price.val;
       }
     }
-  }
 
-  return {
-    ...state,
-    resources: newResources,
-    religion: {
-      ...state.religion,
-      religionUpgrades: newReligionUpgrades,
-    },
-  };
+    // Increment val/on
+    const ru = draft.religion.religionUpgrades[name] ?? { val: 0, on: 0 };
+    ru.val += 1;
+    ru.on += 1;
+    draft.religion.religionUpgrades[name] = ru;
+
+    // If transcendence is bought, also increment the listed upgrades
+    if (def.upgradesReligion) {
+      for (const upgName of def.upgradesReligion) {
+        const upg = draft.religion.religionUpgrades[upgName];
+        if (upg) {
+          upg.val += 1;
+          upg.on += 1;
+        }
+      }
+    }
+  });
 }
 
 // ── applyBuyTranscendenceUpgrade ──────────────────────────────────────────────
@@ -646,26 +632,21 @@ export function applyBuyTranscendenceUpgrade(state: GameState, name: string): Ga
   const prices = getTranscendenceUpgradePrice(def, entry.val);
   if (!canAfford(prices, state.resources)) return state;
 
-  // Deduct resources
-  const newResources = { ...state.resources };
-  for (const price of prices) {
-    const existing = newResources[price.name];
-    if (existing) {
-      newResources[price.name] = { ...existing, value: existing.value - price.val };
+  return produce(state, (draft) => {
+    // Deduct resources
+    for (const price of prices) {
+      const existing = draft.resources[price.name];
+      if (existing) {
+        existing.value -= price.val;
+      }
     }
-  }
 
-  return {
-    ...state,
-    resources: newResources,
-    religion: {
-      ...state.religion,
-      transcendenceUpgrades: {
-        ...state.religion.transcendenceUpgrades,
-        [name]: { val: entry.val + 1, on: entry.on + 1, unlocked: true },
-      },
-    },
-  };
+    const tu = draft.religion.transcendenceUpgrades[name] ?? { val: 0, on: 0, unlocked: false };
+    tu.val += 1;
+    tu.on += 1;
+    tu.unlocked = true;
+    draft.religion.transcendenceUpgrades[name] = tu;
+  });
 }
 
 // ── applyPraise ───────────────────────────────────────────────────────────────
@@ -681,17 +662,12 @@ export function applyPraise(state: GameState): GameState {
   const apocryphaBonus = getApocryphaBonus(state.religion.faithRatio);
   const worshipGained = faithRes.value * (1 + apocryphaBonus);
 
-  return {
-    ...state,
-    resources: {
-      ...state.resources,
-      faith: { ...faithRes, value: 0.0001 },
-    },
-    religion: {
-      ...state.religion,
-      worship: state.religion.worship + worshipGained,
-    },
-  };
+  return produce(state, (draft) => {
+    const faith = draft.resources.faith ?? { value: 0, maxValue: 0 };
+    faith.value = 0.0001;
+    draft.resources.faith = faith;
+    draft.religion.worship += worshipGained;
+  });
 }
 
 // ── applyAdore ────────────────────────────────────────────────────────────────
@@ -711,14 +687,10 @@ export function applyAdore(state: GameState): GameState {
   const ttPlus1 = tt + 1;
   const faithRatioGain = (state.religion.worship / 1_000_000) * ttPlus1 * ttPlus1;
 
-  return {
-    ...state,
-    religion: {
-      ...state.religion,
-      faithRatio: state.religion.faithRatio + faithRatioGain,
-      worship: 0.01,
-    },
-  };
+  return produce(state, (draft) => {
+    draft.religion.faithRatio += faithRatioGain;
+    draft.religion.worship = 0.01;
+  });
 }
 
 // ── applyTranscend ────────────────────────────────────────────────────────────
@@ -734,14 +706,10 @@ export function applyTranscend(state: GameState): GameState {
   const price = getTranscendNextPrice(state.religion.transcendenceTier);
   if (state.religion.faithRatio < price) return state;
 
-  return {
-    ...state,
-    religion: {
-      ...state.religion,
-      faithRatio: state.religion.faithRatio - price,
-      transcendenceTier: state.religion.transcendenceTier + 1,
-    },
-  };
+  return produce(state, (draft) => {
+    draft.religion.faithRatio -= price;
+    draft.religion.transcendenceTier += 1;
+  });
 }
 
 // ── ReligionManager ───────────────────────────────────────────────────────────
@@ -757,13 +725,11 @@ export class ReligionManager implements Manager {
     if (maxFaith <= 0) return state;
 
     const newFaith = Math.min(faithRes.value + faithPerTick, maxFaith);
-    return {
-      ...state,
-      resources: {
-        ...state.resources,
-        faith: { ...faithRes, value: newFaith },
-      },
-    };
+    return produce(state, (draft) => {
+      const faith = draft.resources.faith ?? { value: 0, maxValue: 0 };
+      faith.value = newFaith;
+      draft.resources.faith = faith;
+    });
   }
 
   updateEffects(state: GameState): Record<string, number> {

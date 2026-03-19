@@ -19,7 +19,8 @@
     "lint": "biome check ./src"
   },
   "dependencies": {
-    "@kittens/shared": "workspace:*"
+    "@kittens/shared": "workspace:*",
+    "immer": "^11.1.4"
   },
   "devDependencies": {
     "@vitest/coverage-v8": "^2.1.8",

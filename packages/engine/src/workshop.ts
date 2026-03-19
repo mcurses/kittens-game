@@ -1,4 +1,5 @@
 import type { Serializable } from "@kittens/shared";
+import { produce } from "immer";
 import type { PriceEntry } from "./buildings.js";
 import { canAfford } from "./buildings.js";
 import type { Manager } from "./manager.js";
@@ -1518,35 +1519,31 @@ export function applyPurchaseUpgrade(state: GameState, upgradeName: string): Gam
   if (!entry.unlocked || entry.researched) return state;
   if (!canAfford(def.prices, state.resources)) return state;
 
-  // Deduct resources
-  const newResources = { ...state.resources };
-  for (const price of def.prices) {
-    const res = newResources[price.name];
-    if (res) {
-      newResources[price.name] = { ...res, value: res.value - price.val };
-    }
-  }
-
-  // Mark researched + unlock downstream
-  const newUpgrades = {
-    ...state.workshop.upgrades,
-    [upgradeName]: { unlocked: true, researched: true },
-  };
-
-  if (def.unlocks?.upgrades) {
-    for (const name of def.unlocks.upgrades) {
-      const existing = newUpgrades[name];
-      if (existing) {
-        newUpgrades[name] = { ...existing, unlocked: true };
+  return produce(state, (draft) => {
+    // Deduct resources
+    for (const price of def.prices) {
+      const res = draft.resources[price.name];
+      if (res) {
+        res.value -= price.val;
       }
     }
-  }
 
-  return {
-    ...state,
-    resources: newResources,
-    workshop: { ...state.workshop, upgrades: newUpgrades },
-  };
+    // Mark researched
+    const upg = draft.workshop.upgrades[upgradeName] ?? { unlocked: false, researched: false };
+    upg.unlocked = true;
+    upg.researched = true;
+    draft.workshop.upgrades[upgradeName] = upg;
+
+    // Unlock downstream upgrades
+    if (def.unlocks?.upgrades) {
+      for (const name of def.unlocks.upgrades) {
+        const existing = draft.workshop.upgrades[name];
+        if (existing) {
+          existing.unlocked = true;
+        }
+      }
+    }
+  });
 }
 
 // ── applyCraft ────────────────────────────────────────────────────────────────
@@ -1570,25 +1567,24 @@ export function applyCraft(state: GameState, craftName: string, amt: number): Ga
   const scaledPrices = def.prices.map((p) => ({ name: p.name, val: p.val * amt }));
   if (!canAfford(scaledPrices, state.resources)) return state;
 
-  // Deduct inputs
-  const newResources = { ...state.resources };
-  for (const price of scaledPrices) {
-    const res = newResources[price.name];
-    if (res) {
-      newResources[price.name] = { ...res, value: res.value - price.val };
-    }
-  }
-
-  // Calculate output
+  // Calculate output amount before producing
   const craftRatio = def.ignoreBonuses ? 0 : (state.effectCache.craftRatio ?? 0);
   const craftAmt = amt * (1 + craftRatio);
 
-  // Add output resource
-  const outputRes = newResources[craftName] ?? { value: 0, maxValue: 0 };
-  const newValue = Math.min(outputRes.value + craftAmt, outputRes.maxValue);
-  newResources[craftName] = { ...outputRes, value: newValue };
+  return produce(state, (draft) => {
+    // Deduct inputs
+    for (const price of scaledPrices) {
+      const res = draft.resources[price.name];
+      if (res) {
+        res.value -= price.val;
+      }
+    }
 
-  return { ...state, resources: newResources };
+    // Add output resource
+    const outputRes = draft.resources[craftName] ?? { value: 0, maxValue: 0 };
+    outputRes.value = Math.min(outputRes.value + craftAmt, outputRes.maxValue);
+    draft.resources[craftName] = outputRes;
+  });
 }
 
 // ── WorkshopManager ───────────────────────────────────────────────────────────

@@ -76,6 +76,9 @@ importers:
       '@kittens/shared':
         specifier: workspace:*
         version: link:../shared
+      immer:
+        specifier: ^11.1.4
+        version: 11.1.4
     devDependencies:
       '@vitest/coverage-v8':
         specifier: ^2.1.8
@@ -964,6 +967,9 @@ packages:
 
   html-escaper@2.0.2:
     resolution: {integrity: sha512-H2iMtd0I4Mt5eYiapRdIDjp+XzelXQ0tFE4JS7YFwFevXXMmOp9myNrUvCg0D6ws8iqkRPBfKHgbwig1SmlLfg==}
+
+  immer@11.1.4:
+    resolution: {integrity: sha512-XREFCPo6ksxVzP4E0ekD5aMdf8WMwmdNaz6vuvxgI40UaEiu6q3p8X52aU6GdyvLY3XXX/8R7JOTXStz/nBbRw==}
 
   is-fullwidth-code-point@3.0.0:
     resolution: {integrity: sha512-zymm5+u+sCsSWyD9qNaejV3DFvhCKclKdizYaJUuHA83RLjb7nSuGnddCHGv0hk+KY7BMAlsWeK4Ueg6EV6XQg==}
@@ -2038,6 +2044,8 @@ snapshots:
   hono@4.12.8: {}
 
   html-escaper@2.0.2: {}
+
+  immer@11.1.4: {}
 
   is-fullwidth-code-point@3.0.0: {}
 

@@ -1,4 +1,5 @@
 import type { Tick } from "@kittens/shared";
+import { produce } from "immer";
 import { BUILDING_DEFS, canAfford, getBuildingPrice } from "./buildings.js";
 import { applyCompleteChallenge, applyStartChallenge } from "./challenges.js";
 import type { Manager } from "./manager.js";
@@ -60,15 +61,11 @@ export function applyAction(
       return next;
     }
     case "GATHER_CATNIP": {
-      const catnip = state.resources.catnip ?? { value: 0, maxValue: 0 };
-      const newValue = Math.min(catnip.value + 1, catnip.maxValue);
-      return {
-        ...state,
-        resources: {
-          ...state.resources,
-          catnip: { ...catnip, value: newValue },
-        },
-      };
+      return produce(state, (draft) => {
+        const catnip = draft.resources.catnip ?? { value: 0, maxValue: 0 };
+        catnip.value = Math.min(catnip.value + 1, catnip.maxValue);
+        draft.resources.catnip = catnip;
+      });
     }
     case "BUY_BUILDING": {
       const def = BUILDING_DEFS.find((b) => b.name === action.name);
@@ -79,22 +76,20 @@ export function applyAction(
 
       if (!canAfford(prices, state.resources)) return state;
 
-      // Deduct resources
-      const newResources = { ...state.resources };
-      for (const price of prices) {
-        const entry = newResources[price.name];
-        if (entry) {
-          newResources[price.name] = { ...entry, value: entry.value - price.val };
+      return produce(state, (draft) => {
+        // Deduct resources
+        for (const price of prices) {
+          const entry = draft.resources[price.name];
+          if (entry) {
+            entry.value -= price.val;
+          }
         }
-      }
-
-      // Increment building val and on
-      const newBuildings = {
-        ...state.buildings,
-        [action.name]: { val: building.val + 1, on: building.on + 1 },
-      };
-
-      return { ...state, resources: newResources, buildings: newBuildings };
+        // Increment building val and on
+        const b = draft.buildings[action.name] ?? { val: 0, on: 0 };
+        b.val += 1;
+        b.on += 1;
+        draft.buildings[action.name] = b;
+      });
     }
     case "ASSIGN_JOB": {
       const def = JOB_DEFS.find((j) => j.name === action.job);
@@ -103,17 +98,11 @@ export function applyAction(
       const assigned = totalAssignedKittens(state.village);
       if (assigned >= state.village.kittens) return state;
 
-      const job = state.village.jobs[action.job] ?? { value: 0 };
-      return {
-        ...state,
-        village: {
-          ...state.village,
-          jobs: {
-            ...state.village.jobs,
-            [action.job]: { value: job.value + 1 },
-          },
-        },
-      };
+      return produce(state, (draft) => {
+        const job = draft.village.jobs[action.job] ?? { value: 0 };
+        job.value += 1;
+        draft.village.jobs[action.job] = job;
+      });
     }
     case "UNASSIGN_JOB": {
       const def = JOB_DEFS.find((j) => j.name === action.job);
@@ -122,16 +111,11 @@ export function applyAction(
       const job = state.village.jobs[action.job] ?? { value: 0 };
       if (job.value <= 0) return state;
 
-      return {
-        ...state,
-        village: {
-          ...state.village,
-          jobs: {
-            ...state.village.jobs,
-            [action.job]: { value: job.value - 1 },
-          },
-        },
-      };
+      return produce(state, (draft) => {
+        const j = draft.village.jobs[action.job] ?? { value: 0 };
+        j.value -= 1;
+        draft.village.jobs[action.job] = j;
+      });
     }
     case "RESEARCH": {
       return applyResearch(state, action.name);

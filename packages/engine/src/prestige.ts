@@ -1,4 +1,5 @@
 import type { Serializable } from "@kittens/shared";
+import { produce } from "immer";
 import { getLimitedDR } from "./effects.js";
 import type { Manager } from "./manager.js";
 import { resetState } from "./tick.js";
@@ -309,47 +310,38 @@ export function applyPurchasePerk(state: GameState, name: string): GameState {
   const cost = def.prices[0]?.val ?? 0;
   if (paragonRes.value < cost) return state;
 
-  // Deduct paragon
-  const newResources = {
-    ...state.resources,
-    paragon: { ...paragonRes, value: paragonRes.value - cost },
-  };
+  return produce(state, (draft) => {
+    // Deduct paragon
+    const paragon = draft.resources.paragon ?? { value: 0, maxValue: 0 };
+    paragon.value -= cost;
+    draft.resources.paragon = paragon;
 
-  // Mark as researched
-  const newPerks = {
-    ...state.prestige.perks,
-    [name]: { unlocked: true, researched: true },
-  };
+    // Mark as researched
+    const perk = draft.prestige.perks[name] ?? { unlocked: false, researched: false };
+    perk.unlocked = true;
+    perk.researched = true;
+    draft.prestige.perks[name] = perk;
 
-  // Unlock downstream perks
-  if (def.unlocks?.perks) {
-    for (const unlockName of def.unlocks.perks) {
-      const current = newPerks[unlockName];
-      if (current) {
-        newPerks[unlockName] = { ...current, unlocked: true };
+    // Unlock downstream perks
+    if (def.unlocks?.perks) {
+      for (const unlockName of def.unlocks.perks) {
+        const current = draft.prestige.perks[unlockName];
+        if (current) {
+          current.unlocked = true;
+        }
       }
     }
-  }
 
-  // Unlock ziggurat upgrades in religion state
-  let religion = state.religion;
-  if (def.unlocks?.zigguratUpgrades) {
-    const newZigguratUpgrades = { ...state.religion.zigguratUpgrades };
-    for (const zuName of def.unlocks.zigguratUpgrades) {
-      const zu = newZigguratUpgrades[zuName];
-      if (zu) {
-        newZigguratUpgrades[zuName] = { ...zu, unlocked: true };
+    // Unlock ziggurat upgrades in religion state
+    if (def.unlocks?.zigguratUpgrades) {
+      for (const zuName of def.unlocks.zigguratUpgrades) {
+        const zu = draft.religion.zigguratUpgrades[zuName];
+        if (zu) {
+          zu.unlocked = true;
+        }
       }
     }
-    religion = { ...religion, zigguratUpgrades: newZigguratUpgrades };
-  }
-
-  return {
-    ...state,
-    resources: newResources,
-    prestige: { ...state.prestige, perks: newPerks },
-    religion,
-  };
+  });
 }
 
 // ── Paragon production / storage ratios ──────────────────────────────────────
@@ -515,26 +507,16 @@ export function applySoftReset(state: GameState, managers: readonly import("./ma
   newState = { ...newState, challenges: { challenges: softResetChallenges } };
 
   // Restore paragon and burnedParagon resources (they persist across resets)
-  const paragonEntry = newState.resources.paragon;
-  const burnedParagonEntry = newState.resources.burnedParagon;
-  if (paragonEntry) {
-    newState = {
-      ...newState,
-      resources: {
-        ...newState.resources,
-        paragon: { ...paragonEntry, value: paragonValue },
-      },
-    };
-  }
-  if (burnedParagonEntry) {
-    newState = {
-      ...newState,
-      resources: {
-        ...newState.resources,
-        burnedParagon: { ...burnedParagonEntry, value: burnedParagonValue },
-      },
-    };
-  }
+  newState = produce(newState, (draft) => {
+    const paragonEntry = draft.resources.paragon;
+    if (paragonEntry) {
+      paragonEntry.value = paragonValue;
+    }
+    const burnedParagonEntry = draft.resources.burnedParagon;
+    if (burnedParagonEntry) {
+      burnedParagonEntry.value = burnedParagonValue;
+    }
+  });
 
   return newState;
 }

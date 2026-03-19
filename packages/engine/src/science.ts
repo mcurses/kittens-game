@@ -1,4 +1,5 @@
 import type { Serializable } from "@kittens/shared";
+import { type Draft, produce } from "immer";
 import type { Manager } from "./manager.js";
 import type { GameState } from "./state.js";
 
@@ -1099,19 +1100,17 @@ function canAffordPrices(
   return true;
 }
 
-/** Deduct prices from resources, returning updated resources. */
-function deductPrices(
+/** Deduct prices from a draft resource map (for use inside produce). */
+function deductPricesInDraft(
   prices: readonly SciencePriceEntry[],
-  resources: GameState["resources"],
-): GameState["resources"] {
-  const updated = { ...resources };
+  resources: Draft<GameState["resources"]>,
+): void {
   for (const price of prices) {
-    const entry = updated[price.name];
+    const entry = resources[price.name];
     if (entry) {
-      updated[price.name] = { ...entry, value: entry.value - price.val };
+      entry.value -= price.val;
     }
   }
-  return updated;
 }
 
 // ── Action helpers (used by actions.ts) ──────────────────────────────────────
@@ -1129,38 +1128,33 @@ export function applyResearch(state: GameState, techName: string): GameState {
 
   if (!canAffordPrices(def.prices, state.resources)) return state;
 
-  const newResources = deductPrices(def.prices, state.resources);
+  return produce(state, (draft) => {
+    deductPricesInDraft(def.prices, draft.resources);
 
-  // Mark researched
-  const newTechs = {
-    ...state.science.techs,
-    [techName]: { ...entry, researched: true },
-  };
+    // Mark researched
+    const tech = draft.science.techs[techName];
+    if (tech) {
+      tech.researched = true;
+    }
 
-  // Apply tech unlocks (unlock further techs and policies)
-  const newPolicies = { ...state.science.policies };
-  if (def.unlocks?.tech) {
-    for (const unlockName of def.unlocks.tech) {
-      const unlockEntry = newTechs[unlockName];
-      if (unlockEntry && !unlockEntry.unlocked) {
-        newTechs[unlockName] = { ...unlockEntry, unlocked: true };
+    // Apply tech unlocks (unlock further techs and policies)
+    if (def.unlocks?.tech) {
+      for (const unlockName of def.unlocks.tech) {
+        const unlockEntry = draft.science.techs[unlockName];
+        if (unlockEntry && !unlockEntry.unlocked) {
+          unlockEntry.unlocked = true;
+        }
       }
     }
-  }
-  if (def.unlocks?.policies) {
-    for (const policyName of def.unlocks.policies) {
-      const policyEntry = newPolicies[policyName];
-      if (policyEntry && !policyEntry.unlocked) {
-        newPolicies[policyName] = { ...policyEntry, unlocked: true };
+    if (def.unlocks?.policies) {
+      for (const policyName of def.unlocks.policies) {
+        const policyEntry = draft.science.policies[policyName];
+        if (policyEntry && !policyEntry.unlocked) {
+          policyEntry.unlocked = true;
+        }
       }
     }
-  }
-
-  return {
-    ...state,
-    resources: newResources,
-    science: { ...state.science, techs: newTechs, policies: newPolicies },
-  };
+  });
 }
 
 /**
@@ -1176,37 +1170,33 @@ export function applyResearchPolicy(state: GameState, policyName: string): GameS
 
   if (!canAffordPrices(def.prices, state.resources)) return state;
 
-  const newResources = deductPrices(def.prices, state.resources);
+  return produce(state, (draft) => {
+    deductPricesInDraft(def.prices, draft.resources);
 
-  // Mark researched
-  const newPolicies = {
-    ...state.science.policies,
-    [policyName]: { ...entry, researched: true },
-  };
-
-  // Block competing policies
-  for (const blockName of def.blocks) {
-    const blockEntry = newPolicies[blockName];
-    if (blockEntry && !blockEntry.blocked) {
-      newPolicies[blockName] = { ...blockEntry, blocked: true };
+    // Mark researched
+    const policy = draft.science.policies[policyName];
+    if (policy) {
+      policy.researched = true;
     }
-  }
 
-  // Unlock downstream policies
-  if (def.unlocks?.policies) {
-    for (const unlockName of def.unlocks.policies) {
-      const unlockEntry = newPolicies[unlockName];
-      if (unlockEntry && !unlockEntry.unlocked) {
-        newPolicies[unlockName] = { ...unlockEntry, unlocked: true };
+    // Block competing policies
+    for (const blockName of def.blocks) {
+      const blockEntry = draft.science.policies[blockName];
+      if (blockEntry && !blockEntry.blocked) {
+        blockEntry.blocked = true;
       }
     }
-  }
 
-  return {
-    ...state,
-    resources: newResources,
-    science: { ...state.science, policies: newPolicies },
-  };
+    // Unlock downstream policies
+    if (def.unlocks?.policies) {
+      for (const unlockName of def.unlocks.policies) {
+        const unlockEntry = draft.science.policies[unlockName];
+        if (unlockEntry && !unlockEntry.unlocked) {
+          unlockEntry.unlocked = true;
+        }
+      }
+    }
+  });
 }
 
 // ── ScienceManager ────────────────────────────────────────────────────────────
