@@ -20,8 +20,8 @@ Live status tracker. Update when epics start or complete.
 | 14 | **Diplomacy / Trade** — races, trade missions, trade post | 09 | P2 | ✅ Complete |
 | 15 | **Time Mechanics** — Chronoforge, queue, heat/flux | 10 | P2 | ✅ Complete |
 | 16 | **Achievements** — 200+ achievements, badge unlock | 08 | P2 | ✅ Complete |
-| 17 | **Server** — Hono server, SQLite, session mgmt, WS | 02, 03 | P1 | ⏳ Not Started |
-| 18 | **Web Client** — React SPA, TanStack Query, WS live sync | 17 | P1 | ⏳ Not Started |
+| 17 | **Server** — Hono server, SQLite, session mgmt, WS | 02, 03 | P1 | ✅ Complete |
+| 18 | **Web Client** — React SPA, TanStack Query, WS live sync | 17 | P1 | ⏳ In Progress |
 | 19 | **Multi-client** — concurrent clients, optimistic UI, conflict | 18 | P2 | ⏳ Not Started |
 | 20 | **i18n** — translation system, port all 40+ locale files | 18 | P3 | ⏳ Not Started |
 | 21 | **Themes & Assets** — CSS themes, image assets | 18 | P3 | ⏳ Not Started |

@@ -258,13 +258,25 @@ Prerequisites: Epic 08
 ---
 
 ## Epic 17: Server
-**Status:** Not Started
+**Status:** Complete | **Started:** 2026-03-19 | **Finished:** 2026-03-19
+Stories: 7 / 7 complete
+
+- [x] Story 1: SqliteAdapter interface + in-memory adapter for testing
+- [x] Story 2: GameStateStore — init, getSerialized, advanceTick, reset, loadFromSave
+- [x] Story 3: HTTP endpoints — GET /api/health, GET /api/game/state, POST /api/game/action
+- [x] Story 4: HTTP endpoints — POST /api/game/tick, GET /api/game/save, POST /api/game/load, POST /api/game/reset
+- [x] Story 5: WS broadcast — addClient, removeClient, broadcastDelta on every state change
+- [x] Story 6: Auto-tick loop at 200ms interval using Bun-native timers
+- [x] Story 7: Integration — all managers wired, SQLite persistence via Drizzle ORM
+
 Prerequisites: Epics 02, 03
 
 ---
 
 ## Epic 18: Web Client
-**Status:** Not Started
+**Status:** In Progress | **Started:** 2026-03-19
+Stories: 0 / 8 complete
+
 Prerequisites: Epic 17
 
 ---

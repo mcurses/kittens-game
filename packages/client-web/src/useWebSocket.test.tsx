@@ -1,0 +1,192 @@
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { act, cleanup, renderHook } from "@testing-library/react";
+import React from "react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { useWebSocket } from "./useWebSocket.js";
+
+// --------------------------------------------------------------------------
+// Minimal WebSocket mock
+// --------------------------------------------------------------------------
+
+class MockWebSocket {
+  static instances: MockWebSocket[] = [];
+
+  readonly url: string;
+  readyState = 0; // CONNECTING
+  onmessage: ((event: MessageEvent) => void) | null = null;
+  onclose: ((event: CloseEvent) => void) | null = null;
+  onerror: ((event: Event) => void) | null = null;
+  closeCalled = false;
+
+  constructor(url: string) {
+    this.url = url;
+    MockWebSocket.instances.push(this);
+  }
+
+  // Simulate server sending a message
+  simulateMessage(data: unknown) {
+    if (this.onmessage) {
+      this.onmessage({ data: JSON.stringify(data) } as MessageEvent);
+    }
+  }
+
+  // Simulate connection close
+  simulateClose() {
+    if (this.onclose) {
+      this.onclose({} as CloseEvent);
+    }
+  }
+
+  // Simulate error (triggers close)
+  simulateError() {
+    if (this.onerror) {
+      this.onerror({} as Event);
+    }
+  }
+
+  close() {
+    this.closeCalled = true;
+    this.readyState = 3; // CLOSED
+  }
+}
+
+beforeEach(() => {
+  MockWebSocket.instances = [];
+  vi.stubGlobal("WebSocket", MockWebSocket);
+  vi.useFakeTimers();
+});
+
+afterEach(() => {
+  cleanup();
+  vi.restoreAllMocks();
+  vi.useRealTimers();
+  MockWebSocket.instances = [];
+});
+
+function makeWrapper() {
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
+  function Wrapper({ children }: { children: React.ReactNode }) {
+    return (
+      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+    );
+  }
+  return { wrapper: Wrapper, queryClient };
+}
+
+describe("useWebSocket", () => {
+  it("creates a WebSocket connection on mount", () => {
+    const { wrapper } = makeWrapper();
+    renderHook(() => useWebSocket("ws://localhost:3000/ws"), { wrapper });
+    expect(MockWebSocket.instances).toHaveLength(1);
+    expect(MockWebSocket.instances[0]?.url).toBe("ws://localhost:3000/ws");
+  });
+
+  it("updates sessionId and cache on CONNECTED message", () => {
+    const { wrapper, queryClient } = makeWrapper();
+    const { result } = renderHook(
+      () => useWebSocket("ws://localhost:3000/ws"),
+      { wrapper },
+    );
+    const ws = MockWebSocket.instances[0];
+    expect(ws).toBeDefined();
+    const state = { version: 1, tick: 0 };
+    act(() => {
+      ws?.simulateMessage({
+        type: "CONNECTED",
+        payload: { sessionId: "sess-123", state },
+        ts: Date.now(),
+      });
+    });
+    expect(result.current.sessionId).toBe("sess-123");
+    expect(queryClient.getQueryData(["gameState"])).toEqual(state);
+  });
+
+  it("updates query cache on STATE_DELTA message", () => {
+    const { wrapper, queryClient } = makeWrapper();
+    renderHook(() => useWebSocket("ws://localhost:3000/ws"), { wrapper });
+    const ws = MockWebSocket.instances[0];
+    const newState = { version: 1, tick: 55 };
+    act(() => {
+      ws?.simulateMessage({
+        type: "STATE_DELTA",
+        payload: newState,
+        ts: Date.now(),
+      });
+    });
+    expect(queryClient.getQueryData(["gameState"])).toEqual(newState);
+  });
+
+  it("schedules reconnect after 2s when connection closes", () => {
+    const { wrapper } = makeWrapper();
+    renderHook(() => useWebSocket("ws://localhost:3000/ws"), { wrapper });
+    expect(MockWebSocket.instances).toHaveLength(1);
+    act(() => {
+      MockWebSocket.instances[0]?.simulateClose();
+    });
+    // Before 2s — no reconnect yet
+    expect(MockWebSocket.instances).toHaveLength(1);
+    // Advance timer by 2s
+    act(() => {
+      vi.advanceTimersByTime(2000);
+    });
+    expect(MockWebSocket.instances).toHaveLength(2);
+  });
+
+  it("closes WebSocket on unmount", () => {
+    const { wrapper } = makeWrapper();
+    const { unmount } = renderHook(
+      () => useWebSocket("ws://localhost:3000/ws"),
+      { wrapper },
+    );
+    const ws = MockWebSocket.instances[0];
+    expect(ws).toBeDefined();
+    unmount();
+    expect(ws?.closeCalled).toBe(true);
+  });
+
+  it("does not reconnect after unmount", () => {
+    const { wrapper } = makeWrapper();
+    const { unmount } = renderHook(
+      () => useWebSocket("ws://localhost:3000/ws"),
+      { wrapper },
+    );
+    unmount();
+    // Simulate close after unmount
+    act(() => {
+      MockWebSocket.instances[0]?.simulateClose();
+      vi.advanceTimersByTime(2000);
+    });
+    // Should NOT create a second instance
+    expect(MockWebSocket.instances).toHaveLength(1);
+  });
+
+  it("ignores malformed JSON messages", () => {
+    const { wrapper, queryClient } = makeWrapper();
+    renderHook(() => useWebSocket("ws://localhost:3000/ws"), { wrapper });
+    const ws = MockWebSocket.instances[0];
+    act(() => {
+      if (ws?.onmessage) {
+        ws.onmessage({ data: "not-valid-json{{{" } as MessageEvent);
+      }
+    });
+    // Cache should remain empty — no crash
+    expect(queryClient.getQueryData(["gameState"])).toBeUndefined();
+  });
+
+  it("closes and reconnects on error", () => {
+    const { wrapper } = makeWrapper();
+    renderHook(() => useWebSocket("ws://localhost:3000/ws"), { wrapper });
+    const ws = MockWebSocket.instances[0];
+    act(() => {
+      ws?.simulateError();
+      // onerror calls ws.close(), which triggers onclose
+      ws?.simulateClose();
+    });
+    act(() => {
+      vi.advanceTimersByTime(2000);
+    });
+    expect(MockWebSocket.instances).toHaveLength(2);
+  });
+});

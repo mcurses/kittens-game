@@ -1,9 +1,6 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
-
-function App(): React.ReactElement {
-  return <div>Kittens Game — loading...</div>;
-}
+import { App } from "./App.js";
 
 const root = document.getElementById("root");
 if (!root) throw new Error("Missing #root element");

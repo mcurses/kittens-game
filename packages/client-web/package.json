@@ -7,8 +7,9 @@
     "build": "vite build",
     "dev": "vite",
     "typecheck": "tsc --noEmit",
-    "lint": "biome check ./src",
-    "preview": "vite preview"
+    "test": "vitest run --coverage",
+    "test:watch": "vitest",
+    "lint": "biome check ./src"
   },
   "dependencies": {
     "@kittens/api-spec": "workspace:*",
@@ -18,10 +19,15 @@
     "react-dom": "^19.0.0"
   },
   "devDependencies": {
+    "@testing-library/react": "^16.0.0",
+    "@testing-library/user-event": "^14.5.2",
     "@types/react": "^19.0.7",
     "@types/react-dom": "^19.0.3",
     "@vitejs/plugin-react": "^4.3.4",
+    "@vitest/coverage-v8": "^2.1.8",
+    "happy-dom": "^15.7.4",
     "typescript": "*",
-    "vite": "^6.0.11"
+    "vite": "^6.0.11",
+    "vitest": "^2.1.8"
   }
 }

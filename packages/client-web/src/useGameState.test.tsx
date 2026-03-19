@@ -1,0 +1,73 @@
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { cleanup, renderHook, waitFor } from "@testing-library/react";
+import React from "react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { useGameState } from "./useGameState.js";
+
+const mockFetch = vi.fn();
+
+beforeEach(() => {
+  vi.stubGlobal("fetch", mockFetch);
+});
+
+afterEach(() => {
+  cleanup();
+  vi.restoreAllMocks();
+  mockFetch.mockReset();
+});
+
+function makeResponse(body: unknown, status = 200): Response {
+  return {
+    ok: status >= 200 && status < 300,
+    status,
+    json: () => Promise.resolve(body),
+  } as unknown as Response;
+}
+
+function makeWrapper() {
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
+  function Wrapper({ children }: { children: React.ReactNode }) {
+    return (
+      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+    );
+  }
+  return { wrapper: Wrapper, queryClient };
+}
+
+describe("useGameState", () => {
+  it("returns isPending true on initial load", () => {
+    mockFetch.mockImplementation(() => new Promise(() => {})); // never resolves
+    const { wrapper } = makeWrapper();
+    const { result } = renderHook(() => useGameState(), { wrapper });
+    expect(result.current.isPending).toBe(true);
+  });
+
+  it("returns data after successful fetch", async () => {
+    const state = { version: 1, tick: 10 };
+    mockFetch.mockResolvedValueOnce(makeResponse(state));
+    const { wrapper } = makeWrapper();
+    const { result } = renderHook(() => useGameState(), { wrapper });
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(result.current.data).toEqual(state);
+  });
+
+  it("returns error on fetch failure", async () => {
+    mockFetch.mockResolvedValueOnce(makeResponse({}, 500));
+    const { wrapper } = makeWrapper();
+    const { result } = renderHook(() => useGameState(), { wrapper });
+    await waitFor(() => expect(result.current.isError).toBe(true));
+    expect(result.current.error).toBeTruthy();
+  });
+
+  it("uses queryKey ['gameState']", async () => {
+    const state = { version: 1, tick: 5 };
+    mockFetch.mockResolvedValueOnce(makeResponse(state));
+    const { wrapper, queryClient } = makeWrapper();
+    renderHook(() => useGameState(), { wrapper });
+    await waitFor(() =>
+      expect(queryClient.getQueryData(["gameState"])).toEqual(state),
+    );
+  });
+});

@@ -565,3 +565,35 @@ If any dimension scores ≤ 2, pause and fix before moving to the next epic.
 - No specific blocking items from this epic — all epics 13–16 are now complete
 - Next batch: Epics 17+ (Server, Web Client) — read Hono and Drizzle docs before writing stories
 - Consider running `/sanity-check` against the full engine batch (Epics 13–16) before starting Epic 17
+
+## Epic 17: Server — 2026-03-19
+
+| Dimension | Score | Notes |
+|-----------|-------|-------|
+| Test coverage (≥90% target) | 5 | 40/40 tests passing. 95.02% stmt, 92.18% branch, 95.83% func, 95.02% line. db.ts: 100%. app.ts: 94.84%. store.ts: 94.65%. ws.ts and index.ts excluded (Bun-native, not testable in Vitest). |
+| No skipped tests / no TODOs | 5 | Zero `it.skip`, `test.todo`, `TODO`, `FIXME`, `HACK` across all packages. |
+| Feature parity | 4 | All 7 HTTP endpoints implemented and tested. Auto-tick loop at 200ms. WS broadcast on every state change. SQLite persistence via Drizzle with upsert. Session management via WS CONNECTED envelope. CORS middleware on all /api/* routes. Known deferred: WS action dispatch from client (Epic 19), multi-save slots (Epic 19), per-user auth (Epic 19). |
+| API contract | 5 | All 26 existing GameAction types in openapi.yaml. All 7 HTTP endpoints implemented per spec. WS envelopes (CONNECTED + STATE_DELTA) match spec shapes. |
+| Code quality (no `any`) | 5 | Zero `: any` annotations in production code. Biome passes clean (fixed import ordering). Build passes. SqliteAdapter interface keeps Bun-native code isolated. |
+| Docs freshness | 4 | PROGRESS.md update deferred to batch end. STORIES.md and NOTES.md created. DECISIONS.md unchanged (no new ADR needed — adapter pattern is an established approach). |
+| Commit hygiene | 5 | One clean feat commit with comprehensive body listing all deliverables. Build verified before commit. No WIP commits. |
+| **Overall average** | **4.7** | |
+
+### What went well
+- SqliteAdapter interface cleanly separates Bun-native code from testable logic — createMemoryAdapter allows full Vitest coverage without bun:sqlite
+- 40 tests covering all HTTP endpoints, store logic, DB adapter, and WS broadcast in a single pass
+- Full manager set (all 13 domain managers) correctly wired in store: tick(), resetState(), and load() all use managers
+- `applyAction` + `buildEffectCache` pattern correctly mirrors engine's tick() behavior for action dispatch
+- Hono's `.request()` method enables in-process integration testing without a real network server
+- `/* v8 ignore */` correctly excludes createBunAdapter from coverage without polluting the numbers
+
+### What to improve
+- app.ts lines 20-21 (parseSerializedState early return) and 113-115 (corrupt load error path) not covered — minor edge cases
+- store.ts lines 75-76, 83-84 (init() error/null paths) not explicitly tested — could add tests for corrupt JSON in the adapter
+
+### Action items for Epic 18 (Web Client)
+- [x] Read Vite/React 19 docs before writing stories
+- [x] Create index.html and vite.config.ts in client-web
+- [x] TanStack Query for server state — useQuery for /api/game/state, useMutation for /api/game/action
+- [x] WebSocket hook using native WebSocket — connect to /ws on mount, update React state on STATE_DELTA
+- [x] Tailwind CSS for minimal but functional styling (opted for no Tailwind — minimal inline styles, documented in NOTES.md)
