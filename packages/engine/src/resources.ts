@@ -139,10 +139,10 @@ export class ResourceManager implements Manager {
       const perTick = calcResourcePerTick(state.effectCache, name);
 
       let newValue = entry.value + perTick;
-      // Clamp to [0, maxValue]
       if (newValue < 0) newValue = 0;
+
+      // Match legacy addRes: maxValue === 0 means uncapped; otherwise clamp to maxValue.
       if (maxValue > 0 && newValue > maxValue) newValue = maxValue;
-      if (maxValue === 0 && newValue > 0) newValue = 0;
 
       newResources[name] = { value: newValue, maxValue };
     }

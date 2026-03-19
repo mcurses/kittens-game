@@ -73,7 +73,12 @@ export function applyAction(
     case "GATHER_CATNIP": {
       return produce(state, (draft) => {
         const catnip = draft.resources.catnip ?? { value: 0, maxValue: 0 };
-        catnip.value = Math.min(catnip.value + 1, catnip.maxValue);
+        // Match legacy addRes: no cap when maxValue === 0, clamp to maxValue when > 0.
+        if (catnip.maxValue > 0) {
+          catnip.value = Math.min(catnip.value + 1, catnip.maxValue);
+        } else {
+          catnip.value += 1;
+        }
         draft.resources.catnip = catnip;
       });
     }

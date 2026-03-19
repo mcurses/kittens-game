@@ -180,8 +180,7 @@ describe("ResourceManager", () => {
       expect(next.resources.wood?.value).toBeCloseTo(0.5);
     });
 
-    it("applies maxValue clamping when maxValue is 0", () => {
-      // When maxValue is 0, any positive perTick should still be clamped
+    it("treats maxValue 0 as uncapped for positive perTick gains", () => {
       const state = {
         ...createInitialState(),
         resources: {
@@ -191,8 +190,20 @@ describe("ResourceManager", () => {
         effectCache: { catnipPerTickBase: 1.0 },
       };
       const next = manager.update(state);
-      // maxValue from effectCache is 0 since catnipMax not set → clamp to 0
-      expect(next.resources.catnip?.value).toBe(0);
+      expect(next.resources.catnip?.value).toBe(1);
+    });
+
+    it("does not clamp a resource already above a zero maxValue back to 0", () => {
+      const state = {
+        ...createInitialState(),
+        resources: {
+          ...createInitialResources(),
+          catnip: { value: 1, maxValue: 0 },
+        },
+        effectCache: { catnipPerTickBase: 0 },
+      };
+      const next = manager.update(state);
+      expect(next.resources.catnip?.value).toBe(1);
     });
   });
 

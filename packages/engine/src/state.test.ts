@@ -91,7 +91,7 @@ describe("applyAction GATHER_CATNIP", () => {
     expect(next.resources.catnip?.value).toBe(1);
   });
 
-  it("does not exceed maxValue", () => {
+  it("does not exceed maxValue when maxValue is positive", () => {
     const state = {
       ...createInitialState(),
       resources: {
@@ -103,10 +103,10 @@ describe("applyAction GATHER_CATNIP", () => {
     expect(next.resources.catnip?.value).toBe(100);
   });
 
-  it("clamps to 0 when maxValue is 0", () => {
+  it("increments catnip even when maxValue is 0", () => {
     const state = createInitialState();
     const next = applyAction(state, { type: "GATHER_CATNIP" });
-    expect(next.resources.catnip?.value).toBe(0);
+    expect(next.resources.catnip?.value).toBe(1);
   });
 
   it("does not mutate input state", () => {
@@ -121,7 +121,7 @@ describe("applyAction GATHER_CATNIP", () => {
     expect(state.resources.catnip?.value).toBe(5);
   });
 
-  it("handles missing catnip entry gracefully (stays at 0)", () => {
+  it("handles missing catnip entry by creating and incrementing it", () => {
     // Create a state where catnip is explicitly absent — covers the fallback branch
     const noResources: Record<string, { value: number; maxValue: number }> = {};
     const state = {
@@ -129,7 +129,7 @@ describe("applyAction GATHER_CATNIP", () => {
       resources: noResources,
     };
     const next = applyAction(state, { type: "GATHER_CATNIP" });
-    expect(next.resources.catnip?.value ?? 0).toBe(0);
+    expect(next.resources.catnip?.value ?? 0).toBe(1);
   });
 });
 
