@@ -381,12 +381,9 @@ describe("getChallengeEffectValue", () => {
     );
   });
 
-  it("noStack with LDRLimit: base value goes through LDR", () => {
-    // noStack base = 0.5, LDRLimit: 0.25 → getLimitedDR(0.5, 0.25)
-    const expected = getLimitedDR(0.5, 0.25);
-    expect(getChallengeEffectValue("x", 0.5, 100, { noStack: true, LDRLimit: 0.25 })).toBeCloseTo(
-      expected,
-    );
+  it("noStack: returns base value directly, ignoring LDRLimit (matches legacy line 14-16)", () => {
+    // Legacy: "if (stackOptions.noStack) { return amt; }" — no LDR applied
+    expect(getChallengeEffectValue("x", 0.5, 100, { noStack: true, LDRLimit: 0.25 })).toBeCloseTo(0.5);
   });
 });
 

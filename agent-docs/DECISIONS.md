@@ -62,3 +62,19 @@ The legacy codebase mixes game logic with DOM manipulation and global state, mak
 - Engine is 100% unit-testable without mocks
 - All side effects (persistence, WebSocket broadcast) live in the server layer
 - Clients are thin renderers — no game logic on the client
+
+---
+
+## ADR-003: Challenge noStack semantics
+**Date:** 2026-03-19
+**Status:** Accepted
+
+### Context
+Legacy challenges.js `getEffect()` (lines 14–16) shows that when `stackOptions.noStack` is true, the function immediately returns the base amount with NO further modifications — LDRLimit is NOT applied even if specified alongside noStack.
+
+### Decision
+`getChallengeEffectValue()` in challenges.ts mirrors this exactly: if `noStack` is set, return `baseAmount` directly. The `LDRLimit` field in stackOptions is only meaningful alongside noStack as documentation of the intended cap for the separate stacked path (e.g., `kittenLaziness` has `{ LDRLimit: 0.25, noStack: true }` but the LDR is applied dynamically in the active-effects special case, not via the generic stacking function).
+
+### Consequences
+- Faithful parity with legacy: `noStack` really means "use the value as-is"
+- The anarchy `kittenLaziness` active computation is a one-off special case (not governed by the generic noStack path)

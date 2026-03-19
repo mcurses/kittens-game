@@ -374,12 +374,9 @@ export function getChallengeEffectValue(
   const opts = stackOptions ?? {};
 
   if (opts.noStack) {
-    // Use value directly from the challenge data; still apply LDR if specified
-    let amt = baseAmount;
-    if (opts.LDRLimit !== undefined) {
-      amt = getLimitedDR(amt, opts.LDRLimit);
-    }
-    return amt;
+    // Use value directly from the challenge data with NO further modifications.
+    // Port of legacy line 14-16: "if (stackOptions.noStack) { return amt; }"
+    return baseAmount;
   }
 
   // Default: stack by multiplying by completion count

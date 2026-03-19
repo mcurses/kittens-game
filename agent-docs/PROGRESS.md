@@ -169,8 +169,18 @@ Prerequisites: Epic 08
 ---
 
 ## Epic 12: Challenges
-**Status:** In Progress | **Started:** 2026-03-19
-Stories: 0/8 complete
+**Status:** Complete | **Started:** 2026-03-19 | **Finished:** 2026-03-19
+Stories: 8/8 complete
+
+- [x] Story 1: ChallengeState shape and initial values
+- [x] Story 2: START_CHALLENGE action — begin a challenge run
+- [x] Story 3: COMPLETE_CHALLENGE action — mark a challenge as completed
+- [x] Story 4: ChallengeManager.updateEffects — contribute challenge effects to effectCache
+- [x] Story 5: Per-challenge effect definitions
+- [x] Story 6: SOFT_RESET integration — challenges reset on soft reset
+- [x] Story 7: Save / load / reset for challenges state
+- [x] Story 8: Cross-manager integration — full tick with ChallengeManager
+
 Prerequisites: Epic 11
 
 ---
