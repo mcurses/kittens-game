@@ -133,7 +133,21 @@ Prerequisites: Epics 05, 08
 ---
 
 ## Epic 10: Religion & Faith
-**Status:** Not Started
+**Status:** Complete | **Started:** 2026-03-19 | **Finished:** 2026-03-19
+Stories: 11/11 complete
+
+- [x] Story 1: ReligionState shape and initial values
+- [x] Story 2: Ziggurat upgrades — BUY_ZIGGURAT_UPGRADE action
+- [x] Story 3: Religion upgrades — BUY_RELIGION_UPGRADE action
+- [x] Story 4: Transcendence upgrades — BUY_TRANSCENDENCE_UPGRADE action
+- [x] Story 5: PRAISE action — convert faith to worship
+- [x] Story 6: ADORE action — convert worship to faithRatio (epiphany)
+- [x] Story 7: TRANSCEND action — spend faithRatio to increment transcendenceTier
+- [x] Story 8: ReligionManager.updateEffects — contribute to effectCache
+- [x] Story 9: Faith per tick — faith resource accumulates each tick
+- [x] Story 10: Save / load / reset for religion state
+- [x] Story 11: Cross-manager integration test — full tick with ReligionManager
+
 Prerequisites: Epic 08
 
 ---

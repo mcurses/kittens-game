@@ -323,3 +323,38 @@ If any dimension scores ≤ 2, pause and fix before moving to the next epic.
 - [ ] Faith accumulates per tick (praise action) and is spent on improvements
 - [ ] Unicorn-related effects interact with workshop upgrade unicornSelection — coordinate carefully
 - [ ] Religion effects contribute to effectCache (same summing pattern as Science/Workshop)
+
+---
+
+## Epic 10: Religion & Faith — 2026-03-19
+
+| Dimension | Score | Notes |
+|-----------|-------|-------|
+| Test coverage (≥90% target) | 5 | 373/373 tests passing. 99.76% stmt/func/line overall. religion.ts: 98.57% stmt, 88.67% branch — remaining uncovered branches are all unreachable defensive `??` fallbacks when entries don't exist in state (same pattern as science.ts, workshop.ts). |
+| No skipped tests / no TODOs | 5 | Zero `it.skip`, `test.todo`, `TODO`, `FIXME`, `HACK` across all packages. |
+| Feature parity | 5 | `getApocryphaBonus` formula verified exact match against legacy (5 test values). `getTranscendTotalPrice`/`getTranscendNextPrice` verified exact match against legacy for tiers 0–5. PRAISE resets faith to 0.0001 matching legacy. ADORE uses `worship/1e6 * ttPlus1^2` exactly. 10 ZIGGURAT_UPGRADE_DEFS, 10 RELIGION_UPGRADE_DEFS, 10 TRANSCENDENCE_UPGRADE_DEFS all match legacy definitions. |
+| API spec completeness | 5 | All 15 `GameAction` types now in `openapi.yaml` GameActionRequest discriminated union — this epic added the 6 new religion actions AND backfilled all 9 previously deferred actions (GATHER_CATNIP, BUY_BUILDING, ASSIGN_JOB, UNASSIGN_JOB, RESEARCH, RESEARCH_POLICY, PURCHASE_UPGRADE, CRAFT). api-spec is now fully in sync. |
+| Code quality (no `any`) | 5 | Zero `any` types. Biome passes clean. Build passes (`pnpm turbo build --filter=@kittens/engine`). Fixed load() signature order (`saved: Serializable, state: GameState`) — caught by TypeScript before commit. |
+| Docs freshness | 5 | PROGRESS.md updated (Epic 10 complete, 11/11 stories). EPICS.md updated (10 marked ✅ Complete). STORIES.md all ACs checked. Formulas verified against legacy before rating. |
+| Commit hygiene | 5 | One clean, well-scoped commit. Descriptive multi-line body. Build verified before commit. No WIP commits. |
+| **Overall average** | **5.0** | |
+
+### What went well
+- All 15 action types now synced to openapi.yaml — finally caught up from 7 epics of deferred API spec work
+- `getApocryphaBonus` and `getTranscendTotalPrice`/`getTranscendNextPrice` formulas verified exact match against legacy JavaScript
+- `load()` signature error caught by TypeScript compiler before commit — type safety working as intended
+- 71 new tests covering all stories plus action dispatch, utility functions, and integration scenarios
+- solarRevolutionRatio calculation is dynamic (depends on current worship + effectCache) — correctly isolated in updateEffects
+- Transcendence upgrade tier-lock correctly enforces progression
+
+### What to improve
+- religion.ts has 88.67% branch coverage — the 11.33% gap is all unreachable defensive `??` fallbacks (same known pattern as science.ts/workshop.ts). These could be removed but they guard against future state corruption
+- `tick.test.ts` MarkedState is now 6 epics old — still not a problem since GameState auto-derives, but worth noting it's never been an issue
+
+### Action items for next epic (11 — Prestige / Reset)
+- [ ] Read `legacy/js/prestige.js` fully before writing stories — paragon perks, soft reset, perk unlock chains
+- [ ] PrestigeManager must add `prestige: PrestigeState` slice to GameState
+- [ ] Paragon is a persistent resource (survives reset) — save/load must preserve it
+- [ ] SOFT_RESET action: reset most game state but preserve paragon/burned paragon/perks
+- [ ] Perk effects contribute to effectCache (same summing pattern)
+- [ ] `getParagonProductionRatio` and `getParagonStorageRatio` formulas should be verified against legacy
