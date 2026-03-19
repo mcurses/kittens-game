@@ -332,6 +332,24 @@ components:
             name:
               type: string
               description: Space building name to purchase
+        - type: object
+          required: [type, name]
+          properties:
+            type:
+              type: string
+              enum: [SEND_EMBASSY]
+            name:
+              type: string
+              description: Race name to send embassy to
+        - type: object
+          required: [type, name]
+          properties:
+            type:
+              type: string
+              enum: [TRADE]
+            name:
+              type: string
+              description: Race name to trade with
       discriminator:
         propertyName: type
 

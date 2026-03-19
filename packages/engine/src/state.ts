@@ -2,6 +2,7 @@ import type { Tick } from "@kittens/shared";
 import { type BuildingState, createInitialBuildings } from "./buildings.js";
 import { type CalendarState, createInitialCalendar } from "./calendar.js";
 import { type ChallengeState, createInitialChallenges } from "./challenges.js";
+import { type DiplomacyState, createInitialDiplomacy } from "./diplomacy.js";
 import { type PrestigeState, createInitialPrestige } from "./prestige.js";
 import { type ReligionState, createInitialReligion } from "./religion.js";
 import { type ResourceState, createInitialResources } from "./resources.js";
@@ -39,6 +40,8 @@ export interface GameState {
   readonly challenges: ChallengeState;
   /** Space: missions, planets, and space buildings. */
   readonly space: SpaceState;
+  /** Diplomacy: races, embassy levels, trade state. */
+  readonly diplomacy: DiplomacyState;
 }
 
 export function createInitialState(): GameState {
@@ -56,6 +59,7 @@ export function createInitialState(): GameState {
     prestige: createInitialPrestige(),
     challenges: createInitialChallenges(),
     space: createInitialSpace(),
+    diplomacy: createInitialDiplomacy(),
   };
 }
 
@@ -107,6 +111,11 @@ export interface SerializedGameState {
     programs: Record<string, { val: number; on: number; unlocked: boolean }>;
     planets: Record<string, { unlocked: boolean; reached: boolean; routeDays: number }>;
     spaceBuildings: Record<string, { val: number; on: number; unlocked: boolean }>;
+  };
+  diplomacy?: {
+    races: Record<string, { unlocked: boolean; embassyLevel: number }>;
+    baseGoldCost: number;
+    baseManpowerCost: number;
   };
 }
 
@@ -236,6 +245,16 @@ export function serialize(state: GameState): SerializedGameState {
         ]),
       ),
     },
+    diplomacy: {
+      races: Object.fromEntries(
+        Object.entries(state.diplomacy.races).map(([n, e]) => [
+          n,
+          { unlocked: e.unlocked, embassyLevel: e.embassyLevel },
+        ]),
+      ),
+      baseGoldCost: state.diplomacy.baseGoldCost,
+      baseManpowerCost: state.diplomacy.baseManpowerCost,
+    },
   };
 }
 
@@ -310,6 +329,9 @@ export function deserialize(data: SerializedGameState): GameState {
   // Space state is handled entirely by SpaceManager.load() — start from initial
   const space = createInitialSpace();
 
+  // Diplomacy state is handled entirely by DiplomacyManager.load() — start from initial
+  const diplomacy = createInitialDiplomacy();
+
   return {
     version: data.version,
     tick: data.tick as Tick,
@@ -324,5 +346,6 @@ export function deserialize(data: SerializedGameState): GameState {
     prestige,
     challenges,
     space,
+    diplomacy,
   };
 }

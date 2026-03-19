@@ -17,7 +17,7 @@ Live status tracker. Update when epics start or complete.
 | 11 | **Prestige / Reset** — paragon, perks, soft reset flow | 08 | P1 | ✅ Complete |
 | 12 | **Challenges** — challenge types, LDR stacking, completions | 11 | P2 | ✅ Complete |
 | 13 | **Space** — planets, space buildings, space upgrades | 09 | P2 | ✅ Complete |
-| 14 | **Diplomacy / Trade** — races, trade missions, trade post | 09 | P2 | ⏳ Not Started |
+| 14 | **Diplomacy / Trade** — races, trade missions, trade post | 09 | P2 | ✅ Complete |
 | 15 | **Time Mechanics** — Chronoforge, queue, heat/flux | 10 | P2 | ⏳ Not Started |
 | 16 | **Achievements** — 200+ achievements, badge unlock | 08 | P2 | ⏳ Not Started |
 | 17 | **Server** — Hono server, SQLite, session mgmt, WS | 02, 03 | P1 | ⏳ Not Started |

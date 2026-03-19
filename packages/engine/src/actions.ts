@@ -13,6 +13,7 @@ import {
   applyTranscend,
 } from "./religion.js";
 import { applyResearch, applyResearchPolicy } from "./science.js";
+import { applySendEmbassy, applyTrade } from "./diplomacy.js";
 import { applyBuySpaceBuilding, applyLaunchMission } from "./space.js";
 import type { GameState } from "./state.js";
 import { JOB_DEFS, totalAssignedKittens } from "./village.js";
@@ -40,7 +41,9 @@ export type GameAction =
   | { readonly type: "START_CHALLENGE"; readonly name: string }
   | { readonly type: "COMPLETE_CHALLENGE"; readonly name: string }
   | { readonly type: "LAUNCH_MISSION"; readonly name: string }
-  | { readonly type: "BUY_SPACE_BUILDING"; readonly name: string };
+  | { readonly type: "BUY_SPACE_BUILDING"; readonly name: string }
+  | { readonly type: "SEND_EMBASSY"; readonly name: string }
+  | { readonly type: "TRADE"; readonly name: string };
 
 /**
  * Pure reducer: apply an action to a state and return the next state.
@@ -167,6 +170,12 @@ export function applyAction(
     }
     case "BUY_SPACE_BUILDING": {
       return applyBuySpaceBuilding(state, action.name);
+    }
+    case "SEND_EMBASSY": {
+      return applySendEmbassy(state, action.name);
+    }
+    case "TRADE": {
+      return applyTrade(state, action.name);
     }
   }
 }

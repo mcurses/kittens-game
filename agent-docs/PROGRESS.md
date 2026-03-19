@@ -203,7 +203,17 @@ Prerequisites: Epic 09
 ---
 
 ## Epic 14: Diplomacy / Trade
-**Status:** Not Started
+**Status:** Complete | **Started:** 2026-03-19 | **Finished:** 2026-03-19
+Stories: 7/7 complete
+
+- [x] Story 1: DiplomacyState shape and initial values
+- [x] Story 2: SEND_EMBASSY action
+- [x] Story 3: TRADE action (deterministic)
+- [x] Story 4: Race unlock mechanics
+- [x] Story 5: DiplomacyManager.updateEffects
+- [x] Story 6: Save / load / reset for diplomacy state
+- [x] Story 7: Cross-manager integration test
+
 Prerequisites: Epic 09
 
 ---

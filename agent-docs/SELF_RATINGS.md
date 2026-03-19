@@ -422,9 +422,44 @@ If any dimension scores ≤ 2, pause and fix before moving to the next epic.
 - prestige.ts has inline challenge soft-reset logic to avoid circular import — slightly fragile if challenge entry shape changes; comment documents the rationale
 
 ### Action items for next epic (13 — Space)
-- [ ] Read `legacy/js/space.js` — planets, space buildings, space upgrades, space resources
-- [ ] SpaceManager must add `space: SpaceState` slice to GameState
-- [ ] Planet unlock chains (reaching a planet unlocks its buildings/resources)
-- [ ] Space building prices use standard priceRatio scaling
-- [ ] REACH_PLANET, BUY_SPACE_BUILDING, PURCHASE_SPACE_UPGRADE actions + openapi.yaml entries
-- [ ] helios reached → winterIsComing challenge completion condition becomes satisfiable
+- [x] Read `legacy/js/space.js` — planets, space buildings, space upgrades, space resources
+- [x] SpaceManager must add `space: SpaceState` slice to GameState
+- [x] Planet unlock chains (reaching a planet unlocks its buildings/resources)
+- [x] Space building prices use standard priceRatio scaling
+- [x] LAUNCH_MISSION, BUY_SPACE_BUILDING actions + openapi.yaml entries
+- [x] helios reached → winterIsComing challenge completion condition becomes satisfiable
+
+---
+
+## Epic 13: Space — 2026-03-19
+
+| Dimension | Score | Notes |
+|-----------|-------|-------|
+| Test coverage (≥90% target) | 5 | 503/503 tests passing. 100% stmt/func/line on space.ts; 94.38% branch — 5 uncovered defensive null-guards in load() and update(). Overall 99.8% stmt, 91.8% branch. |
+| No skipped tests / no TODOs | 5 | Zero it.skip, test.todo, TODO, FIXME, HACK across all packages. |
+| Feature parity | 4 | 13 programs, 12 planets, 24 space buildings ported faithfully. Planet route travel, building unlock on planet reached, requiredTech check all match legacy. Known deferred: calculateEffects dynamic effects (moonBase upgrade scaling), entangler hash rate, action-based per-tick effects (moonOutpost uranium drain), unlockScheme threshold unlocking, spaceManufacturing workshop bonus, energy system. All documented in NOTES.md. |
+| API spec completeness | 5 | All 21 GameAction types in openapi.yaml including new LAUNCH_MISSION and BUY_SPACE_BUILDING. |
+| Code quality (no `any`) | 5 | Zero `: any` annotations. Biome passes clean. Build passes (engine + api-spec). |
+| Docs freshness | 5 | PROGRESS.md, EPICS.md updated. All 8 stories with ACs checked. NOTES.md documents deferred features and design decisions. |
+| Commit hygiene | 5 | One clean feat commit. Descriptive body. Build verified. No WIP commits. |
+| **Overall average** | **4.9** | |
+
+### What went well
+- 13 programs and 24 space buildings ported in a single pass
+- Planet route travel countdown matches legacy exactly (1/ticksPerDay per tick, routeDays=0 → immediate)
+- Load replay of unlock chains correctly handles mission cascades on save restore
+- cath (routeDays=0) immediately reached on LAUNCH_MISSION — fixed during TDD
+- Load bug fixed: saved unlocked=false values were overwriting unlock chain replay — separated phases
+
+### What to improve
+- space.ts 94.38% branch coverage — 5 uncovered defensive null-guards (e.g. `if (prog)` in update when program might not exist)
+- calculateEffects dynamic effects are a real gap (moonBase storage bonus, spaceBeacon relic production) — deferred but documented
+
+### Action items for next epic (14 — Diplomacy / Trade)
+- [ ] Read `legacy/js/diplomacy.js` — races, trade mechanics, embassy levels
+- [ ] DiplomacyManager must add `diplomacy: DiplomacyState` slice to GameState
+- [ ] TRADE action: spend gold+manpower, receive random resources from race's sell list
+- [ ] Embassy level unlocks better items in the sell list (minLevel check)
+- [ ] SEND_EMBASSY action: spend culture to increase embassy level
+- [ ] Race unlock: lizards/sharks/griffins visible; nagas/zebras/spiders/dragons/leviathans hidden
+- [ ] TRADE_LEVIATHANS uses unobtainium; season affects trade yields

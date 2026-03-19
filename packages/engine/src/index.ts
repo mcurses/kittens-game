@@ -118,6 +118,25 @@ export {
   applySoftResetChallenges,
 } from "./challenges.js";
 export type {
+  DiplomacyState,
+  RaceDef,
+  RaceEntry,
+  SellEntry,
+  BuyEntry,
+} from "./diplomacy.js";
+export {
+  RACE_DEFS,
+  BASE_GOLD_COST,
+  BASE_MANPOWER_COST,
+  DiplomacyManager,
+  createInitialDiplomacy,
+  applySendEmbassy,
+  applyTrade,
+  getEmbassyCost,
+  getTradeCost,
+  calculateTradeYield,
+} from "./diplomacy.js";
+export type {
   SpaceState,
   ProgramDef,
   ProgramEntry,
