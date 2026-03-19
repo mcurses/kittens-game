@@ -6,6 +6,7 @@ import { type PrestigeState, createInitialPrestige } from "./prestige.js";
 import { type ReligionState, createInitialReligion } from "./religion.js";
 import { type ResourceState, createInitialResources } from "./resources.js";
 import { type ScienceState, createInitialScience } from "./science.js";
+import { type SpaceState, createInitialSpace } from "./space.js";
 import { type VillageState, createInitialVillage } from "./village.js";
 import { type WorkshopState, createInitialWorkshop } from "./workshop.js";
 
@@ -36,6 +37,8 @@ export interface GameState {
   readonly prestige: PrestigeState;
   /** Challenges: active/completed challenges and their completion counts. */
   readonly challenges: ChallengeState;
+  /** Space: missions, planets, and space buildings. */
+  readonly space: SpaceState;
 }
 
 export function createInitialState(): GameState {
@@ -52,6 +55,7 @@ export function createInitialState(): GameState {
     religion: createInitialReligion(),
     prestige: createInitialPrestige(),
     challenges: createInitialChallenges(),
+    space: createInitialSpace(),
   };
 }
 
@@ -98,6 +102,11 @@ export interface SerializedGameState {
       string,
       { unlocked: boolean; active: boolean; researched: boolean; on: number; pending: boolean }
     >;
+  };
+  space?: {
+    programs: Record<string, { val: number; on: number; unlocked: boolean }>;
+    planets: Record<string, { unlocked: boolean; reached: boolean; routeDays: number }>;
+    spaceBuildings: Record<string, { val: number; on: number; unlocked: boolean }>;
   };
 }
 
@@ -207,6 +216,26 @@ export function serialize(state: GameState): SerializedGameState {
         ]),
       ),
     },
+    space: {
+      programs: Object.fromEntries(
+        Object.entries(state.space.programs).map(([n, e]) => [
+          n,
+          { val: e.val, on: e.on, unlocked: e.unlocked },
+        ]),
+      ),
+      planets: Object.fromEntries(
+        Object.entries(state.space.planets).map(([n, e]) => [
+          n,
+          { unlocked: e.unlocked, reached: e.reached, routeDays: e.routeDays },
+        ]),
+      ),
+      spaceBuildings: Object.fromEntries(
+        Object.entries(state.space.spaceBuildings).map(([n, e]) => [
+          n,
+          { val: e.val, on: e.on, unlocked: e.unlocked },
+        ]),
+      ),
+    },
   };
 }
 
@@ -278,6 +307,9 @@ export function deserialize(data: SerializedGameState): GameState {
   // Challenges state is handled entirely by ChallengeManager.load() — start from initial
   const challenges = createInitialChallenges();
 
+  // Space state is handled entirely by SpaceManager.load() — start from initial
+  const space = createInitialSpace();
+
   return {
     version: data.version,
     tick: data.tick as Tick,
@@ -291,5 +323,6 @@ export function deserialize(data: SerializedGameState): GameState {
     religion,
     prestige,
     challenges,
+    space,
   };
 }

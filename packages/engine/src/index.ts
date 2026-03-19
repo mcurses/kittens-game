@@ -117,6 +117,25 @@ export {
   anyChallengeActive,
   applySoftResetChallenges,
 } from "./challenges.js";
+export type {
+  SpaceState,
+  ProgramDef,
+  ProgramEntry,
+  PlanetDef,
+  PlanetEntry,
+  SpaceBuildingDef,
+  SpaceBuildingEntry,
+} from "./space.js";
+export {
+  PROGRAM_DEFS,
+  PLANET_DEFS,
+  SPACE_BUILDING_DEFS,
+  SpaceManager,
+  createInitialSpace,
+  applyLaunchMission,
+  applyBuySpaceBuilding,
+  getSpaceBuildingPrice,
+} from "./space.js";
 export type { PrestigeState, PerkDef, PerkEntry, PerkUnlocks } from "./prestige.js";
 export {
   PERK_DEFS,

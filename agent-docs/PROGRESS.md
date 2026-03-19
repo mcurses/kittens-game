@@ -186,7 +186,18 @@ Prerequisites: Epic 11
 ---
 
 ## Epic 13: Space
-**Status:** Not Started
+**Status:** Complete | **Started:** 2026-03-19 | **Finished:** 2026-03-19
+Stories: 8/8 complete
+
+- [x] Story 1: SpaceState shape and initial values
+- [x] Story 2: LAUNCH_MISSION action
+- [x] Story 3: BUY_SPACE_BUILDING action
+- [x] Story 4: Planet route travel (tick)
+- [x] Story 5: SpaceManager.updateEffects
+- [x] Story 6: Building unlock when planet reached
+- [x] Story 7: Save / load / reset for space state
+- [x] Story 8: Cross-manager integration test
+
 Prerequisites: Epic 09
 
 ---

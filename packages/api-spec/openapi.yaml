@@ -314,6 +314,24 @@ components:
             name:
               type: string
               description: Challenge name to complete
+        - type: object
+          required: [type, name]
+          properties:
+            type:
+              type: string
+              enum: [LAUNCH_MISSION]
+            name:
+              type: string
+              description: Space mission program name to launch
+        - type: object
+          required: [type, name]
+          properties:
+            type:
+              type: string
+              enum: [BUY_SPACE_BUILDING]
+            name:
+              type: string
+              description: Space building name to purchase
       discriminator:
         propertyName: type
 
