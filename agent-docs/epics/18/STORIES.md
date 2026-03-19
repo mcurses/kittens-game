@@ -1,6 +1,6 @@
 # Epic: 18 — Web Client
 
-**Status:** In Progress
+**Status:** Complete
 **Started:** 2026-03-19
 **Legacy refs:** None (greenfield SPA)
 

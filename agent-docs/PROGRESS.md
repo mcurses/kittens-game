@@ -274,8 +274,17 @@ Prerequisites: Epics 02, 03
 ---
 
 ## Epic 18: Web Client
-**Status:** In Progress | **Started:** 2026-03-19
-Stories: 0 / 8 complete
+**Status:** Complete | **Started:** 2026-03-19 | **Finished:** 2026-03-19
+Stories: 8 / 8 complete
+
+- [x] Story 1: Vite + React 19 scaffold — index.html, vite.config.ts, vitest.config.ts
+- [x] Story 2: API client module — typed fetch functions for all 7 server endpoints
+- [x] Story 3: useGameState hook — TanStack Query useQuery with queryKey ['gameState']
+- [x] Story 4: useGameAction hook — useMutation, updates cache on success
+- [x] Story 5: useWebSocket hook — CONNECTED/STATE_DELTA → setQueryData, 2s reconnect
+- [x] Story 6: ResourcePanel component — resources + per-tick rates with loading state
+- [x] Story 7: ActionPanel component — Gather Catnip button, pending/error state
+- [x] Story 8: App root — QueryClientProvider + GameView wiring all panels
 
 Prerequisites: Epic 17
 

@@ -597,3 +597,39 @@ If any dimension scores ≤ 2, pause and fix before moving to the next epic.
 - [x] TanStack Query for server state — useQuery for /api/game/state, useMutation for /api/game/action
 - [x] WebSocket hook using native WebSocket — connect to /ws on mount, update React state on STATE_DELTA
 - [x] Tailwind CSS for minimal but functional styling (opted for no Tailwind — minimal inline styles, documented in NOTES.md)
+
+---
+
+## Epic 18: Web Client — 2026-03-19
+
+| Dimension | Score | Notes |
+|-----------|-------|-------|
+| Test coverage (≥90% target) | 5 | 47/47 tests passing. client-web: 97.79% stmt, 91.04% branch, 100% func/line. Uncovered: App.tsx lines 36-40 (default QueryClient branch, only used in production main.tsx); ResourcePanel.tsx lines 20,23-27 (defensive null guards in extractResources). All uncovered branches are intentional defensive code or production-only paths. |
+| No skipped tests / no TODOs | 5 | Zero `it.skip`, `test.todo`, `TODO`, `FIXME`, `HACK` across client-web. Zero `: any` types in production code. |
+| Feature parity | 4 | Greenfield epic — no legacy equivalent. 3 spot-checks passed: useWebSocket CONNECTED/STATE_DELTA dispatch correct; useGameState queryKey matches WS setQueryData key; postGameAction returns ActionResult on both 200/400. Known deferred: no /api/game/tick UI control (testing-only endpoint, correct omission); no save/load/reset UI controls (Epic 19); no buy-building or other actions beyond Gather Catnip (UI scope kept minimal per epic design). |
+| API spec completeness | 3 | All 7 HTTP endpoints covered by API client (story 2). WS protocol correctly handled. Known pre-existing gap: api-spec/schemas.ts `GameActionRequestSchema` still has only `TICK` literal — not updated with all 26 engine actions. openapi.yaml has all 26. This gap predates Epic 18 (noted in Epic 17 self-rate). Action items: fix in next batch. |
+| Code quality (no `any`) | 5 | Zero `: any` annotations in production code. `as unknown as` cast in ResourcePanel.tsx line 18 (duck-typing SerializedGameState fields — intentional, GameStateResponse type is a partial schema stub from Epic 02 that doesn't include the domain fields). Biome passes clean. Build passes. |
+| Docs freshness | 4 | PROGRESS.md now updated (8/8 stories complete). EPICS.md updated. STORIES.md all ACs checked. NOTES.md thoroughly documents all design decisions. PROGRESS.md was stale until this self-rate (count was 0/8 during implementation). |
+| Commit hygiene | 5 | One clean feat commit with comprehensive body. Build verified before commit. No WIP commits. Co-author tag present. |
+| **Overall average** | **4.4** | |
+
+### What went well
+- 47 tests written and passing in a single TDD cycle — no test failures at commit
+- `@testing-library/react` + `happy-dom` environment works cleanly with Vitest (no globals needed)
+- MockWebSocket pattern enables full control over timing, messages, reconnect — all 8 WS behaviors tested
+- `cleanup()` manually called in afterEach avoids needing globals=true — consistent with rest of codebase
+- `useWebSocket` correctly handles: CONNECTED, STATE_DELTA, close→reconnect, unmount-prevents-reconnect, malformed JSON, error→close→reconnect
+- `useGameAction` cache update pattern (setQueryData on success, skip on ok:false) correctly separates transport success from game logic success
+- `App` accepts optional `queryClient` prop — enables isolated testing without singleton pollution
+
+### What to improve
+- `GameActionRequestSchema` in api-spec/schemas.ts is still only `TICK` — 25 action types missing from the Zod runtime validator. openapi.yaml is correct but the TypeScript type diverges. This should have been fixed in Epic 17.
+- App.tsx branch coverage 66.66% — the `queryClient ?? new QueryClient(...)` useMemo path is only exercised in production. Could be tested by rendering without a prop.
+- `ResourcePanel` uses duck-typing (`as unknown as Record<string, unknown>`) because `GameStateResponse` schema is still the minimal stub from Epic 02 and doesn't include domain fields. The full serialized state is much richer — the schema should be updated when domain types are stabilized.
+- ActionPanel only exposes one action (Gather Catnip) — intentionally minimal for Epic 18 but will need expanding.
+
+### Action items for next epic
+- [ ] Fix `api-spec/schemas.ts` `GameActionRequestSchema` — add all 26 action types to match openapi.yaml and engine's `GameAction` union
+- [ ] Expand `GameStateResponseSchema` in api-spec to include at minimum `resources` field shape, so client code can use typed access instead of duck-typing
+- [ ] Add test covering `<App />` without `queryClient` prop to bring App.tsx branch coverage to 100%
+- [ ] Run sanity-check against Epics 17-18 batch before advancing
