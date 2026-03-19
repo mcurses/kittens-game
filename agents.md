@@ -241,7 +241,7 @@ When running `/self-rate`, evaluate against:
 |-----------|-----------|
 | **Test coverage** | Is line coverage ≥ 90% for the epic? Are edge cases covered? |
 | **Feature parity** | Does each story's AC map 1:1 to legacy behavior? |
-| **API contract** | Are all new actions/endpoints in the OpenAPI spec? |
+| **API contract** | Are all new `GameAction` types in `openapi.yaml`? (must be added same epic, not deferred) |
 | **Code quality** | No `any` types, no skipped tests, no TODOs left in code |
 | **Docs** | Is PROGRESS.md updated? Were decisions logged in DECISIONS.md? |
 | **Commit hygiene** | Small commits? Meaningful messages? No "WIP" left in main? |
@@ -301,6 +301,12 @@ Runs the full test suite, checks coverage, audits open TODOs, compares against P
 ### `/epic-start <name>`
 Creates the epic directory scaffold (`agent-docs/epics/<name>/`), pre-fills STORIES.md with the standard template, and adds the epic to PROGRESS.md as "In Progress".
 
+### `/queue-epics <range-or-list>`
+Runs multiple epics end-to-end in order. Accepts a range (`10-12`) or comma-separated list (`10,12,14`). For each epic: runs `/epic-start`, TDD loop, `/self-rate`, and only advances if all dimensions ≥ 3. Ends the batch with `/sanity-check`. Use this instead of writing out the full multi-epic prompt by hand.
+
+### `/sanity-check`
+Qualitative batch-level review: reads actual source code, compares against legacy to find parity gaps, spots architectural risks, and files any missing features as stories. Runs automatically at the end of each `/queue-epics` batch. Can also be run standalone. Distinct from `/self-rate` (which is mechanical — build/tests/coverage/linting).
+
 ### `/sync-docs`
 Reads the current git log and test results, then updates `agent-docs/PROGRESS.md` with accurate story completion status and coverage metrics. Run this before any self-rating.
 
@@ -314,6 +320,10 @@ Reads the current git log and test results, then updates `agent-docs/PROGRESS.md
 - No skipping tests (`it.skip`, `test.todo` must have a linked issue)
 - No production code without a test
 - OpenAPI spec updated before merging any new endpoint
+- **New `GameAction` types are added to `openapi.yaml` in the same epic that adds them to the engine** — never deferred
+- `pnpm turbo build` must pass after every story — not just tests
+- `legacy/test/` must be read before writing stories for any domain it covers
+- Each epic must include a cross-manager integration test for the full tick loop
 - `agent-docs/PROGRESS.md` updated at the end of every work session
 - Legacy code is **read-only reference** — never modify it
 
@@ -326,22 +336,7 @@ You don't need to babysit each epic. Give the agent a multi-epic prompt and chec
 ### Kick-off prompt template
 
 ```
-You are working on the kittens-mcp rewrite. Read agents.md fully before starting.
-
-Complete the following epics in order, following the workflow in agents.md exactly:
-- Epic 01: Foundation
-- Epic 02: API Spec
-- Epic 03: Core Engine
-
-For each epic:
-1. Create the agent-docs scaffold (STORIES.md, NOTES.md)
-2. Read the relevant legacy code and fill in stories with full AC
-3. TDD loop: write failing tests → implement → green → commit
-4. Run /self-rate and record results
-5. Only move to the next epic if no dimension scored ≤ 2
-
-Commit frequently (after every green test run). Keep commits small and descriptive.
-When done, summarize what was completed, any deviations from the plan, and what's next.
+Read agents.md fully, then run: /queue-epics 1-3
 ```
 
 ### What the agent does autonomously

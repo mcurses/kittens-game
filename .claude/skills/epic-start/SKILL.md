@@ -10,9 +10,11 @@ allowed-tools: Read, Glob, Grep, Write, Edit, Bash
 
 You are bootstrapping epic "$ARGUMENTS" for the kittens-mcp rewrite. Follow agents.md strictly.
 
-## Step 1 — Check prerequisites
+## Step 1 — Check prerequisites and fix outstanding action items
 
 Read `agents.md` epic backlog. Find epic "$ARGUMENTS" and check its prerequisites are marked complete in `agent-docs/PROGRESS.md`. If not, stop and tell the user which epics need to finish first.
+
+Read `agent-docs/SELF_RATINGS.md` and find the most recent "Action items for next epic" section. **Execute every unchecked item (`- [ ]`) before continuing.** These are mandatory fixes left over from the previous self-rate — do not skip them. Mark each item as `- [x]` once done. Only proceed to Step 2 after all action items are resolved.
 
 ## Step 2 — Create scaffold
 
@@ -47,6 +49,8 @@ Create `agent-docs/epics/$ARGUMENTS/NOTES.md`:
 ## Step 3 — Read legacy code
 
 Read all legacy files listed in agents.md for this epic. Summarize key behavior in NOTES.md. Note any cryptic or surprising logic.
+
+Also read `legacy/test/` for any test files covering this domain. The existing test suite is the most reliable specification of expected behavior — use it to inform ACs rather than deriving expected values by hand from source.
 
 ## Step 4 — Write stories
 
@@ -85,9 +89,13 @@ For each story in order:
 1. Write failing Vitest tests covering all ACs
 2. Run tests — confirm red
 3. Implement minimum code to pass
-4. Run tests — confirm green
+4. Run `pnpm turbo build` — confirm build passes
 5. `git commit -m "feat(<scope>): <summary>"`
 6. Mark story ACs as checked
 7. Move to next story
 
-After all stories pass, run `/self-rate` and record results. Update PROGRESS.md to mark epic complete.
+If the story adds a new `GameAction` type, also add it to `packages/api-spec/openapi.yaml`'s `GameActionRequest` discriminated union in the same commit. The spec must stay in sync with the engine — do not defer to Epic 17.
+
+After all stories pass, add a cross-manager integration test: one test that runs a full multi-tick loop with all registered managers and asserts correct aggregate state. Commit it separately.
+
+Then run `/self-rate` and record results. Update PROGRESS.md to mark epic complete.

@@ -9,9 +9,11 @@ allowed-tools: Read, Glob, Grep, Bash, Write, Edit
 
 Run a structured self-evaluation of the current state of the kittens-mcp rewrite.
 
-## Step 1 — Tests & coverage
+## Step 1 — Build + Tests & coverage
 
-Run `pnpm test --coverage` (or `bun test --coverage`) across all packages. Capture:
+First run `pnpm turbo build`. If the build fails, rate Test coverage as 1 and stop — a failing build blocks everything else.
+
+Then run `pnpm turbo test --coverage` across all packages. Capture:
 - Pass / fail / skip counts
 - Line coverage % per package
 - List any failing tests
@@ -29,7 +31,8 @@ List each finding with file:line.
 
 ## Step 3 — API spec coverage
 
-Check that every route implemented in `packages/server/` has a corresponding entry in `packages/api-spec/openapi.yaml`. List gaps.
+1. Check that every route implemented in `packages/server/` has a corresponding entry in `packages/api-spec/openapi.yaml`. List gaps.
+2. Check that every `GameAction` type defined in `packages/engine/src/actions.ts` appears in the `GameActionRequest` discriminated union in `packages/api-spec/`. List any missing action types — these are failures, not deferrals.
 
 ## Step 4 — Docs freshness
 
