@@ -2,7 +2,7 @@ import { QueryClient } from "@tanstack/react-query";
 import { cleanup, render, screen } from "@testing-library/react";
 import React from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { App } from "./App.js";
+import { App, getWsUrl } from "./App.js";
 
 // Mock fetch (for useGameState initial query)
 const mockFetch = vi.fn();
@@ -62,10 +62,31 @@ describe("App", () => {
   });
 
   it("creates a WebSocket connection on mount", () => {
+    const state = {
+      version: 1,
+      tick: 5,
+      resources: {
+        catnip: { value: 10, perTick: 0.5 },
+      },
+    };
+    mockFetch.mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: () => Promise.resolve(state),
+    } as unknown as Response);
+
+    render(<App queryClient={makeClient()} />);
+
+    return vi.waitFor(() => {
+      expect(MockWebSocket.instances).toHaveLength(1);
+      expect(MockWebSocket.instances[0]?.url).toMatch(/\/ws$/);
+    });
+  });
+
+  it("does not create a WebSocket connection before state loads", () => {
     mockFetch.mockImplementation(() => new Promise(() => {}));
     render(<App queryClient={makeClient()} />);
-    expect(MockWebSocket.instances).toHaveLength(1);
-    expect(MockWebSocket.instances[0]?.url).toMatch(/\/ws$/);
+    expect(MockWebSocket.instances).toHaveLength(0);
   });
 
   it("shows resource data after state loads", async () => {
@@ -86,5 +107,34 @@ describe("App", () => {
       expect(screen.getByTestId("resource-panel")).toBeTruthy();
       expect(screen.getByTestId("resource-catnip")).toBeTruthy();
     });
+  });
+
+  it("shows an error message when the initial state fetch fails", async () => {
+    mockFetch.mockResolvedValue({
+      ok: false,
+      status: 500,
+      json: () => Promise.resolve({}),
+    } as unknown as Response);
+
+    render(<App queryClient={makeClient()} />);
+
+    await vi.waitFor(() => {
+      expect(screen.getByTestId("game-state-error")).toBeTruthy();
+      expect(screen.getByText("Failed to fetch game state: 500")).toBeTruthy();
+    });
+  });
+
+  it("uses the backend WebSocket URL in local Vite development", () => {
+    expect(
+      getWsUrl(
+        {
+          protocol: "http:",
+          host: "localhost:5173",
+          hostname: "localhost",
+          port: "5173",
+        },
+        true,
+      ),
+    ).toBe("ws://localhost:3000/ws");
   });
 });

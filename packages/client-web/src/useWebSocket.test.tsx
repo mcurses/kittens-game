@@ -76,6 +76,12 @@ function makeWrapper() {
 }
 
 describe("useWebSocket", () => {
+  it("does not create a connection when the URL is null", () => {
+    const { wrapper } = makeWrapper();
+    renderHook(() => useWebSocket(null), { wrapper });
+    expect(MockWebSocket.instances).toHaveLength(0);
+  });
+
   it("creates a WebSocket connection on mount", () => {
     const { wrapper } = makeWrapper();
     renderHook(() => useWebSocket("ws://localhost:3000/ws"), { wrapper });
@@ -101,6 +107,39 @@ describe("useWebSocket", () => {
     });
     expect(result.current.sessionId).toBe("sess-123");
     expect(queryClient.getQueryData(["gameState"])).toEqual(state);
+  });
+
+  it("does not overwrite an existing cache entry with a stale CONNECTED snapshot", () => {
+    const { wrapper, queryClient } = makeWrapper();
+    queryClient.setQueryData(["gameState"], {
+      version: 1,
+      tick: 5,
+      resources: { catnip: { value: 1, maxValue: 0 } },
+    });
+
+    renderHook(() => useWebSocket("ws://localhost:3000/ws"), { wrapper });
+
+    const ws = MockWebSocket.instances[0];
+    act(() => {
+      ws?.simulateMessage({
+        type: "CONNECTED",
+        payload: {
+          sessionId: "sess-123",
+          state: {
+            version: 1,
+            tick: 5,
+            resources: { catnip: { value: 0, maxValue: 0 } },
+          },
+        },
+        ts: Date.now(),
+      });
+    });
+
+    expect(queryClient.getQueryData(["gameState"])).toEqual({
+      version: 1,
+      tick: 5,
+      resources: { catnip: { value: 1, maxValue: 0 } },
+    });
   });
 
   it("updates query cache on STATE_DELTA message", () => {

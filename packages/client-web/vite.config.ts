@@ -3,6 +3,14 @@ import { defineConfig } from "vite";
 
 export default defineConfig({
   plugins: [react()],
+  server: {
+    proxy: {
+      "/api": {
+        target: "http://localhost:3000",
+        changeOrigin: true,
+      },
+    },
+  },
   resolve: {
     alias: {
       "@kittens/shared": new URL("../shared/src/index.ts", import.meta.url)

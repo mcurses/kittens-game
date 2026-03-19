@@ -22,7 +22,7 @@ interface WsConnectedEnvelope {
 
 type WsEnvelope = WsStateDeltaEnvelope | WsConnectedEnvelope;
 
-export function useWebSocket(url: string) {
+export function useWebSocket(url: string | null) {
   const queryClient = useQueryClient();
   const [sessionId, setSessionId] = useState<string | null>(null);
   const wsRef = useRef<WebSocket | null>(null);
@@ -30,6 +30,10 @@ export function useWebSocket(url: string) {
   const unmountedRef = useRef(false);
 
   useEffect(() => {
+    if (url === null) {
+      return;
+    }
+
     unmountedRef.current = false;
 
     function connect() {
@@ -50,7 +54,7 @@ export function useWebSocket(url: string) {
           setSessionId(envelope.payload.sessionId);
           queryClient.setQueryData(
             GAME_STATE_QUERY_KEY,
-            envelope.payload.state,
+            (currentState) => currentState ?? envelope.payload.state,
           );
         } else if (envelope.type === "STATE_DELTA") {
           queryClient.setQueryData(GAME_STATE_QUERY_KEY, envelope.payload);

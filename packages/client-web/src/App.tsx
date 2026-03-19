@@ -6,15 +6,46 @@ import { ResourcePanel } from "./ResourcePanel.js";
 import { useGameState } from "./useGameState.js";
 import { useWebSocket } from "./useWebSocket.js";
 
-/** Derive the WebSocket URL from window.location */
-function getWsUrl(): string {
-  const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-  return `${protocol}//${window.location.host}/ws`;
+interface LocationLike {
+  hostname: string;
+  port: string;
+  protocol: string;
+  host: string;
+}
+
+/** Derive the WebSocket URL from the current browser location. */
+export function getWsUrl(
+  location: LocationLike = window.location,
+  isDev = import.meta.env.DEV,
+): string {
+  const isLocalViteDevServer =
+    isDev &&
+    (location.hostname === "localhost" || location.hostname === "127.0.0.1") &&
+    location.port === "5173";
+
+  if (isLocalViteDevServer) {
+    return "ws://localhost:3000/ws";
+  }
+
+  const protocol = location.protocol === "https:" ? "wss:" : "ws:";
+  return `${protocol}//${location.host}/ws`;
 }
 
 function GameView(): React.ReactElement {
-  const { data: state } = useGameState();
-  useWebSocket(getWsUrl());
+  const { data: state, error, isError, isSuccess } = useGameState();
+  useWebSocket(isSuccess ? getWsUrl() : null);
+
+  if (isError) {
+    return (
+      <main>
+        <h1>Kittens Game</h1>
+        <p data-testid="game-state-error">
+          {error instanceof Error ? error.message : "Failed to load game state."}
+        </p>
+        <ActionPanel />
+      </main>
+    );
+  }
 
   return (
     <main>
