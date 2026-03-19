@@ -78,3 +78,16 @@ Legacy challenges.js `getEffect()` (lines 14–16) shows that when `stackOptions
 ### Consequences
 - Faithful parity with legacy: `noStack` really means "use the value as-is"
 - The anarchy `kittenLaziness` active computation is a one-off special case (not governed by the generic noStack path)
+
+---
+
+## ADR-004: One-tick effect lag is accepted for now
+
+**Date:** 2026-03-19
+**Status:** Accepted
+
+The effectCache is rebuilt after all manager updates complete. This means manager update() calls read last tick's effectCache. In the legacy, effects were computed in manager order within the same tick, so a later manager could see a fresh effect from an earlier one.
+
+**Why accepted:** The lag is invisible for static effects (buildings, upgrades don't change tick-to-tick). It only matters for cross-system dynamic effects, whose full dependency graph is not yet known. Fixing this requires explicit dependency ordering between managers — better done at Epic 22 (Feature Parity Audit) when the full graph is visible.
+
+**Risk:** Subtle one-tick divergence in cross-system effect chains. Watch for this in Space/Time/Diplomacy epics.

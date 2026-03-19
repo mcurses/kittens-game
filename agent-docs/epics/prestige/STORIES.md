@@ -128,3 +128,40 @@
 - [x] Given all managers registered including PrestigeManager, `tick()` advances without error
 - [x] Given `engeneering` perk researched, effectCache contains `priceRatio` from perk
 - [x] Given SOFT_RESET applied, game state (resources, buildings) is wiped but prestige perks remain
+
+---
+
+## Story: Paragon production ratio feeds into effectCache
+
+**As a** player
+**I want** paragon to actually boost production
+**So that** prestige has the meaningful effect it does in the original game
+
+### Acceptance Criteria
+- [ ] getParagonProductionRatio() result is contributed to effectCache each tick (via PrestigeManager.updateEffects)
+- [ ] Sephirot perk bonuses (malkuth through keter) correctly multiply the ratio
+- [ ] burnedParagon reduces the ratio as in legacy
+
+### Legacy Reference
+- `legacy/js/prestige.js` — getParagonProductionRatio, getParagonStorageRatio
+
+### Status: [ ] Tests | [ ] Impl | [ ] Rated
+
+---
+
+## Story: Burned paragon mechanics
+
+**As a** player
+**I want** burning paragon for kittens/buildings to work
+**So that** the prestige sacrifice mechanic is available
+
+### Acceptance Criteria
+- [ ] BURN_PARAGON action converts paragon to burned paragon at legacy rate
+- [ ] burnedParagon persists across soft resets (already preserved, but gain mechanic missing)
+- [ ] burnedParagonRatio reduces paragonProductionRatio as in legacy
+- [ ] Action added to GameActionRequest in openapi.yaml
+
+### Legacy Reference
+- `legacy/js/prestige.js` — burnParagon, getBurnedParagonRatio
+
+### Status: [ ] Tests | [ ] Impl | [ ] Rated

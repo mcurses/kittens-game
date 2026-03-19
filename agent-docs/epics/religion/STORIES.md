@@ -193,3 +193,78 @@
 - [x] Given all managers (Resource, Building, Village, Calendar, Science, Workshop, Religion) registered, `tick()` advances without error
 - [x] Given temples built and faith effects active, tick produces faith
 - [x] Given PRAISE action, worship increases and faith resets
+
+---
+
+## Story: Unicorn sacrifice actions
+
+**As a** player
+**I want** to sacrifice unicorns and alicorns for faith/tears
+**So that** I can generate faith resources as in the original game
+
+### Acceptance Criteria
+- [ ] Given sufficient unicorns, SACRIFICE_UNICORNS action converts them to tears at legacy rate
+- [ ] Given sufficient alicorns, SACRIFICE_ALICORNS action converts them to tears/time crystals
+- [ ] REFINE_TIME_CRYSTALS action converts tears to time crystals at legacy rate
+- [ ] All three actions are added to GameActionRequest in openapi.yaml
+
+### Legacy Reference
+- `legacy/js/religion.js` — sacrificeUnicorns, sacrificeAlicorns, refineTimeCrystals
+
+### Status: [ ] Tests | [ ] Impl | [ ] Rated
+
+---
+
+## Story: Necrocorn corruption system
+
+**As a** player
+**I want** the necrocorn corruption mechanic to function
+**So that** endgame religion pacing matches the original game
+
+### Acceptance Criteria
+- [ ] blackPyramid generates corruption per tick when active
+- [ ] Corruption degrades necrocorn production over time per legacy getCorruptionEffects()
+- [ ] corruptNecrocorns() logic ported faithfully
+- [ ] Fast-forward corruption calculation on load (catchup mechanic)
+
+### Legacy Reference
+- `legacy/js/religion.js` — getCorruptionEffects, corruptNecrocorns
+
+### Status: [ ] Tests | [ ] Impl | [ ] Rated
+
+---
+
+## Story: Pacts system
+
+**As a** player
+**I want** the Order pacts mechanic to function
+**So that** late-game religion options are available
+
+### Acceptance Criteria
+- [ ] PactOfCleansing, PactOfDestruction, PactOfExtermination, PactOfPurity implemented
+- [ ] payDebt and fractured pact states implemented
+- [ ] Pact costs and effects match legacy pactsManager
+- [ ] Pact actions added to GameActionRequest in openapi.yaml
+
+### Legacy Reference
+- `legacy/js/religion.js` — pactsManager, triggerOrderOfTheVoid
+
+### Status: [ ] Tests | [ ] Impl | [ ] Rated
+
+---
+
+## Story: blackPyramid and holyGenocide special effects
+
+**As a** player
+**I want** blackPyramid and holyGenocide to have their full legacy effects
+**So that** transcendence endgame plays correctly
+
+### Acceptance Criteria
+- [ ] blackPyramid effects implemented (currently empty `{}` — port legacy getEffectiveValue callback)
+- [ ] holyGenocide activeHolyGenocide state and custom effect calculation implemented
+- [ ] Effects feed into effectCache correctly
+
+### Legacy Reference
+- `legacy/js/religion.js` — blackPyramid getEffectiveValue, activeHolyGenocide
+
+### Status: [ ] Tests | [ ] Impl | [ ] Rated
