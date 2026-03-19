@@ -153,7 +153,17 @@ Prerequisites: Epic 08
 ---
 
 ## Epic 11: Prestige / Reset
-**Status:** Not Started
+**Status:** Complete | **Started:** 2026-03-19 | **Finished:** 2026-03-19
+Stories: 7/7 complete
+
+- [x] Story 1: PrestigeState shape and initial values
+- [x] Story 2: PURCHASE_PERK action — buy prestige perks with paragon
+- [x] Story 3: PrestigeManager.updateEffects — contribute perk effects to effectCache
+- [x] Story 4: SOFT_RESET action — reset game state while preserving prestige
+- [x] Story 5: Paragon production ratio — paragon boosts global production
+- [x] Story 6: Save / load / reset for prestige state
+- [x] Story 7: Cross-manager integration — full tick with PrestigeManager
+
 Prerequisites: Epic 08
 
 ---

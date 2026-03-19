@@ -14,7 +14,7 @@ Live status tracker. Update when epics start or complete.
 | 08 | **Science / Tech Tree** — 100+ techs, unlock chains | 05, 06 | P1 | ✅ Complete |
 | 09 | **Workshop / Upgrades** — crafting recipes, upgrade effects | 05, 08 | P1 | ✅ Complete |
 | 10 | **Religion & Faith** — faith, gods, praise mechanics | 08 | P1 | ✅ Complete |
-| 11 | **Prestige / Reset** — paragon, perks, soft reset flow | 08 | P1 | ⏳ Not Started |
+| 11 | **Prestige / Reset** — paragon, perks, soft reset flow | 08 | P1 | ✅ Complete |
 | 12 | **Challenges** — challenge types, LDR stacking, completions | 11 | P2 | ⏳ Not Started |
 | 13 | **Space** — planets, space buildings, space upgrades | 09 | P2 | ⏳ Not Started |
 | 14 | **Diplomacy / Trade** — races, trade missions, trade post | 09 | P2 | ⏳ Not Started |

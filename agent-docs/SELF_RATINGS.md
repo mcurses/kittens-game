@@ -358,3 +358,38 @@ If any dimension scores ≤ 2, pause and fix before moving to the next epic.
 - [ ] SOFT_RESET action: reset most game state but preserve paragon/burned paragon/perks
 - [ ] Perk effects contribute to effectCache (same summing pattern)
 - [ ] `getParagonProductionRatio` and `getParagonStorageRatio` formulas should be verified against legacy
+
+---
+
+## Epic 11: Prestige / Reset — 2026-03-19
+
+| Dimension | Score | Notes |
+|-----------|-------|-------|
+| Test coverage (≥90% target) | 5 | 410/410 pass; 99.78% stmt, 94.61% branch, 100% func/line |
+| No skipped tests / no TODOs | 5 | Zero it.skip, test.todo, TODO, FIXME, HACK |
+| Feature parity | 4 | resetState, PURCHASE_PERK, unlock chains, SOFT_RESET faithful to legacy; burnedParagon darkFutureYears path correctly deferred to Epic 15 (Time Mechanics) with inline comment |
+| API spec completeness | 5 | All 17 GameAction types present in openapi.yaml including new PURCHASE_PERK and SOFT_RESET |
+| Code quality (no `any`) | 5 | Zero `: any` type annotations; all types fully explicit |
+| Docs freshness | 5 | PROGRESS.md, EPICS.md updated; all 33 ACs checked in STORIES.md |
+| Commit hygiene | 5 | One clean feat commit with semantic prefix, clear scope, co-author tag |
+| **Overall average** | **4.9** | |
+
+### What went well
+- 37 perks ported from legacy with full unlock chain replay on load
+- SOFT_RESET correctly preserves paragon and prestige perks while wiping all other state
+- Ziggurat upgrade unlock via perk purchase (megalomania → marker/blackPyramid) handled as cross-slice state update
+- TestNG error caught and fixed immediately: `getLimitedDR` is piecewise linear (not exponential), test formula corrected before merge
+- prestige.ts hits 100% statement/line coverage and 78.84% branch — all uncovered branches are rare null-guards for `undefined` map entries
+- API spec fully current — all 17 actions covered
+
+### What to improve
+- burnedParagon contribution to production/storage ratios is deferred (requires darkFutureYears from Epic 15) — comment in prestige.ts explains clearly but the divergence is real
+- prestige.ts branch coverage 78.84% — the uncovered branches are defensive null-checks (e.g., `if (zu)` when a ziggurat upgrade key doesn't exist). These are intentional guards rather than dead code
+
+### Action items for next epic (12 — Challenges)
+- [ ] Read `legacy/js/challenges.js` — challenge state, challenge types, LDR stacking, completions
+- [ ] ChallengeManager must add `challenges: ChallengeState` slice to GameState
+- [ ] Challenge completion tracking — challenges persist across resets (like prestige)
+- [ ] LDR stacking mechanic: each challenge completion compounds the DR bonus
+- [ ] START_CHALLENGE and COMPLETE_CHALLENGE actions + openapi.yaml entries
+- [ ] Challenges gate on adjustmentBureau perk being researched
