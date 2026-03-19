@@ -219,7 +219,19 @@ Prerequisites: Epic 09
 ---
 
 ## Epic 15: Time Mechanics
-**Status:** Not Started
+**Status:** Complete | **Started:** 2026-03-19 | **Finished:** 2026-03-19
+Stories: 9/9 complete
+
+- [x] Story 1: TimeState shape and initial values
+- [x] Story 2: BUY_CFU action
+- [x] Story 3: BUY_VSU action
+- [x] Story 4: Heat mechanics (tick)
+- [x] Story 5: SHATTER_TC action
+- [x] Story 6: TimeManager.updateEffects
+- [x] Story 7: CFU unlock propagation
+- [x] Story 8: Save / load / reset for time state
+- [x] Story 9: Cross-manager integration test
+
 Prerequisites: Epic 10
 
 ---
