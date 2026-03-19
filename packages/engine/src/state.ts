@@ -8,6 +8,7 @@ import { type ReligionState, createInitialReligion } from "./religion.js";
 import { type ResourceState, createInitialResources } from "./resources.js";
 import { type ScienceState, createInitialScience } from "./science.js";
 import { type SpaceState, createInitialSpace } from "./space.js";
+import { type TimeState, createInitialTime } from "./time.js";
 import { type VillageState, createInitialVillage } from "./village.js";
 import { type WorkshopState, createInitialWorkshop } from "./workshop.js";
 
@@ -42,6 +43,8 @@ export interface GameState {
   readonly space: SpaceState;
   /** Diplomacy: races, embassy levels, trade state. */
   readonly diplomacy: DiplomacyState;
+  /** Time mechanics: CFU/VSU upgrades, heat, flux. */
+  readonly time: TimeState;
 }
 
 export function createInitialState(): GameState {
@@ -60,6 +63,7 @@ export function createInitialState(): GameState {
     challenges: createInitialChallenges(),
     space: createInitialSpace(),
     diplomacy: createInitialDiplomacy(),
+    time: createInitialTime(),
   };
 }
 
@@ -116,6 +120,13 @@ export interface SerializedGameState {
     races: Record<string, { unlocked: boolean; embassyLevel: number }>;
     baseGoldCost: number;
     baseManpowerCost: number;
+  };
+  time?: {
+    cfus: Record<string, { val: number; on: number; unlocked: boolean; heat: number }>;
+    vsus: Record<string, { val: number; on: number; unlocked: boolean }>;
+    heat: number;
+    flux: number;
+    isAccelerated: boolean;
   };
 }
 
@@ -255,6 +266,20 @@ export function serialize(state: GameState): SerializedGameState {
       baseGoldCost: state.diplomacy.baseGoldCost,
       baseManpowerCost: state.diplomacy.baseManpowerCost,
     },
+    time: {
+      cfus: Object.fromEntries(
+        Object.entries(state.time.cfus).map(([n, e]) => [
+          n,
+          { val: e.val, on: e.on, unlocked: e.unlocked, heat: e.heat },
+        ]),
+      ),
+      vsus: Object.fromEntries(
+        Object.entries(state.time.vsus).map(([n, e]) => [n, { val: e.val, on: e.on, unlocked: e.unlocked }]),
+      ),
+      heat: state.time.heat,
+      flux: state.time.flux,
+      isAccelerated: state.time.isAccelerated,
+    },
   };
 }
 
@@ -332,6 +357,9 @@ export function deserialize(data: SerializedGameState): GameState {
   // Diplomacy state is handled entirely by DiplomacyManager.load() — start from initial
   const diplomacy = createInitialDiplomacy();
 
+  // Time state is handled entirely by TimeManager.load() — start from initial
+  const time = createInitialTime();
+
   return {
     version: data.version,
     tick: data.tick as Tick,
@@ -347,5 +375,6 @@ export function deserialize(data: SerializedGameState): GameState {
     challenges,
     space,
     diplomacy,
+    time,
   };
 }

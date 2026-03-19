@@ -155,6 +155,24 @@ export {
   applyBuySpaceBuilding,
   getSpaceBuildingPrice,
 } from "./space.js";
+export type {
+  TimeState,
+  CfuDef,
+  CfuEntry,
+  VsuDef,
+  VsuEntry,
+} from "./time.js";
+export {
+  CFU_DEFS,
+  VSU_DEFS,
+  TimeManager,
+  createInitialTime,
+  applyBuyCfu,
+  applyBuyVsu,
+  applyShatterTc,
+  getCfuPrice,
+  getVsuPrice,
+} from "./time.js";
 export type { PrestigeState, PerkDef, PerkEntry, PerkUnlocks } from "./prestige.js";
 export {
   PERK_DEFS,

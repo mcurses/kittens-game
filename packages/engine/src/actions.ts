@@ -15,6 +15,7 @@ import {
 import { applyResearch, applyResearchPolicy } from "./science.js";
 import { applySendEmbassy, applyTrade } from "./diplomacy.js";
 import { applyBuySpaceBuilding, applyLaunchMission } from "./space.js";
+import { applyBuyCfu, applyBuyVsu, applyShatterTc } from "./time.js";
 import type { GameState } from "./state.js";
 import { JOB_DEFS, totalAssignedKittens } from "./village.js";
 import { applyCraft, applyPurchaseUpgrade } from "./workshop.js";
@@ -43,7 +44,10 @@ export type GameAction =
   | { readonly type: "LAUNCH_MISSION"; readonly name: string }
   | { readonly type: "BUY_SPACE_BUILDING"; readonly name: string }
   | { readonly type: "SEND_EMBASSY"; readonly name: string }
-  | { readonly type: "TRADE"; readonly name: string };
+  | { readonly type: "TRADE"; readonly name: string }
+  | { readonly type: "BUY_CFU"; readonly name: string }
+  | { readonly type: "BUY_VSU"; readonly name: string }
+  | { readonly type: "SHATTER_TC" };
 
 /**
  * Pure reducer: apply an action to a state and return the next state.
@@ -176,6 +180,15 @@ export function applyAction(
     }
     case "TRADE": {
       return applyTrade(state, action.name);
+    }
+    case "BUY_CFU": {
+      return applyBuyCfu(state, action.name);
+    }
+    case "BUY_VSU": {
+      return applyBuyVsu(state, action.name);
+    }
+    case "SHATTER_TC": {
+      return applyShatterTc(state);
     }
   }
 }

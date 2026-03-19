@@ -350,6 +350,30 @@ components:
             name:
               type: string
               description: Race name to trade with
+        - type: object
+          required: [type, name]
+          properties:
+            type:
+              type: string
+              enum: [BUY_CFU]
+            name:
+              type: string
+              description: Chronoforge upgrade name to buy
+        - type: object
+          required: [type, name]
+          properties:
+            type:
+              type: string
+              enum: [BUY_VSU]
+            name:
+              type: string
+              description: Voidspace upgrade name to buy
+        - type: object
+          required: [type]
+          properties:
+            type:
+              type: string
+              enum: [SHATTER_TC]
       discriminator:
         propertyName: type
 
