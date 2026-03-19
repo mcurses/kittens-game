@@ -1,6 +1,7 @@
 import type { Tick } from "@kittens/shared";
 import { BUILDING_DEFS, canAfford, getBuildingPrice } from "./buildings.js";
 import type { Manager } from "./manager.js";
+import { applyPurchasePerk, applySoftReset } from "./prestige.js";
 import {
   applyAdore,
   applyBuyReligionUpgrade,
@@ -30,7 +31,9 @@ export type GameAction =
   | { readonly type: "BUY_TRANSCENDENCE_UPGRADE"; readonly name: string }
   | { readonly type: "PRAISE" }
   | { readonly type: "ADORE" }
-  | { readonly type: "TRANSCEND" };
+  | { readonly type: "TRANSCEND" }
+  | { readonly type: "PURCHASE_PERK"; readonly name: string }
+  | { readonly type: "SOFT_RESET" };
 
 /**
  * Pure reducer: apply an action to a state and return the next state.
@@ -156,6 +159,12 @@ export function applyAction(
     }
     case "TRANSCEND": {
       return applyTranscend(state);
+    }
+    case "PURCHASE_PERK": {
+      return applyPurchasePerk(state, action.name);
+    }
+    case "SOFT_RESET": {
+      return applySoftReset(state, managers);
     }
   }
 }

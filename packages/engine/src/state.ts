@@ -1,6 +1,7 @@
 import type { Tick } from "@kittens/shared";
 import { type BuildingState, createInitialBuildings } from "./buildings.js";
 import { type CalendarState, createInitialCalendar } from "./calendar.js";
+import { type PrestigeState, createInitialPrestige } from "./prestige.js";
 import { type ReligionState, createInitialReligion } from "./religion.js";
 import { type ResourceState, createInitialResources } from "./resources.js";
 import { type ScienceState, createInitialScience } from "./science.js";
@@ -30,6 +31,8 @@ export interface GameState {
   readonly workshop: WorkshopState;
   /** Religion: faith, worship, ziggurat/religion/transcendence upgrades. */
   readonly religion: ReligionState;
+  /** Prestige: perks purchased with paragon, persist across soft resets. */
+  readonly prestige: PrestigeState;
 }
 
 export function createInitialState(): GameState {
@@ -44,6 +47,7 @@ export function createInitialState(): GameState {
     science: createInitialScience(),
     workshop: createInitialWorkshop(),
     religion: createInitialReligion(),
+    prestige: createInitialPrestige(),
   };
 }
 
@@ -81,6 +85,9 @@ export interface SerializedGameState {
     zu: Record<string, { val: number; on: number; unlocked: boolean }>;
     ru: Record<string, { val: number; on: number }>;
     tu: Record<string, { val: number; on: number; unlocked: boolean }>;
+  };
+  prestige?: {
+    perks: Record<string, { unlocked: boolean; researched: boolean }>;
   };
 }
 
@@ -168,6 +175,14 @@ export function serialize(state: GameState): SerializedGameState {
         ]),
       ),
     },
+    prestige: {
+      perks: Object.fromEntries(
+        Object.entries(state.prestige.perks).map(([n, e]) => [
+          n,
+          { unlocked: e.unlocked, researched: e.researched },
+        ]),
+      ),
+    },
   };
 }
 
@@ -233,6 +248,9 @@ export function deserialize(data: SerializedGameState): GameState {
   // Religion state is handled entirely by ReligionManager.load() — start from initial
   const religion = createInitialReligion();
 
+  // Prestige state is handled entirely by PrestigeManager.load() — start from initial
+  const prestige = createInitialPrestige();
+
   return {
     version: data.version,
     tick: data.tick as Tick,
@@ -244,5 +262,6 @@ export function deserialize(data: SerializedGameState): GameState {
     science,
     workshop,
     religion,
+    prestige,
   };
 }

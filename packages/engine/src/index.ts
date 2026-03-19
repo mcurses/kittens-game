@@ -99,3 +99,13 @@ export {
   getTranscendTotalPrice,
   getSolarRevolutionRatio,
 } from "./religion.js";
+export type { PrestigeState, PerkDef, PerkEntry, PerkUnlocks } from "./prestige.js";
+export {
+  PERK_DEFS,
+  PrestigeManager,
+  createInitialPrestige,
+  applyPurchasePerk,
+  applySoftReset,
+  getParagonProductionRatio,
+  getParagonStorageRatio,
+} from "./prestige.js";

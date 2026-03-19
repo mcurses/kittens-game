@@ -281,6 +281,21 @@ components:
             type:
               type: string
               enum: [TRANSCEND]
+        - type: object
+          required: [type, name]
+          properties:
+            type:
+              type: string
+              enum: [PURCHASE_PERK]
+            name:
+              type: string
+              description: Perk name to purchase
+        - type: object
+          required: [type]
+          properties:
+            type:
+              type: string
+              enum: [SOFT_RESET]
       discriminator:
         propertyName: type
 
