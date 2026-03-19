@@ -526,8 +526,8 @@ If any dimension scores ≤ 2, pause and fix before moving to the next epic.
 - heatEfficiency multiplier deferred — legacy multiplies heat transfer by `1 + heatEfficiency` effect; no current manager produces that effect so omission has no functional impact
 
 ### Action items for next epic (16 — Achievements)
-- [ ] Read `legacy/js/achievements.js` — achievement conditions, badge unlock
-- [ ] AchievementManager must add `achievements: AchievementState` slice to GameState
-- [ ] ~200+ achievements ported with unlock conditions
-- [ ] Achievement conditions check resource values, tech research, building counts, etc.
-- [ ] No new GameAction needed (achievements unlock passively via tick)
+- [x] Read `legacy/js/achievements.js` — achievement conditions, badge unlock
+- [x] AchievementManager must add `achievements: AchievementState` slice to GameState
+- [x] ~200+ achievements ported with unlock conditions
+- [x] Achievement conditions check resource values, tech research, building counts, etc.
+- [x] No new GameAction needed (achievements unlock passively via tick)

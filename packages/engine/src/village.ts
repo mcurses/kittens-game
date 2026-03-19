@@ -26,6 +26,10 @@ export interface VillageState {
   readonly kittenProgress: number;
   /** Map of all job states keyed by job name */
   readonly jobs: Record<string, JobEntry>;
+  /** Total kittens that have died this run. Used by achievement conditions. */
+  readonly deadKittens: number;
+  /** Village happiness ratio (1.0 = baseline). Used by achievement conditions. */
+  readonly happiness: number;
 }
 
 // ── Job Definitions ───────────────────────────────────────────────────────────
@@ -61,6 +65,8 @@ export function createInitialVillage(): VillageState {
     kittens: 0,
     kittenProgress: 0,
     jobs,
+    deadKittens: 0,
+    happiness: 1.0,
   };
 }
 
@@ -119,15 +125,18 @@ export class VillageManager implements Manager {
     const catnip = state.resources.catnip ?? { value: 0, maxValue: 0 };
     const catnipDelta = calcResourcePerTick(state.effectCache, "catnip");
 
+    let deadKittens = state.village.deadKittens;
+
     if (kittens > 0 && catnip.value + catnipDelta < 0) {
       kittens -= 1;
+      deadKittens += 1;
       // Free a job slot for the dead kitten
       jobs = freeOneJobSlot(jobs);
     }
 
     return {
       ...state,
-      village: { ...state.village, kittens, kittenProgress, jobs },
+      village: { ...state.village, kittens, kittenProgress, jobs, deadKittens },
     };
   }
 
@@ -183,7 +192,10 @@ export class VillageManager implements Manager {
       }
     }
 
-    return { ...state, village: { kittens, kittenProgress, jobs } };
+    const deadKittens = typeof raw.deadKittens === "number" ? raw.deadKittens : 0;
+    const happiness = typeof raw.happiness === "number" ? raw.happiness : 1.0;
+
+    return { ...state, village: { kittens, kittenProgress, jobs, deadKittens, happiness } };
   }
 
   resetState(state: GameState): GameState {

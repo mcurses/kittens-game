@@ -183,3 +183,16 @@ export {
   getParagonProductionRatio,
   getParagonStorageRatio,
 } from "./prestige.js";
+export type {
+  AchievementState,
+  AchievementEntry,
+  BadgeEntry,
+  AchievementDef,
+  BadgeDef,
+} from "./achievements.js";
+export {
+  ACHIEVEMENT_DEFS,
+  BADGE_DEFS,
+  AchievementManager,
+  createInitialAchievements,
+} from "./achievements.js";

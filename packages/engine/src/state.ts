@@ -1,4 +1,5 @@
 import type { Tick } from "@kittens/shared";
+import { type AchievementState, createInitialAchievements } from "./achievements.js";
 import { type BuildingState, createInitialBuildings } from "./buildings.js";
 import { type CalendarState, createInitialCalendar } from "./calendar.js";
 import { type ChallengeState, createInitialChallenges } from "./challenges.js";
@@ -45,6 +46,8 @@ export interface GameState {
   readonly diplomacy: DiplomacyState;
   /** Time mechanics: CFU/VSU upgrades, heat, flux. */
   readonly time: TimeState;
+  /** Achievements and badges unlocked this run. */
+  readonly achievements: AchievementState;
 }
 
 export function createInitialState(): GameState {
@@ -64,6 +67,7 @@ export function createInitialState(): GameState {
     space: createInitialSpace(),
     diplomacy: createInitialDiplomacy(),
     time: createInitialTime(),
+    achievements: createInitialAchievements(),
   };
 }
 
@@ -80,6 +84,8 @@ export interface SerializedGameState {
     kittens: number;
     kittenProgress: number;
     jobs: Record<string, { value: number }>;
+    deadKittens?: number;
+    happiness?: number;
   };
   calendar: {
     day: number;
@@ -128,6 +134,11 @@ export interface SerializedGameState {
     flux: number;
     isAccelerated: boolean;
   };
+  achievements?: {
+    badgesUnlocked: boolean;
+    achievements: Array<{ name: string; unlocked: boolean; starUnlocked: boolean }>;
+    badges: Array<{ name: string; unlocked: boolean }>;
+  };
 }
 
 /**
@@ -160,6 +171,8 @@ export function serialize(state: GameState): SerializedGameState {
       kittens: state.village.kittens,
       kittenProgress: state.village.kittenProgress,
       jobs,
+      deadKittens: state.village.deadKittens,
+      happiness: state.village.happiness,
     },
     calendar: {
       day: state.calendar.day,
@@ -274,11 +287,26 @@ export function serialize(state: GameState): SerializedGameState {
         ]),
       ),
       vsus: Object.fromEntries(
-        Object.entries(state.time.vsus).map(([n, e]) => [n, { val: e.val, on: e.on, unlocked: e.unlocked }]),
+        Object.entries(state.time.vsus).map(([n, e]) => [
+          n,
+          { val: e.val, on: e.on, unlocked: e.unlocked },
+        ]),
       ),
       heat: state.time.heat,
       flux: state.time.flux,
       isAccelerated: state.time.isAccelerated,
+    },
+    achievements: {
+      badgesUnlocked: state.achievements.badgesUnlocked,
+      achievements: Object.entries(state.achievements.achievements).map(([name, e]) => ({
+        name,
+        unlocked: e.unlocked,
+        starUnlocked: e.starUnlocked,
+      })),
+      badges: Object.entries(state.achievements.badges).map(([name, e]) => ({
+        name,
+        unlocked: e.unlocked,
+      })),
     },
   };
 }
@@ -323,7 +351,9 @@ export function deserialize(data: SerializedGameState): GameState {
         }
       }
     }
-    village = { kittens, kittenProgress, jobs };
+    const deadKittens = typeof savedVillage.deadKittens === "number" ? savedVillage.deadKittens : 0;
+    const happiness = typeof savedVillage.happiness === "number" ? savedVillage.happiness : 1.0;
+    village = { kittens, kittenProgress, jobs, deadKittens, happiness };
   }
 
   const savedCalendar = data.calendar;
@@ -360,6 +390,9 @@ export function deserialize(data: SerializedGameState): GameState {
   // Time state is handled entirely by TimeManager.load() — start from initial
   const time = createInitialTime();
 
+  // Achievements state is handled entirely by AchievementManager.load() — start from initial
+  const achievements = createInitialAchievements();
+
   return {
     version: data.version,
     tick: data.tick as Tick,
@@ -376,5 +409,6 @@ export function deserialize(data: SerializedGameState): GameState {
     space,
     diplomacy,
     time,
+    achievements,
   };
 }

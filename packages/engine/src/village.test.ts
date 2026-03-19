@@ -155,6 +155,24 @@ describe("VillageManager", () => {
       expect(next.village.kittens).toBe(2);
     });
 
+    it("increments deadKittens when a kitten dies", () => {
+      const state = {
+        ...createInitialState(),
+        effectCache: { catnipPerTickCon: -10 },
+        resources: {
+          ...createInitialResources(),
+          catnip: { value: 0.5, maxValue: 5000 },
+        },
+        village: {
+          ...createInitialVillage(),
+          kittens: 3,
+          deadKittens: 0,
+        },
+      };
+      const next = manager.update(state);
+      expect(next.village.deadKittens).toBe(1);
+    });
+
     it("does not kill kittens when catnip is positive", () => {
       const state = {
         ...createInitialState(),
@@ -329,6 +347,22 @@ describe("VillageManager", () => {
       const restored = manager.load(saved, state);
       expect(restored.village.kittens).toBe(0);
       expect(restored.village.kittenProgress).toBe(0.5);
+    });
+
+    it("restores deadKittens and happiness from saved data", () => {
+      const state = { ...createInitialState(), village: createInitialVillage() };
+      const saved = { kittens: 5, kittenProgress: 0, jobs: {}, deadKittens: 3, happiness: 1.8 };
+      const restored = manager.load(saved, state);
+      expect(restored.village.deadKittens).toBe(3);
+      expect(restored.village.happiness).toBe(1.8);
+    });
+
+    it("uses default deadKittens=0 and happiness=1.0 when missing from saved data", () => {
+      const state = { ...createInitialState(), village: createInitialVillage() };
+      const saved = { kittens: 5, kittenProgress: 0, jobs: {} };
+      const restored = manager.load(saved, state);
+      expect(restored.village.deadKittens).toBe(0);
+      expect(restored.village.happiness).toBe(1.0);
     });
   });
 

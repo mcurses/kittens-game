@@ -237,7 +237,22 @@ Prerequisites: Epic 10
 ---
 
 ## Epic 16: Achievements
-**Status:** Not Started
+**Status:** Complete | **Started:** 2026-03-19 | **Finished:** 2026-03-19
+Stories: 12/12 complete
+
+- [x] Story 1: AchievementState shape and initial values
+- [x] Story 2: AchievementManager.update() — passive unlock on tick
+- [x] Story 3: Resource-based achievement conditions
+- [x] Story 4: Religion-based achievement conditions
+- [x] Story 5: Population-based achievement conditions
+- [x] Story 6: Building-based achievement conditions
+- [x] Story 7: Space-based achievement conditions
+- [x] Story 8: Challenge-based achievement conditions
+- [x] Story 9: Time-based achievement conditions (badges)
+- [x] Story 10: Kitten population badges
+- [x] Story 11: Save / load / reset for achievements state
+- [x] Story 12: Cross-manager integration test
+
 Prerequisites: Epic 08
 
 ---
