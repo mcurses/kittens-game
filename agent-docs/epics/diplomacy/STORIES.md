@@ -91,3 +91,81 @@
 - [x] Given enough culture in state, when DiplomacyManager.update() runs, nagas become unlocked
 - [x] Given a TRADE action with sufficient resources, when applied, state is valid
 
+
+---
+
+## Story: Seasonal trade modifiers
+
+**As a** player
+**I want** trade yields to vary by season
+**So that** the seasonal trade strategy matches the original game
+
+### Acceptance Criteria
+- [ ] Each sell entry in RACE_DEFS has a `seasons` object matching legacy (e.g. lizards wood: spring -0.05, summer +0.35, autumn +0.15, winter +0.05)
+- [ ] calculateTradeYield applies the season modifier from CalendarState.season
+- [ ] All 5 races with seasonal modifiers (lizards, sharks, griffins, nagas, zebras) populated correctly
+- [ ] Tests verify seasonal variation at each season boundary
+
+### Legacy Reference
+- `legacy/js/diplomacy.js` — sell entry `seasons` objects per race
+
+### Notes
+SellEntry interface already has `seasons?` field and calculateTradeYield already reads it — this is purely a data population gap in RACE_DEFS.
+
+### Status: [ ] Tests | [ ] Impl | [ ] Rated
+
+---
+
+## Story: Trade value fuzzing (width parameter)
+
+**As a** player
+**I want** trade yields to have slight randomness
+**So that** trade feels organic as in the original game
+
+### Acceptance Criteria
+- [ ] SellEntry supports `width` field (range of randomization around base value)
+- [ ] calculateTradeYield applies fuzzing within ±width when width is present
+- [ ] Legacy width values populated for all applicable sell entries
+
+### Legacy Reference
+- `legacy/js/diplomacy.js` — `width` parameter on sell entries
+
+### Status: [ ] Tests | [ ] Impl | [ ] Rated
+
+---
+
+## Story: Random year-gated race unlocks
+
+**As a** player
+**I want** non-hidden races to unlock gradually based on game year
+**So that** early-game race discovery matches the original game
+
+### Acceptance Criteria
+- [ ] First 3 non-hidden races unlock randomly based on year thresholds
+- [ ] Year thresholds match legacy unlockRandomRace() logic
+- [ ] Perk bonuses that accelerate unlock apply correctly
+- [ ] Only fires if race not already unlocked
+
+### Legacy Reference
+- `legacy/js/diplomacy.js` — unlockRandomRace(), year-gated logic
+
+### Status: [ ] Tests | [ ] Impl | [ ] Rated
+
+---
+
+## Story: Leviathan timed visits and energy
+
+**As a** player
+**I want** Leviathan visits to be timed with energy tracking
+**So that** the Leviathan mechanic matches the original game
+
+### Acceptance Criteria
+- [ ] DiplomacyState tracks Leviathan visit duration and energy fields
+- [ ] Leviathan visit duration decrements each tick
+- [ ] Energy accumulates during visits per legacy formula
+- [ ] Embassy action blocked for Leviathans (already implemented)
+
+### Legacy Reference
+- `legacy/js/diplomacy.js` — leviathan energy, duration tracking
+
+### Status: [ ] Tests | [ ] Impl | [ ] Rated

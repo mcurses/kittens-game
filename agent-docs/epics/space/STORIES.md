@@ -141,3 +141,60 @@
 - [x] Given spaceStation built on cath, when updateEffects runs, then effectCache reflects scienceRatio bonus
 - [x] Given full tick loop with all managers, when SpaceManager is included, then no errors and state is valid
 
+
+---
+
+## Story: spaceBeacon relic production
+
+**As a** player
+**I want** space beacons to produce relics per day
+**So that** the late-game relic economy functions
+
+### Acceptance Criteria
+- [ ] spaceBeacon contributes relicPerDay to effectCache
+- [ ] relicPerDay scales with beaconRelicsPerDay, blackPyramid val, and entangler hashrate per legacy formula
+- [ ] Tests verify relic output at known building counts
+
+### Legacy Reference
+- `legacy/js/space.js` — spaceBeacon action() computing relicPerDay
+
+### Status: [ ] Tests | [ ] Impl | [ ] Rated
+
+---
+
+## Story: Dynamic space building effects (calculateEffects pattern)
+
+**As a** player
+**I want** space building effects to scale dynamically based on cross-system state
+**So that** synergies like satellite+observatory, moonBase storage, and cracker ratios work
+
+### Acceptance Criteria
+- [ ] moonBase contributes moonBaseStorageBonus to storage max scaling
+- [ ] satellite contributes satelliteSynergyBonus scaling with observatory count
+- [ ] planetCracker contributes crackerRatio
+- [ ] hydroponics contributes catnipMaxRatio and terraformingMaxKittensRatio (currently only catnipRatio)
+- [ ] cryostation contributes cryostationStorageBonus
+- [ ] tectonic contributes tectonicBonus
+
+### Legacy Reference
+- `legacy/js/space.js` — calculateEffects callbacks per building
+
+### Status: [ ] Tests | [ ] Impl | [ ] Rated
+
+---
+
+## Story: Mission unlocks propagate to policies and challenges
+
+**As a** player
+**I want** completing missions to unlock policies and challenges
+**So that** space progression gates work as in the original game
+
+### Acceptance Criteria
+- [ ] duneMission completion unlocks policies: technocracy, theocracy, expansionism
+- [ ] centaurusSystemMission completion unlocks challenge: energy
+- [ ] Unlock mechanism triggers on mission completion in SpaceManager.update()
+
+### Legacy Reference
+- `legacy/js/space.js` — duneMission.unlocks.policies, centaurusSystemMission.unlocks.challenges
+
+### Status: [ ] Tests | [ ] Impl | [ ] Rated

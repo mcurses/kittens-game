@@ -119,3 +119,80 @@
 - [x] Given full tick loop with all managers including TimeManager, when 5 ticks run, no errors
 - [x] Given temporalBattery (on=1), when tick runs, effectCache includes temporalFluxMax
 
+
+---
+
+## Story: Shatter produces resources (core Chronoforge mechanic)
+
+**As a** player
+**I want** shattering a time crystal to produce resources proportional to my per-tick production
+**So that** the Chronoforge time-skip mechanic functions as in the original game
+
+### Acceptance Criteria
+- [ ] SHATTER_TC applies shatterTCGain * resourcePerTick * ticksPerYear for each resource
+- [ ] Resource production uses current effectCache per-tick values
+- [ ] shatterTCGain comes from effectCache (default 1, modified by upgrades)
+- [ ] Resources are capped at maxValue after shattering
+- [ ] Tests verify resource amounts at known effectCache values
+
+### Legacy Reference
+- `legacy/js/time.js` — shatter() function, shatterTCGain, resourceRetrieval logic
+
+### Notes
+CRITICAL: This is the core purpose of the Chronoforge. Current implementation only advances year and flux. Without this, Time Mechanics is decorative.
+
+### Status: [ ] Tests | [ ] Impl | [ ] Rated
+
+---
+
+## Story: Heat efficiency multiplier
+
+**As a** player
+**I want** heat transfer to be modified by the heatEfficiency effect
+**So that** heat management upgrades function correctly
+
+### Acceptance Criteria
+- [ ] TimeManager.update() multiplies heat transfer by (1 + heatEfficiency) from effectCache
+- [ ] heatEfficiency defaults to 0 when no upgrades present
+- [ ] Tests verify heat transfer at heatEfficiency = 0 and heatEfficiency = 0.5
+
+### Legacy Reference
+- `legacy/js/time.js` line ~163 — heat transfer * (1 + heatEfficiency)
+
+### Status: [ ] Tests | [ ] Impl | [ ] Rated
+
+---
+
+## Story: heatMax and temporalFluxMax base values
+
+**As a** player
+**I want** heat and flux caps to have correct base values independent of upgrades
+**So that** early-game time mechanics work before any CFUs are built
+
+### Acceptance Criteria
+- [ ] heatMax has a base value of 100 (from legacy effectsBase) contributed to effectCache even with zero upgrades
+- [ ] temporalFluxMax has a base value of 3000 contributed to effectCache even with zero upgrades
+- [ ] Tests verify caps with zero CFUs/VSUs
+
+### Legacy Reference
+- `legacy/js/time.js` — effectsBase: { heatPerTick: 0.01, heatMax: 100, temporalFluxMax: 3000 }
+
+### Status: [ ] Tests | [ ] Impl | [ ] Rated
+
+---
+
+## Story: Shatter advances space route travel
+
+**As a** player
+**I want** shattering a time crystal to advance in-progress space missions
+**So that** time mechanics interact with space as in the original game
+
+### Acceptance Criteria
+- [ ] SHATTER_TC advances each in-progress space route by (remainingDays * routeSpeed) per shattered year
+- [ ] routeSpeed comes from effectCache
+- [ ] Tests verify route advancement at a known routeSpeed value
+
+### Legacy Reference
+- `legacy/js/time.js` — shatter() advances planet travel routes
+
+### Status: [ ] Tests | [ ] Impl | [ ] Rated
