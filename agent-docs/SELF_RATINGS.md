@@ -393,3 +393,38 @@ If any dimension scores ≤ 2, pause and fix before moving to the next epic.
 - [x] LDR stacking mechanic: each challenge completion compounds the DR bonus
 - [x] START_CHALLENGE and COMPLETE_CHALLENGE actions + openapi.yaml entries
 - [x] Challenges gate on adjustmentBureau perk being researched
+
+---
+
+## Epic 12: Challenges — 2026-03-19
+
+| Dimension | Score | Notes |
+|-----------|-------|-------|
+| Test coverage (≥90% target) | 5 | 455/455 pass; 99.78% stmt, 92.61% branch, 100% func/line |
+| No skipped tests / no TODOs | 5 | Zero it.skip, test.todo, TODO, FIXME, HACK |
+| Feature parity | 4 | All 3 spot-checks exact match; one parity divergence caught and fixed during self-rate: noStack semantics (legacy returns base value without LDR; our initial impl incorrectly applied LDR) |
+| API spec completeness | 5 | All 19 GameAction types in openapi.yaml including new START_CHALLENGE and COMPLETE_CHALLENGE |
+| Code quality (no `any`) | 5 | Zero `: any` annotations; all types explicit |
+| Docs freshness | 5 | PROGRESS.md, EPICS.md updated; all ACs checked in STORIES.md; ADR-003 added for noStack decision |
+| Commit hygiene | 5 | Two clean commits: one feat (implementation) + one fix (parity correction); semantic prefixes, co-author tags |
+| **Overall average** | **4.9** | |
+
+### What went well
+- LDR stacking model ported faithfully: `base * on` then optional `getLimitedDR` then optional `capMagnitude`
+- Circular import between prestige.ts and challenges.ts avoided cleanly: soft-reset challenge state inlined in applySoftReset
+- SOFT_RESET correctly saves challenge completions (`on`/`researched`) BEFORE `resetState()` wipes them, then restores
+- Legacy save compatibility: `researched=true, on=0` → `on=1` on load; `currentChallenge` field handled
+- Self-rate caught a real parity bug (`noStack` + LDR) before it could affect future epics
+- ADR-003 recorded the noStack semantics decision for future reference
+
+### What to improve
+- challenges.ts branch coverage 81.08% — the gap is mostly null-guard branches in the load() function for unknown challenge names. Acceptable defensive code
+- prestige.ts has inline challenge soft-reset logic to avoid circular import — slightly fragile if challenge entry shape changes; comment documents the rationale
+
+### Action items for next epic (13 — Space)
+- [ ] Read `legacy/js/space.js` — planets, space buildings, space upgrades, space resources
+- [ ] SpaceManager must add `space: SpaceState` slice to GameState
+- [ ] Planet unlock chains (reaching a planet unlocks its buildings/resources)
+- [ ] Space building prices use standard priceRatio scaling
+- [ ] REACH_PLANET, BUY_SPACE_BUILDING, PURCHASE_SPACE_UPGRADE actions + openapi.yaml entries
+- [ ] helios reached → winterIsComing challenge completion condition becomes satisfiable
