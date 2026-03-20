@@ -4,6 +4,7 @@ import { buildEffectCache } from "./effects.js";
 import {
   PERK_DEFS,
   PrestigeManager,
+  applyBurnParagon,
   applyPurchasePerk,
   applySoftReset,
   createInitialPrestige,
@@ -328,31 +329,42 @@ describe("applySoftReset", () => {
 // ── Story 5: Paragon production / storage ratios ──────────────────────────────
 
 describe("getParagonProductionRatio", () => {
-  it("returns 0 when paragon=0", () => {
-    expect(getParagonProductionRatio(0, 1.0)).toBe(0);
+  it("returns 0 when paragon=0 and burnedParagon=0", () => {
+    expect(getParagonProductionRatio(0, 0, 1.0)).toBe(0);
   });
 
-  it("given paragon=100, paragonRatio=1.0, returns getLimitedDR(1.0, 2.0)", () => {
+  it("given paragon=100, burnedParagon=0, paragonRatio=1.0, returns getLimitedDR(1.0, 2.0)", () => {
     // getLimitedDR(1.0, 2.0): maxUndiminished = 0.75 * 2 = 1.5; effect 1.0 <= 1.5 → returns 1.0
-    const ratio = getParagonProductionRatio(100, 1.0);
+    const ratio = getParagonProductionRatio(100, 0, 1.0);
     expect(ratio).toBeCloseTo(1.0, 8);
   });
 
-  it("is bounded by 2 * paragonRatio", () => {
-    const ratio = getParagonProductionRatio(1e9, 1.0);
-    expect(ratio).toBeLessThan(2.0);
-    expect(ratio).toBeGreaterThan(1.9);
+  it("is bounded by ~3 * paragonRatio (paragon cap 2 + burnedParagon cap 1)", () => {
+    const ratio = getParagonProductionRatio(1e9, 1e9, 1.0);
+    expect(ratio).toBeLessThan(3.0);
+    expect(ratio).toBeGreaterThan(2.9);
+  });
+
+  it("burnedParagon adds to ratio (non-dark-future, cap=1*paragonRatio)", () => {
+    // burnedParagon=50, paragonRatio=1.0: uncapped=0.5, limit=1 → returns 0.5
+    const ratio = getParagonProductionRatio(0, 50, 1.0);
+    expect(ratio).toBeCloseTo(0.5, 8);
   });
 });
 
 describe("getParagonStorageRatio", () => {
-  it("returns 0 when paragon=0", () => {
-    expect(getParagonStorageRatio(0, 1.0)).toBe(0);
+  it("returns 0 when paragon=0 and burnedParagon=0", () => {
+    expect(getParagonStorageRatio(0, 0, 1.0)).toBe(0);
   });
 
   it("returns paragon/1000 * paragonRatio", () => {
-    expect(getParagonStorageRatio(1000, 1.0)).toBeCloseTo(1.0);
-    expect(getParagonStorageRatio(500, 2.0)).toBeCloseTo(1.0);
+    expect(getParagonStorageRatio(1000, 0, 1.0)).toBeCloseTo(1.0);
+    expect(getParagonStorageRatio(500, 0, 2.0)).toBeCloseTo(1.0);
+  });
+
+  it("burnedParagon adds burnedParagon/2000 * paragonRatio", () => {
+    expect(getParagonStorageRatio(0, 2000, 1.0)).toBeCloseTo(1.0);
+    expect(getParagonStorageRatio(1000, 2000, 1.0)).toBeCloseTo(2.0);
   });
 });
 
@@ -489,5 +501,121 @@ describe("PrestigeManager cross-manager integration", () => {
     expect(next.buildings.hut?.val).toBe(0);
     expect(next.prestige.perks["engeneering"]?.researched).toBe(true);
     expect(next.resources.paragon?.value).toBe(30);
+  });
+});
+
+// ── Story 19-4: Paragon production ratio into effectCache ──────────────────────
+
+describe("PrestigeManager.updateEffects — paragon production ratio (Story 19-4)", () => {
+  it("contributes globalProductionModifier when paragon > 0", () => {
+    const base = createInitialState();
+    const s = {
+      ...base,
+      resources: {
+        ...base.resources,
+        paragon: { value: 100, maxValue: 0 },
+        burnedParagon: { value: 0, maxValue: 0 },
+      },
+    };
+    const mgr = new PrestigeManager();
+    const effects = mgr.updateEffects(s);
+    // getLimitedDR(100*0.01*1, 2*1) = getLimitedDR(1.0, 2.0) ≈ 1.0
+    expect(effects.globalProductionModifier).toBeCloseTo(1.0, 5);
+  });
+
+  it("contributes globalStorageRatio when paragon > 0", () => {
+    const base = createInitialState();
+    const s = {
+      ...base,
+      resources: {
+        ...base.resources,
+        paragon: { value: 1000, maxValue: 0 },
+        burnedParagon: { value: 0, maxValue: 0 },
+      },
+    };
+    const mgr = new PrestigeManager();
+    const effects = mgr.updateEffects(s);
+    // 1000/1000 * 1.0 = 1.0
+    expect(effects.globalStorageRatio).toBeCloseTo(1.0, 5);
+  });
+
+  it("does not contribute when paragon=0 and burnedParagon=0", () => {
+    const base = createInitialState();
+    const mgr = new PrestigeManager();
+    const effects = mgr.updateEffects(base);
+    expect(effects.globalProductionModifier ?? 0).toBe(0);
+    expect(effects.globalStorageRatio ?? 0).toBe(0);
+  });
+
+  it("Sephirot perks (paragonRatio bonus) multiply the production ratio", () => {
+    const base = createInitialState();
+    // With malkuth perk (paragonRatio: 0.05), paragonRatio = 1.05
+    const s = {
+      ...base,
+      resources: {
+        ...base.resources,
+        paragon: { value: 100, maxValue: 0 },
+        burnedParagon: { value: 0, maxValue: 0 },
+        // Need science for metaphysics — skip perk check by using direct state
+      },
+      prestige: {
+        perks: {
+          ...createInitialPrestige().perks,
+          malkuth: { unlocked: true, researched: true },
+        },
+      },
+    };
+    const mgr = new PrestigeManager();
+    const effects = mgr.updateEffects(s);
+    // paragonRatio = 1 + 0.05 = 1.05
+    // getLimitedDR(100*0.01*1.05, 2*1.05) = getLimitedDR(1.05, 2.1) ≈ 1.05 (under cap)
+    expect(effects.globalProductionModifier).toBeCloseTo(1.05, 3);
+  });
+});
+
+// ── Story 19-5: BURN_PARAGON action ────────────────────────────────────────────
+
+describe("applyBurnParagon (Story 19-5)", () => {
+  it("converts 1 paragon to 1 burnedParagon", () => {
+    const base = createInitialState();
+    const s = {
+      ...base,
+      resources: {
+        ...base.resources,
+        paragon: { value: 5, maxValue: 0 },
+        burnedParagon: { value: 10, maxValue: 0 },
+      },
+    };
+    const next = applyBurnParagon(s);
+    expect(next.resources.paragon?.value).toBe(4);
+    expect(next.resources.burnedParagon?.value).toBe(11);
+  });
+
+  it("returns unchanged state if paragon < 1", () => {
+    const base = createInitialState();
+    const s = {
+      ...base,
+      resources: {
+        ...base.resources,
+        paragon: { value: 0, maxValue: 0 },
+        burnedParagon: { value: 0, maxValue: 0 },
+      },
+    };
+    expect(applyBurnParagon(s)).toBe(s);
+  });
+
+  it("BURN_PARAGON action dispatches correctly", () => {
+    const base = createInitialState();
+    const s = {
+      ...base,
+      resources: {
+        ...base.resources,
+        paragon: { value: 3, maxValue: 0 },
+        burnedParagon: { value: 0, maxValue: 0 },
+      },
+    };
+    const next = applyAction(s, { type: "BURN_PARAGON" });
+    expect(next.resources.paragon?.value).toBe(2);
+    expect(next.resources.burnedParagon?.value).toBe(1);
   });
 });

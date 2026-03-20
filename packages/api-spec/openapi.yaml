@@ -374,6 +374,30 @@ components:
             type:
               type: string
               enum: [SHATTER_TC]
+        - type: object
+          required: [type]
+          properties:
+            type:
+              type: string
+              enum: [BURN_PARAGON]
+        - type: object
+          required: [type]
+          properties:
+            type:
+              type: string
+              enum: [SACRIFICE_UNICORNS]
+        - type: object
+          required: [type]
+          properties:
+            type:
+              type: string
+              enum: [SACRIFICE_ALICORNS]
+        - type: object
+          required: [type]
+          properties:
+            type:
+              type: string
+              enum: [REFINE_TIME_CRYSTALS]
       discriminator:
         propertyName: type
 

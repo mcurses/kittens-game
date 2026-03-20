@@ -712,6 +712,84 @@ export function applyTranscend(state: GameState): GameState {
   });
 }
 
+// ── applySacrificeUnicorns ────────────────────────────────────────────────────
+
+/**
+ * SACRIFICE_UNICORNS: costs 2500 unicorns, gains ziggurat.on tears.
+ * Legacy: TransformBtnController with gainMultiplier = game.bld.get("ziggurat").on
+ */
+export function applySacrificeUnicorns(state: GameState): GameState {
+  const unicorns = state.resources.unicorns;
+  if (!unicorns || unicorns.value < 2500) return state;
+
+  const zigguratCount = state.buildings.ziggurat?.on ?? 0;
+  if (zigguratCount <= 0) return state;
+
+  return produce(state, (draft) => {
+    const u = draft.resources.unicorns;
+    if (u) u.value -= 2500;
+    const tears = draft.resources.tears;
+    if (tears) {
+      const gain = zigguratCount;
+      tears.value = tears.maxValue > 0 ? Math.min(tears.value + gain, tears.maxValue) : tears.value + gain;
+    }
+  });
+}
+
+// ── applySacrificeAlicorns ────────────────────────────────────────────────────
+
+/**
+ * SACRIFICE_ALICORNS: costs 25 alicorns, gains (1 + tcRefineRatio) timeCrystals.
+ * Also unlocks skyPalace, unicornUtopia, sunspire ziggurat upgrades.
+ * Legacy: TransformBtnController with gainMultiplier = 1 + tcRefineRatio
+ */
+export function applySacrificeAlicorns(state: GameState): GameState {
+  const alicorns = state.resources.alicorn;
+  if (!alicorns || alicorns.value < 25) return state;
+
+  const tcRefineRatio = state.effectCache.tcRefineRatio ?? 0;
+  const gain = 1 + tcRefineRatio;
+
+  return produce(state, (draft) => {
+    const a = draft.resources.alicorn;
+    if (a) a.value -= 25;
+    const tc = draft.resources.timeCrystal;
+    if (tc) {
+      tc.value = tc.maxValue > 0 ? Math.min(tc.value + gain, tc.maxValue) : tc.value + gain;
+    }
+
+    // Unlock ziggurat upgrades
+    for (const name of ["skyPalace", "unicornUtopia", "sunspire"] as const) {
+      const zu = draft.religion.zigguratUpgrades[name];
+      if (zu) zu.unlocked = true;
+    }
+  });
+}
+
+// ── applyRefineTimeCrystals ───────────────────────────────────────────────────
+
+/**
+ * REFINE_TIME_CRYSTALS: costs 25 timeCrystals, gains relics.
+ * Legacy: gainMultiplier = 1 + relicRefineRatio * blackPyramid.getEffectiveValue
+ * Simplified: use effectCache.relicRefineRatio (blackPyramid getEffectiveValue deferred)
+ */
+export function applyRefineTimeCrystals(state: GameState): GameState {
+  const tc = state.resources.timeCrystal;
+  if (!tc || tc.value < 25) return state;
+
+  const relicRefineRatio = state.effectCache.relicRefineRatio ?? 0;
+  const gain = 1 + relicRefineRatio;
+
+  return produce(state, (draft) => {
+    const timeCrystal = draft.resources.timeCrystal;
+    if (timeCrystal) timeCrystal.value -= 25;
+    const relics = draft.resources.relic;
+    if (relics) {
+      relics.value = relics.maxValue > 0 ? Math.min(relics.value + gain, relics.maxValue) : relics.value + gain;
+    }
+  });
+}
+
 // ── ReligionManager ───────────────────────────────────────────────────────────
 
 export class ReligionManager implements Manager {

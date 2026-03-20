@@ -19,6 +19,10 @@ export interface ProgramDef {
   readonly unlocks: {
     readonly planet?: readonly string[];
     readonly spaceMission?: readonly string[];
+    /** Policy names unlocked in ScienceState when this mission completes */
+    readonly policies?: readonly string[];
+    /** Challenge names unlocked in ChallengeState when this mission completes */
+    readonly challenges?: readonly string[];
   };
 }
 
@@ -117,6 +121,7 @@ export const PROGRAM_DEFS: readonly ProgramDef[] = [
     unlocks: {
       planet: ["dune"],
       spaceMission: ["heliosMission"],
+      policies: ["technocracy", "theocracy", "expansionism"],
     },
   },
   {
@@ -233,6 +238,7 @@ export const PROGRAM_DEFS: readonly ProgramDef[] = [
     unlocks: {
       planet: ["centaurusSystem"],
       spaceMission: ["furthestRingMission"],
+      challenges: ["energy"],
     },
   },
   {
@@ -637,29 +643,45 @@ export function createInitialSpace(): SpaceState {
 // ── Apply mission launch unlocks ──────────────────────────────────────────────
 
 function applyMissionUnlocks(
-  programs: Record<string, ProgramEntry>,
-  planets: Record<string, PlanetEntry>,
+  draft: import("immer").Draft<import("./state.js").GameState>,
   unlocks: ProgramDef["unlocks"],
 ): void {
   if (unlocks.planet) {
     for (const pName of unlocks.planet) {
-      const planet = planets[pName];
+      const planet = draft.space.planets[pName];
       if (planet) {
         const def = PLANET_DEFS.find((d) => d.name === pName);
-        planets[pName] = {
-          ...planet,
-          unlocked: true,
-          // cath has routeDays=0, so it is immediately reached
-          reached: planet.reached || (def?.routeDays === 0),
-        };
+        planet.unlocked = true;
+        // cath has routeDays=0, so it is immediately reached
+        if (!planet.reached && def?.routeDays === 0) {
+          planet.reached = true;
+        }
       }
     }
   }
   if (unlocks.spaceMission) {
     for (const mName of unlocks.spaceMission) {
-      const prog = programs[mName];
+      const prog = draft.space.programs[mName];
       if (prog) {
-        programs[mName] = { ...prog, unlocked: true };
+        prog.unlocked = true;
+      }
+    }
+  }
+  // Unlock policies in ScienceState
+  if (unlocks.policies) {
+    for (const policyName of unlocks.policies) {
+      const policy = draft.science.policies[policyName];
+      if (policy) {
+        policy.unlocked = true;
+      }
+    }
+  }
+  // Unlock challenges in ChallengeState
+  if (unlocks.challenges) {
+    for (const challengeName of unlocks.challenges) {
+      const challenge = draft.challenges.challenges[challengeName];
+      if (challenge) {
+        challenge.unlocked = true;
       }
     }
   }
@@ -690,7 +712,7 @@ export function applyLaunchMission(state: GameState, name: string): GameState {
     }
 
     // Apply unlocks first (so we can check if planet is immediately reached)
-    applyMissionUnlocks(draft.space.programs, draft.space.planets, def.unlocks);
+    applyMissionUnlocks(draft, def.unlocks);
 
     // Mark mission as launched
     const prog = draft.space.programs[name];
@@ -765,11 +787,26 @@ export class SpaceManager implements Manager {
           planet.reached = true;
 
           // Mark any program that unlocks this planet as on=1
+          // Also propagate that program's policy/challenge unlocks
           for (const progDef of PROGRAM_DEFS) {
             if (progDef.unlocks.planet?.includes(planetDef.name)) {
               const prog = draft.space.programs[progDef.name];
               if (prog && prog.val > 0) {
                 prog.on = 1;
+                // Propagate policy unlocks
+                if (progDef.unlocks.policies) {
+                  for (const policyName of progDef.unlocks.policies) {
+                    const policy = draft.science.policies[policyName];
+                    if (policy) policy.unlocked = true;
+                  }
+                }
+                // Propagate challenge unlocks
+                if (progDef.unlocks.challenges) {
+                  for (const challengeName of progDef.unlocks.challenges) {
+                    const challenge = draft.challenges.challenges[challengeName];
+                    if (challenge) challenge.unlocked = true;
+                  }
+                }
               }
             }
           }
@@ -872,7 +909,7 @@ export class SpaceManager implements Manager {
         if (prog.val > 0) {
           const def = PROGRAM_DEFS.find((d) => d.name === name);
           if (def) {
-            applyMissionUnlocks(draft.space.programs, draft.space.planets, def.unlocks);
+            applyMissionUnlocks(draft, def.unlocks);
           }
         }
       }

@@ -11,6 +11,9 @@ import {
   applyBuyTranscendenceUpgrade,
   applyBuyZigguratUpgrade,
   applyPraise,
+  applyRefineTimeCrystals,
+  applySacrificeAlicorns,
+  applySacrificeUnicorns,
   applyTranscend,
   createInitialReligion,
   getApocryphaBonus,
@@ -927,5 +930,164 @@ describe("getSolarRevolutionRatio", () => {
     // Both should be below the limit of 10
     expect(ratio1).toBeLessThan(10);
     expect(ratio2).toBeLessThan(10);
+  });
+});
+
+// ── Story 19-6: Unicorn sacrifice actions ──────────────────────────────────────
+
+describe("applySacrificeUnicorns (Story 19-6)", () => {
+  it("costs 2500 unicorns and gains ziggurat.on tears", () => {
+    const base = createInitialState();
+    const s = {
+      ...base,
+      resources: {
+        ...base.resources,
+        unicorns: { value: 5000, maxValue: 0 },
+        tears: { value: 0, maxValue: 1_000_000 },
+      },
+      buildings: {
+        ...base.buildings,
+        ziggurat: { val: 3, on: 3 },
+      },
+    };
+    const next = applySacrificeUnicorns(s);
+    expect(next.resources.unicorns?.value).toBe(2500);
+    expect(next.resources.tears?.value).toBe(3); // ziggurat.on = 3
+  });
+
+  it("returns unchanged if unicorns < 2500", () => {
+    const base = createInitialState();
+    const s = {
+      ...base,
+      resources: {
+        ...base.resources,
+        unicorns: { value: 100, maxValue: 0 },
+        tears: { value: 0, maxValue: 0 },
+      },
+      buildings: { ...base.buildings, ziggurat: { val: 1, on: 1 } },
+    };
+    expect(applySacrificeUnicorns(s)).toBe(s);
+  });
+
+  it("returns unchanged if no ziggurat built (on=0)", () => {
+    const base = createInitialState();
+    const s = {
+      ...base,
+      resources: {
+        ...base.resources,
+        unicorns: { value: 5000, maxValue: 0 },
+        tears: { value: 0, maxValue: 0 },
+      },
+    };
+    expect(applySacrificeUnicorns(s)).toBe(s);
+  });
+
+  it("SACRIFICE_UNICORNS dispatches via applyAction", () => {
+    const base = createInitialState();
+    const s = {
+      ...base,
+      resources: {
+        ...base.resources,
+        unicorns: { value: 5000, maxValue: 0 },
+        tears: { value: 0, maxValue: 1_000_000 },
+      },
+      buildings: { ...base.buildings, ziggurat: { val: 2, on: 2 } },
+    };
+    const next = applyAction(s, { type: "SACRIFICE_UNICORNS" });
+    expect(next.resources.unicorns?.value).toBe(2500);
+    expect(next.resources.tears?.value).toBe(2);
+  });
+});
+
+describe("applySacrificeAlicorns (Story 19-6)", () => {
+  it("costs 25 alicorns and gains (1 + tcRefineRatio) timeCrystals", () => {
+    const base = createInitialState();
+    const s = {
+      ...base,
+      effectCache: { tcRefineRatio: 0.5 },
+      resources: {
+        ...base.resources,
+        alicorn: { value: 50, maxValue: 0 },
+        timeCrystal: { value: 0, maxValue: 1_000_000 },
+      },
+    };
+    const next = applySacrificeAlicorns(s);
+    expect(next.resources.alicorn?.value).toBe(25);
+    expect(next.resources.timeCrystal?.value).toBeCloseTo(1.5); // 1 + 0.5
+  });
+
+  it("unlocks skyPalace, unicornUtopia, sunspire ziggurat upgrades", () => {
+    const base = createInitialState();
+    const s = {
+      ...base,
+      resources: {
+        ...base.resources,
+        alicorn: { value: 50, maxValue: 0 },
+        timeCrystal: { value: 0, maxValue: 0 },
+      },
+    };
+    const next = applySacrificeAlicorns(s);
+    expect(next.religion.zigguratUpgrades.skyPalace?.unlocked).toBe(true);
+    expect(next.religion.zigguratUpgrades.unicornUtopia?.unlocked).toBe(true);
+    expect(next.religion.zigguratUpgrades.sunspire?.unlocked).toBe(true);
+  });
+
+  it("returns unchanged if alicorns < 25", () => {
+    const base = createInitialState();
+    const s = {
+      ...base,
+      resources: {
+        ...base.resources,
+        alicorn: { value: 10, maxValue: 0 },
+        timeCrystal: { value: 0, maxValue: 0 },
+      },
+    };
+    expect(applySacrificeAlicorns(s)).toBe(s);
+  });
+});
+
+describe("applyRefineTimeCrystals (Story 19-6)", () => {
+  it("costs 25 timeCrystals and gains (1 + relicRefineRatio) relics", () => {
+    const base = createInitialState();
+    const s = {
+      ...base,
+      effectCache: { relicRefineRatio: 2 },
+      resources: {
+        ...base.resources,
+        timeCrystal: { value: 50, maxValue: 0 },
+        relic: { value: 0, maxValue: 1_000_000 },
+      },
+    };
+    const next = applyRefineTimeCrystals(s);
+    expect(next.resources.timeCrystal?.value).toBe(25);
+    expect(next.resources.relic?.value).toBeCloseTo(3); // 1 + 2
+  });
+
+  it("returns unchanged if timeCrystal < 25", () => {
+    const base = createInitialState();
+    const s = {
+      ...base,
+      resources: {
+        ...base.resources,
+        timeCrystal: { value: 10, maxValue: 0 },
+        relic: { value: 0, maxValue: 0 },
+      },
+    };
+    expect(applyRefineTimeCrystals(s)).toBe(s);
+  });
+
+  it("REFINE_TIME_CRYSTALS dispatches via applyAction", () => {
+    const base = createInitialState();
+    const s = {
+      ...base,
+      resources: {
+        ...base.resources,
+        timeCrystal: { value: 100, maxValue: 0 },
+        relic: { value: 5, maxValue: 1_000_000 },
+      },
+    };
+    const next = applyAction(s, { type: "REFINE_TIME_CRYSTALS" });
+    expect(next.resources.timeCrystal?.value).toBe(75);
+    expect(next.resources.relic?.value).toBeCloseTo(6); // 5 + 1 (no relicRefineRatio)
   });
 });

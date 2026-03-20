@@ -347,24 +347,41 @@ export function applyPurchasePerk(state: GameState, name: string): GameState {
 // ── Paragon production / storage ratios ──────────────────────────────────────
 
 /**
- * Global production ratio from paragon.
+ * Global production ratio from paragon + burnedParagon.
  * Port of legacy getParagonProductionRatio():
- * productionRatioParagon = getLimitedDR(paragon * 0.01 * paragonRatio, 2 * paragonRatio)
- * (burnedParagon deferred — requires calendar.darkFutureYears which is a time system feature)
+ *   productionRatioParagon = getLimitedDR(paragon * 0.01 * paragonRatio, 2 * paragonRatio)
+ *   productionRatioBurnedParagon = getLimitedDR(burnedParagon * 0.01 * paragonRatio, 1 * paragonRatio)
+ *   (ratio=1 for non-dark-future, ratio=4 for dark future — dark future not yet implemented)
  */
-export function getParagonProductionRatio(paragon: number, paragonRatio: number): number {
-  const uncapped = paragon * 0.01 * paragonRatio;
-  return getLimitedDR(uncapped, 2 * paragonRatio);
+export function getParagonProductionRatio(
+  paragon: number,
+  burnedParagon: number,
+  paragonRatio: number,
+): number {
+  const uncappedParagon = paragon * 0.01 * paragonRatio;
+  const productionRatioParagon = getLimitedDR(uncappedParagon, 2 * paragonRatio);
+
+  // darkFutureYears not implemented — use non-dark-future ratio = 1
+  const uncappedBurned = burnedParagon * 0.01 * paragonRatio;
+  const productionRatioBurnedParagon = getLimitedDR(uncappedBurned, 1 * paragonRatio);
+
+  return productionRatioParagon + productionRatioBurnedParagon;
 }
 
 /**
- * Global storage ratio from paragon.
+ * Global storage ratio from paragon + burnedParagon.
  * Port of legacy getParagonStorageRatio():
- * storageRatio = paragon / 1000 * paragonRatio
- * (burnedParagon deferred — requires calendar.darkFutureYears)
+ *   storageRatio = paragon / 1000 * paragonRatio
+ *   (darkFutureYears >= 0: burnedParagon/500; else burnedParagon/2000)
+ *   darkFutureYears not implemented — use non-dark-future (burnedParagon/2000)
  */
-export function getParagonStorageRatio(paragon: number, paragonRatio: number): number {
-  return (paragon / 1000) * paragonRatio;
+export function getParagonStorageRatio(
+  paragon: number,
+  burnedParagon: number,
+  paragonRatio: number,
+): number {
+  // non-dark-future path
+  return (paragon / 1000 + burnedParagon / 2000) * paragonRatio;
 }
 
 // ── PrestigeManager ───────────────────────────────────────────────────────────
@@ -385,6 +402,26 @@ export class PrestigeManager implements Manager {
 
       for (const [effectName, value] of Object.entries(def.effects)) {
         effects[effectName] = (effects[effectName] ?? 0) + value;
+      }
+    }
+
+    // Contribute paragon production ratio to effectCache
+    // paragonRatio is the sum of all Sephirot perk bonuses (each 0.05) + 1 base
+    const paragonRatioBonus = effects.paragonRatio ?? 0;
+    const paragonRatio = 1 + paragonRatioBonus;
+    const paragonValue = state.resources.paragon?.value ?? 0;
+    const burnedParagonValue = state.resources.burnedParagon?.value ?? 0;
+
+    if (paragonValue > 0 || burnedParagonValue > 0) {
+      // paragonProductionRatio goes into globalProductionModifier (additive with other effects)
+      const prodRatio = getParagonProductionRatio(paragonValue, burnedParagonValue, paragonRatio);
+      if (prodRatio > 0) {
+        effects.globalProductionModifier = (effects.globalProductionModifier ?? 0) + prodRatio;
+      }
+      // paragonStorageRatio goes into globalStorageRatio
+      const storRatio = getParagonStorageRatio(paragonValue, burnedParagonValue, paragonRatio);
+      if (storRatio > 0) {
+        effects.globalStorageRatio = (effects.globalStorageRatio ?? 0) + storRatio;
       }
     }
 
@@ -462,6 +499,24 @@ export class PrestigeManager implements Manager {
       prestige: { perks },
     };
   }
+}
+
+// ── applyBurnParagon ──────────────────────────────────────────────────────────
+
+/**
+ * BURN_PARAGON action: convert 1 paragon to 1 burnedParagon.
+ * Legacy: burnParagon button, spends paragon, gains burnedParagon 1:1.
+ */
+export function applyBurnParagon(state: GameState): GameState {
+  const paragon = state.resources.paragon;
+  if (!paragon || paragon.value < 1) return state;
+
+  return produce(state, (draft) => {
+    const p = draft.resources.paragon;
+    if (p) p.value -= 1;
+    const bp = draft.resources.burnedParagon;
+    if (bp) bp.value += 1;
+  });
 }
 
 // ── applySoftReset ────────────────────────────────────────────────────────────

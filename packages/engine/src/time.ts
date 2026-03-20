@@ -1,8 +1,13 @@
 import type { Serializable } from "@kittens/shared";
 import { produce } from "immer";
+import { DAYS_PER_SEASON, SEASONS_PER_YEAR, TICKS_PER_DAY } from "./calendar.js";
 import type { Manager } from "./manager.js";
+import { RESOURCE_NAMES, calcResourcePerTick } from "./resources.js";
 import type { ResourceState } from "./resources.js";
 import type { GameState } from "./state.js";
+
+/** Number of ticks in one full in-game year */
+const TICKS_PER_YEAR = TICKS_PER_DAY * DAYS_PER_SEASON * SEASONS_PER_YEAR;
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -321,11 +326,58 @@ export function applyShatterTc(state: GameState): GameState {
   if (!blastFurnace || blastFurnace.on < 1) return state;
   if (blastFurnace.heat < 100) return state;
 
+  // shatterTCGain from effectCache (ressourceRetrieval provides 0.01 per unit)
+  const shatterTCGain =
+    (state.effectCache.shatterTCGain ?? 0) * (1 + (state.effectCache.rrRatio ?? 0));
+
+  // Advance space routes
+  const routeSpeed = state.effectCache.routeSpeed ?? 1;
+
   return produce(state, (draft) => {
     const bf = draft.time.cfus.blastFurnace;
     if (bf) {
       bf.heat -= 100;
     }
+
+    // Advance space route travel (reduce routeDays for in-progress missions)
+    const daysInYear = DAYS_PER_SEASON * SEASONS_PER_YEAR;
+    for (const [, planet] of Object.entries(draft.space.planets)) {
+      if (planet.unlocked && !planet.reached) {
+        planet.routeDays = Math.max(0, planet.routeDays - daysInYear * routeSpeed);
+        if (planet.routeDays <= 0) {
+          planet.reached = true;
+        }
+      }
+    }
+
+    // ShatterTC resource production: each shatter = 1 year of per-tick production
+    if (shatterTCGain > 0) {
+      const ticksInYear = TICKS_PER_YEAR;
+
+      // Snapshot maxValues before adding (cap applied to pre-shatter values, not new caps)
+      const preShatMaxValues: Record<string, number> = {};
+      for (const name of RESOURCE_NAMES) {
+        const entry = state.resources[name];
+        if (entry) {
+          // Match legacy: use current value as floor for cap (resource can't lose from shatter)
+          preShatMaxValues[name] = Math.max(entry.value, entry.maxValue > 0 ? entry.maxValue : Number.MAX_VALUE);
+        }
+      }
+
+      for (const name of RESOURCE_NAMES) {
+        const perTick = calcResourcePerTick(state.effectCache, name);
+        if (perTick <= 0) continue;
+        const gain = perTick * ticksInYear * shatterTCGain;
+        if (gain <= 0) continue;
+
+        const entry = draft.resources[name];
+        if (entry) {
+          const cap = preShatMaxValues[name] ?? Number.MAX_VALUE;
+          entry.value = Math.min(entry.value + gain, cap);
+        }
+      }
+    }
+
     // Advance calendar year by 1
     draft.calendar.year += 1;
     // Accumulate flux
@@ -335,13 +387,23 @@ export function applyShatterTc(state: GameState): GameState {
 
 // ── TimeManager ───────────────────────────────────────────────────────────────
 
+/** Base effects contributed to effectCache regardless of upgrades (legacy time.effectsBase) */
+const TIME_EFFECTS_BASE: Readonly<Record<string, number>> = {
+  heatPerTick: 0.01,
+  heatMax: 100,
+  temporalFluxMax: 3000, // 60 * 10 * 5 = 3000 (10 minutes at 5 ticks/s)
+};
+
 export class TimeManager implements Manager {
   update(state: GameState): GameState {
     return produce(state, (draft) => {
       // Transfer heat from global pool to blastFurnace
       if (draft.time.heat > 0) {
-        const heatPerTick = state.effectCache.heatPerTick ?? 0.01;
-        const transfer = Math.min(heatPerTick, draft.time.heat);
+        const baseHeatPerTick = state.effectCache.heatPerTick ?? TIME_EFFECTS_BASE.heatPerTick ?? 0.01;
+        // Apply heatEfficiency multiplier (legacy: efficiency = 1 + heatEfficiency)
+        const efficiency = 1 + (state.effectCache.heatEfficiency ?? 0);
+        const effectiveHeatPerTick = baseHeatPerTick * efficiency;
+        const transfer = Math.min(effectiveHeatPerTick, draft.time.heat);
         const bf = draft.time.cfus.blastFurnace;
         if (bf) {
           bf.heat += transfer;
@@ -358,7 +420,8 @@ export class TimeManager implements Manager {
   }
 
   updateEffects(state: GameState): Record<string, number> {
-    const effects: Record<string, number> = {};
+    // Start with base effects (always present)
+    const effects: Record<string, number> = { ...TIME_EFFECTS_BASE };
 
     for (const def of CFU_DEFS) {
       const cfu = state.time.cfus[def.name];

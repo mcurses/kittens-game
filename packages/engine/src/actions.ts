@@ -3,13 +3,16 @@ import { produce } from "immer";
 import { BUILDING_DEFS, canAfford, getBuildingPrice } from "./buildings.js";
 import { applyCompleteChallenge, applyStartChallenge } from "./challenges.js";
 import type { Manager } from "./manager.js";
-import { applyPurchasePerk, applySoftReset } from "./prestige.js";
+import { applyBurnParagon, applyPurchasePerk, applySoftReset } from "./prestige.js";
 import {
   applyAdore,
   applyBuyReligionUpgrade,
   applyBuyTranscendenceUpgrade,
   applyBuyZigguratUpgrade,
   applyPraise,
+  applyRefineTimeCrystals,
+  applySacrificeAlicorns,
+  applySacrificeUnicorns,
   applyTranscend,
 } from "./religion.js";
 import { applyResearch, applyResearchPolicy } from "./science.js";
@@ -47,7 +50,11 @@ export type GameAction =
   | { readonly type: "TRADE"; readonly name: string }
   | { readonly type: "BUY_CFU"; readonly name: string }
   | { readonly type: "BUY_VSU"; readonly name: string }
-  | { readonly type: "SHATTER_TC" };
+  | { readonly type: "SHATTER_TC" }
+  | { readonly type: "BURN_PARAGON" }
+  | { readonly type: "SACRIFICE_UNICORNS" }
+  | { readonly type: "SACRIFICE_ALICORNS" }
+  | { readonly type: "REFINE_TIME_CRYSTALS" };
 
 /**
  * Pure reducer: apply an action to a state and return the next state.
@@ -194,6 +201,18 @@ export function applyAction(
     }
     case "SHATTER_TC": {
       return applyShatterTc(state);
+    }
+    case "BURN_PARAGON": {
+      return applyBurnParagon(state);
+    }
+    case "SACRIFICE_UNICORNS": {
+      return applySacrificeUnicorns(state);
+    }
+    case "SACRIFICE_ALICORNS": {
+      return applySacrificeAlicorns(state);
+    }
+    case "REFINE_TIME_CRYSTALS": {
+      return applyRefineTimeCrystals(state);
     }
   }
 }

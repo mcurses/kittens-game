@@ -59,7 +59,12 @@ export const RACE_DEFS: readonly RaceDef[] = [
     embassyPrice: 100,
     buys: [{ name: "minerals", val: 1000 }],
     sells: [
-      { name: "wood", value: 500, chance: 1 },
+      {
+        name: "wood",
+        value: 500,
+        chance: 1,
+        seasons: { spring: -0.05, summer: 0.35, autumn: 0.15, winter: 0.05 },
+      },
       { name: "beam", value: 10, chance: 0.25, minLevel: 5 },
       { name: "scaffold", value: 1, chance: 0.1, minLevel: 10 },
     ],
@@ -71,7 +76,12 @@ export const RACE_DEFS: readonly RaceDef[] = [
     embassyPrice: 100,
     buys: [{ name: "iron", val: 100 }],
     sells: [
-      { name: "catnip", value: 35000, chance: 1 },
+      {
+        name: "catnip",
+        value: 35000,
+        chance: 1,
+        seasons: { spring: 0.2, summer: -0.05, autumn: 0.15, winter: 0.45 },
+      },
       { name: "parchment", value: 5, chance: 0.25, minLevel: 5 },
       { name: "manuscript", value: 3, chance: 0.15, minLevel: 10 },
       { name: "compedium", value: 1, chance: 0.1, minLevel: 15 },
@@ -84,7 +94,12 @@ export const RACE_DEFS: readonly RaceDef[] = [
     embassyPrice: 1000,
     buys: [{ name: "wood", val: 500 }],
     sells: [
-      { name: "iron", value: 250, chance: 1 },
+      {
+        name: "iron",
+        value: 250,
+        chance: 1,
+        seasons: { spring: -0.25, summer: -0.05, autumn: 0.35, winter: -0.2 },
+      },
       { name: "steel", value: 25, chance: 0.25, minLevel: 5 },
       { name: "gear", value: 5, chance: 0.1, minLevel: 10 },
     ],
@@ -96,7 +111,12 @@ export const RACE_DEFS: readonly RaceDef[] = [
     embassyPrice: 500,
     buys: [{ name: "ivory", val: 500 }],
     sells: [
-      { name: "minerals", value: 1000, chance: 1 },
+      {
+        name: "minerals",
+        value: 1000,
+        chance: 1,
+        seasons: { spring: 0.25, summer: 0.05, autumn: -0.35, winter: -0.05 },
+      },
       { name: "slab", value: 5, chance: 0.75, minLevel: 5 },
       { name: "concrate", value: 5, chance: 0.25, minLevel: 10 },
       { name: "megalith", value: 1, chance: 0.1, minLevel: 15 },
@@ -109,8 +129,18 @@ export const RACE_DEFS: readonly RaceDef[] = [
     embassyPrice: 25000,
     buys: [{ name: "slab", val: 50 }],
     sells: [
-      { name: "iron", value: 300, chance: 1 },
-      { name: "plate", value: 2, chance: 0.65 },
+      {
+        name: "iron",
+        value: 300,
+        chance: 1,
+        seasons: { spring: 0, summer: 0.15, autumn: -0.1, winter: -0.2 },
+      },
+      {
+        name: "plate",
+        value: 2,
+        chance: 0.65,
+        seasons: { spring: 0.05, summer: -0.15, autumn: 0.05, winter: 0.25 },
+      },
       { name: "alloy", value: 0.25, chance: 0.05, minLevel: 5 },
     ],
   },
@@ -121,7 +151,12 @@ export const RACE_DEFS: readonly RaceDef[] = [
     embassyPrice: 5000,
     buys: [{ name: "scaffold", val: 50 }],
     sells: [
-      { name: "coal", value: 350, chance: 1 },
+      {
+        name: "coal",
+        value: 350,
+        chance: 1,
+        seasons: { spring: 0, summer: 0.05, autumn: 0.15, winter: -0.05 },
+      },
       { name: "oil", value: 100, chance: 0.25, minLevel: 5 },
     ],
   },

@@ -637,3 +637,88 @@ describe("SpaceManager integration - full tick loop", () => {
     }).not.toThrow();
   });
 });
+
+// ── Story 19-8: Mission unlocks propagate to policies and challenges ────────────
+
+describe("Mission policy/challenge unlocks (Story 19-8)", () => {
+  function makeResourceRichState() {
+    const base = createInitialState();
+    const resources = { ...base.resources };
+    // Give enough resources for duneMission
+    resources.titanium = { value: 100000, maxValue: 1_000_000 };
+    resources.science = { value: 1_000_000, maxValue: 10_000_000 };
+    resources.starchart = { value: 100000, maxValue: 1_000_000 };
+    resources.kerosene = { value: 100000, maxValue: 1_000_000 };
+    return { ...base, resources };
+  }
+
+  it("duneMission launch unlocks technocracy, theocracy, expansionism policies", () => {
+    const base = makeResourceRichState();
+    // First unlock duneMission by simulating moonMission completion
+    const s = {
+      ...base,
+      space: {
+        ...base.space,
+        programs: {
+          ...base.space.programs,
+          duneMission: { val: 0, on: 0, unlocked: true },
+        },
+      },
+    };
+    const next = applyLaunchMission(s, "duneMission");
+    expect(next.science.policies.technocracy?.unlocked).toBe(true);
+    expect(next.science.policies.theocracy?.unlocked).toBe(true);
+    expect(next.science.policies.expansionism?.unlocked).toBe(true);
+  });
+
+  it("centaurusSystemMission launch unlocks energy challenge", () => {
+    const base = makeResourceRichState();
+    // Add resources for centaurusSystemMission
+    const s = {
+      ...base,
+      resources: {
+        ...base.resources,
+        titanium: { value: 200000, maxValue: 1_000_000 },
+        science: { value: 2_000_000, maxValue: 10_000_000 },
+        starchart: { value: 1_000_000, maxValue: 10_000_000 },
+        kerosene: { value: 500000, maxValue: 1_000_000 },
+        thorium: { value: 500000, maxValue: 1_000_000 },
+      },
+      space: {
+        ...base.space,
+        programs: {
+          ...base.space.programs,
+          centaurusSystemMission: { val: 0, on: 0, unlocked: true },
+        },
+      },
+    };
+    const next = applyLaunchMission(s, "centaurusSystemMission");
+    expect(next.challenges.challenges.energy?.unlocked).toBe(true);
+  });
+
+  it("SpaceManager.update propagates policy unlocks when planet is reached via route travel", () => {
+    // Set up duneMission as in-progress (val=1, on=0) with dune planet almost reached
+    const base = createInitialState();
+    const s = {
+      ...base,
+      space: {
+        ...base.space,
+        programs: {
+          ...base.space.programs,
+          duneMission: { val: 1, on: 0, unlocked: true },
+        },
+        planets: {
+          ...base.space.planets,
+          dune: { unlocked: true, reached: false, routeDays: 0.05 }, // just about to arrive
+        },
+      },
+    };
+    const mgr = new SpaceManager();
+    const next = mgr.update(s);
+    // After update, dune is reached → duneMission on=1 → policies unlocked
+    expect(next.space.planets.dune?.reached).toBe(true);
+    expect(next.science.policies.technocracy?.unlocked).toBe(true);
+    expect(next.science.policies.theocracy?.unlocked).toBe(true);
+    expect(next.science.policies.expansionism?.unlocked).toBe(true);
+  });
+});

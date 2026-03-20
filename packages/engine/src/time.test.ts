@@ -10,6 +10,7 @@ import {
   applyShatterTc,
   createInitialTime,
 } from "./time.js";
+import { TICKS_PER_DAY, DAYS_PER_SEASON, SEASONS_PER_YEAR } from "./calendar.js";
 
 // ── Helper ─────────────────────────────────────────────────────────────────────
 
@@ -307,7 +308,8 @@ describe("TimeManager.updateEffects", () => {
     };
     const mgr = new TimeManager();
     const effects = mgr.updateEffects(s);
-    expect(effects.temporalFluxMax).toBe(750);
+    // Base 3000 + temporalBattery 750 = 3750
+    expect(effects.temporalFluxMax).toBe(3750);
   });
 
   it("blastFurnace (val=1, on=1) contributes heatPerTick += 0.02, heatMax += 100", () => {
@@ -324,8 +326,10 @@ describe("TimeManager.updateEffects", () => {
     };
     const mgr = new TimeManager();
     const effects = mgr.updateEffects(s);
-    expect(effects.heatPerTick).toBeCloseTo(0.02);
-    expect(effects.heatMax).toBe(100);
+    // Base heatPerTick 0.01 + blastFurnace 0.02 = 0.03
+    expect(effects.heatPerTick).toBeCloseTo(0.03);
+    // Base heatMax 100 + blastFurnace 100 = 200
+    expect(effects.heatMax).toBe(200);
   });
 
   it("voidRift (val=1, on=1) contributes umbraBoostRatio += 0.1, globalResourceRatio += 0.02", () => {
@@ -346,7 +350,7 @@ describe("TimeManager.updateEffects", () => {
     expect(effects.globalResourceRatio).toBeCloseTo(0.02);
   });
 
-  it("CFU with on=0 contributes nothing", () => {
+  it("CFU with on=0 does not contribute upgrade effects (base effects still present)", () => {
     const base = createInitialState();
     const s: GameState = {
       ...base,
@@ -360,7 +364,17 @@ describe("TimeManager.updateEffects", () => {
     };
     const mgr = new TimeManager();
     const effects = mgr.updateEffects(s);
-    expect(effects.temporalFluxMax ?? 0).toBe(0);
+    // temporalBattery on=0 → no upgrade effect; base temporalFluxMax = 3000
+    expect(effects.temporalFluxMax).toBe(3000);
+  });
+
+  it("base effects present with zero CFUs/VSUs", () => {
+    const base = createInitialState();
+    const mgr = new TimeManager();
+    const effects = mgr.updateEffects(base);
+    expect(effects.heatPerTick).toBe(0.01); // base only
+    expect(effects.heatMax).toBe(100); // base only
+    expect(effects.temporalFluxMax).toBe(3000); // base only
   });
 });
 
@@ -497,6 +511,212 @@ describe("TimeManager integration", () => {
       },
     };
     const cache = buildEffectCache([mgr], s);
-    expect(cache.temporalFluxMax).toBe(750);
+    // Base 3000 + temporalBattery 750 = 3750
+    expect(cache.temporalFluxMax).toBe(3750);
+  });
+});
+
+// ── Story 19-1: Shatter produces resources ─────────────────────────────────────
+
+describe("applyShatterTc — resource production (Story 19-1)", () => {
+  const TICKS_PER_YEAR = TICKS_PER_DAY * DAYS_PER_SEASON * SEASONS_PER_YEAR; // 4000
+
+  function shatterState(extraEffects: Record<string, number>): GameState {
+    const base = createInitialState();
+    return {
+      ...base,
+      effectCache: { ...base.effectCache, ...extraEffects },
+      resources: {
+        ...base.resources,
+        catnip: { value: 0, maxValue: 1_000_000 },
+        wood: { value: 0, maxValue: 1_000_000 },
+        minerals: { value: 0, maxValue: 0 }, // maxValue=0 means uncapped
+      },
+      time: {
+        ...base.time,
+        cfus: {
+          ...base.time.cfus,
+          blastFurnace: { val: 1, on: 1, unlocked: true, heat: 100 },
+        },
+      },
+    };
+  }
+
+  it("produces no resources when shatterTCGain=0 (no ressourceRetrieval)", () => {
+    const s = shatterState({ catnipPerTickBase: 1 });
+    const next = applyShatterTc(s);
+    expect(next.resources.catnip?.value).toBe(0);
+  });
+
+  it("produces resources proportional to perTick * ticksPerYear * shatterTCGain", () => {
+    // catnipPerTickBase=1, shatterTCGain=1 → gain = 1 * 4000 * 1 = 4000
+    const s = shatterState({
+      catnipPerTickBase: 1,
+      shatterTCGain: 1,
+    });
+    const next = applyShatterTc(s);
+    // Capped at maxValue=1000000, actual gain=4000
+    expect(next.resources.catnip?.value).toBeCloseTo(4000);
+  });
+
+  it("resources are capped at pre-shatter maxValue (not exceeded)", () => {
+    // catnipPerTickBase=10, shatterTCGain=1 → raw gain = 40000, max=1000000
+    const s = shatterState({
+      catnipPerTickBase: 10,
+      shatterTCGain: 1,
+    });
+    // Set catnip near max
+    const s2 = {
+      ...s,
+      resources: {
+        ...s.resources,
+        catnip: { value: 990000, maxValue: 1_000_000 },
+      },
+    };
+    const next = applyShatterTc(s2);
+    // Should be capped at max(current value, maxValue) = max(990000, 1000000) = 1000000
+    expect(next.resources.catnip?.value).toBeLessThanOrEqual(1_000_000);
+  });
+
+  it("shatterTCGain scales with rrRatio", () => {
+    // shatterTCGain=0.5, rrRatio=1 → effective gain = 0.5 * (1+1) = 1
+    // catnipPerTickBase=1 → total = 1 * 4000 = 4000
+    const s = shatterState({
+      catnipPerTickBase: 1,
+      shatterTCGain: 0.5,
+      rrRatio: 1,
+    });
+    const next = applyShatterTc(s);
+    expect(next.resources.catnip?.value).toBeCloseTo(4000);
+  });
+
+  it("does not produce resources for resources with zero perTick", () => {
+    const s = shatterState({
+      shatterTCGain: 1,
+      // no woodPerTickBase — wood stays 0
+    });
+    const next = applyShatterTc(s);
+    expect(next.resources.wood?.value).toBe(0);
+  });
+
+  it("uncapped resources (maxValue=0) are not capped", () => {
+    // minerals maxValue=0 means uncapped — should grow freely
+    const s = shatterState({
+      mineralsPerTickBase: 1,
+      shatterTCGain: 1,
+    });
+    const next = applyShatterTc(s);
+    expect(next.resources.minerals?.value).toBeCloseTo(4000);
+  });
+});
+
+// ── Story 19-2: Heat efficiency multiplier ─────────────────────────────────────
+
+describe("TimeManager.update — heat efficiency (Story 19-2)", () => {
+  it("with heatEfficiency=0 (default), transfers at base heatPerTick rate", () => {
+    const base = createInitialState();
+    const s: GameState = {
+      ...base,
+      effectCache: { heatPerTick: 0.5, heatEfficiency: 0 },
+      time: { ...base.time, heat: 10 },
+    };
+    const mgr = new TimeManager();
+    const next = mgr.update(s);
+    // efficiency = 1 + 0 = 1; effective = 0.5 * 1 = 0.5
+    expect(next.time.heat).toBeCloseTo(9.5);
+    expect(next.time.cfus.blastFurnace?.heat).toBeCloseTo(0.5);
+  });
+
+  it("with heatEfficiency=0.5, transfers at 1.5x base rate", () => {
+    const base = createInitialState();
+    const s: GameState = {
+      ...base,
+      effectCache: { heatPerTick: 0.5, heatEfficiency: 0.5 },
+      time: { ...base.time, heat: 10 },
+    };
+    const mgr = new TimeManager();
+    const next = mgr.update(s);
+    // efficiency = 1 + 0.5 = 1.5; effective = 0.5 * 1.5 = 0.75
+    expect(next.time.cfus.blastFurnace?.heat).toBeCloseTo(0.75);
+  });
+});
+
+// ── Story 19-3: Base effect values ─────────────────────────────────────────────
+
+describe("TimeManager.updateEffects — base values (Story 19-3)", () => {
+  it("contributes heatPerTick=0.01 base even with no CFUs", () => {
+    const s = createInitialState();
+    const mgr = new TimeManager();
+    const effects = mgr.updateEffects(s);
+    expect(effects.heatPerTick).toBe(0.01);
+  });
+
+  it("contributes heatMax=100 base even with no CFUs", () => {
+    const s = createInitialState();
+    const mgr = new TimeManager();
+    const effects = mgr.updateEffects(s);
+    expect(effects.heatMax).toBe(100);
+  });
+
+  it("contributes temporalFluxMax=3000 base even with no CFUs", () => {
+    const s = createInitialState();
+    const mgr = new TimeManager();
+    const effects = mgr.updateEffects(s);
+    expect(effects.temporalFluxMax).toBe(3000);
+  });
+});
+
+// ── Story 19-1: Shatter advances space routes ──────────────────────────────────
+
+describe("applyShatterTc — space route advancement (Story 19-1)", () => {
+  it("advances in-progress space routes by daysPerYear * routeSpeed", () => {
+    const base = createInitialState();
+    const s: GameState = {
+      ...base,
+      effectCache: { routeSpeed: 1 },
+      time: {
+        ...base.time,
+        cfus: {
+          ...base.time.cfus,
+          blastFurnace: { val: 1, on: 1, unlocked: true, heat: 100 },
+        },
+      },
+      space: {
+        ...base.space,
+        planets: {
+          ...base.space.planets,
+          moon: { unlocked: true, reached: false, routeDays: 500 },
+        },
+      },
+    };
+    const next = applyShatterTc(s);
+    // daysPerYear = 100 * 4 = 400; moon had 500 → 500 - 400 = 100 remaining
+    expect(next.space.planets.moon?.routeDays).toBeCloseTo(100);
+    expect(next.space.planets.moon?.reached).toBe(false);
+  });
+
+  it("marks planet as reached when routeDays hits 0", () => {
+    const base = createInitialState();
+    const s: GameState = {
+      ...base,
+      effectCache: { routeSpeed: 1 },
+      time: {
+        ...base.time,
+        cfus: {
+          ...base.time.cfus,
+          blastFurnace: { val: 1, on: 1, unlocked: true, heat: 100 },
+        },
+      },
+      space: {
+        ...base.space,
+        planets: {
+          ...base.space.planets,
+          moon: { unlocked: true, reached: false, routeDays: 200 },
+        },
+      },
+    };
+    // daysPerYear = 400; moon routeDays=200 → reached
+    const next = applyShatterTc(s);
+    expect(next.space.planets.moon?.reached).toBe(true);
   });
 });

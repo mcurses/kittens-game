@@ -484,3 +484,67 @@ describe("DiplomacyManager integration - full tick loop", () => {
     expect(() => JSON.stringify(state)).not.toThrow();
   });
 });
+
+// ── Story 19-7: Seasonal trade modifiers in RACE_DEFS ──────────────────────────
+
+describe("RACE_DEFS seasonal modifiers (Story 19-7)", () => {
+  const lizards = RACE_DEFS.find((r) => r.name === "lizards")!;
+  const sharks = RACE_DEFS.find((r) => r.name === "sharks")!;
+  const griffins = RACE_DEFS.find((r) => r.name === "griffins")!;
+  const nagas = RACE_DEFS.find((r) => r.name === "nagas")!;
+  const zebras = RACE_DEFS.find((r) => r.name === "zebras")!;
+
+  it("lizards wood has correct seasonal modifiers", () => {
+    const woodSell = lizards.sells.find((s) => s.name === "wood")!;
+    expect(woodSell.seasons?.spring).toBeCloseTo(-0.05);
+    expect(woodSell.seasons?.summer).toBeCloseTo(0.35);
+    expect(woodSell.seasons?.autumn).toBeCloseTo(0.15);
+    expect(woodSell.seasons?.winter).toBeCloseTo(0.05);
+  });
+
+  it("sharks catnip has correct seasonal modifiers", () => {
+    const catnipSell = sharks.sells.find((s) => s.name === "catnip")!;
+    expect(catnipSell.seasons?.spring).toBeCloseTo(0.2);
+    expect(catnipSell.seasons?.summer).toBeCloseTo(-0.05);
+    expect(catnipSell.seasons?.autumn).toBeCloseTo(0.15);
+    expect(catnipSell.seasons?.winter).toBeCloseTo(0.45);
+  });
+
+  it("griffins iron has correct seasonal modifiers", () => {
+    const ironSell = griffins.sells.find((s) => s.name === "iron")!;
+    expect(ironSell.seasons?.spring).toBeCloseTo(-0.25);
+    expect(ironSell.seasons?.summer).toBeCloseTo(-0.05);
+    expect(ironSell.seasons?.autumn).toBeCloseTo(0.35);
+    expect(ironSell.seasons?.winter).toBeCloseTo(-0.2);
+  });
+
+  it("nagas minerals has correct seasonal modifiers", () => {
+    const mineralsSell = nagas.sells.find((s) => s.name === "minerals")!;
+    expect(mineralsSell.seasons?.spring).toBeCloseTo(0.25);
+    expect(mineralsSell.seasons?.summer).toBeCloseTo(0.05);
+    expect(mineralsSell.seasons?.autumn).toBeCloseTo(-0.35);
+    expect(mineralsSell.seasons?.winter).toBeCloseTo(-0.05);
+  });
+
+  it("zebras iron has correct seasonal modifiers", () => {
+    const ironSell = zebras.sells.find((s) => s.name === "iron")!;
+    expect(ironSell.seasons?.spring).toBeCloseTo(0);
+    expect(ironSell.seasons?.summer).toBeCloseTo(0.15);
+    expect(ironSell.seasons?.autumn).toBeCloseTo(-0.1);
+    expect(ironSell.seasons?.winter).toBeCloseTo(-0.2);
+  });
+
+  it("calculateTradeYield applies seasonal modifier from CalendarState.season", () => {
+    // lizards wood in summer: base 500 * chance 1 * (1+0) * (1+0.35) = 675
+    const wood = calculateTradeYield(lizards, 0, 0, "summer").wood;
+    expect(wood).toBeCloseTo(675);
+  });
+
+  it("calculateTradeYield applies negative seasonal modifier (winter reduces yield)", () => {
+    // sharks catnip in winter: 35000 * 1 * 1 * (1+0.45) = 50750... wait
+    // Actually sharks catnip winter = +0.45 (bonus), not penalty
+    // Use griffins iron in spring: 250 * 1 * 1 * (1-0.25) = 187.5
+    const iron = calculateTradeYield(griffins, 0, 0, "spring").iron;
+    expect(iron).toBeCloseTo(187.5);
+  });
+});
