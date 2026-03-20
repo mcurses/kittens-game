@@ -1,6 +1,6 @@
 # Kittens Game Rewrite — Progress Tracker
 
-Last updated: 2026-03-16
+Last updated: 2026-03-20
 
 ---
 
@@ -290,24 +290,39 @@ Prerequisites: Epic 17
 
 ---
 
-## Epic 19: Multi-client
-**Status:** Not Started
+## Epic 19: Engine Completeness
+**Status:** Complete | **Started:** 2026-03-20 | **Finished:** 2026-03-20
+Stories: 9 / 9 complete
+
+- [x] Story 19-1: Shatter TC produces resources (shatterTCGain * perTick * TICKS_PER_YEAR)
+- [x] Story 19-2: Heat efficiency multiplier (1 + heatEfficiency)
+- [x] Story 19-3: heatMax=100, temporalFluxMax=3000, heatPerTick=0.01 base values
+- [x] Story 19-4: Paragon production ratio into effectCache (globalProductionModifier)
+- [x] Story 19-5: BURN_PARAGON action (1 paragon → 1 burnedParagon)
+- [x] Story 19-6: SACRIFICE_UNICORNS, SACRIFICE_ALICORNS, REFINE_TIME_CRYSTALS actions
+- [x] Story 19-7: Seasonal trade modifiers in RACE_DEFS for all 7 races
+- [x] Story 19-8: Mission unlocks propagate to policies and challenges
+- [x] Story 19-9: Cross-manager integration test
+
+Engine tests: 695 passing | Line coverage: 99.65%
+
 Prerequisites: Epic 18
 
 ---
 
-## Epic 20: i18n
-**Status:** Not Started
-Prerequisites: Epic 18
+## Epic 20: Game UI
+**Status:** Complete | **Started:** 2026-03-20 | **Finished:** 2026-03-20
+Stories: 8 / 8 complete
 
----
+- [x] Story 20-1: Resource filtering — only show resources with value > 0
+- [x] Story 20-2: BuildingsPanel with BUY_BUILDING controls
+- [x] Story 20-3: JobsPanel with ASSIGN_JOB / UNASSIGN_JOB controls
+- [x] Story 20-4: CalendarDisplay — season/year/day in header
+- [x] Story 20-5: LogPanel + useLogMessages — WS LOG_MESSAGE accumulation (50 msg cap)
+- [x] Story 20-6: SciencePanel with RESEARCH controls
+- [x] Story 20-7: WorkshopPanel with PURCHASE_UPGRADE and CRAFT controls
+- [x] Story 20-8: TabContainer — 5-tab navigation wired into App
 
-## Epic 21: Themes & Assets
-**Status:** Not Started
-Prerequisites: Epic 18
+Client-web tests: 113 passing | Line coverage: 96.51%
 
----
-
-## Epic 22: Feature Parity Audit
-**Status:** Not Started
-Prerequisites: All epics
+Prerequisites: Epic 19
