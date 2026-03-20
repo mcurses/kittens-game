@@ -6,7 +6,6 @@ import { CalendarDisplay } from "./CalendarDisplay.js";
 import { LogPanel } from "./LogPanel.js";
 import { TabContainer } from "./TabContainer.js";
 import { useGameState } from "./useGameState.js";
-import { useLogMessages } from "./useLogMessages.js";
 import { useWebSocket } from "./useWebSocket.js";
 
 interface LocationLike {
@@ -37,8 +36,7 @@ export function getWsUrl(
 function GameView(): React.ReactElement {
   const { data: state, error, isError, isSuccess } = useGameState();
   const wsUrl = isSuccess ? getWsUrl() : null;
-  useWebSocket(wsUrl);
-  const { messages } = useLogMessages(wsUrl);
+  const { messages } = useWebSocket(wsUrl);
 
   if (isError) {
     return (

@@ -1,9 +1,11 @@
 // useWebSocket — connects to the server WS and updates query cache on STATE_DELTA
+// Also accumulates LOG_MESSAGE envelopes and returns them as a messages array.
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import { GAME_STATE_QUERY_KEY } from "./useGameState.js";
 
 const RECONNECT_DELAY_MS = 2000;
+const MAX_LOG_MESSAGES = 50;
 
 interface WsStateDeltaEnvelope {
   type: "STATE_DELTA";
@@ -20,11 +22,22 @@ interface WsConnectedEnvelope {
   ts: number;
 }
 
-type WsEnvelope = WsStateDeltaEnvelope | WsConnectedEnvelope;
+interface WsLogMessageEnvelope {
+  type: "LOG_MESSAGE";
+  payload: string;
+  ts: number;
+}
+
+type WsEnvelope =
+  | WsStateDeltaEnvelope
+  | WsConnectedEnvelope
+  | WsLogMessageEnvelope
+  | { type: string; payload: unknown; ts: number };
 
 export function useWebSocket(url: string | null) {
   const queryClient = useQueryClient();
   const [sessionId, setSessionId] = useState<string | null>(null);
+  const [messages, setMessages] = useState<readonly string[]>([]);
   const wsRef = useRef<WebSocket | null>(null);
   const reconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const unmountedRef = useRef(false);
@@ -51,13 +64,22 @@ export function useWebSocket(url: string | null) {
         }
 
         if (envelope.type === "CONNECTED") {
-          setSessionId(envelope.payload.sessionId);
+          const connected = envelope as WsConnectedEnvelope;
+          setSessionId(connected.payload.sessionId);
           queryClient.setQueryData(
             GAME_STATE_QUERY_KEY,
-            (currentState) => currentState ?? envelope.payload.state,
+            (currentState) => currentState ?? connected.payload.state,
           );
         } else if (envelope.type === "STATE_DELTA") {
-          queryClient.setQueryData(GAME_STATE_QUERY_KEY, envelope.payload);
+          queryClient.setQueryData(GAME_STATE_QUERY_KEY, (envelope as WsStateDeltaEnvelope).payload);
+        } else if (envelope.type === "LOG_MESSAGE") {
+          const msg = (envelope as WsLogMessageEnvelope).payload;
+          setMessages((prev) => {
+            const next = [...prev, msg];
+            return next.length > MAX_LOG_MESSAGES
+              ? next.slice(next.length - MAX_LOG_MESSAGES)
+              : next;
+          });
         }
       };
 
@@ -88,5 +110,5 @@ export function useWebSocket(url: string | null) {
     };
   }, [url, queryClient]);
 
-  return { sessionId };
+  return { sessionId, messages };
 }

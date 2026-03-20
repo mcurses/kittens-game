@@ -201,6 +201,45 @@ describe("useWebSocket", () => {
     expect(MockWebSocket.instances).toHaveLength(1);
   });
 
+  it("starts with an empty messages array", () => {
+    const { wrapper } = makeWrapper();
+    const { result } = renderHook(
+      () => useWebSocket("ws://localhost:3000/ws"),
+      { wrapper },
+    );
+    expect(result.current.messages).toEqual([]);
+  });
+
+  it("appends log messages on LOG_MESSAGE envelope", () => {
+    const { wrapper } = makeWrapper();
+    const { result } = renderHook(
+      () => useWebSocket("ws://localhost:3000/ws"),
+      { wrapper },
+    );
+    const ws = MockWebSocket.instances[0];
+    act(() => {
+      ws?.simulateMessage({ type: "LOG_MESSAGE", payload: "Hello world", ts: 1 });
+    });
+    expect(result.current.messages).toEqual(["Hello world"]);
+  });
+
+  it("trims log messages to last 50 entries", () => {
+    const { wrapper } = makeWrapper();
+    const { result } = renderHook(
+      () => useWebSocket("ws://localhost:3000/ws"),
+      { wrapper },
+    );
+    const ws = MockWebSocket.instances[0];
+    act(() => {
+      for (let i = 0; i < 55; i++) {
+        ws?.simulateMessage({ type: "LOG_MESSAGE", payload: `msg-${i}`, ts: i });
+      }
+    });
+    expect(result.current.messages.length).toBe(50);
+    expect(result.current.messages[0]).toBe("msg-5");
+    expect(result.current.messages[49]).toBe("msg-54");
+  });
+
   it("ignores malformed JSON messages", () => {
     const { wrapper, queryClient } = makeWrapper();
     renderHook(() => useWebSocket("ws://localhost:3000/ws"), { wrapper });
