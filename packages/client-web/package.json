@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@kittens/api-spec": "workspace:*",
+    "@kittens/engine": "workspace:*",
     "@kittens/shared": "workspace:*",
     "@tanstack/react-query": "^5.62.16",
     "react": "^19.0.0",

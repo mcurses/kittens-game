@@ -1,5 +1,6 @@
-// BuildingsPanel — displays all buildings with buy controls
+// BuildingsPanel — displays unlocked buildings with buy controls and price info
 import type { GameStateResponse } from "@kittens/api-spec";
+import { BUILDING_DEFS } from "@kittens/engine";
 import React from "react";
 import { useGameAction } from "./useGameAction.js";
 
@@ -9,11 +10,16 @@ interface BuildingEntry {
   on: number;
 }
 
+interface PriceEntry {
+  name: string;
+  val: number;
+}
+
 interface Props {
   state: GameStateResponse | null | undefined;
 }
 
-/** Extract buildings array from serialized game state (duck-typed). */
+/** Extract buildings array from serialized game state (duck-typed). Only returns unlocked ones (val > 0). */
 function extractBuildings(state: GameStateResponse): BuildingEntry[] {
   const raw = state as unknown as Record<string, unknown>;
   const buildings = raw.buildings;
@@ -28,7 +34,13 @@ function extractBuildings(state: GameStateResponse): BuildingEntry[] {
         on: typeof e.on === "number" ? e.on : 0,
       };
     })
-    .filter((e): e is BuildingEntry => e !== null);
+    .filter((e): e is BuildingEntry => e !== null && e.val > 0);
+}
+
+/** Look up base prices for a building by name from BUILDING_DEFS. */
+function getPrices(name: string): readonly PriceEntry[] {
+  const def = BUILDING_DEFS.find((d) => d.name === name);
+  return def ? def.prices : [];
 }
 
 export function BuildingsPanel({ state }: Props): React.ReactElement {
@@ -47,20 +59,35 @@ export function BuildingsPanel({ state }: Props): React.ReactElement {
         <p>No buildings available.</p>
       ) : (
         <ul>
-          {buildings.map((b) => (
-            <li key={b.name} data-testid={`building-${b.name}`}>
-              <span className="building-name">{b.name}</span>
-              {": "}
-              <span className="building-count">{b.val}</span>
-              <button
-                type="button"
-                disabled={isPending}
-                onClick={() => mutate({ type: "BUY_BUILDING", name: b.name })}
-              >
-                Buy
-              </button>
-            </li>
-          ))}
+          {buildings.map((b) => {
+            const prices = getPrices(b.name);
+            return (
+              <li key={b.name} data-testid={`building-${b.name}`}>
+                <span className="building-name">{b.name}</span>
+                {": "}
+                <span className="building-count">{b.val}</span>
+                {prices.length > 0 && (
+                  <span className="building-prices">
+                    {" ("}
+                    {prices.map((p, i) => (
+                      <span key={p.name}>
+                        {i > 0 ? ", " : ""}
+                        {p.name}: {p.val}
+                      </span>
+                    ))}
+                    {")"}
+                  </span>
+                )}
+                <button
+                  type="button"
+                  disabled={isPending}
+                  onClick={() => mutate({ type: "BUY_BUILDING", name: b.name })}
+                >
+                  Buy
+                </button>
+              </li>
+            );
+          })}
         </ul>
       )}
     </div>
