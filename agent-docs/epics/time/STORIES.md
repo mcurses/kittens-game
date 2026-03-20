@@ -196,3 +196,56 @@ CRITICAL: This is the core purpose of the Chronoforge. Current implementation on
 - `legacy/js/time.js` — shatter() advances planet travel routes
 
 ### Status: [ ] Tests | [ ] Impl | [ ] Rated
+
+---
+
+## Story: Shatter partial-year remainder
+
+**As a** player
+**I want** shattering mid-year to only credit the remaining portion of that year
+**So that** shatter yields match legacy exactly
+
+### Acceptance Criteria
+- [ ] First shattered year produces resources proportional to remaining days (year - current day/season position)
+- [ ] Subsequent years produce full TICKS_PER_YEAR worth
+- [ ] Tests verify partial-year at day 50 of spring vs. full year
+
+### Legacy Reference
+- `legacy/js/time.js` — shatter() remainingDaysInFirstYear calculation
+
+### Status: [ ] Tests | [ ] Impl | [ ] Rated
+
+---
+
+## Story: Shatter triggers onNewYear calendar events
+
+**As a** player
+**I want** year-end events to fire for each shattered year
+**So that** astronomical events and season resets happen correctly during shatter
+
+### Acceptance Criteria
+- [ ] CalendarManager.onNewYear() called once per shattered year
+- [ ] Season/day resets to 0 after each shattered year
+- [ ] Tests verify day resets to 0 after shatter
+
+### Legacy Reference
+- `legacy/js/time.js` — shatter() calling cal.onNewYear(i + 1 == amt)
+
+### Status: [ ] Tests | [ ] Impl | [ ] Rated
+
+---
+
+## Story: ChronoEngineers auto-craft during shatter
+
+**As a** player
+**I want** chronoEngineers to auto-craft during shatter
+**So that** the workshop craftByEngineers mechanic works during time-skip
+
+### Acceptance Criteria
+- [ ] During SHATTER_TC, auto-crafting runs for each shattered year proportional to shatterTCGain
+- [ ] Only fires when workshop has chronoEngineers upgrade
+
+### Legacy Reference
+- `legacy/js/time.js` line 699 — craftByEngineers(remainingTicks * shatterTCGain)
+
+### Status: [ ] Tests | [ ] Impl | [ ] Rated

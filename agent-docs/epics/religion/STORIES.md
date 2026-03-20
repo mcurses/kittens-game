@@ -268,3 +268,22 @@
 - `legacy/js/religion.js` — blackPyramid getEffectiveValue, activeHolyGenocide
 
 ### Status: [ ] Tests | [ ] Impl | [ ] Rated
+
+---
+
+## Story: Necrocorn corruption per-tick accumulation
+
+**As a** player
+**I want** corruption to accumulate per tick when blackPyramid is active
+**So that** the necrocorn corruption drain mechanic functions correctly
+
+### Acceptance Criteria
+- [ ] ReligionManager.update() accumulates corruption each tick when blackPyramid val > 0
+- [ ] Corruption reduces necrocorn production via getCorruptionEffects()
+- [ ] getExistNecrocornThreshold() correctly gates corruption effects
+- [ ] Tests verify corruption growth rate at known blackPyramid count
+
+### Legacy Reference
+- `legacy/js/religion.js` — corruption field, corruptionCached, getCorruptionEffects(), getExistNecrocornThreshold()
+
+### Status: [ ] Tests | [ ] Impl | [ ] Rated

@@ -152,3 +152,41 @@ Reference: `legacy/index.html` — 3-column layout: leftColumn=resources, midCol
 - `legacy/index.html` — tabContainer with tab links
 
 ### Status: [x] Tests | [x] Impl | [ ] Rated
+
+---
+
+## Story: Building prices displayed in BuildingsPanel
+
+**As a** player
+**I want** to see what each building costs before buying
+**So that** I can make informed purchase decisions
+
+### Acceptance Criteria
+- [x] BuildingsPanel shows price list for each building (imported from BUILDING_DEFS)
+- [x] Unaffordable resources shown in red / Buy button disabled
+
+### Legacy Reference
+- `legacy/game.js` — building UI rendering showing costs
+
+### Status: [ ] Tests | [x] Impl | [ ] Rated
+
+---
+
+## Story: Religion, Trade, Space, and Time tabs
+
+**As a** player
+**I want** Religion, Trade, Space, and Time tabs in the navigation
+**So that** I can access all game systems from the UI
+
+### Acceptance Criteria
+- [ ] Religion tab shows worship, faith, ziggurat/religion/transcendence upgrade panels
+- [ ] Trade tab shows race list with embassy levels and trade buttons
+- [ ] Space tab shows mission list and space building counts
+- [ ] Time tab shows CFU/VSU upgrades, heat meter, shatter button
+- [ ] Tabs only appear when the relevant system is unlocked/accessible
+
+### Legacy Reference
+- `legacy/index.html` — tab structure
+- `legacy/game.js` — tab visibility conditions
+
+### Status: [ ] Tests | [ ] Impl | [ ] Rated
