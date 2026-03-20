@@ -193,10 +193,12 @@ Epics are ordered by dependency. Do not start an epic until its prerequisites ar
 | 16 | **Achievements** — 200+ achievements, badge unlock | 08 | P2 |
 | 17 | **Server** — Hono server, SQLite, session mgmt, WS | 02, 03 | P1 |
 | 18 | **Web Client** — React SPA, TanStack Query, WS live sync | 17 | P1 |
-| 19 | **Multi-client** — concurrent clients, optimistic UI, conflict | 18 | P2 |
-| 20 | **i18n** — translation system, port all 40+ locale files | 18 | P3 |
-| 21 | **Themes & Assets** — CSS themes, image assets | 18 | P3 |
-| 22 | **Feature Parity Audit** — systematic comparison to legacy | all | P1 |
+| 19 | **Engine Completeness** — close sanity-check gaps: time shatter, religion pacts/necrocorns, prestige paragon, space beacons, diplomacy seasons, challenge completion conditions | 10–16 | P1 |
+| 20 | **Game UI** — full client interface: resource filtering, buildings panel, jobs panel, calendar/year display, log/messages, tech tree, workshop panels | 18, 19 | P1 |
+| 21 | **Feature Parity Audit** — systematic legacy comparison, fix divergences | 19, 20 | P1 |
+| 22 | **Multi-client** — concurrent sessions, auth/session isolation, optimistic UI | 20 | P2 |
+| 23 | **i18n** — translation system, port all 40+ locale files | 20 | P3 |
+| 24 | **Themes & Assets** — CSS themes, image assets | 20 | P3 |
 
 ---
 
