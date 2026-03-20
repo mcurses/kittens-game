@@ -93,7 +93,7 @@ export function applyAction(
       const def = BUILDING_DEFS.find((b) => b.name === action.name);
       if (!def) return state;
 
-      const building = state.buildings[action.name] ?? { val: 0, on: 0 };
+      const building = state.buildings[action.name] ?? { val: 0, on: 0, unlocked: false };
       const prices = getBuildingPrice(def, building.val);
 
       if (!canAfford(prices, state.resources)) return state;
@@ -107,7 +107,7 @@ export function applyAction(
           }
         }
         // Increment building val and on
-        const b = draft.buildings[action.name] ?? { val: 0, on: 0 };
+        const b = draft.buildings[action.name] ?? { val: 0, on: 0, unlocked: false };
         b.val += 1;
         b.on += 1;
         draft.buildings[action.name] = b;

@@ -22,6 +22,16 @@ export interface BuildingDef {
   readonly priceRatio: number;
   /** Static effects contributed to the effect cache */
   readonly effects: Readonly<Record<string, number>>;
+  /**
+   * If true, this building is a candidate for auto-unlock once resource thresholds are met.
+   * Port of legacy `defaultUnlockable` on buildingsData entries.
+   */
+  readonly defaultUnlockable?: boolean;
+  /**
+   * Fraction of base price the player must have in each resource to unlock.
+   * 0.3 means 30% of price required. Port of legacy `unlockRatio`.
+   */
+  readonly unlockRatio?: number;
 }
 
 /** Runtime state for a single building */
@@ -30,6 +40,8 @@ export interface BuildingEntry {
   readonly val: number;
   /** Buildings currently active/on */
   readonly on: number;
+  /** Whether this building has been unlocked (visible to the player). One-way: once true, stays true. */
+  readonly unlocked?: boolean;
 }
 
 /** Flat map of all building states, keyed by building name */
@@ -53,6 +65,8 @@ export const BUILDING_DEFS: readonly BuildingDef[] = [
     prices: [{ name: "catnip", val: 10 }],
     priceRatio: 1.12,
     effects: { catnipPerTickBase: 0.125 },
+    defaultUnlockable: true,
+    unlockRatio: 0.3,
   },
   {
     name: "pasture",
@@ -62,12 +76,14 @@ export const BUILDING_DEFS: readonly BuildingDef[] = [
     ],
     priceRatio: 1.15,
     effects: { catnipDemandRatio: -0.005 },
+    unlockRatio: 0.3,
   },
   {
     name: "aqueduct",
     prices: [{ name: "minerals", val: 75 }],
     priceRatio: 1.12,
     effects: { catnipRatio: 0.03 },
+    unlockRatio: 0.3,
   },
   // ── Population ──────────────────────────────────────────────────────────────
   {
@@ -75,6 +91,8 @@ export const BUILDING_DEFS: readonly BuildingDef[] = [
     prices: [{ name: "wood", val: 5 }],
     priceRatio: 2.5,
     effects: { manpowerMax: 75, maxKittens: 2 },
+    defaultUnlockable: true,
+    unlockRatio: 0.3,
   },
   {
     name: "logHouse",
@@ -160,7 +178,7 @@ export const BUILDING_DEFS: readonly BuildingDef[] = [
 export function createInitialBuildings(): BuildingState {
   const state: BuildingState = {};
   for (const def of BUILDING_DEFS) {
-    state[def.name] = { val: 0, on: 0 };
+    state[def.name] = { val: 0, on: 0, unlocked: false };
   }
   return state;
 }
@@ -204,8 +222,33 @@ export function canAfford(prices: readonly PriceEntry[], resources: ResourceStat
  */
 export class BuildingManager implements Manager {
   update(state: GameState): GameState {
-    // Buildings don't self-update each tick; changes come from BUY_BUILDING actions.
-    return state;
+    // Check auto-unlock for defaultUnlockable buildings (one-way: never lock back once unlocked).
+    // Port of legacy BuildingsManager.update() isUnlocked() check with unlockRatio.
+    let changed = false;
+    const buildings = { ...state.buildings };
+
+    for (const def of BUILDING_DEFS) {
+      if (!def.defaultUnlockable || def.unlockRatio === undefined) continue;
+      const entry = buildings[def.name];
+      if (!entry || entry.unlocked) continue; // already unlocked — skip
+
+      // Check if player has unlockRatio fraction of all price components
+      let meetsThreshold = true;
+      for (const price of def.prices) {
+        const res = state.resources[price.name];
+        if ((res?.value ?? 0) < price.val * def.unlockRatio) {
+          meetsThreshold = false;
+          break;
+        }
+      }
+
+      if (meetsThreshold) {
+        buildings[def.name] = { ...entry, unlocked: true };
+        changed = true;
+      }
+    }
+
+    return changed ? { ...state, buildings } : state;
   }
 
   updateEffects(state: GameState): Record<string, number> {
@@ -247,9 +290,11 @@ export class BuildingManager implements Manager {
         typeof (entry as Record<string, unknown>).val === "number" &&
         typeof (entry as Record<string, unknown>).on === "number"
       ) {
+        const e = entry as Record<string, unknown>;
         buildings[def.name] = {
-          val: (entry as Record<string, unknown>).val as number,
-          on: (entry as Record<string, unknown>).on as number,
+          val: e.val as number,
+          on: e.on as number,
+          unlocked: typeof e.unlocked === "boolean" ? e.unlocked : false,
         };
       }
     }

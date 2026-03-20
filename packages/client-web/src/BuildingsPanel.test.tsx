@@ -9,7 +9,7 @@ vi.mock("./useGameAction.js", () => ({
   useGameAction: () => ({ mutate: mockMutate, isPending: false, error: null }),
 }));
 
-// Mock BUILDING_DEFS from @kittens/engine so tests don't depend on full engine
+// Mock BUILDING_DEFS and getBuildingPrice from @kittens/engine
 vi.mock("@kittens/engine", () => ({
   BUILDING_DEFS: [
     {
@@ -34,15 +34,19 @@ vi.mock("@kittens/engine", () => ({
       effects: {},
     },
   ],
+  // getBuildingPrice returns base prices unchanged for test simplicity
+  getBuildingPrice: (def: { prices: readonly { name: string; val: number }[] }) => def.prices,
 }));
 
 function makeState(
-  buildings: Record<string, { val: number; on: number }>,
+  buildings: Record<string, { val: number; on: number; unlocked?: boolean }>,
+  resources?: Record<string, { value: number; maxValue: number }>,
 ) {
   return {
     version: 1,
     tick: 0,
     buildings,
+    resources: resources ?? {},
   } as unknown as import("@kittens/api-spec").GameStateResponse;
 }
 
@@ -67,21 +71,21 @@ describe("BuildingsPanel", () => {
     expect(screen.getByText("No buildings available.")).toBeTruthy();
   });
 
-  it("filters out buildings with val === 0 (locked)", () => {
-    const state = makeState({ field: { val: 0, on: 0 }, hut: { val: 1, on: 1 } });
+  it("shows unlocked buildings with val === 0 (not yet purchased)", () => {
+    const state = makeState({ field: { val: 0, on: 0, unlocked: true }, hut: { val: 1, on: 1, unlocked: true } });
     render(<BuildingsPanel state={state} />);
-    expect(screen.queryByTestId("building-field")).toBeNull();
+    expect(screen.getByTestId("building-field")).toBeTruthy();
     expect(screen.getByTestId("building-hut")).toBeTruthy();
   });
 
-  it("shows no buildings when all have val === 0", () => {
-    const state = makeState({ field: { val: 0, on: 0 } });
+  it("hides locked buildings (unlocked=false)", () => {
+    const state = makeState({ field: { val: 0, on: 0, unlocked: false } });
     render(<BuildingsPanel state={state} />);
     expect(screen.getByText("No buildings available.")).toBeTruthy();
   });
 
-  it("renders building name and count for unlocked buildings", () => {
-    const state = makeState({ field: { val: 3, on: 3 } });
+  it("renders building name and count for unlocked building", () => {
+    const state = makeState({ field: { val: 3, on: 3, unlocked: true } });
     render(<BuildingsPanel state={state} />);
     expect(screen.getByTestId("building-field")).toBeTruthy();
     expect(screen.getByText(/field/)).toBeTruthy();
@@ -89,39 +93,62 @@ describe("BuildingsPanel", () => {
   });
 
   it("renders building prices from BUILDING_DEFS", () => {
-    const state = makeState({ field: { val: 1, on: 1 } });
+    const state = makeState({ field: { val: 1, on: 1, unlocked: true } });
     render(<BuildingsPanel state={state} />);
     expect(screen.getByText(/catnip/)).toBeTruthy();
     expect(screen.getByText(/10/)).toBeTruthy();
   });
 
   it("renders multiple prices for a building", () => {
-    const state = makeState({ pasture: { val: 2, on: 2 } });
+    const state = makeState({ pasture: { val: 2, on: 2, unlocked: true } });
     render(<BuildingsPanel state={state} />);
     expect(screen.getByText(/catnip/)).toBeTruthy();
     expect(screen.getByText(/wood/)).toBeTruthy();
   });
 
   it("renders a Buy button for each unlocked building", () => {
-    const state = makeState({ field: { val: 1, on: 1 }, hut: { val: 2, on: 2 } });
+    const state = makeState({ field: { val: 1, on: 1, unlocked: true }, hut: { val: 2, on: 2, unlocked: true } });
     render(<BuildingsPanel state={state} />);
     const buyButtons = screen.getAllByRole("button", { name: /buy/i });
     expect(buyButtons.length).toBe(2);
   });
 
   it("dispatches BUY_BUILDING action when Buy is clicked", () => {
-    const state = makeState({ field: { val: 1, on: 1 } });
+    const state = makeState(
+      { field: { val: 0, on: 0, unlocked: true } },
+      { catnip: { value: 100, maxValue: 0 } },
+    );
     render(<BuildingsPanel state={state} />);
     const buyButton = screen.getByRole("button", { name: /buy/i });
     fireEvent.click(buyButton);
     expect(mockMutate).toHaveBeenCalledWith({ type: "BUY_BUILDING", name: "field" });
   });
 
-  it("renders multiple unlocked buildings", () => {
+  it("disables Buy button when player cannot afford the building", () => {
+    const state = makeState(
+      { field: { val: 0, on: 0, unlocked: true } },
+      { catnip: { value: 5, maxValue: 0 } }, // need 10, only have 5
+    );
+    render(<BuildingsPanel state={state} />);
+    const buyButton = screen.getByRole("button", { name: /buy/i });
+    expect(buyButton.hasAttribute("disabled")).toBe(true);
+  });
+
+  it("enables Buy button when player can afford the building", () => {
+    const state = makeState(
+      { field: { val: 0, on: 0, unlocked: true } },
+      { catnip: { value: 50, maxValue: 0 } }, // need 10, have 50
+    );
+    render(<BuildingsPanel state={state} />);
+    const buyButton = screen.getByRole("button", { name: /buy/i });
+    expect(buyButton.hasAttribute("disabled")).toBe(false);
+  });
+
+  it("shows only unlocked buildings, hides locked ones", () => {
     const state = makeState({
-      field: { val: 5, on: 5 },
-      hut: { val: 2, on: 2 },
-      pasture: { val: 0, on: 0 }, // locked — should NOT appear
+      field: { val: 5, on: 5, unlocked: true },
+      hut: { val: 2, on: 2, unlocked: true },
+      pasture: { val: 0, on: 0, unlocked: false }, // locked — should NOT appear
     });
     render(<BuildingsPanel state={state} />);
     expect(screen.getByTestId("building-field")).toBeTruthy();

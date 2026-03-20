@@ -283,12 +283,91 @@ describe("BuildingManager", () => {
         ...createInitialState(),
         buildings: {
           ...createInitialBuildings(),
-          field: { val: 10, on: 10 },
+          field: { val: 10, on: 10, unlocked: true },
         },
       };
       const reset = manager.resetState(state);
       expect(reset.buildings.field?.val).toBe(0);
       expect(reset.buildings.field?.on).toBe(0);
+      expect(reset.buildings.field?.unlocked).toBe(false);
     });
+  });
+});
+
+// ── Epic 21: Story 21-2 — Building unlock system ─────────────────────────────
+
+describe("Story 21-2: Building unlock system", () => {
+  const manager = new BuildingManager();
+
+  it("field starts locked (unlocked=false)", () => {
+    const state = createInitialState();
+    expect(state.buildings.field?.unlocked).toBe(false);
+  });
+
+  it("field unlocks when catnip >= 3 (30% of price 10)", () => {
+    const state = {
+      ...createInitialState(),
+      resources: {
+        ...createInitialResources(),
+        catnip: { value: 3, maxValue: 0 },
+      },
+    };
+    const next = manager.update(state);
+    expect(next.buildings.field?.unlocked).toBe(true);
+  });
+
+  it("field stays locked when catnip < 3", () => {
+    const state = {
+      ...createInitialState(),
+      resources: {
+        ...createInitialResources(),
+        catnip: { value: 2, maxValue: 0 },
+      },
+    };
+    const next = manager.update(state);
+    expect(next.buildings.field?.unlocked).toBe(false);
+  });
+
+  it("once unlocked, field stays unlocked even if catnip drops below threshold", () => {
+    const stateWithCatnip = {
+      ...createInitialState(),
+      resources: {
+        ...createInitialResources(),
+        catnip: { value: 3, maxValue: 0 },
+      },
+    };
+    const unlocked = manager.update(stateWithCatnip);
+    expect(unlocked.buildings.field?.unlocked).toBe(true);
+
+    const stateNoCatnip = {
+      ...unlocked,
+      resources: {
+        ...createInitialResources(),
+        catnip: { value: 0, maxValue: 0 },
+      },
+    };
+    const stillUnlocked = manager.update(stateNoCatnip);
+    expect(stillUnlocked.buildings.field?.unlocked).toBe(true);
+  });
+
+  it("hut unlocks when wood >= 1.5 (30% of price 5)", () => {
+    const state = {
+      ...createInitialState(),
+      resources: {
+        ...createInitialResources(),
+        wood: { value: 1.5, maxValue: 0 },
+      },
+    };
+    const next = manager.update(state);
+    expect(next.buildings.hut?.unlocked).toBe(true);
+  });
+
+  it("field and hut have defaultUnlockable and unlockRatio in BUILDING_DEFS", () => {
+    const field = BUILDING_DEFS.find((b) => b.name === "field");
+    const hut = BUILDING_DEFS.find((b) => b.name === "hut");
+    expect(field?.defaultUnlockable).toBe(true);
+    expect(field?.unlockRatio).toBe(0.3);
+    expect(hut?.defaultUnlockable).toBe(true);
+    expect(hut?.unlockRatio).toBe(0.3);
   });
 });

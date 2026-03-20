@@ -1580,9 +1580,10 @@ export function applyCraft(state: GameState, craftName: string, amt: number): Ga
       }
     }
 
-    // Add output resource
+    // Add output resource (addRes semantics: maxValue=0 means uncapped)
     const outputRes = draft.resources[craftName] ?? { value: 0, maxValue: 0 };
-    outputRes.value = Math.min(outputRes.value + craftAmt, outputRes.maxValue);
+    const newVal = outputRes.value + craftAmt;
+    outputRes.value = outputRes.maxValue > 0 ? Math.min(newVal, outputRes.maxValue) : newVal;
     draft.resources[craftName] = outputRes;
   });
 }

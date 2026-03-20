@@ -111,7 +111,9 @@ export class VillageManager implements Manager {
     let { kittens, kittenProgress, jobs } = state.village;
 
     // ── Kitten growth ─────────────────────────────────────────────────────────
-    const kittensPerTick = state.effectCache.kittensPerTickBase ?? 0;
+    const kittensPerTickBase = state.effectCache.kittensPerTickBase ?? 0;
+    const kittenGrowthRatio = state.effectCache.kittenGrowthRatio ?? 0;
+    const kittensPerTick = kittensPerTickBase * (1 + kittenGrowthRatio);
     const maxKittens = state.effectCache.maxKittens ?? 0;
 
     kittenProgress += kittensPerTick;
@@ -134,9 +136,20 @@ export class VillageManager implements Manager {
       jobs = freeOneJobSlot(jobs);
     }
 
+    // ── Happiness calculation ──────────────────────────────────────────────────
+    // Port of legacy VillageManager.updateHappines():
+    // starts at 100, 2% penalty per kitten above 5, plus effects, min 25%
+    let happinessPct = 100;
+    const unhappinessPerKitten = 2;
+    const overPop = kittens - 5;
+    if (overPop > 0) happinessPct -= overPop * unhappinessPerKitten;
+    happinessPct += state.effectCache.happiness ?? 0;
+    if (happinessPct < 25) happinessPct = 25;
+    const happiness = happinessPct / 100;
+
     return {
       ...state,
-      village: { ...state.village, kittens, kittenProgress, jobs, deadKittens },
+      village: { ...state.village, kittens, kittenProgress, jobs, deadKittens, happiness },
     };
   }
 
@@ -144,11 +157,17 @@ export class VillageManager implements Manager {
     const { village } = state;
     const effects: Record<string, number> = {};
 
-    // ── Job production ────────────────────────────────────────────────────────
+    // ── Base kitten arrival rate ───────────────────────────────────────────────
+    // Port of legacy kittensPerTickBase: 0.01 (hardcoded constant on VillageManager)
+    effects.kittensPerTickBase = 0.01;
+
+    // ── Job production (scaled by happiness) ──────────────────────────────────
+    const happiness = village.happiness;
     for (const def of JOB_DEFS) {
       const job = village.jobs[def.name];
       if (!job || job.value === 0) continue;
-      effects[def.effectKey] = (effects[def.effectKey] ?? 0) + def.baseProduction * job.value;
+      const production = def.baseProduction * job.value * happiness;
+      effects[def.effectKey] = (effects[def.effectKey] ?? 0) + production;
     }
 
     // ── Kitten consumption ────────────────────────────────────────────────────

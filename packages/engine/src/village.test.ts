@@ -382,3 +382,129 @@ describe("VillageManager", () => {
     });
   });
 });
+
+// ── Epic 21: Feature Parity Audit ─────────────────────────────────────────────
+
+describe("Story 21-1: kittensPerTickBase base value", () => {
+  const manager = new VillageManager();
+
+  it("updateEffects emits kittensPerTickBase: 0.01", () => {
+    const state = { ...createInitialState(), village: createInitialVillage() };
+    const effects = manager.updateEffects(state);
+    expect(effects.kittensPerTickBase).toBeCloseTo(0.01);
+  });
+
+  it("update uses kittensPerTickBase from effectCache (now set)", () => {
+    // When a hut is built, maxKittens=2 and effectCache has kittensPerTickBase=0.01
+    const state = {
+      ...createInitialState(),
+      effectCache: { kittensPerTickBase: 0.01, maxKittens: 2 },
+      village: createInitialVillage(),
+    };
+    const next = manager.update(state);
+    expect(next.village.kittenProgress).toBeCloseTo(0.01);
+  });
+
+  it("update scales kittensPerTick by kittenGrowthRatio from effectCache", () => {
+    const state = {
+      ...createInitialState(),
+      effectCache: { kittensPerTickBase: 0.01, kittenGrowthRatio: 1.0, maxKittens: 10 },
+      village: createInitialVillage(),
+    };
+    const next = manager.update(state);
+    // kittensPerTick = 0.01 * (1 + 1.0) = 0.02
+    expect(next.village.kittenProgress).toBeCloseTo(0.02);
+  });
+});
+
+describe("Story 21-3: Happiness calculation updates each tick", () => {
+  const manager = new VillageManager();
+
+  it("happiness = 1.0 when kittens ≤ 5", () => {
+    const state = {
+      ...createInitialState(),
+      effectCache: { maxKittens: 10 },
+      village: { ...createInitialVillage(), kittens: 5 },
+    };
+    const next = manager.update(state);
+    expect(next.village.happiness).toBeCloseTo(1.0);
+  });
+
+  it("happiness decreases by 0.02 per kitten above 5", () => {
+    const state = {
+      ...createInitialState(),
+      effectCache: { maxKittens: 20 },
+      village: { ...createInitialVillage(), kittens: 7 },
+    };
+    const next = manager.update(state);
+    // 100 - 2*(7-5) = 96 → 0.96
+    expect(next.village.happiness).toBeCloseTo(0.96);
+  });
+
+  it("happiness minimum is 0.25 regardless of kitten count", () => {
+    const state = {
+      ...createInitialState(),
+      effectCache: { maxKittens: 10000 },
+      village: { ...createInitialVillage(), kittens: 1000 },
+    };
+    const next = manager.update(state);
+    expect(next.village.happiness).toBeGreaterThanOrEqual(0.25);
+  });
+
+  it("happiness bonus from effectCache adds to happiness", () => {
+    const state = {
+      ...createInitialState(),
+      effectCache: { maxKittens: 10, happiness: 10 }, // +10% from effects
+      village: { ...createInitialVillage(), kittens: 5 },
+    };
+    const next = manager.update(state);
+    // 100 + 10 = 110 → 1.10
+    expect(next.village.happiness).toBeCloseTo(1.10);
+  });
+});
+
+describe("Story 21-4: Job production scales with happiness", () => {
+  const manager = new VillageManager();
+
+  it("woodcutter production at full happiness (1.0) is unchanged", () => {
+    const state = {
+      ...createInitialState(),
+      village: {
+        ...createInitialVillage(),
+        kittens: 1,
+        happiness: 1.0,
+        jobs: { ...createInitialVillage().jobs, woodcutter: { value: 1 } },
+      },
+    };
+    const effects = manager.updateEffects(state);
+    expect(effects.woodPerTickBase).toBeCloseTo(0.018);
+  });
+
+  it("woodcutter production at half happiness (0.5) is halved", () => {
+    const state = {
+      ...createInitialState(),
+      village: {
+        ...createInitialVillage(),
+        kittens: 1,
+        happiness: 0.5,
+        jobs: { ...createInitialVillage().jobs, woodcutter: { value: 1 } },
+      },
+    };
+    const effects = manager.updateEffects(state);
+    expect(effects.woodPerTickBase).toBeCloseTo(0.018 * 0.5);
+  });
+
+  it("catnip consumption (negative) is NOT scaled by happiness", () => {
+    const state = {
+      ...createInitialState(),
+      village: {
+        ...createInitialVillage(),
+        kittens: 1,
+        happiness: 0.5,
+      },
+    };
+    const effects = manager.updateEffects(state);
+    // Consumption stays at full rate regardless of happiness
+    expect(effects.catnipPerTickCon).toBeCloseTo(-0.85);
+  });
+});

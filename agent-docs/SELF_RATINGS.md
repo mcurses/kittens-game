@@ -630,9 +630,9 @@ If any dimension scores ≤ 2, pause and fix before moving to the next epic.
 
 ### Action items for next epic
 - [x] Fix `api-spec/schemas.ts` `GameActionRequestSchema` — add all 26 action types to match openapi.yaml and engine's `GameAction` union (done in Epic 19 — also added 4 new types)
-- [ ] Expand `GameStateResponseSchema` in api-spec to include at minimum `resources` field shape, so client code can use typed access instead of duck-typing
-- [ ] Add test covering `<App />` without `queryClient` prop to bring App.tsx branch coverage to 100%
-- [ ] Run sanity-check against Epics 17-18 batch before advancing
+- [ ] Expand `GameStateResponseSchema` in api-spec to include at minimum `resources` field shape, so client code can use typed access instead of duck-typing — Epic 21 story
+- [x] Add test covering `<App />` without `queryClient` prop to bring App.tsx branch coverage to 100%
+- [ ] Run sanity-check against Epics 17-18 batch before advancing — done via /sanity-check in Epic 21
 
 ---
 
@@ -700,7 +700,7 @@ If any dimension scores ≤ 2, pause and fix before moving to the next epic.
 - Buildings panel shows all buildings (no unlock filtering) — real game would only show unlocked ones
 
 ### Action items for next epic
-- [ ] Extract shared WS connection logic into reusable base (eliminate useLogMessages/useWebSocket duplication)
-- [ ] Add server-side LOG_MESSAGE emission for key game events (kitten born, building purchased, etc.)
-- [ ] Add building unlock filtering in BuildingsPanel (only show unlocked buildings)
-- [ ] Consider GameStateResponseSchema expansion to strongly type science.techs, workshop.upgrades etc.
+- [x] Extract shared WS connection logic into reusable base (eliminated useLogMessages.ts — dead code, useWebSocket already handles LOG_MESSAGE)
+- [ ] Add server-side LOG_MESSAGE emission for key game events (kitten born, building purchased, etc.) — deferred to Epic 21
+- [x] Add building unlock filtering in BuildingsPanel (only show unlocked buildings) — Epic 21 story
+- [ ] Consider GameStateResponseSchema expansion to strongly type science.techs, workshop.upgrades etc. — Epic 21 story

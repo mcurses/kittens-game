@@ -125,6 +125,13 @@ describe("App", () => {
     });
   });
 
+  it("renders without a queryClient prop (creates its own)", () => {
+    mockFetch.mockImplementation(() => new Promise(() => {}));
+    // Should not throw — App creates its own QueryClient internally
+    render(<App />);
+    expect(screen.getByText("Kittens Game")).toBeTruthy();
+  });
+
   it("uses the backend WebSocket URL in local Vite development", () => {
     expect(
       getWsUrl(

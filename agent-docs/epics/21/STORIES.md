@@ -1,0 +1,104 @@
+# Epic: 21
+
+**Status:** In Progress
+**Started:** 2026-03-20
+**Legacy refs:** legacy/js/village.js, legacy/js/buildings.js, legacy/js/resources.js, legacy/game.js, legacy/test/game.test.js
+
+---
+
+## Story: kittensPerTickBase base value
+
+**As a** player
+**I want** kittens to arrive after building huts
+**So that** I can grow my village
+
+### Acceptance Criteria
+- [ ] Given a hut is built (maxKittens=2), when ticks pass, then kittenProgress increases at 0.01 per tick
+- [ ] Given kittenProgress >= 1 and kittens < maxKittens, then kittens increment
+- [ ] Given a kittenGrowthRatio effect in effectCache, then kittensPerTick = 0.01 * (1 + kittenGrowthRatio)
+
+### Legacy Reference
+- `legacy/js/village.js` line 7: `kittensPerTickBase: 0.01` (hardcoded constant)
+- `legacy/js/village.js` line 319: `kittensPerTick = this.kittensPerTickBase * (1 + this.game.getEffect("kittenGrowthRatio"))`
+
+### Status: [ ] Tests | [ ] Impl | [ ] Rated
+
+---
+
+## Story: Building unlock system (unlockRatio + requiredTech)
+
+**As a** player
+**I want** buildings to appear only when I have enough resources
+**So that** the early game isn't overwhelming with unaffordable options
+
+### Acceptance Criteria
+- [ ] Given BuildingDef has unlockRatio:0.3, when player has ≥30% of all prices, then building.unlocked=true
+- [ ] Given a building has requiredTech:["agriculture"], when tech is not researched, then building.unlocked=false
+- [ ] Given field (catnip:10, unlockRatio:0.3), when catnip≥3, then field is unlocked
+- [ ] Given field is unlocked, when catnip drops below threshold, then field remains unlocked (one-way)
+- [ ] BuildingsPanel shows only buildings where unlocked=true
+- [ ] BuildingManager.update() checks unlock conditions every tick
+
+### Legacy Reference
+- `legacy/js/buildings.js` lines 2578–2601: `isUnlocked()` checks unlockRatio against current resource values
+- `legacy/js/buildings.js` lines 2524–2533: buildings auto-unlock via `update()` when conditions met, never lock back
+- `legacy/js/buildings.js` lines 283–287: `unlockRatio`, `requiredTech`, `defaultUnlockable` doc
+
+### Status: [ ] Tests | [ ] Impl | [ ] Rated
+
+---
+
+## Story: Happiness calculation updates each tick
+
+**As a** player
+**I want** happiness to decrease as kitten population grows beyond 5
+**So that** I need to manage luxury resources and other happiness sources
+
+### Acceptance Criteria
+- [ ] Given kittens ≤ 5, when tick runs, then happiness = 1.0 (100%)
+- [ ] Given kittens = 7, when tick runs, then happiness = 0.96 (2% penalty per kitten above 5)
+- [ ] Given kittens = 100, when tick runs, then happiness ≥ 0.25 (minimum 25%)
+- [ ] Given a happiness effect in effectCache, when tick runs, then happiness += that effect / 100
+
+### Legacy Reference
+- `legacy/js/village.js` lines 756–838: `updateHappines()` — starts at 100, subtracts per-kitten unhappiness, adds effect bonuses, clamps to min 25%
+- `legacy/js/village.js` line 11: `happiness: 1` (initial value)
+
+### Status: [ ] Tests | [ ] Impl | [ ] Rated
+
+---
+
+## Story: Job production scales with happiness
+
+**As a** player
+**I want** woodcutter/farmer/etc production to scale with happiness
+**So that** maintaining high happiness meaningfully improves resource production
+
+### Acceptance Criteria
+- [ ] Given happiness = 0.5, when woodcutter produces 0.018/tick, then effective production = 0.009/tick
+- [ ] Given happiness = 1.0 (default), when any job produces, then production is unchanged (×1.0)
+- [ ] Happiness scaling applies to positive job contributions only (consumption unchanged)
+
+### Legacy Reference
+- `legacy/js/village.js` line 538: `diff *= happiness` for positive resource production from jobs
+- `legacy/js/village.js` line 506–507: `happiness = this.happiness + (this.happiness - 1) * happinessKittenProductionRatio`
+
+### Status: [ ] Tests | [ ] Impl | [ ] Rated
+
+---
+
+## Story: Cross-manager integration test for parity
+
+**As a** developer
+**I want** a full-tick integration test verifying early-game progression
+**So that** kitten arrival, building unlock, and production all work together
+
+### Acceptance Criteria
+- [ ] Given fresh state with 30 catnip, when tick runs, then field building is unlocked
+- [ ] Given fresh state with hut built (maxKittens=2), when 101 ticks run, then kittens=1
+- [ ] Given 1 woodcutter assigned, when tick runs, then wood increases
+
+### Legacy Reference
+- Integration behavior from game loop
+
+### Status: [ ] Tests | [ ] Impl | [ ] Rated

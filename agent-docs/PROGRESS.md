@@ -326,3 +326,15 @@ Stories: 8 / 8 complete
 Client-web tests: 113 passing | Line coverage: 96.51%
 
 Prerequisites: Epic 19
+
+---
+
+## Epic 21: Feature Parity Audit
+**Status:** In Progress | **Started:** 2026-03-20
+Stories: 0/5 complete
+
+- [ ] Story 21-1: kittensPerTickBase base value
+- [ ] Story 21-2: Building unlock system (unlockRatio + requiredTech)
+- [ ] Story 21-3: Happiness calculation updates each tick
+- [ ] Story 21-4: Job production scales with happiness
+- [ ] Story 21-5: Cross-manager integration test for parity
