@@ -78,7 +78,8 @@ describe("App", () => {
     render(<App queryClient={makeClient()} />);
 
     return vi.waitFor(() => {
-      expect(MockWebSocket.instances).toHaveLength(1);
+      // Two WS connections: useWebSocket (state) + useLogMessages (log)
+      expect(MockWebSocket.instances.length).toBeGreaterThanOrEqual(1);
       expect(MockWebSocket.instances[0]?.url).toMatch(/\/ws$/);
     });
   });

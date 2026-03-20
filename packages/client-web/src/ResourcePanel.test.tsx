@@ -80,4 +80,38 @@ describe("ResourcePanel", () => {
     expect(screen.getByTestId("resource-catnip")).toBeTruthy();
     expect(screen.getByTestId("resource-wood")).toBeTruthy();
   });
+
+  // Story 20-1: Resource filtering
+  it("hides resources with value 0", () => {
+    const state = makeState({
+      catnip: { value: 0, perTick: 0.5 },
+      wood: { value: 50 },
+    });
+    render(<ResourcePanel state={state} />);
+    expect(screen.queryByTestId("resource-catnip")).toBeNull();
+    expect(screen.getByTestId("resource-wood")).toBeTruthy();
+  });
+
+  it("shows no resources message when all resources have value 0", () => {
+    const state = makeState({
+      catnip: { value: 0 },
+      wood: { value: 0 },
+    });
+    render(<ResourcePanel state={state} />);
+    expect(screen.getByText("No resources yet.")).toBeTruthy();
+    expect(screen.queryByTestId("resource-catnip")).toBeNull();
+    expect(screen.queryByTestId("resource-wood")).toBeNull();
+  });
+
+  it("shows resources with positive value and hides those with 0", () => {
+    const state = makeState({
+      catnip: { value: 100 },
+      wood: { value: 0 },
+      minerals: { value: 0.01 },
+    });
+    render(<ResourcePanel state={state} />);
+    expect(screen.getByTestId("resource-catnip")).toBeTruthy();
+    expect(screen.queryByTestId("resource-wood")).toBeNull();
+    expect(screen.getByTestId("resource-minerals")).toBeTruthy();
+  });
 });

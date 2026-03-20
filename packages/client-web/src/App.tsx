@@ -2,8 +2,11 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import React from "react";
 import { ActionPanel } from "./ActionPanel.js";
-import { ResourcePanel } from "./ResourcePanel.js";
+import { CalendarDisplay } from "./CalendarDisplay.js";
+import { LogPanel } from "./LogPanel.js";
+import { TabContainer } from "./TabContainer.js";
 import { useGameState } from "./useGameState.js";
+import { useLogMessages } from "./useLogMessages.js";
 import { useWebSocket } from "./useWebSocket.js";
 
 interface LocationLike {
@@ -33,7 +36,9 @@ export function getWsUrl(
 
 function GameView(): React.ReactElement {
   const { data: state, error, isError, isSuccess } = useGameState();
-  useWebSocket(isSuccess ? getWsUrl() : null);
+  const wsUrl = isSuccess ? getWsUrl() : null;
+  useWebSocket(wsUrl);
+  const { messages } = useLogMessages(wsUrl);
 
   if (isError) {
     return (
@@ -49,9 +54,19 @@ function GameView(): React.ReactElement {
 
   return (
     <main>
-      <h1>Kittens Game</h1>
-      <ResourcePanel state={state} />
-      <ActionPanel />
+      <header>
+        <h1>Kittens Game</h1>
+        <CalendarDisplay state={state} />
+      </header>
+      <div style={{ display: "flex", gap: "1rem" }}>
+        <div style={{ flex: 1 }}>
+          <TabContainer state={state} />
+          <ActionPanel />
+        </div>
+        <aside style={{ width: "260px" }}>
+          <LogPanel messages={messages} />
+        </aside>
+      </div>
     </main>
   );
 }

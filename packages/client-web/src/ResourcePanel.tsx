@@ -29,7 +29,7 @@ function extractResources(state: GameStateResponse): ResourceEntry[] {
         perTick: typeof e.perTick === "number" ? e.perTick : undefined,
       };
     })
-    .filter((e): e is ResourceEntry => e !== null);
+    .filter((e): e is ResourceEntry => e !== null && e.value > 0);
 }
 
 export function ResourcePanel({ state }: Props): React.ReactElement {
