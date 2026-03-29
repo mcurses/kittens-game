@@ -236,10 +236,73 @@ describe("BuildingManager", () => {
   });
 
   describe("update", () => {
-    it("returns state unchanged (buildings don't self-update)", () => {
+    it("returns state unchanged when no buildings meet unlock thresholds", () => {
       const state = { ...createInitialState(), buildings: createInitialBuildings() };
       const next = manager.update(state);
       expect(next.buildings).toBe(state.buildings);
+    });
+
+    it("auto-unlocks defaultUnlockable building when unlockRatio threshold is met", () => {
+      const state = {
+        ...createInitialState(),
+        resources: { ...createInitialResources(), catnip: { value: 5, maxValue: 0 } },
+      };
+      const next = manager.update(state);
+      expect(next.buildings.field?.unlocked).toBe(true);
+    });
+
+    it("does NOT unlock pasture (requiredTech:animal) when tech is not researched", () => {
+      const state = {
+        ...createInitialState(),
+        resources: {
+          ...createInitialResources(),
+          catnip: { value: 200, maxValue: 0 },
+          wood: { value: 20, maxValue: 0 },
+        },
+        // animal tech not researched (default)
+      };
+      const next = manager.update(state);
+      expect(next.buildings.pasture?.unlocked).toBeFalsy();
+    });
+
+    it("unlocks pasture when animal tech is researched AND resources meet threshold", () => {
+      const state = {
+        ...createInitialState(),
+        resources: {
+          ...createInitialResources(),
+          catnip: { value: 200, maxValue: 0 },
+          wood: { value: 20, maxValue: 0 },
+        },
+        science: {
+          ...createInitialState().science,
+          techs: {
+            ...createInitialState().science.techs,
+            animal: { unlocked: true, researched: true },
+          },
+        },
+      };
+      const next = manager.update(state);
+      expect(next.buildings.pasture?.unlocked).toBe(true);
+    });
+
+    it("does NOT unlock pasture when animal researched but resources below threshold", () => {
+      const state = {
+        ...createInitialState(),
+        resources: {
+          ...createInitialResources(),
+          catnip: { value: 5, maxValue: 0 }, // below 30% of 100 = 30
+          wood: { value: 1, maxValue: 0 },
+        },
+        science: {
+          ...createInitialState().science,
+          techs: {
+            ...createInitialState().science.techs,
+            animal: { unlocked: true, researched: true },
+          },
+        },
+      };
+      const next = manager.update(state);
+      expect(next.buildings.pasture?.unlocked).toBeFalsy();
     });
   });
 

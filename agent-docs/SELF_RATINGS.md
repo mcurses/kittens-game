@@ -734,6 +734,6 @@ If any dimension scores ≤ 2, pause and fix before moving to the next epic.
 - Dead-code `useLogMessages` persisted one full epic past its usefulness
 
 ### Action items for next epic
-- [ ] Add server-side LOG_MESSAGE emission for kitten-born and building-purchased events
-- [ ] Implement requiredTech unlock check in BuildingManager.update() (parallel to unlockRatio)
-- [ ] Consider recording the unlocked? optionality decision in DECISIONS.md
+- [x] Add server-side LOG_MESSAGE emission for kitten-born and building-purchased events
+- [x] Implement requiredTech unlock check in BuildingManager.update() (parallel to unlockRatio)
+- [x] Consider recording the unlocked? optionality decision in DECISIONS.md

@@ -138,4 +138,60 @@ describe("GameStateStore", () => {
     store.advanceTick(); // should not call send again
     expect(callCount).toBe(1);
   });
+
+  it("broadcasts LOG_MESSAGE when a kitten is born during a tick", () => {
+    // Inject state with maxKittens > 0 and kittenProgress near 1
+    const prevState = store.getState();
+    store["state"] = {
+      ...prevState,
+      effectCache: { ...prevState.effectCache, maxKittens: 5, kittensPerTickBase: 1 },
+      village: { ...prevState.village, kittens: 0, kittenProgress: 0.99 },
+    };
+    const messages: string[] = [];
+    const client = { send: (data: string) => messages.push(data) };
+    store.addClient(client);
+    store.advanceTick();
+    const logMessages = messages
+      .map((m) => JSON.parse(m) as { type: string; payload: { message: string } })
+      .filter((m) => m.type === "LOG_MESSAGE");
+    expect(logMessages.length).toBeGreaterThanOrEqual(1);
+    expect(logMessages[0]?.payload.message).toMatch(/kitten/i);
+  });
+
+  it("broadcasts LOG_MESSAGE when BUY_BUILDING succeeds", () => {
+    // Give enough wood to buy a hut
+    const prevState = store.getState();
+    store["state"] = {
+      ...prevState,
+      resources: {
+        ...prevState.resources,
+        wood: { value: 100, maxValue: 0 },
+      },
+      buildings: {
+        ...prevState.buildings,
+        hut: { val: 0, on: 0, unlocked: true },
+      },
+    };
+    const messages: string[] = [];
+    const client = { send: (data: string) => messages.push(data) };
+    store.addClient(client);
+    store.applyGameAction({ type: "BUY_BUILDING", name: "hut" });
+    const logMessages = messages
+      .map((m) => JSON.parse(m) as { type: string; payload: { message: string } })
+      .filter((m) => m.type === "LOG_MESSAGE");
+    expect(logMessages.length).toBeGreaterThanOrEqual(1);
+    expect(logMessages[0]?.payload.message).toMatch(/hut/i);
+  });
+
+  it("does not broadcast LOG_MESSAGE when BUY_BUILDING fails (cannot afford)", () => {
+    const messages: string[] = [];
+    const client = { send: (data: string) => messages.push(data) };
+    store.addClient(client);
+    // No wood — BUY_BUILDING should be a no-op
+    store.applyGameAction({ type: "BUY_BUILDING", name: "hut" });
+    const logMessages = messages
+      .map((m) => JSON.parse(m) as { type: string })
+      .filter((m) => m.type === "LOG_MESSAGE");
+    expect(logMessages.length).toBe(0);
+  });
 });

@@ -91,3 +91,23 @@ The effectCache is rebuilt after all manager updates complete. This means manage
 **Why accepted:** The lag is invisible for static effects (buildings, upgrades don't change tick-to-tick). It only matters for cross-system dynamic effects, whose full dependency graph is not yet known. Fixing this requires explicit dependency ordering between managers — better done at Epic 22 (Feature Parity Audit) when the full graph is visible.
 
 **Risk:** Subtle one-tick divergence in cross-system effect chains. Watch for this in Space/Time/Diplomacy epics.
+
+---
+
+## ADR-006: BuildingEntry.unlocked is optional (not required)
+**Date:** 2026-03-29
+**Status:** Accepted
+
+### Context
+Epic 21 added a `unlocked` boolean to `BuildingEntry` to support the building auto-unlock system. Making it required (`readonly unlocked: boolean`) caused TypeScript errors in ~20 existing test files that inline building objects as `{ val: N, on: N }` without the new field. Updating all those sites would be mechanical churn with no semantic benefit.
+
+### Decision
+`BuildingEntry.unlocked` is declared as `readonly unlocked?: boolean`. Absence (`undefined`) is treated as `false` (locked) everywhere it is read:
+- `BuildingManager.update()`: `if (!entry || entry.unlocked) continue` — `undefined` is falsy, skips already-unlocked buildings correctly
+- `BuildingManager.load()`: always writes an explicit boolean from saved data
+- `BuildingsPanel.tsx` filter: `e.unlocked` — `false`/`undefined` both filter out locked buildings
+
+### Consequences
+- Existing test helpers that create `{ val: N, on: N }` objects continue to compile with no changes
+- New tests that care about unlock state explicitly set `unlocked: true/false`
+- The field is a one-way flag: once set to `true` via `update()` or `load()`, it is never removed

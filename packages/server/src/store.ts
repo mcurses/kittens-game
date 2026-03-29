@@ -90,6 +90,7 @@ export class GameStateStore {
   /** Apply an engine action. Returns the result. */
   applyGameAction(action: GameAction): { ok: boolean; error?: string; state: SerializedGameState } {
     try {
+      const prevState = this.state;
       const newState = applyAction(this.state, action, this.managers);
       if (newState === undefined || newState === null) {
         return {
@@ -101,6 +102,14 @@ export class GameStateStore {
       // Rebuild effect cache after action
       const effectCache = buildEffectCache(this.managers, newState);
       this.state = { ...newState, effectCache };
+      // Emit LOG_MESSAGE for building purchases
+      if (action.type === "BUY_BUILDING") {
+        const prevVal = prevState.buildings[action.name]?.val ?? 0;
+        const newVal = this.state.buildings[action.name]?.val ?? 0;
+        if (newVal > prevVal) {
+          this._broadcastLog(`Purchased ${action.name}.`);
+        }
+      }
       this._persist();
       this._broadcastDelta();
       return { ok: true, state: this.getSerialized() };
@@ -112,7 +121,14 @@ export class GameStateStore {
 
   /** Advance one tick. Returns the new serialized state. */
   advanceTick(): SerializedGameState {
+    const prevKittens = this.state.village.kittens;
     this.state = tick(this.state, this.managers);
+    const newKittens = this.state.village.kittens;
+    if (newKittens > prevKittens) {
+      for (let i = 0; i < newKittens - prevKittens; i++) {
+        this._broadcastLog("A new kitten has arrived!");
+      }
+    }
     this._persist();
     this._broadcastDelta();
     return this.getSerialized();
@@ -177,6 +193,21 @@ export class GameStateStore {
 
   private _persist(): void {
     this.db.saveSlot(DEFAULT_SLOT, JSON.stringify(this.getSerialized()));
+  }
+
+  private _broadcastLog(message: string): void {
+    const envelope = JSON.stringify({
+      type: "LOG_MESSAGE",
+      payload: { message },
+      ts: Date.now(),
+    });
+    for (const client of this.clients) {
+      try {
+        client.send(envelope);
+      } catch {
+        this.clients.delete(client);
+      }
+    }
   }
 
   private _broadcastDelta(): void {
