@@ -4,6 +4,7 @@ import React from "react";
 import { ActionPanel } from "./ActionPanel.js";
 import { CalendarDisplay } from "./CalendarDisplay.js";
 import { LogPanel } from "./LogPanel.js";
+import { ResourcePanel } from "./ResourcePanel.js";
 import { TabContainer } from "./TabContainer.js";
 import { VillagePanel } from "./VillagePanel.js";
 import { useGameState } from "./useGameState.js";
@@ -53,7 +54,7 @@ function GameView(): React.ReactElement {
   const slot = getSlot(window.location.search);
   const { data: state, error, isError, isSuccess } = useGameState(slot);
   const wsUrl = isSuccess ? getWsUrl(window.location, import.meta.env.DEV, slot) : null;
-  const { messages } = useWebSocket(wsUrl);
+  const { messages } = useWebSocket(wsUrl, slot);
 
   if (isError) {
     return (
@@ -74,12 +75,38 @@ function GameView(): React.ReactElement {
         <CalendarDisplay state={state} />
         <VillagePanel state={state} />
       </header>
-      <div style={{ display: "flex", gap: "1rem" }}>
-        <div style={{ flex: 1 }}>
+      <div
+        style={{
+          display: "flex",
+          gap: "1rem",
+          alignItems: "flex-start",
+          flexWrap: "wrap",
+        }}
+      >
+        <aside
+          data-testid="resource-sidebar"
+          style={{
+            width: "240px",
+            flex: "0 0 240px",
+          }}
+        >
+          <ResourcePanel state={state} />
+        </aside>
+        <div
+          style={{
+            flex: "1 1 520px",
+            minWidth: "320px",
+          }}
+        >
           <TabContainer state={state} />
           <ActionPanel />
         </div>
-        <aside style={{ width: "260px" }}>
+        <aside
+          style={{
+            width: "260px",
+            flex: "0 0 260px",
+          }}
+        >
           <LogPanel messages={messages} />
         </aside>
       </div>

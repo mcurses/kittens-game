@@ -50,7 +50,7 @@ describe("App", () => {
   it("renders ResourcePanel", () => {
     mockFetch.mockImplementation(() => new Promise(() => {}));
     render(<App queryClient={makeClient()} />);
-    // state is pending → loading placeholder
+    expect(screen.getByTestId("resource-sidebar")).toBeTruthy();
     expect(screen.getByTestId("resource-panel-loading")).toBeTruthy();
   });
 
@@ -105,6 +105,7 @@ describe("App", () => {
     } as unknown as Response);
     render(<App queryClient={makeClient()} />);
     await vi.waitFor(() => {
+      expect(screen.getByTestId("resource-sidebar")).toBeTruthy();
       expect(screen.getByTestId("resource-panel")).toBeTruthy();
       expect(screen.getByTestId("resource-catnip")).toBeTruthy();
     });

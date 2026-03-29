@@ -1,6 +1,6 @@
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import React from "react";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { ResourcePanel } from "./ResourcePanel.js";
 
 // Minimal mock state with resources
@@ -9,13 +9,19 @@ function makeState(
     string,
     { value: number; maxValue?: number; perTick?: number }
   >,
+  effectCache: Record<string, number> = {},
 ) {
   return {
     version: 1,
     tick: 0,
     resources,
+    effectCache,
   } as unknown as import("@kittens/api-spec").GameStateResponse;
 }
+
+beforeEach(() => {
+  window.localStorage.clear();
+});
 
 afterEach(() => {
   cleanup();
@@ -57,6 +63,117 @@ describe("ResourcePanel", () => {
     const state = makeState({ catnip: { value: 10, perTick: -0.5 } });
     render(<ResourcePanel state={state} />);
     expect(screen.getByText(/-0\.500\/tick/)).toBeTruthy();
+  });
+
+  it("shows a hover tooltip with net income breakdown", async () => {
+    const state = makeState(
+      { catnip: { value: 10, maxValue: 100, perTick: 1.5 } },
+      {
+        catnipPerTickBase: 1,
+        catnipRatio: 0.5,
+      },
+    );
+    const userEvent = (await import("@testing-library/user-event")).default;
+    render(<ResourcePanel state={state} />);
+
+    await userEvent.hover(screen.getByTestId("resource-catnip"));
+
+    expect(screen.getByTestId("resource-tooltip-catnip")).toBeTruthy();
+    expect(screen.getByText(/Base: \+1\.000\/tick/)).toBeTruthy();
+    expect(screen.getByText(/Ratio bonus: \+50\.0% \(\+0\.500\/tick\)/)).toBeTruthy();
+    expect(screen.getByText(/Net income: \+1\.500\/tick/)).toBeTruthy();
+    expect(screen.getByText(/Time to cap: 12s/)).toBeTruthy();
+  });
+
+  it("shows time to zero for negative net income", async () => {
+    const state = makeState(
+      { catnip: { value: 10, perTick: -0.5 } },
+      {
+        catnipPerTickCon: -0.5,
+      },
+    );
+    const userEvent = (await import("@testing-library/user-event")).default;
+    render(<ResourcePanel state={state} />);
+
+    await userEvent.hover(screen.getByTestId("resource-catnip"));
+
+    expect(screen.getByText(/Consumption: -0\.500\/tick/)).toBeTruthy();
+    expect(screen.getByText(/Net income: -0\.500\/tick/)).toBeTruthy();
+    expect(screen.getByText(/Time to zero: 4s/)).toBeTruthy();
+  });
+
+  it("shows tooltip values in per-second mode", async () => {
+    const state = makeState(
+      { catnip: { value: 10, maxValue: 100, perTick: 1.5 } },
+      {
+        catnipPerTickBase: 1,
+        catnipRatio: 0.5,
+      },
+    );
+    const userEvent = (await import("@testing-library/user-event")).default;
+    render(<ResourcePanel state={state} />);
+
+    await userEvent.click(screen.getByRole("button", { name: /show per second/i }));
+    await userEvent.hover(screen.getByTestId("resource-catnip"));
+
+    expect(screen.getByText(/Base: \+5\.000\/sec/)).toBeTruthy();
+    expect(screen.getByText(/Ratio bonus: \+50\.0% \(\+2\.500\/sec\)/)).toBeTruthy();
+    expect(screen.getByText(/Net income: \+7\.500\/sec/)).toBeTruthy();
+  });
+
+  it("shows and hides the tooltip on keyboard focus", async () => {
+    const state = makeState(
+      { catnip: { value: 10, perTick: 1 } },
+      {
+        catnipPerTickBase: 1,
+      },
+    );
+    render(<ResourcePanel state={state} />);
+
+    fireEvent.focus(screen.getByTestId("resource-catnip"));
+    expect(screen.getByTestId("resource-tooltip-catnip")).toBeTruthy();
+
+    fireEvent.blur(screen.getByTestId("resource-catnip"));
+    expect(screen.queryByTestId("resource-tooltip-catnip")).toBeNull();
+  });
+
+  it("shows per-second gain when switched to /sec mode", async () => {
+    const state = makeState({ catnip: { value: 10, perTick: 1.234 } });
+    const userEvent = (await import("@testing-library/user-event")).default;
+    render(<ResourcePanel state={state} />);
+    await userEvent.click(screen.getByRole("button", { name: /show per second/i }));
+    expect(screen.getByText(/\+6\.170\/sec/)).toBeTruthy();
+  });
+
+  it("shows negative per-second gain when switched to /sec mode", async () => {
+    const state = makeState({ catnip: { value: 10, perTick: -0.5 } });
+    const userEvent = (await import("@testing-library/user-event")).default;
+    render(<ResourcePanel state={state} />);
+    await userEvent.click(screen.getByRole("button", { name: /show per second/i }));
+    expect(screen.getByText(/-2\.500\/sec/)).toBeTruthy();
+  });
+
+  it("can switch back to /tick mode after enabling /sec mode", async () => {
+    const state = makeState({ catnip: { value: 10, perTick: 1 } });
+    const userEvent = (await import("@testing-library/user-event")).default;
+    render(<ResourcePanel state={state} />);
+    await userEvent.click(screen.getByRole("button", { name: /show per second/i }));
+    expect(screen.getByText(/\+5\.000\/sec/)).toBeTruthy();
+    await userEvent.click(screen.getByRole("button", { name: /show per tick/i }));
+    expect(screen.getByText(/\+1\.000\/tick/)).toBeTruthy();
+  });
+
+  it("restores the saved rate unit on remount", async () => {
+    const state = makeState({ catnip: { value: 10, perTick: 1 } });
+    const userEvent = (await import("@testing-library/user-event")).default;
+    const { unmount } = render(<ResourcePanel state={state} />);
+    await userEvent.click(screen.getByRole("button", { name: /show per second/i }));
+    expect(window.localStorage.getItem("kittens.ui.resourceRateUnit")).toBe('"perSecond"');
+    unmount();
+
+    render(<ResourcePanel state={state} />);
+    expect(screen.getByRole("button", { name: /show per tick/i })).toBeTruthy();
+    expect(screen.getByText(/\+5\.000\/sec/)).toBeTruthy();
   });
 
   it("does not show rate when perTick is 0", () => {

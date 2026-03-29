@@ -1,12 +1,9 @@
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import React from "react";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { TabContainer } from "./TabContainer.js";
 
 // Mock all panels to keep tests simple
-vi.mock("./ResourcePanel.js", () => ({
-  ResourcePanel: () => <div data-testid="resource-panel">Resources</div>,
-}));
 vi.mock("./BuildingsPanel.js", () => ({
   BuildingsPanel: () => <div data-testid="buildings-panel">Buildings</div>,
 }));
@@ -35,21 +32,24 @@ vi.mock("./AchievementsPanel.js", () => ({
   AchievementsPanel: () => <div data-testid="achievements-panel">Achievements</div>,
 }));
 
+beforeEach(() => {
+  window.localStorage.clear();
+});
+
 afterEach(() => {
   cleanup();
   vi.clearAllMocks();
 });
 
 describe("TabContainer", () => {
-  it("defaults to showing the Resources panel", () => {
+  it("defaults to showing the Buildings panel", () => {
     render(<TabContainer state={null} />);
-    expect(screen.getByTestId("resource-panel")).toBeTruthy();
-    expect(screen.queryByTestId("buildings-panel")).toBeNull();
+    expect(screen.getByTestId("buildings-panel")).toBeTruthy();
+    expect(screen.queryByTestId("jobs-panel")).toBeNull();
   });
 
   it("renders tab buttons for all tabs", () => {
     render(<TabContainer state={null} />);
-    expect(screen.getByRole("button", { name: /resources/i })).toBeTruthy();
     expect(screen.getByRole("button", { name: /buildings/i })).toBeTruthy();
     expect(screen.getByRole("button", { name: /jobs/i })).toBeTruthy();
     expect(screen.getByRole("button", { name: /science/i })).toBeTruthy();
@@ -65,7 +65,7 @@ describe("TabContainer", () => {
     render(<TabContainer state={null} />);
     fireEvent.click(screen.getByRole("button", { name: /religion/i }));
     expect(screen.getByTestId("religion-panel")).toBeTruthy();
-    expect(screen.queryByTestId("resource-panel")).toBeNull();
+    expect(screen.queryByTestId("buildings-panel")).toBeNull();
   });
 
   it("switches to Space panel when Space tab clicked", () => {
@@ -90,20 +90,31 @@ describe("TabContainer", () => {
     render(<TabContainer state={null} />);
     fireEvent.click(screen.getByRole("button", { name: /achievements/i }));
     expect(screen.getByTestId("achievements-panel")).toBeTruthy();
-    expect(screen.queryByTestId("resource-panel")).toBeNull();
+    expect(screen.queryByTestId("buildings-panel")).toBeNull();
   });
 
   it("switches to Buildings panel when Buildings tab clicked", () => {
     render(<TabContainer state={null} />);
     fireEvent.click(screen.getByRole("button", { name: /buildings/i }));
     expect(screen.getByTestId("buildings-panel")).toBeTruthy();
-    expect(screen.queryByTestId("resource-panel")).toBeNull();
+    expect(screen.queryByTestId("jobs-panel")).toBeNull();
   });
 
   it("switches to Jobs panel when Jobs tab clicked", () => {
     render(<TabContainer state={null} />);
     fireEvent.click(screen.getByRole("button", { name: /jobs/i }));
     expect(screen.getByTestId("jobs-panel")).toBeTruthy();
+  });
+
+  it("restores the saved active tab on remount", () => {
+    const { unmount } = render(<TabContainer state={null} />);
+    fireEvent.click(screen.getByRole("button", { name: /science/i }));
+    expect(window.localStorage.getItem("kittens.ui.activeMainTab")).toBe('"science"');
+    unmount();
+
+    render(<TabContainer state={null} />);
+    expect(screen.getByTestId("science-panel")).toBeTruthy();
+    expect(screen.getByRole("button", { name: /science/i }).getAttribute("data-active")).toBe("true");
   });
 
   it("switches to Science panel when Science tab clicked", () => {
@@ -118,21 +129,12 @@ describe("TabContainer", () => {
     expect(screen.getByTestId("workshop-panel")).toBeTruthy();
   });
 
-  it("switching back to Resources shows ResourcePanel", () => {
-    render(<TabContainer state={null} />);
-    fireEvent.click(screen.getByRole("button", { name: /buildings/i }));
-    fireEvent.click(screen.getByRole("button", { name: /resources/i }));
-    expect(screen.getByTestId("resource-panel")).toBeTruthy();
-    expect(screen.queryByTestId("buildings-panel")).toBeNull();
-  });
-
   it("active tab is visually distinguished", () => {
     render(<TabContainer state={null} />);
-    const resourcesBtn = screen.getByRole("button", { name: /resources/i });
-    expect(resourcesBtn.getAttribute("data-active")).toBe("true");
-    fireEvent.click(screen.getByRole("button", { name: /buildings/i }));
     const buildingsBtn = screen.getByRole("button", { name: /buildings/i });
     expect(buildingsBtn.getAttribute("data-active")).toBe("true");
-    expect(screen.getByRole("button", { name: /resources/i }).getAttribute("data-active")).toBe("false");
+    fireEvent.click(screen.getByRole("button", { name: /buildings/i }));
+    expect(buildingsBtn.getAttribute("data-active")).toBe("true");
+    expect(screen.getByRole("button", { name: /jobs/i }).getAttribute("data-active")).toBe("false");
   });
 });

@@ -24,7 +24,7 @@ interface WsConnectedEnvelope {
 
 interface WsLogMessageEnvelope {
   type: "LOG_MESSAGE";
-  payload: string;
+  payload: unknown;
   ts: number;
 }
 
@@ -34,7 +34,7 @@ type WsEnvelope =
   | WsLogMessageEnvelope
   | { type: string; payload: unknown; ts: number };
 
-export function useWebSocket(url: string | null) {
+export function useWebSocket(url: string | null, slot = "default") {
   const queryClient = useQueryClient();
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [messages, setMessages] = useState<readonly string[]>([]);
@@ -67,13 +67,19 @@ export function useWebSocket(url: string | null) {
           const connected = envelope as WsConnectedEnvelope;
           setSessionId(connected.payload.sessionId);
           queryClient.setQueryData(
-            GAME_STATE_QUERY_KEY,
+            [...GAME_STATE_QUERY_KEY, slot],
             (currentState) => currentState ?? connected.payload.state,
           );
         } else if (envelope.type === "STATE_DELTA") {
-          queryClient.setQueryData(GAME_STATE_QUERY_KEY, (envelope as WsStateDeltaEnvelope).payload);
+          queryClient.setQueryData(
+            [...GAME_STATE_QUERY_KEY, slot],
+            (envelope as WsStateDeltaEnvelope).payload,
+          );
         } else if (envelope.type === "LOG_MESSAGE") {
-          const msg = (envelope as WsLogMessageEnvelope).payload;
+          const msg = getLogMessage((envelope as WsLogMessageEnvelope).payload);
+          if (msg === null) {
+            return;
+          }
           setMessages((prev) => {
             const next = [...prev, msg];
             return next.length > MAX_LOG_MESSAGES
@@ -108,7 +114,24 @@ export function useWebSocket(url: string | null) {
         wsRef.current = null;
       }
     };
-  }, [url, queryClient]);
+  }, [url, queryClient, slot]);
 
   return { sessionId, messages };
+}
+
+function getLogMessage(payload: unknown): string | null {
+  if (typeof payload === "string") {
+    return payload;
+  }
+
+  if (
+    typeof payload === "object" &&
+    payload !== null &&
+    "message" in payload &&
+    typeof payload.message === "string"
+  ) {
+    return payload.message;
+  }
+
+  return null;
 }

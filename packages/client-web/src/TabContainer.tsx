@@ -6,14 +6,13 @@ import { BuildingsPanel } from "./BuildingsPanel.js";
 import { DiplomacyPanel } from "./DiplomacyPanel.js";
 import { JobsPanel } from "./JobsPanel.js";
 import { ReligionPanel } from "./ReligionPanel.js";
-import { ResourcePanel } from "./ResourcePanel.js";
 import { SciencePanel } from "./SciencePanel.js";
 import { SpacePanel } from "./SpacePanel.js";
 import { TimePanel } from "./TimePanel.js";
+import { usePersistentUiState } from "./usePersistentUiState.js";
 import { WorkshopPanel } from "./WorkshopPanel.js";
 
 type TabId =
-  | "resources"
   | "buildings"
   | "jobs"
   | "science"
@@ -25,7 +24,6 @@ type TabId =
   | "achievements";
 
 const TABS: { id: TabId; label: string }[] = [
-  { id: "resources", label: "Resources" },
   { id: "buildings", label: "Buildings" },
   { id: "jobs", label: "Jobs" },
   { id: "science", label: "Science" },
@@ -36,13 +34,18 @@ const TABS: { id: TabId; label: string }[] = [
   { id: "diplomacy", label: "Diplomacy" },
   { id: "achievements", label: "Achievements" },
 ];
+const ACTIVE_MAIN_TAB_KEY = "kittens.ui.activeMainTab";
 
 interface Props {
   state: GameStateResponse | null | undefined;
 }
 
 export function TabContainer({ state }: Props): React.ReactElement {
-  const [activeTab, setActiveTab] = useState<TabId>("resources");
+  const [activeTab, setActiveTab] = usePersistentUiState<TabId>(
+    ACTIVE_MAIN_TAB_KEY,
+    "buildings",
+    isTabId,
+  );
 
   return (
     <div data-testid="tab-container">
@@ -58,7 +61,6 @@ export function TabContainer({ state }: Props): React.ReactElement {
           </button>
         ))}
       </nav>
-      {activeTab === "resources" && <ResourcePanel state={state} />}
       {activeTab === "buildings" && <BuildingsPanel state={state} />}
       {activeTab === "jobs" && <JobsPanel state={state} />}
       {activeTab === "science" && <SciencePanel state={state} />}
@@ -70,4 +72,8 @@ export function TabContainer({ state }: Props): React.ReactElement {
       {activeTab === "achievements" && <AchievementsPanel state={state} />}
     </div>
   );
+}
+
+function isTabId(value: unknown): value is TabId {
+  return TABS.some((tab) => tab.id === value);
 }

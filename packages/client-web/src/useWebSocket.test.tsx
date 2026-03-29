@@ -2,6 +2,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { act, cleanup, renderHook } from "@testing-library/react";
 import React from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { GAME_STATE_QUERY_KEY } from "./useGameState.js";
 import { useWebSocket } from "./useWebSocket.js";
 
 // --------------------------------------------------------------------------
@@ -106,12 +107,12 @@ describe("useWebSocket", () => {
       });
     });
     expect(result.current.sessionId).toBe("sess-123");
-    expect(queryClient.getQueryData(["gameState"])).toEqual(state);
+    expect(queryClient.getQueryData([...GAME_STATE_QUERY_KEY, "default"])).toEqual(state);
   });
 
   it("does not overwrite an existing cache entry with a stale CONNECTED snapshot", () => {
     const { wrapper, queryClient } = makeWrapper();
-    queryClient.setQueryData(["gameState"], {
+    queryClient.setQueryData([...GAME_STATE_QUERY_KEY, "default"], {
       version: 1,
       tick: 5,
       resources: { catnip: { value: 1, maxValue: 0 } },
@@ -135,7 +136,7 @@ describe("useWebSocket", () => {
       });
     });
 
-    expect(queryClient.getQueryData(["gameState"])).toEqual({
+    expect(queryClient.getQueryData([...GAME_STATE_QUERY_KEY, "default"])).toEqual({
       version: 1,
       tick: 5,
       resources: { catnip: { value: 1, maxValue: 0 } },
@@ -154,7 +155,23 @@ describe("useWebSocket", () => {
         ts: Date.now(),
       });
     });
-    expect(queryClient.getQueryData(["gameState"])).toEqual(newState);
+    expect(queryClient.getQueryData([...GAME_STATE_QUERY_KEY, "default"])).toEqual(newState);
+  });
+
+  it("updates the cache entry for the active slot", () => {
+    const { wrapper, queryClient } = makeWrapper();
+    renderHook(() => useWebSocket("ws://localhost:3000/ws?slot=save-2", "save-2"), { wrapper });
+    const ws = MockWebSocket.instances[0];
+    const newState = { version: 1, tick: 88 };
+    act(() => {
+      ws?.simulateMessage({
+        type: "STATE_DELTA",
+        payload: newState,
+        ts: Date.now(),
+      });
+    });
+    expect(queryClient.getQueryData([...GAME_STATE_QUERY_KEY, "save-2"])).toEqual(newState);
+    expect(queryClient.getQueryData([...GAME_STATE_QUERY_KEY, "default"])).toBeUndefined();
   });
 
   it("schedules reconnect after 2s when connection closes", () => {
@@ -223,6 +240,23 @@ describe("useWebSocket", () => {
     expect(result.current.messages).toEqual(["Hello world"]);
   });
 
+  it("supports legacy LOG_MESSAGE envelopes with object payloads", () => {
+    const { wrapper } = makeWrapper();
+    const { result } = renderHook(
+      () => useWebSocket("ws://localhost:3000/ws"),
+      { wrapper },
+    );
+    const ws = MockWebSocket.instances[0];
+    act(() => {
+      ws?.simulateMessage({
+        type: "LOG_MESSAGE",
+        payload: { message: "Legacy hello" },
+        ts: 1,
+      });
+    });
+    expect(result.current.messages).toEqual(["Legacy hello"]);
+  });
+
   it("trims log messages to last 50 entries", () => {
     const { wrapper } = makeWrapper();
     const { result } = renderHook(
@@ -250,7 +284,7 @@ describe("useWebSocket", () => {
       }
     });
     // Cache should remain empty — no crash
-    expect(queryClient.getQueryData(["gameState"])).toBeUndefined();
+    expect(queryClient.getQueryData([...GAME_STATE_QUERY_KEY, "default"])).toBeUndefined();
   });
 
   it("closes and reconnects on error", () => {
