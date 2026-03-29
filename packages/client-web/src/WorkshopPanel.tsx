@@ -3,6 +3,7 @@ import type { GameStateResponse } from "@kittens/api-spec";
 import { UPGRADE_DEFS } from "@kittens/engine";
 import React from "react";
 import { useGameAction } from "./useGameAction.js";
+import { canAfford, extractResources } from "./utils.js";
 
 interface UpgradeEntry {
   name: string;
@@ -13,10 +14,6 @@ interface UpgradeEntry {
 interface CraftEntry {
   name: string;
   unlocked: boolean;
-}
-
-interface ResourceMap {
-  [key: string]: { value: number };
 }
 
 interface Props {
@@ -58,25 +55,6 @@ function extractCrafts(state: GameStateResponse): CraftEntry[] {
       };
     })
     .filter((e): e is CraftEntry => e !== null && e.unlocked);
-}
-
-/** Extract resource values from serialized game state. */
-function extractResources(state: GameStateResponse): ResourceMap {
-  const raw = state as unknown as Record<string, unknown>;
-  const resources = raw.resources;
-  if (typeof resources !== "object" || resources === null) return {};
-  const result: ResourceMap = {};
-  for (const [k, v] of Object.entries(resources as Record<string, unknown>)) {
-    if (typeof v === "object" && v !== null && typeof (v as Record<string, unknown>).value === "number") {
-      result[k] = { value: (v as Record<string, unknown>).value as number };
-    }
-  }
-  return result;
-}
-
-/** Check if the player can afford all prices. */
-function canAfford(prices: readonly { name: string; val: number }[], resources: ResourceMap): boolean {
-  return prices.every((p) => (resources[p.name]?.value ?? 0) >= p.val);
 }
 
 export function WorkshopPanel({ state }: Props): React.ReactElement {

@@ -31,6 +31,9 @@ vi.mock("./TimePanel.js", () => ({
 vi.mock("./DiplomacyPanel.js", () => ({
   DiplomacyPanel: () => <div data-testid="diplomacy-panel">Diplomacy</div>,
 }));
+vi.mock("./AchievementsPanel.js", () => ({
+  AchievementsPanel: () => <div data-testid="achievements-panel">Achievements</div>,
+}));
 
 afterEach(() => {
   cleanup();
@@ -55,6 +58,7 @@ describe("TabContainer", () => {
     expect(screen.getByRole("button", { name: /space/i })).toBeTruthy();
     expect(screen.getByRole("button", { name: /time/i })).toBeTruthy();
     expect(screen.getByRole("button", { name: /diplomacy/i })).toBeTruthy();
+    expect(screen.getByRole("button", { name: /achievements/i })).toBeTruthy();
   });
 
   it("switches to Religion panel when Religion tab clicked", () => {
@@ -80,6 +84,13 @@ describe("TabContainer", () => {
     render(<TabContainer state={null} />);
     fireEvent.click(screen.getByRole("button", { name: /diplomacy/i }));
     expect(screen.getByTestId("diplomacy-panel")).toBeTruthy();
+  });
+
+  it("switches to Achievements panel when Achievements tab clicked", () => {
+    render(<TabContainer state={null} />);
+    fireEvent.click(screen.getByRole("button", { name: /achievements/i }));
+    expect(screen.getByTestId("achievements-panel")).toBeTruthy();
+    expect(screen.queryByTestId("resource-panel")).toBeNull();
   });
 
   it("switches to Buildings panel when Buildings tab clicked", () => {

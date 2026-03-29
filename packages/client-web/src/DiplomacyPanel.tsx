@@ -2,10 +2,7 @@
 import type { GameStateResponse } from "@kittens/api-spec";
 import React from "react";
 import { useGameAction } from "./useGameAction.js";
-
-interface ResourceMap {
-  [key: string]: { value: number };
-}
+import { extractResources } from "./utils.js";
 
 interface RaceEntry {
   name: string;
@@ -15,19 +12,6 @@ interface RaceEntry {
 
 interface Props {
   state: GameStateResponse | null | undefined;
-}
-
-function extractResources(state: GameStateResponse): ResourceMap {
-  const raw = state as unknown as Record<string, unknown>;
-  const resources = raw.resources;
-  if (typeof resources !== "object" || resources === null) return {};
-  const result: ResourceMap = {};
-  for (const [k, v] of Object.entries(resources as Record<string, unknown>)) {
-    if (typeof v === "object" && v !== null && typeof (v as Record<string, unknown>).value === "number") {
-      result[k] = { value: (v as Record<string, unknown>).value as number };
-    }
-  }
-  return result;
 }
 
 function extractDiplomacy(state: GameStateResponse): RaceEntry[] {

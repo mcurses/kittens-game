@@ -1,6 +1,7 @@
 // TabContainer — tab navigation for main game panels
 import type { GameStateResponse } from "@kittens/api-spec";
 import React, { useState } from "react";
+import { AchievementsPanel } from "./AchievementsPanel.js";
 import { BuildingsPanel } from "./BuildingsPanel.js";
 import { DiplomacyPanel } from "./DiplomacyPanel.js";
 import { JobsPanel } from "./JobsPanel.js";
@@ -20,7 +21,8 @@ type TabId =
   | "religion"
   | "space"
   | "time"
-  | "diplomacy";
+  | "diplomacy"
+  | "achievements";
 
 const TABS: { id: TabId; label: string }[] = [
   { id: "resources", label: "Resources" },
@@ -32,6 +34,7 @@ const TABS: { id: TabId; label: string }[] = [
   { id: "space", label: "Space" },
   { id: "time", label: "Time" },
   { id: "diplomacy", label: "Diplomacy" },
+  { id: "achievements", label: "Achievements" },
 ];
 
 interface Props {
@@ -64,6 +67,7 @@ export function TabContainer({ state }: Props): React.ReactElement {
       {activeTab === "space" && <SpacePanel state={state} />}
       {activeTab === "time" && <TimePanel state={state} />}
       {activeTab === "diplomacy" && <DiplomacyPanel state={state} />}
+      {activeTab === "achievements" && <AchievementsPanel state={state} />}
     </div>
   );
 }
