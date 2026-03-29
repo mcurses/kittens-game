@@ -130,13 +130,16 @@ export function WorkshopPanel({ state }: Props): React.ReactElement {
             {crafts.map((c) => (
               <li key={c.name} data-testid={`craft-${c.name}`}>
                 <span className="craft-name">{c.name}</span>
-                <button
-                  type="button"
-                  disabled={isPending}
-                  onClick={() => mutate({ type: "CRAFT", name: c.name, amount: 1 })}
-                >
-                  Craft
-                </button>
+                {([1, 5, 25, 100] as const).map((amt) => (
+                  <button
+                    key={amt}
+                    type="button"
+                    disabled={isPending}
+                    onClick={() => mutate({ type: "CRAFT", name: c.name, amount: amt })}
+                  >
+                    ×{amt}
+                  </button>
+                ))}
               </li>
             ))}
           </ul>

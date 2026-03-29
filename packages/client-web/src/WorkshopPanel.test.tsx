@@ -123,10 +123,32 @@ describe("WorkshopPanel", () => {
     expect(screen.queryByTestId("craft-slab")).toBeNull();
   });
 
-  it("dispatches CRAFT action when Craft is clicked", () => {
+  it("dispatches CRAFT with amount:1 when Craft ×1 is clicked", () => {
     const state = makeState({}, { beam: { unlocked: true } });
     render(<WorkshopPanel state={state} />);
-    fireEvent.click(screen.getByRole("button", { name: /craft/i }));
+    // Use exact text "×1" to avoid matching ×100
+    fireEvent.click(screen.getByText("×1", { exact: true }));
     expect(mockMutate).toHaveBeenCalledWith({ type: "CRAFT", name: "beam", amount: 1 });
+  });
+
+  it("dispatches CRAFT with amount:5 when Craft ×5 is clicked", () => {
+    const state = makeState({}, { beam: { unlocked: true } });
+    render(<WorkshopPanel state={state} />);
+    fireEvent.click(screen.getByText("×5", { exact: true }));
+    expect(mockMutate).toHaveBeenCalledWith({ type: "CRAFT", name: "beam", amount: 5 });
+  });
+
+  it("dispatches CRAFT with amount:25 when Craft ×25 is clicked", () => {
+    const state = makeState({}, { beam: { unlocked: true } });
+    render(<WorkshopPanel state={state} />);
+    fireEvent.click(screen.getByText("×25", { exact: true }));
+    expect(mockMutate).toHaveBeenCalledWith({ type: "CRAFT", name: "beam", amount: 25 });
+  });
+
+  it("dispatches CRAFT with amount:100 when Craft ×100 is clicked", () => {
+    const state = makeState({}, { beam: { unlocked: true } });
+    render(<WorkshopPanel state={state} />);
+    fireEvent.click(screen.getByText("×100", { exact: true }));
+    expect(mockMutate).toHaveBeenCalledWith({ type: "CRAFT", name: "beam", amount: 100 });
   });
 });
