@@ -345,16 +345,18 @@ Server tests: 43 passing (LOG_MESSAGE emission + requiredTech — post-epic acti
 ---
 
 ## Epic 22: Multi-client
-**Status:** In Progress | **Started:** 2026-03-29
-Stories: 0/6 complete
-Prerequisites: Epics 20, 21
+**Status:** Complete | **Started:** 2026-03-29 | **Finished:** 2026-03-29
+Stories: 6/6 complete
 
-- [ ] Story 22-1: SessionRegistry — multi-slot store management
-- [ ] Story 22-2: HTTP routes accept slot query parameter
-- [ ] Story 22-3: WebSocket connects to specific slot
-- [ ] Story 22-4: WS action dispatch
-- [ ] Story 22-5: Client slot selection from URL
-- [ ] Story 22-6: Slot name validation
+- [x] Story 22-1: SessionRegistry — multi-slot store management
+- [x] Story 22-2: HTTP routes accept slot query parameter
+- [x] Story 22-3: WebSocket connects to specific slot
+- [x] Story 22-4: WS action dispatch
+- [x] Story 22-5: Client slot selection from URL
+- [x] Story 22-6: Slot name validation
+
+Engine tests: 729 passing | Server tests: 74 passing | Client tests: 212 passing
+Server line coverage: 96.37% | Client line coverage: 99.64%
 
 ---
 

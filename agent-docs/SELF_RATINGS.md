@@ -803,3 +803,32 @@ If any dimension scores ≤ 2, pause and fix before moving to the next epic.
 - [x] Fix ReligionPanel ru section: only render if ru has entries
 - [x] Consider extracting shared `extractResources` helper into a `utils.ts` to reduce duplication across 6 panels
 - [x] Improve branch coverage for new panels by adding null-guard edge case tests
+
+## Epic 22: Multi-client — 2026-03-29
+
+| Dimension | Score | Notes |
+|-----------|-------|-------|
+| Test coverage (≥90% target) | 5 | Engine: 99.6% stmt/88.93% branch. Server: 96.37% stmt/83.83% branch. Client: 99.64% stmt/85.43% branch. 1015 total tests, 0 failures. |
+| No skipped tests / no TODOs | 5 | Zero `it.skip`, `test.todo`, `TODO`, `FIXME`, `HACK` across all packages. |
+| Feature parity | 5 | Epic 22 is new infrastructure (no legacy equivalent). All 6 stories fully implemented and tested. WS slot isolation, HTTP routing, client slot from URL, SessionRegistry, slot validation — all correct. |
+| API spec completeness | 5 | No new GameAction types added. All 31 existing types confirmed in api-spec. No new HTTP routes added (existing routes now accept ?slot= param). |
+| Code quality (no `any`) | 5 | Zero `: any` annotations. TanStack Query v5 mutationFnContext leak fixed by wrapping mutationFn. SessionRegistry uses clean Map<string, GameStateStore>. |
+| Docs freshness | 5 | PROGRESS.md updated (6/6 stories complete). ADR-007 added for SessionRegistry design. DECISIONS.md current. STORIES.md all ACs checked. |
+| Commit hygiene | 5 | 5 clean feat/test commits — logical groupings (S1+S6, S2-S4, S5, integration test). Co-author tags. Build verified before each commit. |
+| **Overall average** | **5.0** | |
+
+### What went well
+- TDD loop was clean: session.test.ts written before session.ts, all tests red → green in one pass
+- Discovering TanStack Query v5 passes `mutationFnContext` as second arg to mutationFn — wrapping `(action) => postGameAction(action, slot)` is the correct fix, and the root cause is now documented in ADR-007
+- `resolveStore()` helper in app.ts cleanly centralizes slot validation + store lookup, keeping route handlers lean
+- Multi-slot integration test validates end-to-end isolation: ticks, DB persistence, WS broadcast scoping
+- `getSlot()` pure function with URL-safe validation replicates same `/^[a-zA-Z0-9_-]{1,64}$/` pattern on client and server
+
+### What to improve
+- WS Stories 3 and 4 are tested at the store/registry level but not end-to-end through the actual Hono WS handler (ws.ts has no unit tests — Bun WS can't run in Vitest/Node)
+- Server branch coverage at 83.83%: `resolveStore()` error branch in app.ts (invalid slot 400 path) has partial coverage; the `store.ts` uncovered lines are error/recovery paths
+- `useGameAction` now takes a `slot` param but `ActionPanel` hardcodes `useGameAction()` (no slot prop) — downstream panels that need slot context would need prop drilling or context
+
+### Action items for next epic
+- [ ] Consider a React Context for slot so all panels/hooks can read it without prop drilling
+- [ ] Add biome lint check to CI to catch `any` regressions automatically

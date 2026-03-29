@@ -111,3 +111,23 @@ Epic 21 added a `unlocked` boolean to `BuildingEntry` to support the building au
 - Existing test helpers that create `{ val: N, on: N }` objects continue to compile with no changes
 - New tests that care about unlock state explicitly set `unlocked: true/false`
 - The field is a one-way flag: once set to `true` via `update()` or `load()`, it is never removed
+
+---
+
+## ADR-007: SessionRegistry for multi-slot game isolation
+**Date:** 2026-03-29
+**Status:** Accepted
+
+### Context
+Epic 22 adds multi-client support. The server previously managed a single `GameStateStore` holding one game state. For session isolation (multiple players each with their own game), we need per-slot state isolation.
+
+### Decision
+`SessionRegistry` manages a `Map<string, GameStateStore>`. Each slot gets its own store (own state, own auto-tick interval, own WS client set, own DB slot). Slot names are validated with `/^[a-zA-Z0-9_-]{1,64}$/`. HTTP routes and WS connections read `?slot=<name>` to route to the correct store.
+
+Idle stores are kept in-memory indefinitely (no TTL cleanup). This is acceptable because each store's memory footprint is small and the server is expected to run a modest number of concurrent sessions.
+
+### Consequences
+- Clean isolation: two players on different slots can't affect each other
+- The existing single-store tests still work by using `registry.getOrCreate("default")`
+- TanStack Query key includes slot: `["gameState", slot]` — different slots have independent cache entries in the client
+- TanStack Query v5 passes a `mutationFnContext` as second arg to `mutationFn`; wrap with `(action) => postGameAction(action, slot)` to prevent leakage
