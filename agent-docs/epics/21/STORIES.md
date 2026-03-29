@@ -102,3 +102,38 @@
 - Integration behavior from game loop
 
 ### Status: [x] Tests | [x] Impl | [x] Rated
+
+---
+
+## Story: catnipDemandRatio applied to kitten catnip consumption
+
+**As a** player
+**I want** pasture buildings to actually reduce catnip consumption
+**So that** building pastures has a meaningful impact on my catnip balance
+
+### Acceptance Criteria
+- [x] Given 1 pasture built (catnipDemandRatio = -0.005), when tick runs, then catnip consumption = -0.85 * kittens * (1 + -0.005)
+- [x] Given catnipDemandRatio = 0 (no pastures), then consumption = -0.85 * kittens (unchanged)
+
+### Legacy Reference
+- `legacy/game.js` line 3722: `resConsumption *= 1 + this.getEffect(res.name + "DemandRatio")`
+- Applied to the raw kitten consumption from `village.getResConsumption()`
+
+### Status: [ ] Tests | [ ] Impl | [ ] Rated
+
+---
+
+## Story: unhappinessRatio effect scales happiness penalty
+
+**As a** player
+**I want** the unhappiness penalty per kitten to be modifiable by effects
+**So that** late-game mechanics that adjust unhappinessRatio function correctly
+
+### Acceptance Criteria
+- [x] Given unhappinessRatio = 0 (default), when 10 kittens, then happiness penalty = 2% * 5 overpopulated = 10% (current behavior unchanged)
+- [x] Given unhappinessRatio = 0.5 (50% more unhappy), when 10 kittens, then happiness penalty = 2 * 1.5 * 5 = 15%
+
+### Legacy Reference
+- `legacy/js/village.js` line 761: `( this.getKittens() - 5 ) * populationPenalty * (1 + this.game.getEffect("unhappinessRatio"))`
+
+### Status: [ ] Tests | [ ] Impl | [ ] Rated
