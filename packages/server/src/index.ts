@@ -6,21 +6,16 @@ import { createBunAdapter } from "./db.js";
 import { GameStateStore } from "./store.js";
 import { attachWebSocket, websocket } from "./ws.js";
 
-const TICK_INTERVAL_MS = 200;
 const PORT = 3000;
 
 async function main(): Promise<void> {
   const adapter = await createBunAdapter("kittens.db");
   const store = new GameStateStore(adapter);
   store.init();
+  store.startAutoTick();
 
   const app = createApp(store);
   attachWebSocket(app, store);
-
-  // Auto-tick loop
-  const intervalId = setInterval(() => {
-    store.advanceTick();
-  }, TICK_INTERVAL_MS);
 
   const server = Bun.serve({
     port: PORT,
@@ -32,12 +27,12 @@ async function main(): Promise<void> {
 
   // Graceful shutdown
   process.on("SIGINT", () => {
-    clearInterval(intervalId);
+    store.stopAutoTick();
     server.stop();
     process.exit(0);
   });
   process.on("SIGTERM", () => {
-    clearInterval(intervalId);
+    store.stopAutoTick();
     server.stop();
     process.exit(0);
   });

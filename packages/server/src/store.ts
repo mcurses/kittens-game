@@ -57,6 +57,7 @@ export class GameStateStore {
   private state: GameState;
   private readonly managers: readonly Manager[];
   private clients: Set<WsClient> = new Set();
+  private autoTickInterval: ReturnType<typeof setInterval> | null = null;
 
   constructor(private readonly db: SqliteAdapter) {
     this.managers = createManagers();
@@ -122,12 +123,19 @@ export class GameStateStore {
   /** Advance one tick. Returns the new serialized state. */
   advanceTick(): SerializedGameState {
     const prevKittens = this.state.village.kittens;
+    const prevSeason = this.state.calendar.season;
     this.state = tick(this.state, this.managers);
     const newKittens = this.state.village.kittens;
+    const newSeason = this.state.calendar.season;
     if (newKittens > prevKittens) {
       for (let i = 0; i < newKittens - prevKittens; i++) {
         this._broadcastLog("A new kitten has arrived!");
       }
+    }
+    if (newSeason !== prevSeason) {
+      const SEASON_NAMES = ["Spring", "Summer", "Autumn", "Winter"];
+      const name = SEASON_NAMES[newSeason] ?? `Season ${newSeason}`;
+      this._broadcastLog(`It is now ${name}.`);
     }
     this._persist();
     this._broadcastDelta();
@@ -152,6 +160,24 @@ export class GameStateStore {
     this._persist();
     this._broadcastDelta();
     return this.getSerialized();
+  }
+
+  // ── Auto-tick lifecycle ───────────────────────────────────────────────────
+
+  /** Start the auto-tick loop at the given interval (ms). Idempotent. */
+  startAutoTick(intervalMs = 200): void {
+    if (this.autoTickInterval !== null) return;
+    this.autoTickInterval = setInterval(() => {
+      this.advanceTick();
+    }, intervalMs);
+  }
+
+  /** Stop the auto-tick loop. Safe to call if not running. */
+  stopAutoTick(): void {
+    if (this.autoTickInterval !== null) {
+      clearInterval(this.autoTickInterval);
+      this.autoTickInterval = null;
+    }
   }
 
   // ── WS client management ─────────────────────────────────────────────────
@@ -195,27 +221,8 @@ export class GameStateStore {
     this.db.saveSlot(DEFAULT_SLOT, JSON.stringify(this.getSerialized()));
   }
 
-  private _broadcastLog(message: string): void {
-    const envelope = JSON.stringify({
-      type: "LOG_MESSAGE",
-      payload: { message },
-      ts: Date.now(),
-    });
-    for (const client of this.clients) {
-      try {
-        client.send(envelope);
-      } catch {
-        this.clients.delete(client);
-      }
-    }
-  }
-
-  private _broadcastDelta(): void {
-    const envelope = JSON.stringify({
-      type: "STATE_DELTA",
-      payload: this.getSerialized(),
-      ts: Date.now(),
-    });
+  private _broadcast(type: string, payload: unknown): void {
+    const envelope = JSON.stringify({ type, payload, ts: Date.now() });
     for (const client of this.clients) {
       try {
         client.send(envelope);
@@ -224,5 +231,13 @@ export class GameStateStore {
         this.clients.delete(client);
       }
     }
+  }
+
+  private _broadcastLog(message: string): void {
+    this._broadcast("LOG_MESSAGE", { message });
+  }
+
+  private _broadcastDelta(): void {
+    this._broadcast("STATE_DELTA", this.getSerialized());
   }
 }

@@ -194,4 +194,100 @@ describe("GameStateStore", () => {
       .filter((m) => m.type === "LOG_MESSAGE");
     expect(logMessages.length).toBe(0);
   });
+
+  // Story 25-1: auto-tick
+  it("startAutoTick calls advanceTick at the configured interval", () => {
+    let ticks = 0;
+    const orig = store.advanceTick.bind(store);
+    store.advanceTick = () => {
+      ticks++;
+      return orig();
+    };
+    store.startAutoTick(50); // 50ms interval
+    return new Promise<void>((resolve) => {
+      setTimeout(() => {
+        store.stopAutoTick();
+        expect(ticks).toBeGreaterThanOrEqual(2);
+        resolve();
+      }, 160);
+    });
+  });
+
+  it("stopAutoTick stops further ticks", () => {
+    let ticks = 0;
+    const orig = store.advanceTick.bind(store);
+    store.advanceTick = () => {
+      ticks++;
+      return orig();
+    };
+    store.startAutoTick(50);
+    store.stopAutoTick();
+    const countAfterStop = ticks;
+    return new Promise<void>((resolve) => {
+      setTimeout(() => {
+        expect(ticks).toBe(countAfterStop); // no more ticks after stop
+        resolve();
+      }, 120);
+    });
+  });
+
+  it("store.init() does NOT auto-start the tick loop", () => {
+    const freshStore = makeStore();
+    let ticks = 0;
+    const orig = freshStore.advanceTick.bind(freshStore);
+    freshStore.advanceTick = () => {
+      ticks++;
+      return orig();
+    };
+    freshStore.init();
+    return new Promise<void>((resolve) => {
+      setTimeout(() => {
+        expect(ticks).toBe(0);
+        resolve();
+      }, 100);
+    });
+  });
+
+  it("broadcasts LOG_MESSAGE for season change when season advances", () => {
+    // Set calendar near end of season (season 0, day near DAYS_PER_SEASON)
+    const prevState = store.getState();
+    // DAYS_PER_SEASON = 100, TICKS_PER_DAY = 10 -> last day = 99
+    store["state"] = {
+      ...prevState,
+      calendar: { day: 99.9, season: 0, year: 0 },
+    };
+    const messages: string[] = [];
+    const client = { send: (data: string) => messages.push(data) };
+    store.addClient(client);
+    store.advanceTick();
+    const logMessages = messages
+      .map((m) => JSON.parse(m) as { type: string; payload: { message: string } })
+      .filter((m) => m.type === "LOG_MESSAGE");
+    expect(logMessages.length).toBeGreaterThanOrEqual(1);
+    const seasonMsg = logMessages.find((m) => /season|spring|summer|autumn|winter/i.test(m.payload.message));
+    expect(seasonMsg).toBeDefined();
+  });
+
+  it("_broadcast refactor: both LOG_MESSAGE and STATE_DELTA use same envelope structure", () => {
+    const messages: string[] = [];
+    const client = { send: (data: string) => messages.push(data) };
+    store.addClient(client);
+    // Force a kitten birth so we get a LOG_MESSAGE + STATE_DELTA pair
+    const prevState = store.getState();
+    store["state"] = {
+      ...prevState,
+      effectCache: { ...prevState.effectCache, maxKittens: 5, kittensPerTickBase: 1 },
+      village: { ...prevState.village, kittens: 0, kittenProgress: 0.99 },
+    };
+    store.advanceTick();
+    const envelopes = messages.map((m) => JSON.parse(m) as { type: string; payload: unknown; ts: number });
+    for (const env of envelopes) {
+      expect(typeof env.type).toBe("string");
+      expect(typeof env.ts).toBe("number");
+      expect(env.payload).toBeDefined();
+    }
+    const types = envelopes.map((e) => e.type);
+    expect(types).toContain("LOG_MESSAGE");
+    expect(types).toContain("STATE_DELTA");
+  });
 });
