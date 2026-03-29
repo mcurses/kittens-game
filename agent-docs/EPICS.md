@@ -29,3 +29,4 @@ Live status tracker. Update when epics start or complete.
 | 23 | **i18n** — translation system, port all 40+ locale files | 20 | P3 | ⏳ Not Started |
 | 24 | **Themes & Assets** — CSS themes, image assets | 20 | P3 | ⏳ Not Started |
 | 25 | **UI Completeness** — auto-tick, village panel, per-tick rates, costs in panels, religion/space/time/diplomacy/achievements tabs, craft-N UI | 20, 21 | P1 | ✅ Complete |
+| 26 | **UI Information Architecture** — replace hover-only legacy detail with modern inspector / progressive disclosure patterns across resources, buildings, workshop, and related panels | 20, 21, 25 | P1 | 📝 Draft |

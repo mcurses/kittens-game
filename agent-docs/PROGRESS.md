@@ -1,6 +1,6 @@
 # Kittens Game Rewrite — Progress Tracker
 
-Last updated: 2026-03-20
+Last updated: 2026-03-29
 
 ---
 
@@ -254,6 +254,24 @@ Stories: 12/12 complete
 - [x] Story 12: Cross-manager integration test
 
 Prerequisites: Epic 08
+
+---
+
+## Epic 26: UI Information Architecture
+**Status:** Draft | **Started:** — | **Finished:** —
+Stories: draft only, not started
+
+- [ ] Legacy detail-surface audit
+- [ ] Shared detail pattern decision
+- [ ] Resource details surface
+- [ ] Upgrade / building / tech explanation surface
+- [ ] Shared interaction and accessibility rules
+- [ ] Responsive presentation rules
+
+Notes:
+- Drafted only. Research still required.
+- User product decisions still required before implementation.
+- Epic docs: `agent-docs/epics/ui-information-architecture/`
 
 ---
 
