@@ -27,7 +27,7 @@ import {
 } from "@kittens/engine";
 import type { SqliteAdapter } from "./db.js";
 
-const DEFAULT_SLOT = "default";
+export const DEFAULT_SLOT = "default";
 
 /** Create the canonical ordered list of domain managers for the game engine. */
 function createManagers(): readonly Manager[] {
@@ -59,14 +59,22 @@ export class GameStateStore {
   private clients: Set<WsClient> = new Set();
   private autoTickInterval: ReturnType<typeof setInterval> | null = null;
 
-  constructor(private readonly db: SqliteAdapter) {
+  constructor(
+    private readonly db: SqliteAdapter,
+    private readonly slot: string = DEFAULT_SLOT,
+  ) {
     this.managers = createManagers();
     this.state = createInitialState();
   }
 
+  /** The save slot name this store persists to. */
+  getSlot(): string {
+    return this.slot;
+  }
+
   /** Load persisted state from the adapter. Call once after construction. */
   init(): void {
-    const json = this.db.loadSlot(DEFAULT_SLOT);
+    const json = this.db.loadSlot(this.slot);
     if (json !== null) {
       try {
         const parsed = JSON.parse(json) as SerializedGameState;
@@ -218,7 +226,7 @@ export class GameStateStore {
   }
 
   private _persist(): void {
-    this.db.saveSlot(DEFAULT_SLOT, JSON.stringify(this.getSerialized()));
+    this.db.saveSlot(this.slot, JSON.stringify(this.getSerialized()));
   }
 
   private _broadcast(type: string, payload: unknown): void {
