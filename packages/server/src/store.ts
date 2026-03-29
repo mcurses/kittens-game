@@ -242,7 +242,7 @@ export class GameStateStore {
   }
 
   private _broadcastLog(message: string): void {
-    this._broadcast("LOG_MESSAGE", { message });
+    this._broadcast("LOG_MESSAGE", message);
   }
 
   private _broadcastDelta(): void {

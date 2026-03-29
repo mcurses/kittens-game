@@ -152,10 +152,10 @@ describe("GameStateStore", () => {
     store.addClient(client);
     store.advanceTick();
     const logMessages = messages
-      .map((m) => JSON.parse(m) as { type: string; payload: { message: string } })
+      .map((m) => JSON.parse(m) as { type: string; payload: string })
       .filter((m) => m.type === "LOG_MESSAGE");
     expect(logMessages.length).toBeGreaterThanOrEqual(1);
-    expect(logMessages[0]?.payload.message).toMatch(/kitten/i);
+    expect(logMessages[0]?.payload).toMatch(/kitten/i);
   });
 
   it("broadcasts LOG_MESSAGE when BUY_BUILDING succeeds", () => {
@@ -177,10 +177,10 @@ describe("GameStateStore", () => {
     store.addClient(client);
     store.applyGameAction({ type: "BUY_BUILDING", name: "hut" });
     const logMessages = messages
-      .map((m) => JSON.parse(m) as { type: string; payload: { message: string } })
+      .map((m) => JSON.parse(m) as { type: string; payload: string })
       .filter((m) => m.type === "LOG_MESSAGE");
     expect(logMessages.length).toBeGreaterThanOrEqual(1);
-    expect(logMessages[0]?.payload.message).toMatch(/hut/i);
+    expect(logMessages[0]?.payload).toMatch(/hut/i);
   });
 
   it("does not broadcast LOG_MESSAGE when BUY_BUILDING fails (cannot afford)", () => {
@@ -261,10 +261,10 @@ describe("GameStateStore", () => {
     store.addClient(client);
     store.advanceTick();
     const logMessages = messages
-      .map((m) => JSON.parse(m) as { type: string; payload: { message: string } })
+      .map((m) => JSON.parse(m) as { type: string; payload: string })
       .filter((m) => m.type === "LOG_MESSAGE");
     expect(logMessages.length).toBeGreaterThanOrEqual(1);
-    const seasonMsg = logMessages.find((m) => /season|spring|summer|autumn|winter/i.test(m.payload.message));
+    const seasonMsg = logMessages.find((m) => /season|spring|summer|autumn|winter/i.test(m.payload));
     expect(seasonMsg).toBeDefined();
   });
 
