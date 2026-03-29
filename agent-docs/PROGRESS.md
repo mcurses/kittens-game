@@ -339,4 +339,5 @@ Stories: 5/5 complete
 - [x] Story 21-4: Job production scales with happiness
 - [x] Story 21-5: Cross-manager integration test for parity
 
-Engine tests: 717 passing | Line coverage: 99.65% | Branch: 89.15%
+Engine tests: 721 passing | Line coverage: 99.65% | Branch: 89.13%
+Server tests: 43 passing (LOG_MESSAGE emission + requiredTech — post-epic action items)

@@ -737,3 +737,33 @@ If any dimension scores ≤ 2, pause and fix before moving to the next epic.
 - [x] Add server-side LOG_MESSAGE emission for kitten-born and building-purchased events
 - [x] Implement requiredTech unlock check in BuildingManager.update() (parallel to unlockRatio)
 - [x] Consider recording the unlocked? optionality decision in DECISIONS.md
+
+---
+
+## Epic 21 Post-Action-Items — 2026-03-29
+
+| Dimension | Score | Notes |
+|-----------|-------|-------|
+| Test coverage (≥90% target) | 5 | engine: 99.65% stmt, 89.13% branch. server: 95.48% stmt, 84.72% branch (LOG_MESSAGE paths partially covered by new tests). 906 total tests, 0 failures. |
+| No skipped tests / no TODOs | 5 | Zero `it.skip`, `test.todo`, `TODO`, `FIXME`, `HACK` across all packages. |
+| Feature parity | 5 | All 3 action items executed: LOG_MESSAGE for kitten-born + building-purchased ✅; requiredTech unlock check with 8 buildings wired to correct tech gates ✅; library added defaultUnlockable:true matching legacy ✅; ADR-006 recorded ✅. |
+| API spec completeness | 5 | No new action types. All 30 GameAction types confirmed in spec. Zero diff between engine and spec. |
+| Code quality (no `any`) | 5 | Zero `: any` annotations. Build clean across all 5 packages. |
+| Docs freshness | 5 | ADR-006 added to DECISIONS.md. PROGRESS.md test count updated. All action items checked off in SELF_RATINGS.md. |
+| Commit hygiene | 5 | Two clean commits — one for action items (feat), one for docs. Meaningful messages, co-author tag. |
+| **Overall average** | **5.0** | |
+
+### What went well
+- requiredTech mechanism wired cleanly — existing `update()` loop extended by 4 lines with full test coverage
+- server LOG_MESSAGE adds real value for the player UX (kitten arrival, building purchase feedback)
+- ADR-006 captures the design rationale clearly so future contributors understand the unlocked? optionality
+- library gaining defaultUnlockable:true was caught during legacy spot-check — TDD + legacy reading works
+
+### What to improve
+- server store.ts branch coverage at 84.72% — LOG_MESSAGE disconnection handling paths not covered
+- `_broadcastLog` error handling (disconnected client cleanup) mirrors `_broadcastDelta` exactly — candidate for shared helper in a future refactor
+- happiness formula still missing `happinessKittenProductionRatio` multiplier for mid-game accuracy
+
+### Action items for next epic
+- [ ] Add server-side LOG_MESSAGE for season change events (CalendarManager emits them)
+- [ ] Refactor `_broadcastLog` + `_broadcastDelta` into a single `_broadcast(type, payload)` helper to eliminate duplication
