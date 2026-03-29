@@ -799,7 +799,7 @@ If any dimension scores ≤ 2, pause and fix before moving to the next epic.
 - SpacePanel price calculation uses inline arrow function for space building prices which is hard to test independently
 
 ### Action items for next epic
-- [ ] Add Achievements tab (not implemented in Epic 25 — was not in story list but was in epic title)
-- [ ] Fix ReligionPanel ru section: only render if ru has entries
-- [ ] Consider extracting shared `extractResources` helper into a `utils.ts` to reduce duplication across 6 panels
-- [ ] Improve branch coverage for new panels by adding null-guard edge case tests
+- [x] Add Achievements tab (not implemented in Epic 25 — was not in story list but was in epic title)
+- [x] Fix ReligionPanel ru section: only render if ru has entries
+- [x] Consider extracting shared `extractResources` helper into a `utils.ts` to reduce duplication across 6 panels
+- [x] Improve branch coverage for new panels by adding null-guard edge case tests

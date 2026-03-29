@@ -117,4 +117,22 @@ describe("SpacePanel", () => {
     fireEvent.click(btn);
     expect(mockMutate).toHaveBeenCalledWith({ type: "BUY_SPACE_BUILDING", name: "moonBase" });
   });
+
+  it("renders panel when state has no space key", () => {
+    render(<SpacePanel state={{} as never} />);
+    expect(screen.getByTestId("space-panel")).toBeTruthy();
+  });
+
+  it("renders panel when space has no programs or spaceBuildings keys", () => {
+    render(<SpacePanel state={{ space: { planets: {} } } as never} />);
+    expect(screen.getByTestId("space-panel")).toBeTruthy();
+  });
+
+  it("skips null program and spaceBuilding entries gracefully", () => {
+    const state = {
+      space: { programs: { bad: null }, spaceBuildings: { bad: null } },
+    } as never;
+    render(<SpacePanel state={state} />);
+    expect(screen.getByTestId("space-panel")).toBeTruthy();
+  });
 });

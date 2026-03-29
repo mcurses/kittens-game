@@ -121,4 +121,22 @@ describe("TimePanel", () => {
     fireEvent.click(btn);
     expect(mockMutate).toHaveBeenCalledWith({ type: "BUY_VSU", name: "usedCryochambers" });
   });
+
+  it("renders panel when state has no time key", () => {
+    render(<TimePanel state={{} as never} />);
+    expect(screen.getByTestId("time-panel")).toBeTruthy();
+  });
+
+  it("renders panel when time has no cfus or vsus keys", () => {
+    render(<TimePanel state={{ time: { heat: 5, flux: 2 } } as never} />);
+    expect(screen.getByTestId("time-panel")).toBeTruthy();
+  });
+
+  it("skips null cfu and vsu entries gracefully", () => {
+    const state = {
+      time: { heat: 1, flux: 0, cfus: { bad: null }, vsus: { bad: null } },
+    } as never;
+    render(<TimePanel state={state} />);
+    expect(screen.getByTestId("time-panel")).toBeTruthy();
+  });
 });

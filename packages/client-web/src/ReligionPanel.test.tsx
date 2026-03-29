@@ -131,4 +131,23 @@ describe("ReligionPanel", () => {
     fireEvent.click(btn);
     expect(mockMutate).toHaveBeenCalledWith({ type: "TRANSCEND" });
   });
+
+  it("renders panel when state has no religion key", () => {
+    render(<ReligionPanel state={{} as never} />);
+    expect(screen.getByTestId("religion-panel")).toBeTruthy();
+  });
+
+  it("renders panel when zu and ru are absent", () => {
+    const state = { religion: { worship: 1, faithRatio: 0, transcendenceTier: 0 } } as never;
+    render(<ReligionPanel state={state} />);
+    expect(screen.getByTestId("religion-panel")).toBeTruthy();
+  });
+
+  it("skips null zu entries gracefully", () => {
+    const state = {
+      religion: { worship: 0, faithRatio: 0, transcendenceTier: 0, zu: { bad: null }, ru: { bad: null } },
+    } as never;
+    render(<ReligionPanel state={state} />);
+    expect(screen.getByTestId("religion-panel")).toBeTruthy();
+  });
 });
