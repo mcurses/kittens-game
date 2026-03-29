@@ -3,13 +3,16 @@ import type { Hono } from "hono";
 import { describe, expect, it } from "vitest";
 import { createApp } from "./app.js";
 import { createMemoryAdapter } from "./db.js";
-import { GameStateStore } from "./store.js";
+import { SessionRegistry } from "./session.js";
+import type { GameStateStore } from "./store.js";
 
-function makeApp(): { app: Hono; store: GameStateStore } {
-  const store = new GameStateStore(createMemoryAdapter());
-  store.init();
-  const app = createApp(store);
-  return { app, store };
+function makeApp(): { app: Hono; registry: SessionRegistry; store: GameStateStore } {
+  const db = createMemoryAdapter();
+  const registry = new SessionRegistry(db);
+  const app = createApp(registry);
+  // Eagerly init the default store so tests that call store.advanceTick() work
+  const store = registry.getOrCreate("default");
+  return { app, registry, store };
 }
 
 async function req(app: Hono, path: string, options?: RequestInit): Promise<Response> {
@@ -42,6 +45,35 @@ describe("GET /api/game/state", () => {
     const res = await req(app, "/api/game/state");
     const body = (await res.json()) as { tick: number };
     expect(body.tick).toBe(1);
+  });
+
+  it("defaults to default slot when no slot param", async () => {
+    const { app } = makeApp();
+    const res = await req(app, "/api/game/state");
+    expect(res.status).toBe(200);
+  });
+
+  it("returns state for a specific slot", async () => {
+    const { app, registry } = makeApp();
+    registry.getOrCreate("myslot").advanceTick();
+    const res = await req(app, "/api/game/state?slot=myslot");
+    const body = (await res.json()) as { tick: number };
+    expect(body.tick).toBe(1);
+  });
+
+  it("different slots have independent state", async () => {
+    const { app, registry } = makeApp();
+    registry.getOrCreate("slot-a").advanceTick();
+    const resA = await req(app, "/api/game/state?slot=slot-a");
+    const resB = await req(app, "/api/game/state?slot=slot-b");
+    expect(((await resA.json()) as { tick: number }).tick).toBe(1);
+    expect(((await resB.json()) as { tick: number }).tick).toBe(0);
+  });
+
+  it("returns 400 for invalid slot name", async () => {
+    const { app } = makeApp();
+    const res = await req(app, "/api/game/state?slot=../bad");
+    expect(res.status).toBe(400);
   });
 });
 
@@ -108,6 +140,32 @@ describe("POST /api/game/action", () => {
     const body = (await res.json()) as { ok: boolean };
     expect(body.ok).toBe(true);
   });
+
+  it("routes action to specific slot", async () => {
+    const { app, registry } = makeApp();
+    registry.getOrCreate("test-slot");
+    await req(app, "/api/game/action?slot=test-slot", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ type: "TICK" }),
+    });
+    const res = await req(app, "/api/game/state?slot=test-slot");
+    const body = (await res.json()) as { tick: number };
+    expect(body.tick).toBe(1);
+    // default slot unaffected
+    const defaultRes = await req(app, "/api/game/state");
+    expect(((await defaultRes.json()) as { tick: number }).tick).toBe(0);
+  });
+
+  it("returns 400 for invalid slot", async () => {
+    const { app } = makeApp();
+    const res = await req(app, "/api/game/action?slot=..%2Fbad", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ type: "TICK" }),
+    });
+    expect(res.status).toBe(400);
+  });
 });
 
 describe("POST /api/game/tick", () => {
@@ -125,6 +183,17 @@ describe("POST /api/game/tick", () => {
     const res = await req(app, "/api/game/tick", { method: "POST" });
     const body = (await res.json()) as { tick: number };
     expect(body.tick).toBe(2);
+  });
+
+  it("routes tick to specific slot", async () => {
+    const { app, registry } = makeApp();
+    registry.getOrCreate("tick-slot");
+    await req(app, "/api/game/tick?slot=tick-slot", { method: "POST" });
+    const res = await req(app, "/api/game/state?slot=tick-slot");
+    expect(((await res.json()) as { tick: number }).tick).toBe(1);
+    // default slot unaffected
+    const defaultRes = await req(app, "/api/game/state");
+    expect(((await defaultRes.json()) as { tick: number }).tick).toBe(0);
   });
 });
 
@@ -225,6 +294,18 @@ describe("POST /api/game/reset", () => {
     const { app } = makeApp();
     const res = await req(app, "/api/game/reset", { method: "POST" });
     expect(res.status).toBe(200);
+  });
+
+  it("resets only the specified slot", async () => {
+    const { app, registry } = makeApp();
+    const s = registry.getOrCreate("rs");
+    s.advanceTick();
+    await req(app, "/api/game/reset?slot=rs", { method: "POST" });
+    expect(s.getSerialized().tick).toBe(0);
+    // default slot unaffected
+    registry.getOrCreate("default").advanceTick();
+    const defaultRes = await req(app, "/api/game/state");
+    expect(((await defaultRes.json()) as { tick: number }).tick).toBe(1);
   });
 });
 

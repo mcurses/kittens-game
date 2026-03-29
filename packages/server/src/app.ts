@@ -9,10 +9,12 @@ import {
   SaveImportRequestSchema,
 } from "@kittens/api-spec";
 import type { SerializedGameState } from "@kittens/engine";
-// Hono app factory — creates the HTTP + WS app given a GameStateStore
+// Hono app factory — creates the HTTP + WS app given a SessionRegistry
 import { Hono } from "hono";
 import { cors } from "hono/cors";
-import type { GameStateStore } from "./store.js";
+import type { Context } from "hono";
+import { DEFAULT_SLOT, type GameStateStore } from "./store.js";
+import { SessionRegistry, isValidSlot } from "./session.js";
 
 const VERSION = "0.1.0";
 
@@ -23,7 +25,26 @@ function parseSerializedState(data: unknown): SerializedGameState {
   return data as SerializedGameState;
 }
 
-export function createApp(store: GameStateStore): Hono {
+/** Extract and validate the slot query param from a request context. */
+function getSlotParam(c: Context): string | null {
+  const slot = c.req.query("slot") ?? DEFAULT_SLOT;
+  if (!isValidSlot(slot)) return null;
+  return slot;
+}
+
+/** Get the store for the request's slot, or return a 400 error response. */
+function resolveStore(
+  c: Context,
+  registry: SessionRegistry,
+): { store: GameStateStore } | Response {
+  const slot = getSlotParam(c);
+  if (slot === null) {
+    return c.json({ ok: false, error: "Invalid slot name" }, 400) as unknown as Response;
+  }
+  return { store: registry.getOrCreate(slot) };
+}
+
+export function createApp(registry: SessionRegistry): Hono {
   const app = new Hono();
 
   // ── CORS ────────────────────────────────────────────────────────────────────
@@ -37,32 +58,38 @@ export function createApp(store: GameStateStore): Hono {
 
   // ── Game state ───────────────────────────────────────────────────────────────
   app.get("/api/game/state", (c) => {
-    const serialized = store.getSerialized();
+    const result = resolveStore(c, registry);
+    if (result instanceof Response) return result;
+    const serialized = result.store.getSerialized();
     return c.json(serialized);
   });
 
   // ── Action ───────────────────────────────────────────────────────────────────
   app.post("/api/game/action", async (c) => {
+    const result = resolveStore(c, registry);
+    if (result instanceof Response) return result;
+    const { store } = result;
+
     let body: unknown;
     try {
       body = await c.req.json();
     } catch {
-      const result: ActionResult = {
+      const actionResult: ActionResult = {
         ok: false,
         error: "Invalid JSON body",
         state: GameStateResponseSchema.parse(store.getSerialized()),
       };
-      return c.json(ActionResultSchema.parse(result), 400);
+      return c.json(ActionResultSchema.parse(actionResult), 400);
     }
 
     const parsed = GameActionRequestSchema.safeParse(body);
     if (!parsed.success) {
-      const result: ActionResult = {
+      const actionResult: ActionResult = {
         ok: false,
         error: parsed.error.issues[0]?.message ?? "Invalid action",
         state: GameStateResponseSchema.parse(store.getSerialized()),
       };
-      return c.json(ActionResultSchema.parse(result), 400);
+      return c.json(ActionResultSchema.parse(actionResult), 400);
     }
 
     const actionResult = store.applyGameAction(parsed.data);
@@ -77,19 +104,27 @@ export function createApp(store: GameStateStore): Hono {
 
   // ── Tick (testing) ───────────────────────────────────────────────────────────
   app.post("/api/game/tick", (c) => {
-    const newState = store.advanceTick();
+    const result = resolveStore(c, registry);
+    if (result instanceof Response) return result;
+    const newState = result.store.advanceTick();
     return c.json(newState);
   });
 
   // ── Save ─────────────────────────────────────────────────────────────────────
   app.get("/api/game/save", (c) => {
-    const data = store.getSerialized();
+    const result = resolveStore(c, registry);
+    if (result instanceof Response) return result;
+    const data = result.store.getSerialized();
     const body = SaveExportResponseSchema.parse({ saveVersion: 1, data });
     return c.json(body);
   });
 
   // ── Load ─────────────────────────────────────────────────────────────────────
   app.post("/api/game/load", async (c) => {
+    const result = resolveStore(c, registry);
+    if (result instanceof Response) return result;
+    const { store } = result;
+
     let body: unknown;
     try {
       body = await c.req.json();
@@ -114,6 +149,10 @@ export function createApp(store: GameStateStore): Hono {
 
   // ── Reset ─────────────────────────────────────────────────────────────────────
   app.post("/api/game/reset", async (c) => {
+    const result = resolveStore(c, registry);
+    if (result instanceof Response) return result;
+    const { store } = result;
+
     let hard = false;
     try {
       const body = await c.req.json();

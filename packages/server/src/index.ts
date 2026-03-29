@@ -3,19 +3,21 @@
 
 import { createApp } from "./app.js";
 import { createBunAdapter } from "./db.js";
-import { GameStateStore } from "./store.js";
+import { SessionRegistry } from "./session.js";
 import { attachWebSocket, websocket } from "./ws.js";
 
 const PORT = 3000;
 
 async function main(): Promise<void> {
   const adapter = await createBunAdapter("kittens.db");
-  const store = new GameStateStore(adapter);
-  store.init();
-  store.startAutoTick();
+  const registry = new SessionRegistry(adapter);
 
-  const app = createApp(store);
-  attachWebSocket(app, store);
+  // Eagerly init the default slot so it's ready on first request
+  const defaultStore = registry.getOrCreate("default");
+  defaultStore.startAutoTick();
+
+  const app = createApp(registry);
+  attachWebSocket(app, registry);
 
   const server = Bun.serve({
     port: PORT,
@@ -25,17 +27,16 @@ async function main(): Promise<void> {
 
   console.log(`Kittens server running on http://localhost:${PORT}`);
 
-  // Graceful shutdown
-  process.on("SIGINT", () => {
-    store.stopAutoTick();
+  // Graceful shutdown — stop all active stores' auto-tick
+  function shutdown(): void {
+    for (const slot of registry.listSlots()) {
+      registry.getOrCreate(slot).stopAutoTick();
+    }
     server.stop();
     process.exit(0);
-  });
-  process.on("SIGTERM", () => {
-    store.stopAutoTick();
-    server.stop();
-    process.exit(0);
-  });
+  }
+  process.on("SIGINT", shutdown);
+  process.on("SIGTERM", shutdown);
 }
 
 main().catch((err: unknown) => {
