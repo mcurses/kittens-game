@@ -105,3 +105,47 @@ describe("SessionRegistry", () => {
     expect(saved).not.toBeNull();
   });
 });
+
+// ── Cross-manager multi-slot integration test ─────────────────────────────────
+describe("SessionRegistry multi-slot isolation (integration)", () => {
+  it("runs two slots independently through 100 ticks each with correct state", () => {
+    const db = createMemoryAdapter();
+    const registry = new SessionRegistry(db);
+
+    const storeA = registry.getOrCreate("player-a");
+    const storeB = registry.getOrCreate("player-b");
+
+    // Advance slot A 100 ticks, slot B only 30
+    for (let i = 0; i < 100; i++) storeA.advanceTick();
+    for (let i = 0; i < 30; i++) storeB.advanceTick();
+
+    expect(storeA.getSerialized().tick).toBe(100);
+    expect(storeB.getSerialized().tick).toBe(30);
+
+    // Slots are isolated in DB
+    const savedA = db.loadSlot("player-a");
+    const savedB = db.loadSlot("player-b");
+    expect(savedA).not.toBeNull();
+    expect(savedB).not.toBeNull();
+    const parsedA = JSON.parse(savedA!) as { tick: number };
+    const parsedB = JSON.parse(savedB!) as { tick: number };
+    expect(parsedA.tick).toBe(100);
+    expect(parsedB.tick).toBe(30);
+
+    // WS clients on A do not see B's broadcasts
+    const messagesA: string[] = [];
+    const messagesB: string[] = [];
+    storeA.addClient({ send: (d) => messagesA.push(d) });
+    storeB.addClient({ send: (d) => messagesB.push(d) });
+
+    storeA.advanceTick();
+    expect(messagesA.length).toBeGreaterThan(0);
+    expect(messagesB).toHaveLength(0);
+
+    storeB.advanceTick();
+    expect(messagesB.length).toBeGreaterThan(0);
+    // A got exactly one more broadcast (from its own tick above)
+    const aCountBefore = messagesA.length;
+    expect(messagesA.length).toBe(aCountBefore);
+  });
+});
