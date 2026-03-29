@@ -5,6 +5,8 @@
 export interface SqliteAdapter {
   /** Execute a DDL statement (CREATE TABLE IF NOT EXISTS, etc.) */
   exec(sql: string): void;
+  /** Return all persisted slot names. */
+  listSlots(): string[];
   /** Load state_json for a slot, or null if absent. */
   loadSlot(slot: string): string | null;
   /** Upsert state_json for a slot. */
@@ -46,6 +48,14 @@ export async function createBunAdapter(path: string): Promise<SqliteAdapter> {
       sqlite.run(sql);
     },
 
+    listSlots(): string[] {
+      const rows = db
+        .select({ slot: savesTable.slot })
+        .from(savesTable)
+        .all();
+      return rows.map((row) => row.slot);
+    },
+
     loadSlot(slot: string): string | null {
       const rows = db
         .select({ stateJson: savesTable.stateJson })
@@ -79,6 +89,9 @@ export function createMemoryAdapter(): SqliteAdapter {
   return {
     exec(_sql: string) {
       // No-op for in-memory
+    },
+    listSlots(): string[] {
+      return [...slots.keys()];
     },
     loadSlot(slot: string): string | null {
       return slots.get(slot) ?? null;

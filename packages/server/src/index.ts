@@ -3,18 +3,19 @@
 
 import { createApp } from "./app.js";
 import { createBunAdapter } from "./db.js";
+import { getServerDbPath, getStartupSlots } from "./runtime.js";
 import { SessionRegistry } from "./session.js";
 import { attachWebSocket, websocket } from "./ws.js";
 
 const PORT = 3000;
 
 async function main(): Promise<void> {
-  const adapter = await createBunAdapter("kittens.db");
+  const adapter = await createBunAdapter(getServerDbPath(import.meta.url));
   const registry = new SessionRegistry(adapter);
 
-  // Eagerly init the default slot so it's ready on first request
-  const defaultStore = registry.getOrCreate("default");
-  defaultStore.startAutoTick();
+  for (const slot of getStartupSlots(adapter.listSlots())) {
+    registry.getOrCreate(slot).startAutoTick();
+  }
 
   const app = createApp(registry);
   attachWebSocket(app, registry);

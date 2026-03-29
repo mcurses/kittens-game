@@ -1,4 +1,5 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { GameStateStore } from "./store.js";
 import { createMemoryAdapter } from "./db.js";
 import { SessionRegistry, isValidSlot } from "./session.js";
 
@@ -103,6 +104,27 @@ describe("SessionRegistry", () => {
     // The DB should have saved to "myslot"
     const saved = db.loadSlot("myslot");
     expect(saved).not.toBeNull();
+  });
+
+  it("named slots can resume auto-ticking after restart when recreated", () => {
+    vi.useFakeTimers();
+    const db = createMemoryAdapter();
+
+    const initialStore = new GameStateStore(db, "save-a");
+    initialStore.init();
+    initialStore.advanceTick();
+    initialStore.stopAutoTick();
+
+    const reg = new SessionRegistry(db);
+    const restored = reg.getOrCreate("save-a");
+    restored.startAutoTick(50);
+
+    expect(restored.getSerialized().tick).toBe(1);
+    vi.advanceTimersByTime(120);
+    expect(restored.getSerialized().tick).toBeGreaterThan(1);
+
+    restored.stopAutoTick();
+    vi.useRealTimers();
   });
 });
 

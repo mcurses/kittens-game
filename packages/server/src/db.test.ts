@@ -28,6 +28,13 @@ describe("createMemoryAdapter", () => {
     expect(adapter.loadSlot("slot2")).toBe('{"tick":2}');
   });
 
+  it("listSlots returns all persisted slot names", () => {
+    const adapter = createMemoryAdapter();
+    adapter.saveSlot("slot1", '{"tick":1}');
+    adapter.saveSlot("slot2", '{"tick":2}');
+    expect(adapter.listSlots().sort()).toEqual(["slot1", "slot2"]);
+  });
+
   it("exec is a no-op that does not throw", () => {
     const adapter = createMemoryAdapter();
     expect(() => adapter.exec("CREATE TABLE IF NOT EXISTS saves (...)")).not.toThrow();
