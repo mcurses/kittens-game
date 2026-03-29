@@ -5,6 +5,7 @@ import { ActionPanel } from "./ActionPanel.js";
 import { CalendarDisplay } from "./CalendarDisplay.js";
 import { LogPanel } from "./LogPanel.js";
 import { TabContainer } from "./TabContainer.js";
+import { VillagePanel } from "./VillagePanel.js";
 import { useGameState } from "./useGameState.js";
 import { useWebSocket } from "./useWebSocket.js";
 
@@ -55,6 +56,7 @@ function GameView(): React.ReactElement {
       <header>
         <h1>Kittens Game</h1>
         <CalendarDisplay state={state} />
+        <VillagePanel state={state} />
       </header>
       <div style={{ display: "flex", gap: "1rem" }}>
         <div style={{ flex: 1 }}>
