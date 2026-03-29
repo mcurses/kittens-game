@@ -6,7 +6,7 @@ import { type ChallengeState, createInitialChallenges } from "./challenges.js";
 import { type DiplomacyState, createInitialDiplomacy } from "./diplomacy.js";
 import { type PrestigeState, createInitialPrestige } from "./prestige.js";
 import { type ReligionState, createInitialReligion } from "./religion.js";
-import { type ResourceState, createInitialResources } from "./resources.js";
+import { type ResourceState, calcResourcePerTick, createInitialResources } from "./resources.js";
 import { type ScienceState, createInitialScience } from "./science.js";
 import { type SpaceState, createInitialSpace } from "./space.js";
 import { type TimeState, createInitialTime } from "./time.js";
@@ -78,7 +78,7 @@ export interface SerializedGameState {
   version: number;
   tick: number;
   effectCache: Record<string, number>;
-  resources: Record<string, { value: number; maxValue: number }>;
+  resources: Record<string, { value: number; maxValue: number; perTick: number }>;
   buildings: Record<string, { val: number; on: number }>;
   village: {
     kittens: number;
@@ -146,9 +146,13 @@ export interface SerializedGameState {
  * Port of legacy `game.save()` in game.js:2393.
  */
 export function serialize(state: GameState): SerializedGameState {
-  const resources: Record<string, { value: number; maxValue: number }> = {};
+  const resources: Record<string, { value: number; maxValue: number; perTick: number }> = {};
   for (const [name, entry] of Object.entries(state.resources)) {
-    resources[name] = { value: entry.value, maxValue: entry.maxValue };
+    resources[name] = {
+      value: entry.value,
+      maxValue: entry.maxValue,
+      perTick: calcResourcePerTick(state.effectCache, name),
+    };
   }
 
   const buildings: Record<string, { val: number; on: number }> = {};
@@ -323,6 +327,7 @@ export function deserialize(data: SerializedGameState): GameState {
   };
   for (const [name, entry] of Object.entries(savedResources)) {
     if (entry && typeof entry.value === "number" && typeof entry.maxValue === "number") {
+      // perTick is a computed field — not stored back into GameState
       resources[name] = { value: entry.value, maxValue: entry.maxValue };
     }
   }

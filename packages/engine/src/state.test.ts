@@ -189,6 +189,45 @@ describe("serialize / deserialize", () => {
     expect(restored.resources.catnip?.maxValue).toBe(5000);
   });
 
+  it("serialize includes perTick for each resource computed from effectCache", () => {
+    const state = {
+      ...createInitialState(),
+      effectCache: { catnipPerTickBase: 0.125 },
+      resources: {
+        ...createInitialResources(),
+        catnip: { value: 10, maxValue: 5000 },
+      },
+    };
+    const serialized = serialize(state);
+    // calcResourcePerTick: base=0.125 * (1+0) + 0 + 0 = 0.125
+    expect(serialized.resources.catnip?.perTick).toBeCloseTo(0.125);
+  });
+
+  it("serialize perTick is 0 for resource with no effects", () => {
+    const state = createInitialState();
+    const serialized = serialize(state);
+    expect(serialized.resources.wood?.perTick).toBe(0);
+  });
+
+  it("perTick is not restored from saved data (computed field)", () => {
+    const state = {
+      ...createInitialState(),
+      resources: {
+        ...createInitialResources(),
+        catnip: { value: 5, maxValue: 1000 },
+      },
+    };
+    // Serialize and inject a fake perTick value
+    const serialized = serialize(state);
+    serialized.resources.catnip = { ...serialized.resources.catnip!, perTick: 999 as number };
+    const restored = deserialize(serialized);
+    // The stored resource entry does not carry perTick back
+    const entry = restored.resources.catnip as unknown as Record<string, unknown>;
+    expect(entry.perTick).toBeUndefined();
+    // But value/maxValue are restored correctly
+    expect(restored.resources.catnip?.value).toBe(5);
+  });
+
   it("deserialize falls back to initial resources if field is missing", () => {
     const raw = { version: 1, tick: 0 } as ReturnType<typeof serialize>;
     const restored = deserialize(raw);
