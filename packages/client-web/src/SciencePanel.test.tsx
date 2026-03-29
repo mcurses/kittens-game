@@ -10,11 +10,13 @@ vi.mock("./useGameAction.js", () => ({
 
 function makeState(
   techs: Record<string, { unlocked: boolean; researched: boolean }>,
+  resources: Record<string, { value: number }> = {},
 ) {
   return {
     version: 1,
     tick: 0,
     science: { techs, policies: {} },
+    resources: Object.fromEntries(Object.entries(resources).map(([k, v]) => [k, { value: v.value, maxValue: 0, perTick: 0 }])),
   } as unknown as import("@kittens/api-spec").GameStateResponse;
 }
 
@@ -50,7 +52,11 @@ describe("SciencePanel", () => {
   });
 
   it("shows unlocked unresearched tech with Research button", () => {
-    const state = makeState({ agriculture: { unlocked: true, researched: false } });
+    // agriculture costs 100 science; provide enough to afford it
+    const state = makeState(
+      { agriculture: { unlocked: true, researched: false } },
+      { science: { value: 200 } },
+    );
     render(<SciencePanel state={state} />);
     expect(screen.getByTestId("tech-agriculture")).toBeTruthy();
     expect(screen.getByRole("button", { name: /research/i })).toBeTruthy();
@@ -65,10 +71,46 @@ describe("SciencePanel", () => {
   });
 
   it("dispatches RESEARCH action when Research is clicked", () => {
-    const state = makeState({ archery: { unlocked: true, researched: false } });
+    // archery costs 300 science; provide enough to afford it
+    const state = makeState(
+      { archery: { unlocked: true, researched: false } },
+      { science: { value: 1000 } },
+    );
     render(<SciencePanel state={state} />);
     fireEvent.click(screen.getByRole("button", { name: /research/i }));
     expect(mockMutate).toHaveBeenCalledWith({ type: "RESEARCH", name: "archery" });
+  });
+
+  // Story 25-4: cost display
+  it("shows tech price in Research button text", () => {
+    // 'calendar' tech costs 30 science
+    const state = makeState({ calendar: { unlocked: true, researched: false } });
+    render(<SciencePanel state={state} />);
+    // button label should include cost info
+    expect(screen.getByText(/research/i)).toBeTruthy();
+    expect(screen.getByText(/30/)).toBeTruthy();
+  });
+
+  it("disables Research button when player cannot afford tech", () => {
+    // calendar costs 30 science; player has 0
+    const state = makeState(
+      { calendar: { unlocked: true, researched: false } },
+      { science: { value: 0 } },
+    );
+    render(<SciencePanel state={state} />);
+    const btn = screen.getByRole("button", { name: /research/i });
+    expect(btn.hasAttribute("disabled")).toBe(true);
+  });
+
+  it("enables Research button when player can afford tech", () => {
+    // calendar costs 30 science; player has 100
+    const state = makeState(
+      { calendar: { unlocked: true, researched: false } },
+      { science: { value: 100 } },
+    );
+    render(<SciencePanel state={state} />);
+    const btn = screen.getByRole("button", { name: /research/i });
+    expect(btn.hasAttribute("disabled")).toBe(false);
   });
 
   it("renders multiple unlocked techs", () => {

@@ -11,11 +11,13 @@ vi.mock("./useGameAction.js", () => ({
 function makeState(
   upgrades: Record<string, { unlocked: boolean; researched: boolean }>,
   crafts: Record<string, { unlocked: boolean }> = {},
+  resources: Record<string, { value: number }> = {},
 ) {
   return {
     version: 1,
     tick: 0,
     workshop: { upgrades, crafts },
+    resources: Object.fromEntries(Object.entries(resources).map(([k, v]) => [k, { value: v.value, maxValue: 0, perTick: 0 }])),
   } as unknown as import("@kittens/api-spec").GameStateResponse;
 }
 
@@ -51,7 +53,12 @@ describe("WorkshopPanel", () => {
   });
 
   it("shows unlocked unresearched upgrade with Purchase button", () => {
-    const state = makeState({ mineralHoes: { unlocked: true, researched: false } });
+    // mineralHoes costs 275 minerals + 100 science; provide enough
+    const state = makeState(
+      { mineralHoes: { unlocked: true, researched: false } },
+      {},
+      { minerals: { value: 500 }, science: { value: 200 } },
+    );
     render(<WorkshopPanel state={state} />);
     expect(screen.getByTestId("upgrade-mineralHoes")).toBeTruthy();
     expect(screen.getByRole("button", { name: /purchase/i })).toBeTruthy();
@@ -65,10 +72,48 @@ describe("WorkshopPanel", () => {
   });
 
   it("dispatches PURCHASE_UPGRADE when Purchase is clicked", () => {
-    const state = makeState({ mineralHoes: { unlocked: true, researched: false } });
+    const state = makeState(
+      { mineralHoes: { unlocked: true, researched: false } },
+      {},
+      { minerals: { value: 500 }, science: { value: 200 } },
+    );
     render(<WorkshopPanel state={state} />);
     fireEvent.click(screen.getByRole("button", { name: /purchase/i }));
     expect(mockMutate).toHaveBeenCalledWith({ type: "PURCHASE_UPGRADE", name: "mineralHoes" });
+  });
+
+  // Story 25-4: cost display and disable when can't afford
+  it("shows upgrade price in Purchase button", () => {
+    const state = makeState(
+      { mineralHoes: { unlocked: true, researched: false } },
+      {},
+      { minerals: { value: 500 }, science: { value: 200 } },
+    );
+    render(<WorkshopPanel state={state} />);
+    // button should include cost info (275 minerals)
+    expect(screen.getByText(/275/)).toBeTruthy();
+  });
+
+  it("disables Purchase button when player cannot afford upgrade", () => {
+    const state = makeState(
+      { mineralHoes: { unlocked: true, researched: false } },
+      {},
+      { minerals: { value: 0 }, science: { value: 0 } },
+    );
+    render(<WorkshopPanel state={state} />);
+    const btn = screen.getByRole("button", { name: /purchase/i });
+    expect(btn.hasAttribute("disabled")).toBe(true);
+  });
+
+  it("enables Purchase button when player can afford upgrade", () => {
+    const state = makeState(
+      { mineralHoes: { unlocked: true, researched: false } },
+      {},
+      { minerals: { value: 500 }, science: { value: 200 } },
+    );
+    render(<WorkshopPanel state={state} />);
+    const btn = screen.getByRole("button", { name: /purchase/i });
+    expect(btn.hasAttribute("disabled")).toBe(false);
   });
 
   it("renders unlocked crafts with Craft button", () => {
