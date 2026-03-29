@@ -79,7 +79,7 @@ export interface SerializedGameState {
   tick: number;
   effectCache: Record<string, number>;
   resources: Record<string, { value: number; maxValue: number; perTick: number }>;
-  buildings: Record<string, { val: number; on: number }>;
+  buildings: Record<string, { val: number; on: number; unlocked?: boolean }>;
   village: {
     kittens: number;
     kittenProgress: number;
@@ -155,9 +155,11 @@ export function serialize(state: GameState): SerializedGameState {
     };
   }
 
-  const buildings: Record<string, { val: number; on: number }> = {};
+  const buildings: Record<string, { val: number; on: number; unlocked?: boolean }> = {};
   for (const [name, entry] of Object.entries(state.buildings)) {
-    buildings[name] = { val: entry.val, on: entry.on };
+    buildings[name] = entry.unlocked !== undefined
+      ? { val: entry.val, on: entry.on, unlocked: entry.unlocked }
+      : { val: entry.val, on: entry.on };
   }
 
   const jobs: Record<string, { value: number }> = {};

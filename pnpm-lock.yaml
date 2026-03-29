@@ -42,6 +42,9 @@ importers:
       '@kittens/api-spec':
         specifier: workspace:*
         version: link:../api-spec
+      '@kittens/engine':
+        specifier: workspace:*
+        version: link:../engine
       '@kittens/shared':
         specifier: workspace:*
         version: link:../shared

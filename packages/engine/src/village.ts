@@ -117,11 +117,17 @@ export class VillageManager implements Manager {
     const kittensPerTick = kittensPerTickBase * (1 + kittenGrowthRatio);
     const maxKittens = state.effectCache.maxKittens ?? 0;
 
-    kittenProgress += kittensPerTick;
-
-    if (kittenProgress >= 1 && kittens < maxKittens) {
-      kittens += 1;
-      kittenProgress -= 1;
+    // Port of legacy sim.update(): only accumulate progress while below capacity.
+    // When kittens reach maxKittens, reset progress to 0 (no backlog building up).
+    if (kittens < maxKittens) {
+      kittenProgress += kittensPerTick;
+      if (kittenProgress >= 1) {
+        kittens += 1;
+        kittenProgress -= 1;
+        if (kittens >= maxKittens) {
+          kittenProgress = 0;
+        }
+      }
     }
 
     // ── Kitten death ──────────────────────────────────────────────────────────
