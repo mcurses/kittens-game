@@ -341,3 +341,30 @@ Stories: 5/5 complete
 
 Engine tests: 721 passing | Line coverage: 99.65% | Branch: 89.13%
 Server tests: 43 passing (LOG_MESSAGE emission + requiredTech — post-epic action items)
+
+---
+
+## Epic 25: UI Completeness
+**Status:** Complete | **Started:** 2026-03-29 | **Finished:** 2026-03-29
+Stories: 9 / 9 complete
+
+- [x] Story 25-1: Server auto-tick loop — startAutoTick/stopAutoTick on GameStateStore
+- [x] Story 25-2: VillagePanel — kittens/maxKittens/happiness summary in header
+- [x] Story 25-3: Per-tick rates in ResourcePanel — serialize perTick in engine state
+- [x] Story 25-4: Tech and upgrade costs in Science/Workshop panels (TECH_DEFS/UPGRADE_DEFS)
+- [x] Story 25-5: Religion tab — faith, Praise/Adore/Transcend, ziggurat/religion upgrades
+- [x] Story 25-6: Space tab — missions with Launch, space buildings with Buy
+- [x] Story 25-7: Time tab — heat/flux, Shatter TC, CFU/VSU buy buttons
+- [x] Story 25-8: Diplomacy tab — races with Send Embassy + Trade buttons
+- [x] Story 25-9: Craft-N UI — ×1/×5/×25/×100 buttons per craftable
+
+Pre-epic action items executed:
+- [x] _broadcast refactor (single helper vs duplicate _broadcastLog/_broadcastDelta)
+- [x] Season change LOG_MESSAGE added to advanceTick
+
+Engine tests: 724 passing | Line coverage: 99.65%
+Server tests: 48 passing | Line coverage: 96.35%
+Client-web tests: 176 passing | Line coverage: 98.44%
+Total: 972 tests across all packages
+
+Prerequisites: Epics 20, 21
