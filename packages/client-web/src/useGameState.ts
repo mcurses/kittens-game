@@ -5,10 +5,10 @@ import { fetchGameState } from "./api.js";
 
 export const GAME_STATE_QUERY_KEY = ["gameState"] as const;
 
-export function useGameState() {
+export function useGameState(slot = "default") {
   return useQuery<GameStateResponse>({
-    queryKey: GAME_STATE_QUERY_KEY,
-    queryFn: fetchGameState,
+    queryKey: [...GAME_STATE_QUERY_KEY, slot],
+    queryFn: () => fetchGameState(slot),
     staleTime: 0,
   });
 }

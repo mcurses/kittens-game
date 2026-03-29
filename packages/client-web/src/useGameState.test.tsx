@@ -61,13 +61,24 @@ describe("useGameState", () => {
     expect(result.current.error).toBeTruthy();
   });
 
-  it("uses queryKey ['gameState']", async () => {
+  it("uses queryKey ['gameState', 'default'] for default slot", async () => {
     const state = { version: 1, tick: 5 };
     mockFetch.mockResolvedValueOnce(makeResponse(state));
     const { wrapper, queryClient } = makeWrapper();
     renderHook(() => useGameState(), { wrapper });
     await waitFor(() =>
-      expect(queryClient.getQueryData(["gameState"])).toEqual(state),
+      expect(queryClient.getQueryData(["gameState", "default"])).toEqual(state),
     );
+  });
+
+  it("uses queryKey ['gameState', slot] for named slot", async () => {
+    const state = { version: 1, tick: 7 };
+    mockFetch.mockResolvedValueOnce(makeResponse(state));
+    const { wrapper, queryClient } = makeWrapper();
+    renderHook(() => useGameState("mysave"), { wrapper });
+    await waitFor(() =>
+      expect(queryClient.getQueryData(["gameState", "mysave"])).toEqual(state),
+    );
+    expect(mockFetch).toHaveBeenCalledWith("/api/game/state?slot=mysave");
   });
 });

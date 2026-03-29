@@ -2,7 +2,7 @@ import { QueryClient } from "@tanstack/react-query";
 import { cleanup, render, screen } from "@testing-library/react";
 import React from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { App, getWsUrl } from "./App.js";
+import { App, getSlot, getWsUrl } from "./App.js";
 
 // Mock fetch (for useGameState initial query)
 const mockFetch = vi.fn();
@@ -144,5 +144,52 @@ describe("App", () => {
         true,
       ),
     ).toBe("ws://localhost:3000/ws");
+  });
+});
+
+describe("getSlot", () => {
+  it("returns 'default' when no slot param", () => {
+    expect(getSlot("")).toBe("default");
+    expect(getSlot("?foo=bar")).toBe("default");
+  });
+
+  it("returns the slot name from URL search param", () => {
+    expect(getSlot("?slot=mysave")).toBe("mysave");
+    expect(getSlot("?slot=save-1")).toBe("save-1");
+  });
+
+  it("returns 'default' for invalid slot names", () => {
+    expect(getSlot("?slot=../bad")).toBe("default");
+    expect(getSlot("?slot=")).toBe("default");
+    expect(getSlot("?slot=a".repeat(70))).toBe("default");
+  });
+});
+
+describe("getWsUrl with slot", () => {
+  it("includes slot param when slot is not default", () => {
+    const url = getWsUrl(
+      { protocol: "http:", host: "localhost:5173", hostname: "localhost", port: "5173" },
+      true,
+      "mysave",
+    );
+    expect(url).toBe("ws://localhost:3000/ws?slot=mysave");
+  });
+
+  it("omits slot param when slot is 'default'", () => {
+    const url = getWsUrl(
+      { protocol: "http:", host: "localhost:5173", hostname: "localhost", port: "5173" },
+      true,
+      "default",
+    );
+    expect(url).toBe("ws://localhost:3000/ws");
+  });
+
+  it("includes slot param in production URL", () => {
+    const url = getWsUrl(
+      { protocol: "https:", host: "mygame.com", hostname: "mygame.com", port: "" },
+      false,
+      "mysave",
+    );
+    expect(url).toBe("wss://mygame.com/ws?slot=mysave");
   });
 });

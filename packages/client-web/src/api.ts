@@ -18,18 +18,20 @@ export async function fetchHealth(): Promise<HealthResponse> {
 }
 
 /** GET /api/game/state */
-export async function fetchGameState(): Promise<GameStateResponse> {
-  const res = await fetch(`${BASE_URL}/api/game/state`);
+export async function fetchGameState(slot = "default"): Promise<GameStateResponse> {
+  const suffix = slot !== "default" ? `?slot=${slot}` : "";
+  const res = await fetch(`${BASE_URL}/api/game/state${suffix}`);
   if (!res.ok) throw new Error(`Failed to fetch game state: ${res.status}`);
   return res.json() as Promise<GameStateResponse>;
 }
 
 /** POST /api/game/action */
-export async function postGameAction(action: {
-  type: string;
-  [key: string]: unknown;
-}): Promise<ActionResult> {
-  const res = await fetch(`${BASE_URL}/api/game/action`, {
+export async function postGameAction(
+  action: { type: string; [key: string]: unknown },
+  slot = "default",
+): Promise<ActionResult> {
+  const suffix = slot !== "default" ? `?slot=${slot}` : "";
+  const res = await fetch(`${BASE_URL}/api/game/action${suffix}`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(action),

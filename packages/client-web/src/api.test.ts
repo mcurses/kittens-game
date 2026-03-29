@@ -52,6 +52,20 @@ describe("fetchGameState", () => {
     expect(mockFetch).toHaveBeenCalledWith("/api/game/state");
   });
 
+  it("appends slot param when slot is provided", async () => {
+    const body = { version: 1, tick: 42 };
+    mockFetch.mockResolvedValueOnce(makeResponse(body));
+    await fetchGameState("mysave");
+    expect(mockFetch).toHaveBeenCalledWith("/api/game/state?slot=mysave");
+  });
+
+  it("omits slot param when slot is 'default'", async () => {
+    const body = { version: 1, tick: 42 };
+    mockFetch.mockResolvedValueOnce(makeResponse(body));
+    await fetchGameState("default");
+    expect(mockFetch).toHaveBeenCalledWith("/api/game/state");
+  });
+
   it("throws on non-ok response", async () => {
     mockFetch.mockResolvedValueOnce(makeResponse({}, 500));
     await expect(fetchGameState()).rejects.toThrow(
@@ -76,6 +90,16 @@ describe("postGameAction", () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ type: "GATHER_CATNIP" }),
       }),
+    );
+  });
+
+  it("appends slot param when slot is provided", async () => {
+    const actionResult = { ok: true, state: { version: 1, tick: 1 } };
+    mockFetch.mockResolvedValueOnce(makeResponse(actionResult, 200));
+    await postGameAction({ type: "GATHER_CATNIP" }, "mysave");
+    expect(mockFetch).toHaveBeenCalledWith(
+      "/api/game/action?slot=mysave",
+      expect.any(Object),
     );
   });
 

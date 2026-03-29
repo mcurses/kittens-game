@@ -61,7 +61,7 @@ describe("useGameAction", () => {
     const { result } = renderHook(() => useGameAction(), { wrapper });
     result.current.mutate({ type: "GATHER_CATNIP" });
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
-    expect(queryClient.getQueryData(["gameState"])).toEqual(newState);
+    expect(queryClient.getQueryData(["gameState", "default"])).toEqual(newState);
   });
 
   it("does not update cache when ok is false", async () => {
@@ -73,12 +73,12 @@ describe("useGameAction", () => {
     mockFetch.mockResolvedValueOnce(makeResponse(actionResult, 400));
     const { wrapper, queryClient } = makeWrapper();
     // Pre-seed cache with initial state
-    queryClient.setQueryData(["gameState"], { version: 1, tick: 5 });
+    queryClient.setQueryData(["gameState", "default"], { version: 1, tick: 5 });
     const { result } = renderHook(() => useGameAction(), { wrapper });
     result.current.mutate({ type: "BUY_BUILDING" });
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     // Cache should remain the original value
-    expect(queryClient.getQueryData(["gameState"])).toEqual({
+    expect(queryClient.getQueryData(["gameState", "default"])).toEqual({
       version: 1,
       tick: 5,
     });
