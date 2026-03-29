@@ -66,6 +66,8 @@ function roundToCentiday(day: number): number {
  * Port of `legacy/js/calendar.js` Calendar class.
  */
 export class CalendarManager implements Manager {
+  readonly sectionKey = "calendar";
+
   update(state: GameState): GameState {
     const cal = state.calendar;
     const prevIntDay = Math.floor(cal.day);

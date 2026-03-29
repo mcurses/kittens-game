@@ -108,6 +108,8 @@ function freeOneJobSlot(jobs: Record<string, JobEntry>): Record<string, JobEntry
  * Port of legacy VillageManager in village.js.
  */
 export class VillageManager implements Manager {
+  readonly sectionKey = "village";
+
   update(state: GameState): GameState {
     let { kittens, kittenProgress, jobs } = state.village;
 

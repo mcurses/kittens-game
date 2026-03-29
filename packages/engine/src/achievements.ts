@@ -379,6 +379,8 @@ export function createInitialAchievements(): AchievementState {
  * No GameActions are dispatched by this manager — achievements unlock passively.
  */
 export class AchievementManager implements Manager {
+  readonly sectionKey = "achievements";
+
   update(state: GameState): GameState {
     return produce(state, (draft) => {
       // Check achievements

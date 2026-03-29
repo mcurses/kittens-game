@@ -1593,6 +1593,8 @@ export function applyCraft(state: GameState, craftName: string, amt: number): Ga
 type Serializable_ = Serializable;
 
 export class WorkshopManager implements Manager {
+  readonly sectionKey = "workshop";
+
   update(state: GameState): GameState {
     return state;
   }

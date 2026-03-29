@@ -6,6 +6,12 @@ import type { GameState } from "./state.js";
  * Managers are pure: they receive state, return state. No side effects.
  */
 export interface Manager {
+  /**
+   * The key in SerializedGameState / GameState that this manager owns.
+   * Used by _fullDeserialize in the server store to pass the correct slice to load().
+   */
+  readonly sectionKey: string;
+
   /** Advance this manager's domain by one tick. Returns the updated state. */
   update(state: GameState): GameState;
 
@@ -24,6 +30,8 @@ export interface Manager {
 
 /** No-op manager for testing and placeholder use */
 export class NullManager implements Manager {
+  readonly sectionKey = "__null__";
+
   update(state: GameState): GameState {
     return state;
   }

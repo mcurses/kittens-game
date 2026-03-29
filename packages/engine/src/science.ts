@@ -1209,6 +1209,8 @@ export function applyResearchPolicy(state: GameState, policyName: string): GameS
  * Port of legacy/js/science.js ScienceManager.
  */
 export class ScienceManager implements Manager {
+  readonly sectionKey = "science";
+
   update(state: GameState): GameState {
     // No autonomous tick-driven changes; research happens via actions
     return state;

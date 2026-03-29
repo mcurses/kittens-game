@@ -793,6 +793,8 @@ export function applyRefineTimeCrystals(state: GameState): GameState {
 // ── ReligionManager ───────────────────────────────────────────────────────────
 
 export class ReligionManager implements Manager {
+  readonly sectionKey = "religion";
+
   update(state: GameState): GameState {
     // Faith per tick — faith resource accumulates based on effectCache
     const faithPerTick = state.effectCache["faithPerTick"] ?? 0;

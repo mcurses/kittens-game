@@ -204,11 +204,13 @@ export class GameStateStore {
 
   // ── Internal helpers ─────────────────────────────────────────────────────
 
-  /** Full deserialization: base deserialize + each manager's load() */
+  /** Full deserialization: base deserialize + each manager's load() with its own slice */
   private _fullDeserialize(data: SerializedGameState): GameState {
     let state = deserialize(data);
+    const dataMap = data as unknown as Record<string, unknown>;
     for (const manager of this.managers) {
-      state = manager.load(data as unknown as Parameters<typeof manager.load>[0], state);
+      const slice = dataMap[manager.sectionKey];
+      state = manager.load(slice as Parameters<typeof manager.load>[0], state);
     }
     // Rebuild effect cache after loading
     const effectCache = buildEffectCache(this.managers, state);

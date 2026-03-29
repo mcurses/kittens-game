@@ -349,6 +349,8 @@ export function applyTrade(state: GameState, raceName: string): GameState {
 // ── DiplomacyManager ──────────────────────────────────────────────────────────
 
 export class DiplomacyManager implements Manager {
+  readonly sectionKey = "diplomacy";
+
   update(state: GameState): GameState {
     return produce(state, (draft) => {
       // Unlock nagas when culture >= 1500

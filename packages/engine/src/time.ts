@@ -395,6 +395,8 @@ const TIME_EFFECTS_BASE: Readonly<Record<string, number>> = {
 };
 
 export class TimeManager implements Manager {
+  readonly sectionKey = "time";
+
   update(state: GameState): GameState {
     return produce(state, (draft) => {
       // Transfer heat from global pool to blastFurnace

@@ -397,6 +397,8 @@ export function getChallengeEffectValue(
 // ── ChallengeManager ──────────────────────────────────────────────────────────
 
 export class ChallengeManager implements Manager {
+  readonly sectionKey = "challenges";
+
   update(state: GameState): GameState {
     // No per-tick challenge update needed in engine (completion conditions
     // are driven by server-side checks, not inline tick logic)

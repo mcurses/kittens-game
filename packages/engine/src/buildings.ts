@@ -243,6 +243,8 @@ export function canAfford(prices: readonly PriceEntry[], resources: ResourceStat
  * Port of legacy `BuildingsManager` in buildings.js.
  */
 export class BuildingManager implements Manager {
+  readonly sectionKey = "buildings";
+
   update(state: GameState): GameState {
     // Check auto-unlock for defaultUnlockable buildings (one-way: never lock back once unlocked).
     // Port of legacy BuildingsManager.update() isUnlocked() check with unlockRatio.

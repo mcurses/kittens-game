@@ -387,6 +387,8 @@ export function getParagonStorageRatio(
 // ── PrestigeManager ───────────────────────────────────────────────────────────
 
 export class PrestigeManager implements Manager {
+  readonly sectionKey = "prestige";
+
   update(state: GameState): GameState {
     // No per-tick updates needed — prestige is passive
     return state;

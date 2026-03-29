@@ -771,6 +771,8 @@ export function applyBuySpaceBuilding(state: GameState, name: string): GameState
 // ── SpaceManager ──────────────────────────────────────────────────────────────
 
 export class SpaceManager implements Manager {
+  readonly sectionKey = "space";
+
   update(state: GameState): GameState {
     return produce(state, (draft) => {
       // 1. Advance planet route travel

@@ -128,6 +128,8 @@ export function calcResourcePerTick(effectCache: Record<string, number>, name: s
  * Port of legacy `resPool.update()` in resources.js.
  */
 export class ResourceManager implements Manager {
+  readonly sectionKey = "resources";
+
   update(state: GameState): GameState {
     const newResources: ResourceState = {};
 
