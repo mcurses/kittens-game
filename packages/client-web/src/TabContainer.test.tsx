@@ -19,6 +19,18 @@ vi.mock("./SciencePanel.js", () => ({
 vi.mock("./WorkshopPanel.js", () => ({
   WorkshopPanel: () => <div data-testid="workshop-panel">Workshop</div>,
 }));
+vi.mock("./ReligionPanel.js", () => ({
+  ReligionPanel: () => <div data-testid="religion-panel">Religion</div>,
+}));
+vi.mock("./SpacePanel.js", () => ({
+  SpacePanel: () => <div data-testid="space-panel">Space</div>,
+}));
+vi.mock("./TimePanel.js", () => ({
+  TimePanel: () => <div data-testid="time-panel">Time</div>,
+}));
+vi.mock("./DiplomacyPanel.js", () => ({
+  DiplomacyPanel: () => <div data-testid="diplomacy-panel">Diplomacy</div>,
+}));
 
 afterEach(() => {
   cleanup();
@@ -39,6 +51,35 @@ describe("TabContainer", () => {
     expect(screen.getByRole("button", { name: /jobs/i })).toBeTruthy();
     expect(screen.getByRole("button", { name: /science/i })).toBeTruthy();
     expect(screen.getByRole("button", { name: /workshop/i })).toBeTruthy();
+    expect(screen.getByRole("button", { name: /religion/i })).toBeTruthy();
+    expect(screen.getByRole("button", { name: /space/i })).toBeTruthy();
+    expect(screen.getByRole("button", { name: /time/i })).toBeTruthy();
+    expect(screen.getByRole("button", { name: /diplomacy/i })).toBeTruthy();
+  });
+
+  it("switches to Religion panel when Religion tab clicked", () => {
+    render(<TabContainer state={null} />);
+    fireEvent.click(screen.getByRole("button", { name: /religion/i }));
+    expect(screen.getByTestId("religion-panel")).toBeTruthy();
+    expect(screen.queryByTestId("resource-panel")).toBeNull();
+  });
+
+  it("switches to Space panel when Space tab clicked", () => {
+    render(<TabContainer state={null} />);
+    fireEvent.click(screen.getByRole("button", { name: /space/i }));
+    expect(screen.getByTestId("space-panel")).toBeTruthy();
+  });
+
+  it("switches to Time panel when Time tab clicked", () => {
+    render(<TabContainer state={null} />);
+    fireEvent.click(screen.getByRole("button", { name: /time/i }));
+    expect(screen.getByTestId("time-panel")).toBeTruthy();
+  });
+
+  it("switches to Diplomacy panel when Diplomacy tab clicked", () => {
+    render(<TabContainer state={null} />);
+    fireEvent.click(screen.getByRole("button", { name: /diplomacy/i }));
+    expect(screen.getByTestId("diplomacy-panel")).toBeTruthy();
   });
 
   it("switches to Buildings panel when Buildings tab clicked", () => {

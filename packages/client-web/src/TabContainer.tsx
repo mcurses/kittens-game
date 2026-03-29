@@ -2,12 +2,25 @@
 import type { GameStateResponse } from "@kittens/api-spec";
 import React, { useState } from "react";
 import { BuildingsPanel } from "./BuildingsPanel.js";
+import { DiplomacyPanel } from "./DiplomacyPanel.js";
 import { JobsPanel } from "./JobsPanel.js";
+import { ReligionPanel } from "./ReligionPanel.js";
 import { ResourcePanel } from "./ResourcePanel.js";
 import { SciencePanel } from "./SciencePanel.js";
+import { SpacePanel } from "./SpacePanel.js";
+import { TimePanel } from "./TimePanel.js";
 import { WorkshopPanel } from "./WorkshopPanel.js";
 
-type TabId = "resources" | "buildings" | "jobs" | "science" | "workshop";
+type TabId =
+  | "resources"
+  | "buildings"
+  | "jobs"
+  | "science"
+  | "workshop"
+  | "religion"
+  | "space"
+  | "time"
+  | "diplomacy";
 
 const TABS: { id: TabId; label: string }[] = [
   { id: "resources", label: "Resources" },
@@ -15,6 +28,10 @@ const TABS: { id: TabId; label: string }[] = [
   { id: "jobs", label: "Jobs" },
   { id: "science", label: "Science" },
   { id: "workshop", label: "Workshop" },
+  { id: "religion", label: "Religion" },
+  { id: "space", label: "Space" },
+  { id: "time", label: "Time" },
+  { id: "diplomacy", label: "Diplomacy" },
 ];
 
 interface Props {
@@ -43,6 +60,10 @@ export function TabContainer({ state }: Props): React.ReactElement {
       {activeTab === "jobs" && <JobsPanel state={state} />}
       {activeTab === "science" && <SciencePanel state={state} />}
       {activeTab === "workshop" && <WorkshopPanel state={state} />}
+      {activeTab === "religion" && <ReligionPanel state={state} />}
+      {activeTab === "space" && <SpacePanel state={state} />}
+      {activeTab === "time" && <TimePanel state={state} />}
+      {activeTab === "diplomacy" && <DiplomacyPanel state={state} />}
     </div>
   );
 }
