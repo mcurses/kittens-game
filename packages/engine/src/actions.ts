@@ -20,7 +20,7 @@ import { applySendEmbassy, applyTrade } from "./diplomacy.js";
 import { applyBuySpaceBuilding, applyLaunchMission } from "./space.js";
 import { applyBuyCfu, applyBuyVsu, applyShatterTc } from "./time.js";
 import type { GameState } from "./state.js";
-import { JOB_DEFS, totalAssignedKittens } from "./village.js";
+import { JOB_DEFS, applyHunt, totalAssignedKittens } from "./village.js";
 import { applyCraft, applyPurchaseUpgrade } from "./workshop.js";
 
 /** Discriminated union of all possible game actions */
@@ -54,7 +54,8 @@ export type GameAction =
   | { readonly type: "BURN_PARAGON" }
   | { readonly type: "SACRIFICE_UNICORNS" }
   | { readonly type: "SACRIFICE_ALICORNS" }
-  | { readonly type: "REFINE_TIME_CRYSTALS" };
+  | { readonly type: "REFINE_TIME_CRYSTALS" }
+  | { readonly type: "HUNT" };
 
 /**
  * Pure reducer: apply an action to a state and return the next state.
@@ -213,6 +214,9 @@ export function applyAction(
     }
     case "REFINE_TIME_CRYSTALS": {
       return applyRefineTimeCrystals(state);
+    }
+    case "HUNT": {
+      return applyHunt(state);
     }
   }
 }

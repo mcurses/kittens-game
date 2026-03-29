@@ -398,6 +398,12 @@ components:
             type:
               type: string
               enum: [REFINE_TIME_CRYSTALS]
+        - type: object
+          required: [type]
+          properties:
+            type:
+              type: string
+              enum: [HUNT]
       discriminator:
         propertyName: type
 

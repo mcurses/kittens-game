@@ -1,4 +1,5 @@
 import type { Serializable } from "@kittens/shared";
+import { produce } from "immer";
 import type { Manager } from "./manager.js";
 import { calcResourcePerTick } from "./resources.js";
 import type { GameState } from "./state.js";
@@ -220,4 +221,82 @@ export class VillageManager implements Manager {
   resetState(state: GameState): GameState {
     return { ...state, village: createInitialVillage() };
   }
+}
+
+// ── Hunt action ───────────────────────────────────────────────────────────────
+
+/**
+ * Sum of `n` independent uniform [0,1] random variables (Irwin-Hall distribution).
+ * Port of legacy math.js irwinHallRandom().
+ */
+function irwinHallRandom(n: number): number {
+  if (n <= 0) return 0;
+  let result = 0;
+  for (let i = 0; i < n; i++) {
+    result += Math.random();
+  }
+  return result;
+}
+
+/**
+ * Count of successes in `n` Bernoulli trials with probability `p` (Binomial distribution).
+ * Port of legacy math.js binominalRandomInteger().
+ */
+function binomialRandom(n: number, p: number): number {
+  if (p <= 0 || n <= 0) return 0;
+  if (p >= 1) return n;
+  let result = 0;
+  for (let i = 0; i < n; i++) {
+    if (Math.random() < p) result++;
+  }
+  return result;
+}
+
+/**
+ * Add a resource amount, capping to maxValue when maxValue > 0.
+ * Port of legacy addRes semantics.
+ */
+function addRes(
+  resources: Record<string, { value: number; maxValue: number }>,
+  name: string,
+  amount: number,
+): void {
+  const entry = resources[name];
+  if (!entry || amount <= 0) return;
+  if (entry.maxValue > 0) {
+    entry.value = Math.min(entry.value + amount, entry.maxValue);
+  } else {
+    entry.value += amount;
+  }
+}
+
+/**
+ * Apply a HUNT action: spend manpower to gain furs, ivory, and occasionally unicorns.
+ * Cost: 100 manpower per squad (reduced by huntCatpowerDiscount effect).
+ * Port of legacy village.js huntFraction(1) / gainHuntRes().
+ */
+export function applyHunt(state: GameState): GameState {
+  const huntCost = 100 - (state.effectCache.huntCatpowerDiscount ?? 0);
+  const manpower = state.resources.manpower?.value ?? 0;
+  const squads = Math.floor(manpower / huntCost);
+  if (squads < 1) return state;
+
+  const hunterRatio = state.effectCache.hunterRatio ?? 0;
+
+  const fursGained = Math.floor(
+    80 * irwinHallRandom(squads) + 65 * hunterRatio * irwinHallRandom(squads),
+  );
+  const ivoryHunts = binomialRandom(squads, 0.45 + 0.02 * hunterRatio);
+  const ivoryGained = Math.floor(
+    50 * irwinHallRandom(ivoryHunts) + 40 * hunterRatio * irwinHallRandom(ivoryHunts),
+  );
+  const unicornsGained = binomialRandom(squads, 0.05);
+
+  return produce(state, (draft) => {
+    const mp = draft.resources.manpower;
+    if (mp) mp.value = Math.max(0, mp.value - squads * huntCost);
+    addRes(draft.resources, "furs", fursGained);
+    addRes(draft.resources, "ivory", ivoryGained);
+    if (unicornsGained > 0) addRes(draft.resources, "unicorns", unicornsGained);
+  });
 }

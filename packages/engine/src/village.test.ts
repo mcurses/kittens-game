@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { createInitialResources } from "./resources.js";
 import { createInitialState } from "./state.js";
-import { JOB_DEFS, VillageManager, createInitialVillage, totalAssignedKittens } from "./village.js";
+import { JOB_DEFS, VillageManager, applyHunt, createInitialVillage, totalAssignedKittens } from "./village.js";
 
 describe("JOB_DEFS", () => {
   it("contains all core jobs", () => {
@@ -506,5 +506,79 @@ describe("Story 21-4: Job production scales with happiness", () => {
     const effects = manager.updateEffects(state);
     // Consumption stays at full rate regardless of happiness
     expect(effects.catnipPerTickCon).toBeCloseTo(-0.85);
+  });
+});
+
+// ── applyHunt ────────────────────────────────────────────────────────────────
+
+describe("applyHunt", () => {
+  it("returns state unchanged when manpower < 100 (no squads available)", () => {
+    const state = createInitialState();
+    const next = applyHunt(state);
+    expect(next).toBe(state);
+  });
+
+  it("deducts 100 manpower per squad and adds furs", () => {
+    const state = {
+      ...createInitialState(),
+      resources: {
+        ...createInitialResources(),
+        manpower: { value: 200, maxValue: 0 },
+        furs: { value: 0, maxValue: 0 },
+      },
+    };
+    const next = applyHunt(state);
+    // 2 squads spent
+    expect(next.resources.manpower?.value).toBe(0);
+    // Furs gained (probabilistic but should be > 0 for 2 squads)
+    expect((next.resources.furs?.value ?? 0)).toBeGreaterThan(0);
+  });
+
+  it("adds ivory with some probability", () => {
+    // Run many squads to ensure ivory rolls in
+    const state = {
+      ...createInitialState(),
+      resources: {
+        ...createInitialResources(),
+        manpower: { value: 10000, maxValue: 0 },
+        furs: { value: 0, maxValue: 0 },
+        ivory: { value: 0, maxValue: 0 },
+      },
+    };
+    const next = applyHunt(state);
+    // 100 squads: ivory probability 0.45 per squad, so extremely likely to get some
+    expect((next.resources.ivory?.value ?? 0)).toBeGreaterThan(0);
+  });
+
+  it("caps furs at maxValue when maxValue > 0", () => {
+    const state = {
+      ...createInitialState(),
+      resources: {
+        ...createInitialResources(),
+        manpower: { value: 100, maxValue: 0 },
+        furs: { value: 100, maxValue: 150 },
+      },
+    };
+    const next = applyHunt(state);
+    expect((next.resources.furs?.value ?? 0)).toBeLessThanOrEqual(150);
+  });
+
+  it("respects huntCatpowerDiscount effect", () => {
+    const state = {
+      ...createInitialState(),
+      resources: {
+        ...createInitialResources(),
+        manpower: { value: 50, maxValue: 0 },
+        furs: { value: 0, maxValue: 0 },
+      },
+      effectCache: {
+        ...createInitialState().effectCache,
+        huntCatpowerDiscount: 50, // hunt cost = 50
+      },
+    };
+    // With discount: 50 manpower / 50 cost = 1 squad
+    const next = applyHunt(state);
+    expect(next.resources.manpower?.value).toBe(0);
+    expect((next.resources.furs?.value ?? 0)).toBeGreaterThan(0);
   });
 });
