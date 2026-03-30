@@ -1,4 +1,4 @@
-// JobsPanel — displays jobs with assign/unassign controls
+// JobsPanel — displays jobs with assign/unassign stepper controls
 import type { GameStateResponse } from "@kittens/api-spec";
 import React from "react";
 import { useGameAction } from "./useGameAction.js";
@@ -35,39 +35,44 @@ export function JobsPanel({ state }: Props): React.ReactElement {
   const { mutate, isPending } = useGameAction();
 
   if (!state) {
-    return <div data-testid="jobs-panel-loading">Loading jobs...</div>;
+    return <div className="loading-text" data-testid="jobs-panel-loading">Loading…</div>;
   }
 
   const jobs = extractJobs(state);
 
   return (
     <div data-testid="jobs-panel">
-      <h2>Jobs</h2>
+      <div className="panel-label">Job Assignments</div>
       {jobs.length === 0 ? (
-        <p>No jobs available.</p>
+        <p className="panel-empty">No jobs available.</p>
       ) : (
-        <ul>
+        <ul className="item-list">
           {jobs.map((j) => (
-            <li key={j.name} data-testid={`job-${j.name}`}>
-              <span className="job-name">{j.name}</span>
-              {": "}
-              <span className="job-count">{j.value}</span>
-              <button
-                type="button"
-                data-testid={`job-${j.name}-assign`}
-                disabled={isPending}
-                onClick={() => mutate({ type: "ASSIGN_JOB", job: j.name })}
-              >
-                +
-              </button>
-              <button
-                type="button"
-                data-testid={`job-${j.name}-unassign`}
-                disabled={isPending || j.value <= 0}
-                onClick={() => mutate({ type: "UNASSIGN_JOB", job: j.name })}
-              >
-                -
-              </button>
+            <li key={j.name} data-testid={`job-${j.name}`} className="item-row">
+              <span className="item-row-name job-name">{j.name}</span>
+              <div className="job-stepper">
+                <button
+                  type="button"
+                  className="btn btn--secondary btn--icon"
+                  data-testid={`job-${j.name}-unassign`}
+                  disabled={isPending || j.value <= 0}
+                  onClick={() => mutate({ type: "UNASSIGN_JOB", job: j.name })}
+                  aria-label={`Remove kittens from ${j.name}`}
+                >
+                  −
+                </button>
+                <span className="job-count-display job-count">{j.value}</span>
+                <button
+                  type="button"
+                  className="btn btn--secondary btn--icon"
+                  data-testid={`job-${j.name}-assign`}
+                  disabled={isPending}
+                  onClick={() => mutate({ type: "ASSIGN_JOB", job: j.name })}
+                  aria-label={`Assign kittens to ${j.name}`}
+                >
+                  +
+                </button>
+              </div>
             </li>
           ))}
         </ul>

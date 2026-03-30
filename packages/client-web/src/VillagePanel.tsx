@@ -1,4 +1,4 @@
-// VillagePanel — read-only village summary: kittens, happiness, population cap
+// VillagePanel — read-only village summary as a header status pill
 import type { GameStateResponse } from "@kittens/api-spec";
 import React from "react";
 
@@ -28,18 +28,20 @@ function extractVillageInfo(state: GameStateResponse): VillageInfo {
 
 export function VillagePanel({ state }: Props): React.ReactElement {
   if (!state) {
-    return <div data-testid="village-panel-loading">Loading village...</div>;
+    return (
+      <div className="status-pill" data-testid="village-panel-loading">
+        Loading village...
+      </div>
+    );
   }
 
   const { kittens, maxKittens, happiness } = extractVillageInfo(state);
   const happinessPct = Math.round(happiness * 100);
 
   return (
-    <div data-testid="village-panel">
-      <span className="village-population">
-        {kittens} / {maxKittens} kittens
-      </span>
-      {" — "}
+    <div className="status-pill" data-testid="village-panel">
+      <span className="village-population">{kittens} / {maxKittens} kittens</span>
+      <span className="status-pill-label"> — </span>
       <span className="village-happiness">{happinessPct}% happy</span>
     </div>
   );

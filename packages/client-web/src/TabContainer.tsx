@@ -1,6 +1,6 @@
 // TabContainer — tab navigation for main game panels
 import type { GameStateResponse } from "@kittens/api-spec";
-import React, { useState } from "react";
+import React from "react";
 import { AchievementsPanel } from "./AchievementsPanel.js";
 import { BuildingsPanel } from "./BuildingsPanel.js";
 import { DiplomacyPanel } from "./DiplomacyPanel.js";
@@ -34,6 +34,7 @@ const TABS: { id: TabId; label: string }[] = [
   { id: "diplomacy", label: "Diplomacy" },
   { id: "achievements", label: "Achievements" },
 ];
+
 const ACTIVE_MAIN_TAB_KEY = "kittens.ui.activeMainTab";
 
 interface Props {
@@ -48,28 +49,32 @@ export function TabContainer({ state }: Props): React.ReactElement {
   );
 
   return (
-    <div data-testid="tab-container">
-      <nav>
+    <div data-testid="tab-container" style={{ display: "contents" }}>
+      <nav className="tab-nav" aria-label="Game sections">
         {TABS.map((tab) => (
           <button
             key={tab.id}
             type="button"
             data-active={activeTab === tab.id ? "true" : "false"}
+            className="tab-btn"
             onClick={() => setActiveTab(tab.id)}
           >
             {tab.label}
           </button>
         ))}
       </nav>
-      {activeTab === "buildings" && <BuildingsPanel state={state} />}
-      {activeTab === "jobs" && <JobsPanel state={state} />}
-      {activeTab === "science" && <SciencePanel state={state} />}
-      {activeTab === "workshop" && <WorkshopPanel state={state} />}
-      {activeTab === "religion" && <ReligionPanel state={state} />}
-      {activeTab === "space" && <SpacePanel state={state} />}
-      {activeTab === "time" && <TimePanel state={state} />}
-      {activeTab === "diplomacy" && <DiplomacyPanel state={state} />}
-      {activeTab === "achievements" && <AchievementsPanel state={state} />}
+
+      <div className="tab-content" role="tabpanel">
+        {activeTab === "buildings"    && <BuildingsPanel state={state} />}
+        {activeTab === "jobs"         && <JobsPanel state={state} />}
+        {activeTab === "science"      && <SciencePanel state={state} />}
+        {activeTab === "workshop"     && <WorkshopPanel state={state} />}
+        {activeTab === "religion"     && <ReligionPanel state={state} />}
+        {activeTab === "space"        && <SpacePanel state={state} />}
+        {activeTab === "time"         && <TimePanel state={state} />}
+        {activeTab === "diplomacy"    && <DiplomacyPanel state={state} />}
+        {activeTab === "achievements" && <AchievementsPanel state={state} />}
+      </div>
     </div>
   );
 }

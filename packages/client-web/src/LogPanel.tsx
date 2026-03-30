@@ -1,4 +1,4 @@
-// LogPanel — displays recent game log messages
+// LogPanel — dark terminal-style game event log
 import React, { useEffect, useRef } from "react";
 
 interface Props {
@@ -16,20 +16,22 @@ export function LogPanel({ messages }: Props): React.ReactElement {
   }, [messages]);
 
   return (
-    <div data-testid="log-panel">
-      <h2>Log</h2>
-      {messages.length === 0 ? (
-        <p>No messages yet.</p>
-      ) : (
-        <ul ref={listRef} style={{ maxHeight: "200px", overflowY: "auto" }}>
-          {messages.map((msg, idx) => (
+    <div data-testid="log-panel" style={{ display: "contents" }}>
+      <div className="log-header">
+        <span className="log-label">Log</span>
+      </div>
+      <ul ref={listRef} className="log-list" aria-label="Game log">
+        {messages.length === 0 ? (
+          <li className="log-empty">No messages yet.</li>
+        ) : (
+          messages.map((msg, idx) => (
             // biome-ignore lint/suspicious/noArrayIndexKey: log messages are append-only
-            <li key={idx} data-testid={`log-message-${idx}`}>
+            <li key={idx} className="log-entry" data-testid={`log-message-${idx}`}>
               {msg}
             </li>
-          ))}
-        </ul>
-      )}
+          ))
+        )}
+      </ul>
     </div>
   );
 }

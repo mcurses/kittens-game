@@ -61,7 +61,7 @@ export function WorkshopPanel({ state }: Props): React.ReactElement {
   const { mutate, isPending } = useGameAction();
 
   if (!state) {
-    return <div data-testid="workshop-panel-loading">Loading workshop...</div>;
+    return <div className="loading-text" data-testid="workshop-panel-loading">Loading…</div>;
   }
 
   const upgrades = extractUpgrades(state);
@@ -70,58 +70,70 @@ export function WorkshopPanel({ state }: Props): React.ReactElement {
 
   return (
     <div data-testid="workshop-panel">
-      <h2>Workshop</h2>
+      <div className="panel-label">Upgrades</div>
       {upgrades.length === 0 ? (
-        <p>No upgrades available.</p>
+        <p className="panel-empty">No upgrades available.</p>
       ) : (
-        <ul>
+        <ul className="item-list">
           {upgrades.map((u) => {
             const def = UPGRADE_DEFS.find((d) => d.name === u.name);
             const prices = def?.prices ?? [];
             const affordable = canAfford(prices, resources);
-            const costLabel = prices.length > 0
-              ? ` (${prices.map((p) => `${p.val} ${p.name}`).join(", ")})`
-              : "";
+            const costLabel =
+              prices.length > 0
+                ? prices.map((p) => `${p.val} ${p.name}`).join(", ")
+                : "";
+
             return (
-              <li key={u.name} data-testid={`upgrade-${u.name}`}>
-                <span className="upgrade-name">{u.name}</span>
-                {u.researched ? (
-                  <span className="upgrade-done"> — Done</span>
-                ) : (
-                  <button
-                    type="button"
-                    disabled={isPending || !affordable}
-                    onClick={() => mutate({ type: "PURCHASE_UPGRADE", name: u.name })}
-                  >
-                    Purchase{costLabel}
-                  </button>
+              <li key={u.name} data-testid={`upgrade-${u.name}`} className="item-row">
+                <span className="item-row-name upgrade-name">{u.name}</span>
+                {costLabel && !u.researched && (
+                  <span className="item-row-cost">{costLabel}</span>
                 )}
+                <div className="item-row-actions">
+                  {u.researched ? (
+                    <span className="done-badge upgrade-done">✓ Done</span>
+                  ) : (
+                    <button
+                      type="button"
+                      className={`btn btn--sm${affordable ? " btn--primary" : " btn--secondary"}`}
+                      disabled={isPending || !affordable}
+                      onClick={() => mutate({ type: "PURCHASE_UPGRADE", name: u.name })}
+                    >
+                      Purchase
+                    </button>
+                  )}
+                </div>
               </li>
             );
           })}
         </ul>
       )}
+
       {crafts.length > 0 && (
-        <section>
-          <h3>Crafting</h3>
-          <ul>
+        <div className="panel-subsection">
+          <div className="panel-sublabel">Crafting</div>
+          <ul className="item-list">
             {crafts.map((c) => (
-              <li key={c.name} data-testid={`craft-${c.name}`}>
-                <span className="craft-name">{c.name}</span>
-                {([1, 5, 25, 100] as const).map((amt) => (
-                  <button
-                    key={amt}
-                    type="button"
-                    disabled={isPending}
-                    onClick={() => mutate({ type: "CRAFT", name: c.name, amount: amt })}
-                  >
-                    ×{amt}
-                  </button>
-                ))}
+              <li key={c.name} data-testid={`craft-${c.name}`} className="item-row">
+                <span className="item-row-name craft-name">{c.name}</span>
+                <div className="craft-amounts">
+                  {([1, 5, 25, 100] as const).map((amt) => (
+                    <button
+                      key={amt}
+                      type="button"
+                      className="btn btn--secondary btn--xs"
+                      disabled={isPending}
+                      onClick={() => mutate({ type: "CRAFT", name: c.name, amount: amt })}
+                    >
+                      ×{amt}
+                    </button>
+                  ))}
+                </div>
               </li>
             ))}
           </ul>
-        </section>
+        </div>
       )}
     </div>
   );

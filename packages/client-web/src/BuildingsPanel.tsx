@@ -1,4 +1,4 @@
-// BuildingsPanel — displays unlocked buildings with buy controls and price info
+// BuildingsPanel — displays unlocked buildings as cards with buy controls
 import type { GameStateResponse } from "@kittens/api-spec";
 import { BUILDING_DEFS, getBuildingPrice } from "@kittens/engine";
 import React from "react";
@@ -39,7 +39,7 @@ export function BuildingsPanel({ state }: Props): React.ReactElement {
   const { mutate, isPending } = useGameAction();
 
   if (!state) {
-    return <div data-testid="buildings-panel-loading">Loading buildings...</div>;
+    return <div className="loading-text" data-testid="buildings-panel-loading">Loading…</div>;
   }
 
   const buildings = extractBuildings(state);
@@ -47,34 +47,43 @@ export function BuildingsPanel({ state }: Props): React.ReactElement {
 
   return (
     <div data-testid="buildings-panel">
-      <h2>Buildings</h2>
+      <div className="panel-label">Structures</div>
       {buildings.length === 0 ? (
-        <p>No buildings available.</p>
+        <p className="panel-empty">No buildings available.</p>
       ) : (
-        <ul>
+        <ul className="card-grid" style={{ listStyle: "none" }}>
           {buildings.map((b) => {
             const def = BUILDING_DEFS.find((d) => d.name === b.name);
             const prices = def ? getBuildingPrice(def, b.val) : [];
             const affordable = canAfford(prices, resources);
+
             return (
-              <li key={b.name} data-testid={`building-${b.name}`}>
-                <span className="building-name">{b.name}</span>
-                {": "}
-                <span className="building-count">{b.val}</span>
+              <li
+                key={b.name}
+                data-testid={`building-${b.name}`}
+                className="item-card"
+              >
+                <div className="item-card-header">
+                  <span className="item-name building-name">{b.name}</span>
+                  <span className={`item-count building-count${b.val > 0 ? " item-count--has" : ""}`}>
+                    {b.val}
+                  </span>
+                </div>
+
                 {prices.length > 0 && (
-                  <span className="building-prices">
-                    {" ("}
+                  <div className="item-prices building-prices">
                     {prices.map((p, i) => (
                       <span key={p.name}>
-                        {i > 0 ? ", " : ""}
-                        {p.name}: {p.val.toFixed(0)}
+                        {i > 0 ? " · " : ""}
+                        {p.name} {p.val.toFixed(0)}
                       </span>
                     ))}
-                    {")"}
-                  </span>
+                  </div>
                 )}
+
                 <button
                   type="button"
+                  className={`btn btn--sm${affordable ? " btn--primary" : " btn--secondary"}`}
                   disabled={isPending || !affordable}
                   onClick={() => mutate({ type: "BUY_BUILDING", name: b.name })}
                 >

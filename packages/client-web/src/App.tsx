@@ -58,59 +58,46 @@ function GameView(): React.ReactElement {
 
   if (isError) {
     return (
-      <main>
-        <h1>Kittens Game</h1>
-        <p data-testid="game-state-error">
-          {error instanceof Error ? error.message : "Failed to load game state."}
-        </p>
-        <ActionPanel />
-      </main>
+      <div className="app">
+        <div className="error-view">
+          <h1 className="error-view-title">Could not connect</h1>
+          <p className="error-view-msg" data-testid="game-state-error">
+            {error instanceof Error ? error.message : "Failed to load game state."}
+          </p>
+          <ActionPanel />
+        </div>
+      </div>
     );
   }
 
   return (
-    <main>
-      <header>
-        <h1>Kittens Game</h1>
+    <div className="app">
+      <header className="app-header">
+        <span className="app-title">Kittens Game</span>
+        <div className="header-sep" aria-hidden="true" />
         <CalendarDisplay state={state} />
+        <div className="header-spacer" />
         <VillagePanel state={state} />
       </header>
-      <div
-        style={{
-          display: "flex",
-          gap: "1rem",
-          alignItems: "flex-start",
-          flexWrap: "wrap",
-        }}
-      >
-        <aside
-          data-testid="resource-sidebar"
-          style={{
-            width: "240px",
-            flex: "0 0 240px",
-          }}
-        >
+
+      <div className="app-body">
+        {/* Left — Resources */}
+        <aside data-testid="resource-sidebar" className="resource-sidebar">
           <ResourcePanel state={state} />
-        </aside>
-        <div
-          style={{
-            flex: "1 1 520px",
-            minWidth: "320px",
-          }}
-        >
-          <TabContainer state={state} />
           <ActionPanel />
-        </div>
-        <aside
-          style={{
-            width: "260px",
-            flex: "0 0 260px",
-          }}
-        >
+        </aside>
+
+        {/* Center — Main content */}
+        <section className="content-area">
+          <TabContainer state={state} />
+        </section>
+
+        {/* Right — Log */}
+        <aside className="log-sidebar">
           <LogPanel messages={messages} />
         </aside>
       </div>
-    </main>
+    </div>
   );
 }
 

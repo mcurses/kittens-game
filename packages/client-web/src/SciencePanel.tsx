@@ -39,7 +39,7 @@ export function SciencePanel({ state }: Props): React.ReactElement {
   const { mutate, isPending } = useGameAction();
 
   if (!state) {
-    return <div data-testid="science-panel-loading">Loading science...</div>;
+    return <div className="loading-text" data-testid="science-panel-loading">Loading…</div>;
   }
 
   const techs = extractTechs(state);
@@ -47,32 +47,40 @@ export function SciencePanel({ state }: Props): React.ReactElement {
 
   return (
     <div data-testid="science-panel">
-      <h2>Science</h2>
+      <div className="panel-label">Technologies</div>
       {techs.length === 0 ? (
-        <p>No technologies available.</p>
+        <p className="panel-empty">No technologies available.</p>
       ) : (
-        <ul>
+        <ul className="item-list">
           {techs.map((t) => {
             const def = TECH_DEFS.find((d) => d.name === t.name);
             const prices = def?.prices ?? [];
             const affordable = canAfford(prices, resources);
-            const costLabel = prices.length > 0
-              ? ` (${prices.map((p) => `${p.val} ${p.name}`).join(", ")})`
-              : "";
+            const costLabel =
+              prices.length > 0
+                ? prices.map((p) => `${p.val} ${p.name}`).join(", ")
+                : "";
+
             return (
-              <li key={t.name} data-testid={`tech-${t.name}`}>
-                <span className="tech-name">{t.name}</span>
-                {t.researched ? (
-                  <span className="tech-done"> — Done</span>
-                ) : (
-                  <button
-                    type="button"
-                    disabled={isPending || !affordable}
-                    onClick={() => mutate({ type: "RESEARCH", name: t.name })}
-                  >
-                    Research{costLabel}
-                  </button>
+              <li key={t.name} data-testid={`tech-${t.name}`} className="item-row">
+                <span className="item-row-name tech-name">{t.name}</span>
+                {costLabel && !t.researched && (
+                  <span className="item-row-cost">{costLabel}</span>
                 )}
+                <div className="item-row-actions">
+                  {t.researched ? (
+                    <span className="done-badge tech-done">✓ Done</span>
+                  ) : (
+                    <button
+                      type="button"
+                      className={`btn btn--sm${affordable ? " btn--primary" : " btn--secondary"}`}
+                      disabled={isPending || !affordable}
+                      onClick={() => mutate({ type: "RESEARCH", name: t.name })}
+                    >
+                      Research
+                    </button>
+                  )}
+                </div>
               </li>
             );
           })}
