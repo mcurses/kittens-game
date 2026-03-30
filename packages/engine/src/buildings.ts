@@ -1,4 +1,5 @@
 import type { Serializable } from "@kittens/shared";
+import { getLimitedDR } from "./effects.js";
 import type { Manager } from "./manager.js";
 import type { ResourceState } from "./resources.js";
 import type { GameState } from "./state.js";
@@ -222,13 +223,24 @@ export function createInitialBuildings(): BuildingState {
 
 /**
  * Calculate the current prices to buy a building given how many are already owned.
- * price = base * priceRatio^count
  *
- * Port of legacy `buildings.js` price scaling.
+ * Port of legacy `buildings.js getPriceRatioWithAccessor()`.
+ * Effective ratio = def.priceRatio + getLimitedDR(effectCache[name+"PriceRatio"] + effectCache["priceRatio"], ratioBase)
+ * where ratioBase = def.priceRatio - 1.
+ * The DR cap prevents prestige/map bonuses from reducing ratio below 1 (no free buildings).
  */
-export function getBuildingPrice(def: BuildingDef, count: number): readonly PriceEntry[] {
-  const multiplier = def.priceRatio ** count;
-  return def.prices.map((p) => ({ name: p.name, val: p.val * multiplier }));
+export function getBuildingPrice(
+  def: BuildingDef,
+  count: number,
+  effectCache: Record<string, number> = {},
+): readonly PriceEntry[] {
+  const ratioBase = def.priceRatio - 1;
+  const ratioDiff = getLimitedDR(
+    (effectCache[`${def.name}PriceRatio`] ?? 0) + (effectCache.priceRatio ?? 0),
+    ratioBase,
+  );
+  const ratio = def.priceRatio + ratioDiff;
+  return def.prices.map((p) => ({ name: p.name, val: p.val * ratio ** count }));
 }
 
 // ── Affordability check ───────────────────────────────────────────────────────

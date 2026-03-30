@@ -4,7 +4,7 @@ import { BUILDING_DEFS, getBuildingPrice } from "@kittens/engine";
 import React from "react";
 import { useInspector } from "./InspectorContext.js";
 import { useGameAction } from "./useGameAction.js";
-import { canAfford, extractResources } from "./utils.js";
+import { canAfford, extractEffectCache, extractResources } from "./utils.js";
 
 interface BuildingEntry {
   name: string;
@@ -46,6 +46,7 @@ export function BuildingsPanel({ state }: Props): React.ReactElement {
 
   const buildings = extractBuildings(state);
   const resources = extractResources(state);
+  const effectCache = extractEffectCache(state);
 
   return (
     <div data-testid="buildings-panel">
@@ -56,7 +57,7 @@ export function BuildingsPanel({ state }: Props): React.ReactElement {
         <ul className="card-grid" style={{ listStyle: "none" }}>
           {buildings.map((b) => {
             const def = BUILDING_DEFS.find((d) => d.name === b.name);
-            const prices = def ? getBuildingPrice(def, b.val) : [];
+            const prices = def ? getBuildingPrice(def, b.val, effectCache) : [];
             const affordable = canAfford(prices, resources);
 
             return (

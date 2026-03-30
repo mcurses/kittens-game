@@ -54,11 +54,12 @@ describe("App", () => {
     expect(screen.getByTestId("resource-panel-loading")).toBeTruthy();
   });
 
-  it("renders ActionPanel with Gather Catnip button", () => {
+  it("renders ActionPanel with Gather Catnip and Hunt buttons", () => {
     mockFetch.mockImplementation(() => new Promise(() => {}));
     render(<App queryClient={makeClient()} />);
     expect(screen.getByTestId("action-panel")).toBeTruthy();
     expect(screen.getByTestId("btn-gather-catnip")).toBeTruthy();
+    expect(screen.getByTestId("btn-hunt")).toBeTruthy();
   });
 
   it("creates a WebSocket connection on mount", () => {

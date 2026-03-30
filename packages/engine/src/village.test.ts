@@ -494,6 +494,19 @@ describe("Story 21-3: Happiness calculation updates each tick", () => {
     // 100 + 10 = 110 → 1.10
     expect(next.village.happiness).toBeCloseTo(1.10);
   });
+
+  it("unhappinessRatio from effectCache reduces overpopulation penalty", () => {
+    // 10 kittens over 5 → 5 overpop × 2 = 10% penalty normally
+    // unhappinessRatio: -0.048 (one amphitheatre) → penalty × (1 - 0.048) = 9.52%
+    const state = {
+      ...createInitialState(),
+      effectCache: { maxKittens: 20, unhappinessRatio: -0.048 },
+      village: { ...createInitialVillage(), kittens: 10 },
+    };
+    const next = manager.update(state);
+    // 100 - 5 * 2 * (1 - 0.048) = 100 - 9.52 = 90.48 → 0.9048
+    expect(next.village.happiness).toBeCloseTo(0.9048);
+  });
 });
 
 describe("Story 21-4: Job production scales with happiness", () => {

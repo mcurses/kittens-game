@@ -95,7 +95,7 @@ export function applyAction(
       if (!def) return state;
 
       const building = state.buildings[action.name] ?? { val: 0, on: 0, unlocked: false };
-      const prices = getBuildingPrice(def, building.val);
+      const prices = getBuildingPrice(def, building.val, state.effectCache);
 
       if (!canAfford(prices, state.resources)) return state;
 

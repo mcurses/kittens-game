@@ -151,7 +151,12 @@ export class VillageManager implements Manager {
     let happinessPct = 100;
     const unhappinessPerKitten = 2;
     const overPop = kittens - 5;
-    if (overPop > 0) happinessPct -= overPop * unhappinessPerKitten;
+    if (overPop > 0) {
+      // Port of legacy village.js getUnhappiness(): penalty * (1 + unhappinessRatio)
+      // unhappinessRatio is negative (e.g. -0.048 per amphitheatre), so it reduces the penalty
+      const unhappinessRatio = state.effectCache.unhappinessRatio ?? 0;
+      happinessPct -= overPop * unhappinessPerKitten * (1 + unhappinessRatio);
+    }
     happinessPct += state.effectCache.happiness ?? 0;
     if (happinessPct < 25) happinessPct = 25;
     const happiness = happinessPct / 100;

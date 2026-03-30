@@ -32,6 +32,20 @@ export function extractResources(state: GameStateResponse): ResourceMap {
 }
 
 /**
+ * Extract the effectCache from state (plain number record).
+ */
+export function extractEffectCache(state: GameStateResponse): Record<string, number> {
+  const raw = state as unknown as Record<string, unknown>;
+  const cache = raw.effectCache;
+  if (typeof cache !== "object" || cache === null) return {};
+  const result: Record<string, number> = {};
+  for (const [k, v] of Object.entries(cache as Record<string, unknown>)) {
+    if (typeof v === "number") result[k] = v;
+  }
+  return result;
+}
+
+/**
  * Check whether the given resource map can afford all prices.
  */
 export function canAfford(

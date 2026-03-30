@@ -69,7 +69,7 @@ function GameView(): React.ReactElement {
               <p className="error-view-msg" data-testid="game-state-error">
                 {error instanceof Error ? error.message : "Failed to load game state."}
               </p>
-              <ActionPanel />
+              <ActionPanel state={state} />
             </div>
           </div>
         </SlotProvider>

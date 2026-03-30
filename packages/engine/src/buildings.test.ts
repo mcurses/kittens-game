@@ -109,6 +109,32 @@ describe("getBuildingPrice", () => {
     expect(prices[0]?.val).toBeCloseTo(100 * 1.15);
     expect(prices[1]?.val).toBeCloseTo(10 * 1.15);
   });
+
+  it("applies global priceRatio from effectCache (prestige perk discount)", () => {
+    // priceRatio: -0.01 → effective ratio = 1.12 + getLimitedDR(-0.01, 0.12)
+    // getLimitedDR(-0.01, 0.12): abs(0.01) < 0.75*0.12=0.09 → undiminished → -0.01
+    // effective ratio = 1.11
+    const field = BUILDING_DEFS.find((b) => b.name === "field");
+    if (!field) throw new Error("field not found");
+    const prices = getBuildingPrice(field, 1, { priceRatio: -0.01 });
+    expect(prices[0]?.val).toBeCloseTo(10 * 1.11);
+  });
+
+  it("applies per-building PriceRatio from effectCache", () => {
+    const field = BUILDING_DEFS.find((b) => b.name === "field");
+    if (!field) throw new Error("field not found");
+    const prices = getBuildingPrice(field, 1, { fieldPriceRatio: -0.05 });
+    // effective ratio = 1.12 - 0.05 = 1.07
+    expect(prices[0]?.val).toBeCloseTo(10 * 1.07);
+  });
+
+  it("effectCache with no relevant keys yields same result as no effectCache", () => {
+    const field = BUILDING_DEFS.find((b) => b.name === "field");
+    if (!field) throw new Error("field not found");
+    expect(getBuildingPrice(field, 2, {})[0]?.val).toBeCloseTo(
+      getBuildingPrice(field, 2)[0]?.val ?? 0,
+    );
+  });
 });
 
 describe("canAfford", () => {

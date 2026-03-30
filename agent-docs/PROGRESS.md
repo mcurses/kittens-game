@@ -4,6 +4,13 @@ Last updated: 2026-03-30
 
 ---
 
+## Maintenance Updates
+
+- 2026-03-30: Fixed the missing Web UI trigger for the `HUNT` action by adding a hunt control to `ActionPanel`.
+- 2026-03-30: Fixed `ActionPanel` action dispatch to use the current slot context, so non-default saves no longer post actions to the default slot.
+
+---
+
 ## Epic 01: Foundation
 **Status:** Complete | **Started:** 2026-03-16 | **Finished:** 2026-03-16
 Stories: 7 / 7 complete
