@@ -1,187 +1,192 @@
-# Epic 26: UI Information Architecture — Draft Stories
+# Epic 26: UI Information Architecture
 
-Status: Draft only. This epic outline is intentionally pre-research and pre-sign-off.
-
-Goal: preserve the depth of legacy explanatory UI while replacing hover-only, desktop-centric tooltips with a more modern, touch-safe, and consistent information architecture.
-
-This draft does not commit to a specific solution yet. Legacy research is still required, and user product decisions are still required before story implementation starts.
+**Status:** In Progress
+**Started:** 2026-03-30
+**Legacy refs:** None — rewrite UX decision informed by legacy content (hover tooltips)
 
 ---
 
-## Problem Statement
+## User Decisions (Recorded 2026-03-30)
 
-The legacy UI exposes important explanatory information through many hover tooltips:
-- resource net income breakdowns
-- building and workshop upgrade descriptions
-- unlock and effect explanations
-- prerequisite and disabled-state explanations
-
-That information is useful, but the interaction model is weak for the rewrite because:
-- hover-only detail is hard to discover
-- it does not translate well to touch devices
-- it creates inconsistent disclosure patterns across panels
-- it makes core decision-making depend on transient overlays
-
-The rewrite needs a coherent system for surfacing this information without copying the legacy UX wholesale.
+- **Inspector placement**: Right sidebar, shared with log — inspector on top, log below
+- **Inspector trigger**: Hover changes inspector content
+- **First-pass scope**: Resources panel, Buildings panel, Workshop panel
+- **Description strings**: Added to engine defs (BuildingDef, UpgradeDef, TechDef, etc.)
 
 ---
 
-## Draft Story 26-1: Audit Legacy Detail Surfaces
+## Pre-Epic Action Items (from Epic 22)
+
+- [x] Add biome lint check to CI — already present as `pnpm run check` in ci.yml
+- [x] Create SlotContext — React context for current slot across all panels/hooks
+
+---
+
+## Story 26-1: SlotContext
+
+**As a** developer
+**I want** a React Context carrying the current slot name
+**So that** panels and hooks can read it without prop-drilling
+
+### Acceptance Criteria
+- [x] `SlotContext` provides `slot: string` defaulting to `"default"`
+- [x] `SlotProvider` accepts a `slot` prop and wraps children
+- [x] `useSlot()` hook returns the current slot from context
+- [x] `GameView` in `App.tsx` wraps its tree in `SlotProvider`
+
+### Status: [x] Tests | [x] Impl | [ ] Rated
+
+---
+
+## Story 26-2: Add description to engine defs
 
 **As a** player
-**I want** all legacy information surfaces identified
-**So that** the rewrite does not regress on discoverability or feature depth
+**I want** entities to have human-readable descriptions
+**So that** the inspector can explain what a building, upgrade, or tech does
 
-### Draft Acceptance Criteria
-- [ ] Inventory all tooltip / hover / expanded-detail surfaces used in legacy UI
-- [ ] Group each surface by domain: resources, buildings, workshop, science, religion, diplomacy, time, achievements
-- [ ] For each surface, classify content as:
-- [ ] core decision info that should likely be inline
-- [ ] contextual detail that may belong in an inspector or expansion row
-- [ ] low-frequency help text that may remain in a tooltip or info popover
-- [ ] Record legacy file references and screenshots for each pattern
+### Acceptance Criteria
+- [x] `BuildingDef` has optional `description?: string` field
+- [x] All 12 entries in `BUILDING_DEFS` have a description
+- [x] `UpgradeDef` has optional `description?: string` field
+- [x] All entries in `UPGRADE_DEFS` have a description
+- [x] `TechDef` has optional `description?: string` field
+- [x] Key techs in `TECH_DEFS` have descriptions
+- [x] `ZigguratUpgradeDef`, `ReligionUpgradeDef` have optional `description?: string`
+- [x] Engine build passes with no type errors
 
-### Legacy Reference
-- TBD after research
-
-### Notes
-- This is the discovery gate for the rest of the epic.
-- No implementation should start until this inventory exists.
-
-### Status: [ ] Research | [ ] Sign-off | [ ] Tests | [ ] Impl | [ ] Rated
+### Status: [x] Tests | [x] Impl | [ ] Rated
 
 ---
 
-## Draft Story 26-2: Choose Shared Detail Pattern
+## Story 26-3: InspectorContext
+
+**As a** developer
+**I want** a shared context for the currently inspected entity
+**So that** any panel can publish hover state and the inspector panel can read it
+
+### Acceptance Criteria
+- [x] `InspectorEntity` discriminated union covers: `resource`, `building`, `upgrade`, `tech`, `zigguratUpgrade`, `religionUpgrade`
+- [x] `InspectorContext` provides `{ inspected: InspectorEntity | null, setInspected, clearInspected }`
+- [x] `InspectorProvider` manages state internally
+- [x] `useInspector()` hook returns context value
+- [x] Setting the same entity twice does not cause extra re-renders
+
+### Status: [x] Tests | [x] Impl | [ ] Rated
+
+---
+
+## Story 26-4: InspectorPanel component
 
 **As a** player
-**I want** one consistent way to inspect rich game information
-**So that** the UI feels coherent instead of panel-by-panel improvised
+**I want** an inspector panel that shows detail about whatever I'm hovering
+**So that** I can understand entities without hunting for tooltips
 
-### Draft Acceptance Criteria
-- [ ] Evaluate at least these candidate patterns:
-- [ ] persistent inspector panel
-- [ ] inline expandable rows
-- [ ] hybrid model: inspector for primary entities, popovers for micro-help
-- [ ] Decide the primary interaction model for desktop
-- [ ] Decide the primary interaction model for touch / narrow screens
-- [ ] Decide whether hover remains as enhancement only or a required path
-- [ ] Capture rationale in `agent-docs/DECISIONS.md`
+### Acceptance Criteria
+- [x] `InspectorPanel` renders `data-testid="inspector-panel"`
+- [x] Shows placeholder text when nothing is inspected
+- [x] Shows entity name and description when inspected
+- [x] Shows effects as a formatted list (key: value)
+- [x] Shows prices when entity has prices
+- [x] Responds to InspectorContext changes without page navigation
+- [x] Works for all entity kinds (resource, building, upgrade, tech)
 
-### Legacy Reference
-- None; this is a rewrite UX decision informed by legacy content
-
-### Notes
-- This story requires user product decisions.
-- The likely decision axis is “information density vs calmness”.
-
-### Status: [ ] Research | [ ] Sign-off | [ ] Tests | [ ] Impl | [ ] Rated
+### Status: [x] Tests | [x] Impl | [ ] Rated
 
 ---
 
-## Draft Story 26-3: Resource Details Surface
+## Story 26-5: Right sidebar layout — inspector above log
 
 **As a** player
-**I want** to inspect resource production and consumption clearly
-**So that** I can understand why net income changes
+**I want** the inspector to appear above the log in the right sidebar
+**So that** detail is always visible when I hover, without covering content
 
-### Draft Acceptance Criteria
-- [ ] Resource rows expose net gain in the default list presentation
-- [ ] Detailed production / consumption breakdown is available without requiring hover
-- [ ] The detail view supports current unit preference (`/tick` vs `/sec`)
-- [ ] The detail view works with keyboard and touch
-- [ ] The detail view does not obscure neighboring rows excessively
+### Acceptance Criteria
+- [x] `App.tsx` wraps the tree in `InspectorProvider`
+- [x] Right sidebar (`log-sidebar`) contains `InspectorPanel` above `LogPanel`
+- [x] Inspector has sufficient height to show meaningful content
+- [x] Log remains visible and scrollable below inspector
+- [x] Layout is stable (no CLS when inspector content changes)
 
-### Legacy Reference
-- `legacy/game.js` — `attachResourceTooltip()`, `getDetailedResMap()`
-- `legacy/js/jsx/left.jsx.js` — resource row attachment points
-
-### Notes
-- Need user decision on whether the target surface is inspector, inline expansion, or both.
-- Need research on how much of legacy breakdown content is currently supported by the modern engine contract.
-
-### Status: [ ] Research | [ ] Sign-off | [ ] Tests | [ ] Impl | [ ] Rated
+### Status: [x] Tests | [x] Impl | [ ] Rated
 
 ---
 
-## Draft Story 26-4: Upgrade / Building / Tech Explanation Surface
+## Story 26-6: Wire hover — ResourcePanel
 
 **As a** player
-**I want** upgrade and entity details shown in a structured way
-**So that** I can understand what a purchase does before I commit
+**I want** hovering a resource row to show its breakdown in the inspector
+**So that** I can understand production without a tooltip overlay
 
-### Draft Acceptance Criteria
-- [ ] Buildings, workshop upgrades, techs, religion upgrades, and similar entities expose:
-- [ ] short description
-- [ ] key effect summary
-- [ ] price / prerequisite summary
-- [ ] disabled reason when unaffordable or locked
-- [ ] Shared presentation rules are consistent across panels
-- [ ] “What does this do?” content is not trapped in hover-only UI
+### Acceptance Criteria
+- [x] Hovering a resource row calls `setInspected({ kind: 'resource', name, perTick, breakdown })`
+- [x] Mouse leave calls `clearInspected()`
+- [x] Inspector shows resource name, net income, and production breakdown
+- [x] Existing hover tooltip is removed (replaced by inspector)
+- [x] Keyboard focus also triggers inspector
 
-### Legacy Reference
-- TBD after research across legacy tab implementations
-
-### Notes
-- May need metadata additions where engine definitions currently have IDs and effects but no user-facing explanation strings.
-- Need decision on whether descriptions live in domain defs, shared UI metadata, or localization resources.
-
-### Status: [ ] Research | [ ] Sign-off | [ ] Tests | [ ] Impl | [ ] Rated
+### Status: [x] Tests | [x] Impl | [ ] Rated
 
 ---
 
-## Draft Story 26-5: Shared Interaction and Accessibility Rules
+## Story 26-7: Wire hover — BuildingsPanel
 
 **As a** player
-**I want** detail interactions to behave consistently
-**So that** I can learn the UI once and reuse that knowledge everywhere
+**I want** hovering a building card to show its description and effects in the inspector
+**So that** I can evaluate a purchase before clicking Buy
 
-### Draft Acceptance Criteria
-- [ ] One shared interaction contract exists for hover, click, focus, escape, and outside-click behavior
-- [ ] Detail surfaces are accessible via keyboard
-- [ ] Detail surfaces have a touch-safe interaction path
-- [ ] The chosen pattern avoids layout instability where possible
-- [ ] Screen reader semantics are defined for selected / expanded / described entities
+### Acceptance Criteria
+- [x] Hovering a building card calls `setInspected({ kind: 'building', name, description, effects, prices })`
+- [x] Mouse leave calls `clearInspected()`
+- [x] Inspector shows building name, description, effects, and current price
+- [x] Keyboard focus also triggers inspector
 
-### Legacy Reference
-- None; rewrite-specific accessibility and interaction contract
-
-### Notes
-- Requires implementation decision from Story 26-2.
-
-### Status: [ ] Research | [ ] Sign-off | [ ] Tests | [ ] Impl | [ ] Rated
+### Status: [x] Tests | [x] Impl | [ ] Rated
 
 ---
 
-## Draft Story 26-6: Responsive Presentation Rules
+## Story 26-8: Wire hover — WorkshopPanel
 
 **As a** player
-**I want** the detail system to adapt to viewport size
-**So that** the same information remains usable on desktop and smaller screens
+**I want** hovering an upgrade row to show its description and effect in the inspector
+**So that** I know what a purchase does before clicking Purchase
 
-### Draft Acceptance Criteria
-- [ ] Define desktop behavior for three-column layout
-- [ ] Define tablet behavior
-- [ ] Define narrow/mobile behavior
-- [ ] Chosen detail surface does not depend on mouse hover for access
-- [ ] Persisted UI state rules are defined for any selected/expanded entity
+### Acceptance Criteria
+- [x] Hovering an upgrade row calls `setInspected({ kind: 'upgrade', name, description, effects, prices })`
+- [x] Mouse leave calls `clearInspected()`
+- [x] Inspector shows upgrade name, description, effects, and prices
+- [x] Keyboard focus also triggers inspector
 
-### Legacy Reference
-- None; rewrite-specific responsive behavior
-
-### Notes
-- This likely overlaps with future themes/mobile work and needs sequencing decisions.
-
-### Status: [ ] Research | [ ] Sign-off | [ ] Tests | [ ] Impl | [ ] Rated
+### Status: [x] Tests | [x] Impl | [ ] Rated
 
 ---
 
-## Decision Gates Before Implementation
+## Story 26-9: Wire hover — SciencePanel
 
-- [ ] Legacy tooltip / detail audit completed
-- [ ] User chooses primary detail pattern
-- [ ] Scope boundary decided: which panels are included in the first pass
-- [ ] Metadata source decided for human-readable descriptions
-- [ ] Responsive behavior chosen
-- [ ] Accessibility contract chosen
+**As a** player
+**I want** hovering a tech row to show its description in the inspector
+**So that** I understand what researching it unlocks
 
+### Acceptance Criteria
+- [x] Hovering a tech row calls `setInspected({ kind: 'tech', name, description, effects, prices })`
+- [x] Mouse leave calls `clearInspected()`
+- [x] Inspector shows tech name, description, effects, and cost
+- [x] Keyboard focus also triggers inspector
+
+### Status: [x] Tests | [x] Impl | [ ] Rated
+
+---
+
+## Story 26-10: Cross-panel integration test
+
+**As a** developer
+**I want** an integration test covering the full inspector flow
+**So that** regressions in the hover → context → panel pipeline are caught
+
+### Acceptance Criteria
+- [x] Test renders App with a state fixture containing buildings + resources
+- [x] Simulates hover on a building row
+- [x] Asserts InspectorPanel shows the building's name and description
+- [x] Simulates hover on a resource row
+- [x] Asserts InspectorPanel shows the resource details
+
+### Status: [x] Tests | [x] Impl | [ ] Rated

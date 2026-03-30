@@ -1,6 +1,7 @@
 // ResourcePanel — resource inventory with rates and progress bars
 import type { GameStateResponse } from "@kittens/api-spec";
 import React from "react";
+import { type ResourceEntity, useInspector } from "./InspectorContext.js";
 import { usePersistentUiState } from "./usePersistentUiState.js";
 
 const TICKS_PER_SECOND = 5;
@@ -115,8 +116,7 @@ function ResourceItem({
   breakdown: ResourceBreakdown;
   showPerSecond: boolean;
 }): React.ReactElement {
-  const [tooltipVisible, setTooltipVisible] = React.useState(false);
-  const hasTooltip = shouldShowTooltip(resource, breakdown);
+  const { setInspected, clearInspected } = useInspector();
 
   const pct =
     resource.maxValue && resource.maxValue > 0
@@ -139,16 +139,27 @@ function ResourceItem({
       ? "pos"
       : "neg";
 
+  const handleInspect = () => {
+    const entity: ResourceEntity = {
+      kind: "resource",
+      name: resource.name,
+      value: resource.value,
+      maxValue: resource.maxValue,
+      perTick: resource.perTick,
+      breakdown,
+    };
+    setInspected(entity);
+  };
+
   return (
     <li
       data-testid={`resource-${resource.name}`}
       className="resource-item"
-      onMouseEnter={() => hasTooltip && setTooltipVisible(true)}
-      onMouseLeave={() => setTooltipVisible(false)}
-      onFocus={() => hasTooltip && setTooltipVisible(true)}
-      onBlur={() => setTooltipVisible(false)}
-      tabIndex={hasTooltip ? 0 : -1}
-      aria-describedby={hasTooltip ? `tt-${resource.name}` : undefined}
+      onMouseEnter={handleInspect}
+      onMouseLeave={clearInspected}
+      onFocus={handleInspect}
+      onBlur={clearInspected}
+      tabIndex={0}
     >
       {/* Name + value row */}
       <div className="resource-item-main">
@@ -182,54 +193,6 @@ function ResourceItem({
           <span className="rate-badge" />
         )}
       </div>
-
-      {/* Tooltip */}
-      {hasTooltip && tooltipVisible && (
-        <div
-          id={`tt-${resource.name}`}
-          role="tooltip"
-          data-testid={`resource-tooltip-${resource.name}`}
-          className="resource-tooltip"
-        >
-          <strong className="tt-title">{resource.name}</strong>
-
-          {breakdown.base !== 0 && (
-            <div>Base: {formatSigned(breakdown.base, showPerSecond)}</div>
-          )}
-          {breakdown.ratio !== 0 && (
-            <div>
-              Ratio bonus: {formatPct(breakdown.ratio)} ({formatSigned(breakdown.base * breakdown.ratio, showPerSecond)})
-            </div>
-          )}
-          {breakdown.direct !== 0 && (
-            <div>Direct: {formatSigned(breakdown.direct, showPerSecond)}</div>
-          )}
-          {breakdown.consumption !== 0 && (
-            <div>Consumption: {formatSigned(breakdown.consumption, showPerSecond)}</div>
-          )}
-
-          {resource.perTick !== undefined && (
-            <div style={{ marginTop: "0.3rem", borderTop: "1px dotted rgba(0,0,0,.15)", paddingTop: "0.3rem" }}>
-              Net income: {formatSigned(resource.perTick, showPerSecond)}
-            </div>
-          )}
-
-          {resource.perTick !== undefined && resource.perTick < 0 && resource.value > 0 && (
-            <div>Time to zero: {formatDuration(resource.value / (-resource.perTick * TICKS_PER_SECOND))}</div>
-          )}
-          {resource.perTick !== undefined &&
-            resource.perTick > 0 &&
-            (resource.maxValue ?? 0) > resource.value && (
-              <div>
-                Time to cap:{" "}
-                {formatDuration(
-                  ((resource.maxValue ?? 0) - resource.value) /
-                    (resource.perTick * TICKS_PER_SECOND),
-                )}
-              </div>
-            )}
-        </div>
-      )}
     </li>
   );
 }
@@ -249,14 +212,6 @@ function formatRate(perTick: number, showPerSecond: boolean): string {
   return `${rate > 0 ? "+" : ""}${rate.toFixed(3)}/${unit}`;
 }
 
-function formatSigned(perTick: number, showPerSecond: boolean): string {
-  return formatRate(perTick, showPerSecond);
-}
-
-function formatPct(value: number): string {
-  return `${value > 0 ? "+" : ""}${(value * 100).toFixed(1)}%`;
-}
-
 function getResourceBreakdown(
   effectCache: Record<string, number>,
   resourceName: string,
@@ -267,30 +222,6 @@ function getResourceBreakdown(
     direct: effectCache[`${resourceName}PerTick`] ?? 0,
     consumption: effectCache[`${resourceName}PerTickCon`] ?? 0,
   };
-}
-
-function shouldShowTooltip(resource: ResourceEntry, breakdown: ResourceBreakdown): boolean {
-  return (
-    resource.perTick !== undefined &&
-    (resource.perTick !== 0 ||
-      breakdown.base !== 0 ||
-      breakdown.ratio !== 0 ||
-      breakdown.direct !== 0 ||
-      breakdown.consumption !== 0)
-  );
-}
-
-function formatDuration(seconds: number): string {
-  if (!Number.isFinite(seconds) || seconds <= 0) return "0s";
-  if (seconds < 60) return `${Math.round(seconds)}s`;
-  if (seconds < 3600) {
-    const m = Math.floor(seconds / 60);
-    const s = Math.round(seconds % 60);
-    return s > 0 ? `${m}m ${s}s` : `${m}m`;
-  }
-  const h = Math.floor(seconds / 3600);
-  const m = Math.round((seconds % 3600) / 60);
-  return m > 0 ? `${h}h ${m}m` : `${h}h`;
 }
 
 function isResourceRateUnit(value: unknown): value is ResourceRateUnit {

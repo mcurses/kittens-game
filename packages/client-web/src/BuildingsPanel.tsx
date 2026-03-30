@@ -2,6 +2,7 @@
 import type { GameStateResponse } from "@kittens/api-spec";
 import { BUILDING_DEFS, getBuildingPrice } from "@kittens/engine";
 import React from "react";
+import { useInspector } from "./InspectorContext.js";
 import { useGameAction } from "./useGameAction.js";
 import { canAfford, extractResources } from "./utils.js";
 
@@ -37,6 +38,7 @@ function extractBuildings(state: GameStateResponse): BuildingEntry[] {
 
 export function BuildingsPanel({ state }: Props): React.ReactElement {
   const { mutate, isPending } = useGameAction();
+  const { setInspected, clearInspected } = useInspector();
 
   if (!state) {
     return <div className="loading-text" data-testid="buildings-panel-loading">Loading…</div>;
@@ -62,6 +64,29 @@ export function BuildingsPanel({ state }: Props): React.ReactElement {
                 key={b.name}
                 data-testid={`building-${b.name}`}
                 className="item-card"
+                onMouseEnter={() =>
+                  setInspected({
+                    kind: "building",
+                    name: b.name,
+                    description: def?.description,
+                    val: b.val,
+                    effects: def?.effects ?? {},
+                    prices,
+                  })
+                }
+                onMouseLeave={clearInspected}
+                onFocus={() =>
+                  setInspected({
+                    kind: "building",
+                    name: b.name,
+                    description: def?.description,
+                    val: b.val,
+                    effects: def?.effects ?? {},
+                    prices,
+                  })
+                }
+                onBlur={clearInspected}
+                tabIndex={0}
               >
                 <div className="item-card-header">
                   <span className="item-name building-name">{b.name}</span>

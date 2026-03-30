@@ -3,8 +3,11 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import React from "react";
 import { ActionPanel } from "./ActionPanel.js";
 import { CalendarDisplay } from "./CalendarDisplay.js";
+import { InspectorPanel } from "./InspectorPanel.js";
+import { InspectorProvider } from "./InspectorContext.js";
 import { LogPanel } from "./LogPanel.js";
 import { ResourcePanel } from "./ResourcePanel.js";
+import { SlotProvider } from "./SlotContext.js";
 import { TabContainer } from "./TabContainer.js";
 import { VillagePanel } from "./VillagePanel.js";
 import { useGameState } from "./useGameState.js";
@@ -58,46 +61,55 @@ function GameView(): React.ReactElement {
 
   if (isError) {
     return (
-      <div className="app">
-        <div className="error-view">
-          <h1 className="error-view-title">Could not connect</h1>
-          <p className="error-view-msg" data-testid="game-state-error">
-            {error instanceof Error ? error.message : "Failed to load game state."}
-          </p>
-          <ActionPanel />
-        </div>
-      </div>
+      <InspectorProvider>
+        <SlotProvider slot={slot}>
+          <div className="app">
+            <div className="error-view">
+              <h1 className="error-view-title">Could not connect</h1>
+              <p className="error-view-msg" data-testid="game-state-error">
+                {error instanceof Error ? error.message : "Failed to load game state."}
+              </p>
+              <ActionPanel />
+            </div>
+          </div>
+        </SlotProvider>
+      </InspectorProvider>
     );
   }
 
   return (
-    <div className="app">
-      <header className="app-header">
-        <span className="app-title">Kittens Game</span>
-        <div className="header-sep" aria-hidden="true" />
-        <CalendarDisplay state={state} />
-        <div className="header-spacer" />
-        <VillagePanel state={state} />
-      </header>
+    <InspectorProvider>
+      <SlotProvider slot={slot}>
+        <div className="app">
+          <header className="app-header">
+            <span className="app-title">Kittens Game</span>
+            <div className="header-sep" aria-hidden="true" />
+            <CalendarDisplay state={state} />
+            <div className="header-spacer" />
+            <VillagePanel state={state} />
+          </header>
 
-      <div className="app-body">
-        {/* Left — Resources */}
-        <aside data-testid="resource-sidebar" className="resource-sidebar">
-          <ResourcePanel state={state} />
-          <ActionPanel />
-        </aside>
+          <div className="app-body">
+            {/* Left — Resources */}
+            <aside data-testid="resource-sidebar" className="resource-sidebar">
+              <ResourcePanel state={state} />
+              <ActionPanel />
+            </aside>
 
-        {/* Center — Main content */}
-        <section className="content-area">
-          <TabContainer state={state} />
-        </section>
+            {/* Center — Main content */}
+            <section className="content-area">
+              <TabContainer state={state} />
+            </section>
 
-        {/* Right — Log */}
-        <aside className="log-sidebar">
-          <LogPanel messages={messages} />
-        </aside>
-      </div>
-    </div>
+            {/* Right — Inspector (top) + Log (bottom) */}
+            <aside className="log-sidebar">
+              <InspectorPanel />
+              <LogPanel messages={messages} />
+            </aside>
+          </div>
+        </div>
+      </SlotProvider>
+    </InspectorProvider>
   );
 }
 

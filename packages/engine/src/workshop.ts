@@ -13,6 +13,8 @@ export interface UpgradeUnlocks {
 
 export interface UpgradeDef {
   readonly name: string;
+  /** Short human-readable description shown in the inspector panel */
+  readonly description?: string;
   readonly prices: readonly PriceEntry[];
   readonly effects?: Readonly<Record<string, number>>;
   readonly unlocks?: UpgradeUnlocks;
@@ -49,6 +51,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   // ─── food upgrades ───
   {
     name: "mineralHoes",
+    description: "Mineral-tipped hoes boost farmer productivity by 50%.",
     effects: { catnipJobRatio: 0.5 },
     prices: [
       { name: "minerals", val: 275 },
@@ -58,6 +61,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   },
   {
     name: "ironHoes",
+    description: "Iron hoes further improve catnip harvest efficiency.",
     effects: { catnipJobRatio: 0.3 },
     prices: [
       { name: "iron", val: 25 },
@@ -67,6 +71,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   // ─── wood upgrades ───
   {
     name: "mineralAxes",
+    description: "Mineral-headed axes dramatically improve woodcutter yield.",
     effects: { woodJobRatio: 0.7 },
     prices: [
       { name: "minerals", val: 500 },
@@ -76,6 +81,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   },
   {
     name: "ironAxes",
+    description: "Iron axes cut more wood per trip through the forest.",
     effects: { woodJobRatio: 0.5 },
     prices: [
       { name: "iron", val: 50 },
@@ -84,6 +90,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   },
   {
     name: "steelAxe",
+    description: "High-carbon steel axe heads for advanced lumber operations.",
     effects: { woodJobRatio: 0.5 },
     prices: [
       { name: "science", val: 20000 },
@@ -92,6 +99,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   },
   {
     name: "reinforcedSaw",
+    description: "Reinforced blades increase lumber mill output.",
     effects: { lumberMillRatio: 0.2 },
     prices: [
       { name: "iron", val: 1000 },
@@ -100,6 +108,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   },
   {
     name: "steelSaw",
+    description: "Steel saw blades for sustained high-volume lumber production.",
     effects: { lumberMillRatio: 0.2 },
     prices: [
       { name: "science", val: 52000 },
@@ -109,6 +118,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   },
   {
     name: "titaniumSaw",
+    description: "Titanium saw blades cut through timber at remarkable speed.",
     effects: { lumberMillRatio: 0.15 },
     prices: [
       { name: "titanium", val: 500 },
@@ -118,6 +128,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   },
   {
     name: "alloySaw",
+    description: "Alloy-composite saws push lumber mill efficiency further.",
     effects: { lumberMillRatio: 0.15 },
     prices: [
       { name: "science", val: 85000 },
@@ -126,6 +137,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   },
   {
     name: "titaniumAxe",
+    description: "Lightweight titanium axes allow woodcutters to work faster.",
     effects: { woodJobRatio: 0.5 },
     prices: [
       { name: "titanium", val: 10 },
@@ -134,6 +146,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   },
   {
     name: "alloyAxe",
+    description: "Advanced alloy axes for professional-grade wood production.",
     effects: { woodJobRatio: 0.5 },
     prices: [
       { name: "science", val: 70000 },
@@ -143,6 +156,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   // ─── unobtainium ───
   {
     name: "unobtainiumAxe",
+    description: "Exotic unobtainium axes of almost supernatural sharpness.",
     effects: { woodJobRatio: 0.5 },
     prices: [
       { name: "unobtainium", val: 75 },
@@ -151,6 +165,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   },
   {
     name: "unobtainiumSaw",
+    description: "Unobtainium saw blades for extraordinary lumber mill performance.",
     effects: { lumberMillRatio: 0.25 },
     prices: [
       { name: "unobtainium", val: 125 },
@@ -160,6 +175,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   // ─── storage upgrades ───
   {
     name: "stoneBarns",
+    description: "Stone-reinforced barn walls significantly expand storage.",
     effects: { barnRatio: 0.75 },
     prices: [
       { name: "wood", val: 1000 },
@@ -170,6 +186,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   },
   {
     name: "reinforcedBarns",
+    description: "Iron and beam reinforcements dramatically expand barn volume.",
     effects: { barnRatio: 0.8 },
     prices: [
       { name: "iron", val: 100 },
@@ -181,6 +198,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   },
   {
     name: "reinforcedWarehouses",
+    description: "Steel-plate walls add substantial warehouse capacity.",
     effects: { warehouseRatio: 0.25 },
     prices: [
       { name: "science", val: 15000 },
@@ -192,6 +210,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   },
   {
     name: "titaniumBarns",
+    description: "Titanium-framed barns with massive storage gains.",
     effects: { barnRatio: 1 },
     prices: [
       { name: "titanium", val: 25 },
@@ -202,6 +221,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   },
   {
     name: "alloyBarns",
+    description: "Alloy-composite barns for another major storage upgrade.",
     effects: { barnRatio: 1 },
     prices: [
       { name: "science", val: 75000 },
@@ -211,6 +231,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   },
   {
     name: "concreteBarns",
+    description: "Concrete bunker barns for late-game resource stockpiling.",
     effects: { barnRatio: 0.75 },
     prices: [
       { name: "titanium", val: 2000 },
@@ -220,6 +241,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   },
   {
     name: "titaniumWarehouses",
+    description: "Titanium-reinforced warehouses expand mid-game storage.",
     effects: { warehouseRatio: 0.5 },
     prices: [
       { name: "titanium", val: 50 },
@@ -230,6 +252,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   },
   {
     name: "alloyWarehouses",
+    description: "Alloy warehouse construction for late-game stockpiling.",
     effects: { warehouseRatio: 0.45 },
     prices: [
       { name: "titanium", val: 750 },
@@ -239,6 +262,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   },
   {
     name: "concreteWarehouses",
+    description: "Concrete warehouse modules for dense resource storage.",
     effects: { warehouseRatio: 0.35 },
     prices: [
       { name: "titanium", val: 1250 },
@@ -248,6 +272,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   },
   {
     name: "storageBunkers",
+    description: "Underground unobtainium bunkers for endgame storage.",
     effects: { warehouseRatio: 0.2 },
     prices: [
       { name: "unobtainium", val: 500 },
@@ -258,6 +283,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   // ─── accelerators ───
   {
     name: "energyRifts",
+    description: "Stabilised energy rifts tap exotic power for the accelerator.",
     effects: {},
     prices: [
       { name: "titanium", val: 7500 },
@@ -267,6 +293,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   },
   {
     name: "stasisChambers",
+    description: "Temporal stasis chambers nearly double accelerator output.",
     effects: { acceleratorRatio: 0.95 },
     prices: [
       { name: "uranium", val: 2000 },
@@ -278,6 +305,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   },
   {
     name: "voidEnergy",
+    description: "Void-sourced energy brings accelerator near its theoretical limit.",
     effects: { acceleratorRatio: 0.75 },
     prices: [
       { name: "uranium", val: 2500 },
@@ -289,6 +317,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   },
   {
     name: "darkEnergy",
+    description: "Dark energy powering the accelerator at 250% efficiency.",
     effects: { acceleratorRatio: 2.5 },
     prices: [
       { name: "science", val: 350000 },
@@ -298,6 +327,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   },
   {
     name: "chronoforge",
+    description: "Ancient time-forging relic anchoring Chronoforge mechanics.",
     effects: {},
     prices: [
       { name: "science", val: 500000 },
@@ -307,6 +337,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   },
   {
     name: "tachyonModerator",
+    description: "Tachyon modulator stabilises high-speed accelerator operation.",
     effects: {},
     prices: [
       { name: "science", val: 16000 },
@@ -316,6 +347,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   },
   {
     name: "tachyonAccelerators",
+    description: "Tachyon-driven beams for extreme acceleration rates.",
     effects: { acceleratorRatio: 5 },
     prices: [
       { name: "science", val: 500000 },
@@ -325,6 +357,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   },
   {
     name: "fluxCondensator",
+    description: "Temporal flux condensator for advanced Chronoforge operations.",
     effects: {},
     prices: [
       { name: "unobtainium", val: 5000 },
@@ -334,6 +367,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   },
   {
     name: "lhc",
+    description: "Large hadron collider providing extraordinary science boosts.",
     effects: {},
     prices: [
       { name: "unobtainium", val: 100 },
@@ -344,6 +378,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   // ─── energy stuff ───
   {
     name: "photovoltaic",
+    description: "Photovoltaic panels dramatically boost solar farm output.",
     effects: { solarFarmRatio: 0.5 },
     prices: [
       { name: "titanium", val: 5000 },
@@ -352,6 +387,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   },
   {
     name: "thinFilm",
+    description: "Thin-film cells reduce seasonal variation in solar production.",
     effects: { solarFarmSeasonRatio: 1 },
     prices: [
       { name: "uranium", val: 1000 },
@@ -361,6 +397,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   },
   {
     name: "qdot",
+    description: "Quantum-dot coatings maximize solar farm year-round efficiency.",
     effects: { solarFarmSeasonRatio: 1 },
     prices: [
       { name: "science", val: 175000 },
@@ -370,6 +407,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   },
   {
     name: "solarSatellites",
+    description: "Orbital solar collectors boosting planetary energy generation.",
     effects: {},
     prices: [
       { name: "science", val: 225000 },
@@ -379,6 +417,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   // ─── harbour stuff ───
   {
     name: "cargoShips",
+    description: "Cargo ships increase harbour trade throughput.",
     effects: { harborRatio: 0.01 },
     prices: [
       { name: "science", val: 55000 },
@@ -387,6 +426,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   },
   {
     name: "barges",
+    description: "Coal barges specialised for harbour-based coal transport.",
     effects: { harborCoalRatio: 0.5 },
     prices: [
       { name: "titanium", val: 1500 },
@@ -396,6 +436,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   },
   {
     name: "reactorVessel",
+    description: "Nuclear reactor vessels expand the ship fleet limit.",
     effects: { shipLimit: 0.05 },
     prices: [
       { name: "titanium", val: 5000 },
@@ -405,6 +446,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   },
   {
     name: "ironwood",
+    description: "Ironwood composites halve the cost of building new huts.",
     effects: { hutPriceRatio: -0.5 },
     prices: [
       { name: "wood", val: 15000 },
@@ -415,6 +457,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   },
   {
     name: "concreteHuts",
+    description: "Concrete construction further reduces hut build costs.",
     effects: { hutPriceRatio: -0.3 },
     prices: [
       { name: "titanium", val: 3000 },
@@ -424,6 +467,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   },
   {
     name: "unobtainiumHuts",
+    description: "Unobtainium framework cuts hut costs dramatically.",
     effects: { hutPriceRatio: -0.25 },
     prices: [
       { name: "titanium", val: 15000 },
@@ -433,6 +477,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   },
   {
     name: "eludiumHuts",
+    description: "Eludium-enhanced construction — huts nearly build themselves.",
     effects: { hutPriceRatio: -0.1 },
     prices: [
       { name: "science", val: 275000 },
@@ -441,6 +486,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   },
   {
     name: "silos",
+    description: "Grain silos integrated with warehouses, unlocking titanium upgrades.",
     effects: {},
     prices: [
       { name: "science", val: 50000 },
@@ -451,6 +497,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   },
   {
     name: "refrigeration",
+    description: "Industrial refrigeration dramatically expands catnip storage.",
     effects: { catnipMaxRatio: 0.75 },
     prices: [
       { name: "titanium", val: 2500 },
@@ -461,6 +508,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   // ─── hunt upgrades ───
   {
     name: "compositeBow",
+    description: "Composite bows allow hunters to gather significantly more manpower.",
     effects: { manpowerJobRatio: 0.5 },
     prices: [
       { name: "wood", val: 200 },
@@ -470,6 +518,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   },
   {
     name: "crossbow",
+    description: "Crossbows let hunters operate more efficiently.",
     effects: { manpowerJobRatio: 0.25 },
     prices: [
       { name: "iron", val: 1500 },
@@ -478,6 +527,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   },
   {
     name: "railgun",
+    description: "Electromagnetic railguns for high-yield hunting expeditions.",
     effects: { manpowerJobRatio: 0.25 },
     prices: [
       { name: "titanium", val: 5000 },
@@ -487,6 +537,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   },
   {
     name: "bolas",
+    description: "Bolas ensnare prey, doubling hunter catch rate.",
     effects: { hunterRatio: 1 },
     prices: [
       { name: "wood", val: 50 },
@@ -496,6 +547,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   },
   {
     name: "huntingArmor",
+    description: "Full hunting armor doubles hunter productivity.",
     effects: { hunterRatio: 2 },
     prices: [
       { name: "iron", val: 750 },
@@ -504,6 +556,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   },
   {
     name: "steelArmor",
+    description: "Steel armor protects hunters and improves output.",
     effects: { hunterRatio: 0.5 },
     prices: [
       { name: "science", val: 10000 },
@@ -512,6 +565,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   },
   {
     name: "alloyArmor",
+    description: "Alloy armor for enhanced hunter performance.",
     effects: { hunterRatio: 0.5 },
     prices: [
       { name: "science", val: 50000 },
@@ -520,6 +574,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   },
   {
     name: "nanosuits",
+    description: "Nanosuit technology maximises hunter effectiveness.",
     effects: { hunterRatio: 0.5 },
     prices: [
       { name: "science", val: 185000 },
@@ -528,6 +583,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   },
   {
     name: "caravanserai",
+    description: "Caravanserai trade post enabling deeper diplomatic commerce.",
     effects: {},
     prices: [
       { name: "gold", val: 250 },
@@ -538,6 +594,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   // ─── misc ───
   {
     name: "advancedRefinement",
+    description: "Advanced refining techniques unlock higher-tier smelting.",
     effects: {},
     prices: [
       { name: "catnip", val: 5000 },
@@ -546,6 +603,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   },
   {
     name: "goldOre",
+    description: "Gold ore processing enabling currency and trade systems.",
     effects: {},
     prices: [
       { name: "minerals", val: 800 },
@@ -555,6 +613,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   },
   {
     name: "geodesy",
+    description: "Geological survey techniques improving mineral location.",
     effects: {},
     prices: [
       { name: "titanium", val: 250 },
@@ -564,6 +623,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   },
   {
     name: "register",
+    description: "Trade register improving commerce efficiency.",
     effects: {},
     prices: [
       { name: "gold", val: 10 },
@@ -572,6 +632,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   },
   {
     name: "strenghtenBuild",
+    description: "Structural reinforcement boosting barn and warehouse capacity.",
     effects: { barnRatio: 0.05, warehouseRatio: 0.05 },
     prices: [
       { name: "science", val: 100000 },
@@ -581,6 +642,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   },
   {
     name: "miningDrill",
+    description: "Industrial drilling equipment for deep mineral extraction.",
     effects: {},
     prices: [
       { name: "titanium", val: 1750 },
@@ -590,6 +652,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   },
   {
     name: "unobtainiumDrill",
+    description: "Unobtainium drill bits for exotic deep-earth resource extraction.",
     effects: {},
     prices: [
       { name: "unobtainium", val: 250 },
@@ -600,6 +663,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   // ─── coal upgrades ───
   {
     name: "coalFurnace",
+    description: "High-temperature coal furnaces enabling steel production.",
     effects: {},
     prices: [
       { name: "minerals", val: 5000 },
@@ -610,6 +674,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   },
   {
     name: "deepMining",
+    description: "Deep-shaft mining unlocking underground coal seams.",
     effects: {},
     prices: [
       { name: "iron", val: 1200 },
@@ -619,6 +684,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   },
   {
     name: "pyrolysis",
+    description: "Pyrolytic coal processing increases super-coal conversion.",
     effects: { coalSuperRatio: 0.2 },
     prices: [
       { name: "science", val: 35000 },
@@ -627,6 +693,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   },
   {
     name: "electrolyticSmelting",
+    description: "Electrolytic smelting nearly doubles smelter throughput.",
     effects: { smelterRatio: 0.95 },
     prices: [
       { name: "titanium", val: 2000 },
@@ -635,6 +702,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   },
   {
     name: "oxidation",
+    description: "Oxidation chambers dramatically boost calciner output.",
     effects: { calcinerRatio: 0.95 },
     prices: [
       { name: "science", val: 100000 },
@@ -643,6 +711,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   },
   {
     name: "steelPlants",
+    description: "Automated steel plants improve calciner steel production.",
     effects: { calcinerSteelRatio: 0.1 },
     prices: [
       { name: "titanium", val: 3500 },
@@ -653,6 +722,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   },
   {
     name: "automatedPlants",
+    description: "Fully automated plants boost steel craft ratios.",
     effects: { calcinerSteelCraftRatio: 0.25 },
     prices: [
       { name: "science", val: 200000 },
@@ -662,6 +732,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   },
   {
     name: "nuclearPlants",
+    description: "Nuclear-powered plants provide per-reactor steel bonuses.",
     effects: { calcinerSteelReactorBonus: 0.02 },
     prices: [
       { name: "uranium", val: 10000 },
@@ -670,6 +741,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   },
   {
     name: "rotaryKiln",
+    description: "Rotary kilns substantially boost calciner efficiency.",
     effects: { calcinerRatio: 0.75 },
     prices: [
       { name: "titanium", val: 5000 },
@@ -679,6 +751,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   },
   {
     name: "fluidizedReactors",
+    description: "Fluidized-bed reactors achieve peak calciner performance.",
     effects: { calcinerRatio: 1 },
     prices: [
       { name: "science", val: 175000 },
@@ -687,6 +760,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   },
   {
     name: "nuclearSmelters",
+    description: "Nuclear smelters for exotic late-game metal processing.",
     effects: {},
     prices: [
       { name: "uranium", val: 250 },
@@ -695,6 +769,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   },
   {
     name: "orbitalGeodesy",
+    description: "Orbital geological surveys pinpoint surface resource deposits.",
     effects: {},
     prices: [
       { name: "oil", val: 35000 },
@@ -705,6 +780,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   // ─── automation upgrades ───
   {
     name: "printingPress",
+    description: "Printing press enabling automated blueprint production.",
     effects: {},
     prices: [
       { name: "science", val: 7500 },
@@ -713,6 +789,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   },
   {
     name: "offsetPress",
+    description: "Offset press dramatically accelerates blueprint printing.",
     effects: {},
     prices: [
       { name: "oil", val: 15000 },
@@ -722,6 +799,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   },
   {
     name: "photolithography",
+    description: "Photolithographic printing for advanced blueprint automation.",
     effects: {},
     prices: [
       { name: "oil", val: 50000 },
@@ -732,6 +810,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   },
   {
     name: "uplink",
+    description: "Satellite uplink improving data center and lab efficiency.",
     effects: { uplinkDCRatio: 0.01, uplinkLabRatio: 0.01 },
     prices: [
       { name: "science", val: 75000 },
@@ -740,6 +819,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   },
   {
     name: "starlink",
+    description: "Starlink constellation for lab and uplink efficiency boost.",
     effects: { uplinkLabRatio: 0.01 },
     prices: [
       { name: "oil", val: 25000 },
@@ -749,6 +829,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   },
   {
     name: "cryocomputing",
+    description: "Cryogenic computing unlocking advanced space research.",
     effects: {},
     prices: [
       { name: "science", val: 125000 },
@@ -757,6 +838,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   },
   {
     name: "machineLearning",
+    description: "Machine learning improving AI-driven data center performance.",
     effects: { dataCenterAIRatio: 0.1 },
     prices: [
       { name: "antimatter", val: 125 },
@@ -766,6 +848,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   },
   {
     name: "factoryAutomation",
+    description: "Basic factory automation systems unlocking craft bonuses.",
     effects: {},
     prices: [
       { name: "science", val: 10000 },
@@ -774,6 +857,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   },
   {
     name: "advancedAutomation",
+    description: "Advanced robotics further improving factory throughput.",
     effects: {},
     prices: [
       { name: "science", val: 100000 },
@@ -783,6 +867,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   },
   {
     name: "pneumaticPress",
+    description: "Pneumatic presses enabling mechanical blueprint production.",
     effects: {},
     prices: [
       { name: "science", val: 20000 },
@@ -792,6 +877,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   },
   {
     name: "combustionEngine",
+    description: "Internal combustion engines reducing global coal consumption.",
     effects: { coalRatioGlobalReduction: 0.2 },
     prices: [
       { name: "science", val: 20000 },
@@ -801,6 +887,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   },
   {
     name: "fuelInjectors",
+    description: "Fuel injectors further cutting coal consumption.",
     effects: { coalRatioGlobalReduction: 0.2 },
     prices: [
       { name: "oil", val: 20000 },
@@ -810,6 +897,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   },
   {
     name: "factoryLogistics",
+    description: "Factory logistics management enabling advanced upgrades.",
     effects: {},
     prices: [
       { name: "titanium", val: 2000 },
@@ -819,6 +907,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   },
   {
     name: "carbonSequestration",
+    description: "Carbon capture and storage for environmental sustainability.",
     effects: {},
     prices: [
       { name: "titanium", val: 1250 },
@@ -830,6 +919,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   },
   {
     name: "factoryOptimization",
+    description: "Optimised factory lines dramatically boosting craft rates.",
     effects: { t1CraftRatio: 10, t2CraftRatio: 2, queueCap: 1 },
     prices: [
       { name: "titanium", val: 1250 },
@@ -839,6 +929,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   },
   {
     name: "factoryRobotics",
+    description: "Full robotic factory lines for maximum craft automation.",
     effects: { t1CraftRatio: 10, t2CraftRatio: 5, t3CraftRatio: 2, queueCap: 2 },
     prices: [
       { name: "titanium", val: 2500 },
@@ -848,6 +939,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   },
   {
     name: "spaceEngineers",
+    description: "Space-grade engineering teams for tier 4+ craft bonuses.",
     effects: { t1CraftRatio: 10, t2CraftRatio: 5, t3CraftRatio: 2, t4CraftRatio: 2, queueCap: 2 },
     prices: [
       { name: "science", val: 225000 },
@@ -856,6 +948,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   },
   {
     name: "aiEngineers",
+    description: "AI-enhanced engineering for peak craft and queue bonuses.",
     effects: {
       t1CraftRatio: 10,
       t2CraftRatio: 5,
@@ -872,6 +965,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   },
   {
     name: "chronoEngineers",
+    description: "Temporal engineers manipulating time for maximum factory output.",
     effects: {
       t1CraftRatio: 10,
       t2CraftRatio: 5,
@@ -888,6 +982,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   },
   {
     name: "spaceManufacturing",
+    description: "Off-world manufacturing for exotic resource production.",
     effects: {},
     prices: [
       { name: "titanium", val: 125000 },
@@ -897,11 +992,13 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   // ─── science upgrades ───
   {
     name: "celestialMechanics",
+    description: "Orbital calculations enabling advanced tech research.",
     effects: {},
     prices: [{ name: "science", val: 250 }],
   },
   {
     name: "astrolabe",
+    description: "Navigation device improving starchart discovery efficiency.",
     effects: {},
     prices: [
       { name: "titanium", val: 5 },
@@ -911,6 +1008,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   },
   {
     name: "titaniumMirrors",
+    description: "Reflective titanium arrays boosting library science output.",
     effects: { libraryRatio: 0.02 },
     prices: [
       { name: "titanium", val: 15 },
@@ -920,6 +1018,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   },
   {
     name: "unobtainiumReflectors",
+    description: "Unobtainium reflectors for extreme library science bonuses.",
     effects: { libraryRatio: 0.02 },
     prices: [
       { name: "unobtainium", val: 75 },
@@ -929,6 +1028,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   },
   {
     name: "eludiumReflectors",
+    description: "Eludium-lensed reflectors pushing library output to the limit.",
     effects: { libraryRatio: 0.02 },
     prices: [
       { name: "science", val: 250000 },
@@ -937,6 +1037,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   },
   {
     name: "hydroPlantTurbines",
+    description: "Upgraded turbines boosting hydroelectric plant output.",
     effects: { hydroPlantRatio: 0.15 },
     prices: [
       { name: "unobtainium", val: 125 },
@@ -946,6 +1047,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   // ─── antimatter / space ───
   {
     name: "amBases",
+    description: "Antimatter production bases enabling advanced space operations.",
     effects: {},
     prices: [
       { name: "antimatter", val: 250 },
@@ -955,6 +1057,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   },
   {
     name: "aiBases",
+    description: "AI-controlled antimatter bases for autonomous production.",
     effects: {},
     prices: [
       { name: "antimatter", val: 7500 },
@@ -963,6 +1066,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   },
   {
     name: "amFission",
+    description: "Antimatter fission reactions boosting eludium automation.",
     effects: { eludiumAutomationBonus: 0.25 },
     prices: [
       { name: "antimatter", val: 175 },
@@ -972,6 +1076,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   },
   {
     name: "amReactors",
+    description: "Antimatter reactors providing a major space science boost.",
     effects: { spaceScienceRatio: 0.95 },
     prices: [
       { name: "antimatter", val: 750 },
@@ -981,6 +1086,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   },
   {
     name: "amReactorsMK2",
+    description: "Mark 2 antimatter reactors for even greater science output.",
     effects: { spaceScienceRatio: 1.5 },
     prices: [
       { name: "antimatter", val: 1750 },
@@ -990,6 +1096,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   },
   {
     name: "voidReactors",
+    description: "Void-powered reactors for exceptional space science generation.",
     effects: { spaceScienceRatio: 4 },
     prices: [
       { name: "antimatter", val: 2500 },
@@ -998,6 +1105,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   },
   {
     name: "relicStation",
+    description: "Relic processing station earning relics from beacon operations.",
     effects: { beaconRelicsPerDay: 0.01 },
     prices: [
       { name: "antimatter", val: 5000 },
@@ -1006,6 +1114,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   },
   {
     name: "amDrive",
+    description: "Antimatter drive greatly accelerating space ship route speed.",
     effects: { routeSpeed: 25 },
     prices: [
       { name: "antimatter", val: 125 },
@@ -1015,6 +1124,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   // ─── oil ───
   {
     name: "pumpjack",
+    description: "Industrial pump jacks increasing oil well extraction rate.",
     effects: { oilWellRatio: 0.45 },
     prices: [
       { name: "titanium", val: 250 },
@@ -1024,6 +1134,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   },
   {
     name: "biofuel",
+    description: "Biofuel refining reducing dependence on petroleum sources.",
     effects: {},
     prices: [
       { name: "titanium", val: 1250 },
@@ -1032,6 +1143,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   },
   {
     name: "unicornSelection",
+    description: "Selective unicorn breeding program improving global ratios.",
     effects: { unicornsGlobalRatio: 0.25, unicornsMaxRatio: 0 },
     prices: [
       { name: "titanium", val: 1500 },
@@ -1040,6 +1152,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   },
   {
     name: "gmo",
+    description: "Genetically modified crops improving biofuel yield.",
     effects: { biofuelRatio: 0.6 },
     prices: [
       { name: "catnip", val: 1000000 },
@@ -1050,6 +1163,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   // ─── blueprints ───
   {
     name: "cadSystems",
+    description: "CAD software improving blueprint crafting efficiency slightly.",
     effects: { cadBlueprintCraftRatio: 0.01 },
     prices: [
       { name: "titanium", val: 750 },
@@ -1058,6 +1172,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   },
   {
     name: "seti",
+    description: "Search for extraterrestrial intelligence unlocking contact tech.",
     effects: {},
     prices: [
       { name: "titanium", val: 250 },
@@ -1066,6 +1181,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   },
   {
     name: "logistics",
+    description: "Logistics management improving worker skill multiplier.",
     effects: { skillMultiplier: 0.15 },
     prices: [
       { name: "science", val: 100000 },
@@ -1075,6 +1191,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   },
   {
     name: "augumentation",
+    description: "Kitten augmentation dramatically improving skill multipliers.",
     effects: { skillMultiplier: 1 },
     prices: [
       { name: "titanium", val: 5000 },
@@ -1084,6 +1201,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   },
   {
     name: "internet",
+    description: "Global network enabling advanced information technology.",
     effects: {},
     prices: [
       { name: "titanium", val: 5000 },
@@ -1093,6 +1211,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   },
   {
     name: "neuralNetworks",
+    description: "Neural network AI for advanced computational research.",
     effects: {},
     prices: [
       { name: "titanium", val: 7500 },
@@ -1101,6 +1220,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   },
   {
     name: "assistance",
+    description: "AI assistance reducing per-worker catnip demand.",
     effects: { catnipDemandWorkerRatioGlobal: -0.25 },
     prices: [
       { name: "science", val: 100000 },
@@ -1110,6 +1230,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   },
   {
     name: "enrichedUranium",
+    description: "Enriched uranium fuel improving reactor output rate.",
     effects: { uraniumRatio: 0.25 },
     prices: [
       { name: "titanium", val: 7500 },
@@ -1119,6 +1240,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   },
   {
     name: "coldFusion",
+    description: "Cold fusion reactor technology boosting energy production.",
     effects: { reactorEnergyRatio: 0.25 },
     prices: [
       { name: "science", val: 200000 },
@@ -1127,6 +1249,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   },
   {
     name: "thoriumReactors",
+    description: "Thorium fission reactors with improved energy output.",
     effects: { reactorThoriumPerTick: -0.05, reactorEnergyRatio: 0.25 },
     prices: [
       { name: "science", val: 400000 },
@@ -1136,6 +1259,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   },
   {
     name: "enrichedThorium",
+    description: "Enriched thorium fuel extending reactor burn duration.",
     effects: { reactorThoriumPerTick: 0.0125 },
     prices: [
       { name: "science", val: 500000 },
@@ -1145,6 +1269,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   // ─── starcharts / space ───
   {
     name: "hubbleTelescope",
+    description: "Orbital telescope greatly boosting starchart generation.",
     effects: { starchartGlobalRatio: 0.3 },
     prices: [
       { name: "oil", val: 50000 },
@@ -1155,6 +1280,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   },
   {
     name: "satnav",
+    description: "Satellite navigation improving starchart accumulation rate.",
     effects: { satnavRatio: 0.0125 },
     prices: [
       { name: "science", val: 200000 },
@@ -1163,6 +1289,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   },
   {
     name: "satelliteRadio",
+    description: "Satellite radio arrays boosting broadcast tower output.",
     effects: { broadcastTowerRatio: 0.005 },
     prices: [
       { name: "science", val: 225000 },
@@ -1171,6 +1298,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   },
   {
     name: "astrophysicists",
+    description: "Astrophysicist kittens advancing deep space research.",
     effects: {},
     prices: [
       { name: "unobtainium", val: 350 },
@@ -1179,6 +1307,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   },
   {
     name: "mWReactor",
+    description: "Megawatt reactor powering lunar outpost operations.",
     effects: { lunarOutpostRatio: 0.75 },
     prices: [
       { name: "science", val: 150000 },
@@ -1187,6 +1316,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   },
   {
     name: "eludiumCracker",
+    description: "Eludium cracker doubling exotic matter processing rate.",
     effects: { crackerRatio: 1.0 },
     prices: [
       { name: "science", val: 275000 },
@@ -1195,6 +1325,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   },
   {
     name: "thoriumEngine",
+    description: "Thorium-powered engines increasing space route speed.",
     effects: { routeSpeed: 50 },
     prices: [
       { name: "science", val: 400000 },
@@ -1206,6 +1337,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   },
   {
     name: "spiceNavigation",
+    description: "Spice-guided navigation for deep space exploration.",
     effects: {},
     prices: [
       { name: "science", val: 350000 },
@@ -1214,6 +1346,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   },
   {
     name: "longRangeSpaceships",
+    description: "Extended-range ships enabling very long space routes.",
     effects: {},
     prices: [
       { name: "science", val: 440000 },
@@ -1225,6 +1358,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   // ─── oil refinery ───
   {
     name: "oilRefinery",
+    description: "Advanced oil refinery substantially increasing extraction.",
     effects: { oilWellRatio: 0.35 },
     prices: [
       { name: "titanium", val: 1250 },
@@ -1234,6 +1368,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   },
   {
     name: "oilDistillation",
+    description: "Fractional distillation improving oil field yield.",
     effects: { oilWellRatio: 0.75 },
     prices: [
       { name: "titanium", val: 5000 },
@@ -1242,6 +1377,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   },
   {
     name: "factoryProcessing",
+    description: "Factory-scale oil processing boosting refinery output.",
     effects: { factoryRefineRatio: 0.05 },
     prices: [
       { name: "titanium", val: 7500 },
@@ -1252,6 +1388,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   // ─── void space ───
   {
     name: "voidAspiration",
+    description: "Aspiration towards void mastery unlocking temporal upgrades.",
     effects: {},
     prices: [
       { name: "antimatter", val: 2000 },
@@ -1260,6 +1397,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   },
   {
     name: "distorsion",
+    description: "Temporal distortion fields adding bonus paradox days.",
     effects: { temporalParadoxDayBonus: 2 },
     prices: [
       { name: "antimatter", val: 2000 },
@@ -1270,6 +1408,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   },
   {
     name: "turnSmoothly",
+    description: "Smoothly turning temporal flux generators improve Chronosphere output.",
     effects: { temporalFluxProductionChronosphere: 1 },
     prices: [
       { name: "unobtainium", val: 100000 },
@@ -1280,6 +1419,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   },
   {
     name: "invisibleBlackHand",
+    description: "The invisible hand guiding temporal economics.",
     effects: {},
     prices: [
       { name: "temporalFlux", val: 4096 },

@@ -31,6 +31,8 @@ export interface TechUnlocks {
 
 export interface TechDef {
   readonly name: string;
+  /** Short human-readable description shown in the inspector panel */
+  readonly description?: string;
   readonly prices: readonly SciencePriceEntry[];
   readonly effects?: Record<string, number>;
   readonly unlocks?: TechUnlocks;
@@ -77,11 +79,13 @@ export interface ScienceState {
 export const TECH_DEFS: readonly TechDef[] = [
   {
     name: "calendar",
+    description: "Establishes the calendar system, unlocking agriculture and the time tab.",
     prices: [{ name: "science", val: 30 }],
     unlocks: { tech: ["agriculture"], tabs: ["time"] },
   },
   {
     name: "agriculture",
+    description: "Founds organised farming, unlocking barns, farmers, and further research.",
     prices: [{ name: "science", val: 100 }],
     unlocks: {
       buildings: ["barn"],
@@ -92,6 +96,7 @@ export const TECH_DEFS: readonly TechDef[] = [
   },
   {
     name: "archery",
+    description: "Develops bow-and-arrow techniques, unlocking hunters and zebra outposts.",
     prices: [{ name: "science", val: 300 }],
     unlocks: {
       buildings: ["zebraOutpost", "zebraWorkshop", "zebraForge"],
@@ -101,6 +106,7 @@ export const TECH_DEFS: readonly TechDef[] = [
   },
   {
     name: "mining",
+    description: "Deep excavation methods, unlocking mines and the workshop.",
     prices: [{ name: "science", val: 500 }],
     unlocks: {
       buildings: ["mine", "workshop"],
@@ -110,11 +116,13 @@ export const TECH_DEFS: readonly TechDef[] = [
   },
   {
     name: "metal",
+    description: "Basic metallurgy enabling smelters and iron tools.",
     prices: [{ name: "science", val: 900 }],
     unlocks: { buildings: ["smelter"], upgrades: ["huntingArmor"] },
   },
   {
     name: "animal",
+    description: "Domestication of animals, unlocking pastures and unicorn herding.",
     prices: [{ name: "science", val: 500 }],
     unlocks: {
       buildings: ["pasture", "unicornPasture"],
@@ -123,16 +131,19 @@ export const TECH_DEFS: readonly TechDef[] = [
   },
   {
     name: "brewery",
+    description: "Early fermentation studies — a historical curiosity with no current effect.",
     prices: [{ name: "science", val: 1200 }],
     // Not used anymore per legacy comment, but kept for data parity
   },
   {
     name: "civil",
+    description: "Civil organisation enabling advanced social structures.",
     prices: [{ name: "science", val: 1500 }],
     unlocks: { tech: ["currency"] },
   },
   {
     name: "math",
+    description: "Mathematical foundations enabling academic research and celestial mechanics.",
     prices: [{ name: "science", val: 1000 }],
     unlocks: {
       tabs: ["stats"],
@@ -142,6 +153,7 @@ export const TECH_DEFS: readonly TechDef[] = [
   },
   {
     name: "construction",
+    description: "Masonry and carpentry unlocking log houses, warehouses, and lumber mills.",
     prices: [{ name: "science", val: 1300 }],
     effects: { queueCap: 1 },
     unlocks: {
@@ -152,6 +164,7 @@ export const TECH_DEFS: readonly TechDef[] = [
   },
   {
     name: "engineering",
+    description: "Applied engineering enabling aqueducts and further infrastructure.",
     prices: [{ name: "science", val: 1500 }],
     unlocks: {
       buildings: ["aqueduct"],
@@ -161,6 +174,7 @@ export const TECH_DEFS: readonly TechDef[] = [
   },
   {
     name: "currency",
+    description: "Monetary system enabling trade posts and diplomacy.",
     prices: [{ name: "science", val: 2200 }],
     unlocks: {
       buildings: ["tradepost"],
@@ -170,6 +184,7 @@ export const TECH_DEFS: readonly TechDef[] = [
   },
   {
     name: "writing",
+    description: "Written language enabling amphitheatres and long-form knowledge storage.",
     prices: [{ name: "science", val: 3600 }],
     unlocks: {
       buildings: ["amphitheatre"],
@@ -181,6 +196,7 @@ export const TECH_DEFS: readonly TechDef[] = [
   },
   {
     name: "philosophy",
+    description: "Metaphysics and ethics unlocking theology and advanced culture.",
     prices: [{ name: "science", val: 9500 }],
     unlocks: {
       buildings: ["temple"],
@@ -191,6 +207,7 @@ export const TECH_DEFS: readonly TechDef[] = [
   },
   {
     name: "machinery",
+    description: "Mechanical devices enabling gears and automated production.",
     prices: [{ name: "science", val: 15000 }],
     unlocks: {
       buildings: ["steamworks"],
@@ -199,6 +216,7 @@ export const TECH_DEFS: readonly TechDef[] = [
   },
   {
     name: "steel",
+    description: "High-carbon steel production unlocking advanced manufacturing.",
     prices: [{ name: "science", val: 12000 }],
     unlocks: {
       upgrades: [
@@ -214,6 +232,7 @@ export const TECH_DEFS: readonly TechDef[] = [
   },
   {
     name: "theology",
+    description: "Religious scholarship unlocking priests and celestial studies.",
     prices: [
       { name: "science", val: 20000 },
       { name: "manuscript", val: 35 },
@@ -222,6 +241,7 @@ export const TECH_DEFS: readonly TechDef[] = [
   },
   {
     name: "astronomy",
+    description: "Stellar observation enabling observatories and space research.",
     prices: [
       { name: "science", val: 28000 },
       { name: "manuscript", val: 65 },
@@ -234,6 +254,7 @@ export const TECH_DEFS: readonly TechDef[] = [
   },
   {
     name: "navigation",
+    description: "Maritime navigation enabling harbours and distant exploration.",
     prices: [
       { name: "science", val: 35000 },
       { name: "manuscript", val: 100 },
@@ -247,6 +268,7 @@ export const TECH_DEFS: readonly TechDef[] = [
   },
   {
     name: "architecture",
+    description: "Advanced construction enabling mansions and grand structures.",
     prices: [
       { name: "science", val: 42000 },
       { name: "compedium", val: 10 },
@@ -255,6 +277,7 @@ export const TECH_DEFS: readonly TechDef[] = [
   },
   {
     name: "physics",
+    description: "Classical mechanics enabling accelerators and advanced technology.",
     prices: [
       { name: "science", val: 50000 },
       { name: "compedium", val: 35 },
@@ -267,6 +290,7 @@ export const TECH_DEFS: readonly TechDef[] = [
   },
   {
     name: "metaphysics",
+    description: "Philosophical investigation of fundamental reality.",
     prices: [
       { name: "unobtainium", val: 5 },
       { name: "science", val: 55000 },
@@ -274,6 +298,7 @@ export const TECH_DEFS: readonly TechDef[] = [
   },
   {
     name: "chemistry",
+    description: "Chemical processes enabling advanced refining and materials.",
     prices: [
       { name: "science", val: 60000 },
       { name: "compedium", val: 50 },
@@ -286,6 +311,7 @@ export const TECH_DEFS: readonly TechDef[] = [
   },
   {
     name: "acoustics",
+    description: "Study of sound enabling chapels and cultural entertainment.",
     prices: [
       { name: "science", val: 60000 },
       { name: "compedium", val: 60 },
@@ -294,6 +320,7 @@ export const TECH_DEFS: readonly TechDef[] = [
   },
   {
     name: "drama",
+    description: "Performing arts enabling breweries and cultural production.",
     prices: [
       { name: "science", val: 90000 },
       { name: "parchment", val: 5000 },
@@ -302,6 +329,7 @@ export const TECH_DEFS: readonly TechDef[] = [
   },
   {
     name: "archeology",
+    description: "Excavation of ruins enabling quarries and geological study.",
     prices: [
       { name: "science", val: 65000 },
       { name: "compedium", val: 65 },
@@ -315,6 +343,7 @@ export const TECH_DEFS: readonly TechDef[] = [
   },
   {
     name: "electricity",
+    description: "Electrical power enabling data centers and powered machinery.",
     prices: [
       { name: "science", val: 75000 },
       { name: "compedium", val: 85 },
@@ -323,6 +352,7 @@ export const TECH_DEFS: readonly TechDef[] = [
   },
   {
     name: "biology",
+    description: "Life sciences enabling advanced agriculture and kitten studies.",
     prices: [
       { name: "science", val: 85000 },
       { name: "compedium", val: 100 },
@@ -331,6 +361,7 @@ export const TECH_DEFS: readonly TechDef[] = [
   },
   {
     name: "biochemistry",
+    description: "Biochemical research enabling genetic science and biofuels.",
     prices: [
       { name: "science", val: 145000 },
       { name: "compedium", val: 500 },
@@ -339,6 +370,7 @@ export const TECH_DEFS: readonly TechDef[] = [
   },
   {
     name: "genetics",
+    description: "Genetic science enabling selective breeding programs.",
     prices: [
       { name: "science", val: 190000 },
       { name: "compedium", val: 1500 },
@@ -347,6 +379,7 @@ export const TECH_DEFS: readonly TechDef[] = [
   },
   {
     name: "industrialization",
+    description: "Industrial revolution unlocking factories and automated production.",
     prices: [
       { name: "science", val: 100000 },
       { name: "blueprint", val: 25 },
@@ -359,6 +392,7 @@ export const TECH_DEFS: readonly TechDef[] = [
   },
   {
     name: "mechanization",
+    description: "Industrial machinery enabling factories and modern engineering.",
     prices: [
       { name: "science", val: 115000 },
       { name: "blueprint", val: 45 },
@@ -373,6 +407,7 @@ export const TECH_DEFS: readonly TechDef[] = [
   },
   {
     name: "metalurgy",
+    description: "Advanced metal science enabling electrolytic smelting processes.",
     prices: [
       { name: "science", val: 125000 },
       { name: "blueprint", val: 60 },
@@ -381,6 +416,7 @@ export const TECH_DEFS: readonly TechDef[] = [
   },
   {
     name: "combustion",
+    description: "Combustion engine theory enabling oil refining and fuel systems.",
     prices: [
       { name: "science", val: 115000 },
       { name: "blueprint", val: 45 },
@@ -389,6 +425,7 @@ export const TECH_DEFS: readonly TechDef[] = [
   },
   {
     name: "ecology",
+    description: "Environmental science enabling carbon sequestration.",
     prices: [
       { name: "science", val: 125000 },
       { name: "blueprint", val: 55 },
@@ -397,6 +434,7 @@ export const TECH_DEFS: readonly TechDef[] = [
   },
   {
     name: "electronics",
+    description: "Electronic components enabling computers and automation.",
     prices: [
       { name: "science", val: 135000 },
       { name: "blueprint", val: 70 },
@@ -415,6 +453,7 @@ export const TECH_DEFS: readonly TechDef[] = [
   },
   {
     name: "robotics",
+    description: "Robotic systems enabling automated factory production.",
     prices: [
       { name: "science", val: 140000 },
       { name: "blueprint", val: 80 },
@@ -427,6 +466,7 @@ export const TECH_DEFS: readonly TechDef[] = [
   },
   {
     name: "ai",
+    description: "Artificial intelligence enabling machine learning and AI cores.",
     prices: [
       { name: "science", val: 250000 },
       { name: "blueprint", val: 150 },
@@ -439,6 +479,7 @@ export const TECH_DEFS: readonly TechDef[] = [
   },
   {
     name: "quantumCryptography",
+    description: "Quantum encryption technology for advanced computing security.",
     prices: [
       { name: "science", val: 1250000 },
       { name: "relic", val: 1024 },
@@ -447,6 +488,7 @@ export const TECH_DEFS: readonly TechDef[] = [
   },
   {
     name: "blackchain",
+    description: "Distributed ledger technology enabling temporal economics.",
     prices: [
       { name: "science", val: 5000000 },
       { name: "relic", val: 4096 },
@@ -455,6 +497,7 @@ export const TECH_DEFS: readonly TechDef[] = [
   },
   {
     name: "nuclearFission",
+    description: "Nuclear fission enabling reactors and uranium power.",
     prices: [
       { name: "science", val: 150000 },
       { name: "blueprint", val: 100 },
@@ -467,6 +510,7 @@ export const TECH_DEFS: readonly TechDef[] = [
   },
   {
     name: "rocketry",
+    description: "Rocket propulsion enabling space missions.",
     prices: [
       { name: "science", val: 175000 },
       { name: "blueprint", val: 125 },
@@ -479,6 +523,7 @@ export const TECH_DEFS: readonly TechDef[] = [
   },
   {
     name: "oilProcessing",
+    description: "Industrial oil processing enabling factory refinery operations.",
     prices: [
       { name: "science", val: 215000 },
       { name: "blueprint", val: 150 },
@@ -487,6 +532,7 @@ export const TECH_DEFS: readonly TechDef[] = [
   },
   {
     name: "sattelites",
+    description: "Satellite technology enabling orbital infrastructure.",
     prices: [
       { name: "science", val: 190000 },
       { name: "blueprint", val: 125 },
@@ -499,6 +545,7 @@ export const TECH_DEFS: readonly TechDef[] = [
   },
   {
     name: "orbitalEngineering",
+    description: "Engineering in orbit enabling telescope and space upgrades.",
     prices: [
       { name: "science", val: 250000 },
       { name: "blueprint", val: 250 },
@@ -517,6 +564,7 @@ export const TECH_DEFS: readonly TechDef[] = [
   },
   {
     name: "thorium",
+    description: "Thorium fuel cycle enabling advanced reactor power generation.",
     prices: [
       { name: "science", val: 375000 },
       { name: "blueprint", val: 375 },
@@ -525,6 +573,7 @@ export const TECH_DEFS: readonly TechDef[] = [
   },
   {
     name: "exogeology",
+    description: "Extraterrestrial geology enabling unobtainium resource extraction.",
     prices: [
       { name: "science", val: 275000 },
       { name: "blueprint", val: 250 },
@@ -542,6 +591,7 @@ export const TECH_DEFS: readonly TechDef[] = [
   },
   {
     name: "advExogeology",
+    description: "Advanced exogeology enabling eludium and exotic matter processing.",
     prices: [
       { name: "science", val: 325000 },
       { name: "blueprint", val: 350 },
@@ -553,6 +603,7 @@ export const TECH_DEFS: readonly TechDef[] = [
   },
   {
     name: "nanotechnology",
+    description: "Nanoscale engineering enabling augmentations and solar upgrades.",
     prices: [
       { name: "science", val: 200000 },
       { name: "blueprint", val: 150 },
@@ -564,6 +615,7 @@ export const TECH_DEFS: readonly TechDef[] = [
   },
   {
     name: "superconductors",
+    description: "Superconducting materials enabling cold fusion and antimatter.",
     prices: [
       { name: "science", val: 225000 },
       { name: "blueprint", val: 175 },
@@ -575,6 +627,7 @@ export const TECH_DEFS: readonly TechDef[] = [
   },
   {
     name: "antimatter",
+    description: "Antimatter physics enabling exotic energy generation.",
     prices: [
       { name: "science", val: 500000 },
       { name: "relic", val: 1 },
@@ -586,6 +639,7 @@ export const TECH_DEFS: readonly TechDef[] = [
   },
   {
     name: "terraformation",
+    description: "Planetary engineering enabling hydroponics and colonisation.",
     prices: [
       { name: "science", val: 750000 },
       { name: "relic", val: 5 },
@@ -594,6 +648,7 @@ export const TECH_DEFS: readonly TechDef[] = [
   },
   {
     name: "hydroponics",
+    description: "Soil-free cultivation enabling advanced exo-geological research.",
     prices: [
       { name: "science", val: 1000000 },
       { name: "relic", val: 25 },
@@ -602,6 +657,7 @@ export const TECH_DEFS: readonly TechDef[] = [
   },
   {
     name: "exogeophysics",
+    description: "Deep planetary physics enabling ultimate resource science.",
     prices: [
       { name: "science", val: 25000000 },
       { name: "relic", val: 500 },
@@ -609,6 +665,7 @@ export const TECH_DEFS: readonly TechDef[] = [
   },
   {
     name: "particlePhysics",
+    description: "High-energy particle science enabling accelerator research.",
     prices: [
       { name: "science", val: 185000 },
       { name: "blueprint", val: 135 },
@@ -621,16 +678,19 @@ export const TECH_DEFS: readonly TechDef[] = [
   },
   {
     name: "dimensionalPhysics",
+    description: "Physics of higher dimensions enabling energy rifts and the LHC.",
     prices: [{ name: "science", val: 235000 }],
     unlocks: { upgrades: ["energyRifts", "lhc"] },
   },
   {
     name: "artificialGravity",
+    description: "Gravity manipulation enabling spice navigation and long-range ships.",
     prices: [{ name: "science", val: 320000 }],
     unlocks: { upgrades: ["spiceNavigation", "longRangeSpaceships"] },
   },
   {
     name: "chronophysics",
+    description: "Physics of time enabling Chronospheres and temporal stasis.",
     prices: [
       { name: "science", val: 250000 },
       { name: "timeCrystal", val: 5 },
@@ -643,6 +703,7 @@ export const TECH_DEFS: readonly TechDef[] = [
   },
   {
     name: "tachyonTheory",
+    description: "Theoretical tachyon physics enabling faster-than-light research.",
     prices: [
       { name: "science", val: 750000 },
       { name: "timeCrystal", val: 25 },
@@ -655,6 +716,7 @@ export const TECH_DEFS: readonly TechDef[] = [
   },
   {
     name: "cryptotheology",
+    description: "Esoteric religious science enabling relic station operations.",
     prices: [
       { name: "science", val: 650000 },
       { name: "relic", val: 5 },
@@ -663,6 +725,7 @@ export const TECH_DEFS: readonly TechDef[] = [
   },
   {
     name: "voidSpace",
+    description: "Void dimension research enabling temporal flux operations.",
     prices: [
       { name: "science", val: 800000 },
       { name: "timeCrystal", val: 30 },
@@ -672,6 +735,7 @@ export const TECH_DEFS: readonly TechDef[] = [
   },
   {
     name: "paradoxalKnowledge",
+    description: "Knowledge born of temporal paradox enabling distortion upgrades.",
     prices: [
       { name: "science", val: 1000000 },
       { name: "timeCrystal", val: 40 },

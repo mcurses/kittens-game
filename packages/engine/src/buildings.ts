@@ -18,6 +18,8 @@ export interface PriceEntry {
  */
 export interface BuildingDef {
   readonly name: string;
+  /** Short human-readable description shown in the inspector panel */
+  readonly description?: string;
   readonly prices: readonly PriceEntry[];
   readonly priceRatio: number;
   /** Static effects contributed to the effect cache */
@@ -68,6 +70,7 @@ export const BUILDING_DEFS: readonly BuildingDef[] = [
   // ── Food production ─────────────────────────────────────────────────────────
   {
     name: "field",
+    description: "Grows catnip passively each tick. The foundation of your food supply.",
     prices: [{ name: "catnip", val: 10 }],
     priceRatio: 1.12,
     effects: { catnipPerTickBase: 0.125 },
@@ -76,6 +79,7 @@ export const BUILDING_DEFS: readonly BuildingDef[] = [
   },
   {
     name: "pasture",
+    description: "Grazing land that reduces how much catnip each kitten consumes.",
     prices: [
       { name: "catnip", val: 100 },
       { name: "wood", val: 10 },
@@ -87,6 +91,7 @@ export const BUILDING_DEFS: readonly BuildingDef[] = [
   },
   {
     name: "aqueduct",
+    description: "Irrigation channels that boost catnip field output by routing water to crops.",
     prices: [{ name: "minerals", val: 75 }],
     priceRatio: 1.12,
     effects: { catnipRatio: 0.03 },
@@ -96,6 +101,7 @@ export const BUILDING_DEFS: readonly BuildingDef[] = [
   // ── Population ──────────────────────────────────────────────────────────────
   {
     name: "hut",
+    description: "Simple shelters that house more kittens and expand manpower capacity.",
     prices: [{ name: "wood", val: 5 }],
     priceRatio: 2.5,
     effects: { manpowerMax: 75, maxKittens: 2 },
@@ -104,6 +110,7 @@ export const BUILDING_DEFS: readonly BuildingDef[] = [
   },
   {
     name: "logHouse",
+    description: "Sturdier log construction providing comfortable housing for growing families.",
     prices: [
       { name: "wood", val: 200 },
       { name: "minerals", val: 250 },
@@ -115,6 +122,7 @@ export const BUILDING_DEFS: readonly BuildingDef[] = [
   },
   {
     name: "mansion",
+    description: "Opulent estate crafted from advanced materials — the pinnacle of kitten housing.",
     prices: [
       { name: "titanium", val: 25 },
       { name: "slab", val: 185 },
@@ -128,6 +136,7 @@ export const BUILDING_DEFS: readonly BuildingDef[] = [
   // ── Science ──────────────────────────────────────────────────────────────────
   {
     name: "library",
+    description: "Repository of knowledge that boosts science output and expands culture capacity.",
     prices: [{ name: "wood", val: 25 }],
     priceRatio: 1.15,
     effects: { scienceRatio: 0.1, scienceMax: 250, cultureMax: 10 },
@@ -136,6 +145,7 @@ export const BUILDING_DEFS: readonly BuildingDef[] = [
   },
   {
     name: "academy",
+    description: "Advanced research institution providing a major boost to science generation.",
     prices: [
       { name: "wood", val: 50 },
       { name: "minerals", val: 70 },
@@ -149,6 +159,7 @@ export const BUILDING_DEFS: readonly BuildingDef[] = [
   // ── Resource production ──────────────────────────────────────────────────────
   {
     name: "mine",
+    description: "Underground excavation that increases the rate of mineral extraction.",
     prices: [{ name: "wood", val: 100 }],
     priceRatio: 1.15,
     effects: { mineralsRatio: 0.2 },
@@ -158,6 +169,7 @@ export const BUILDING_DEFS: readonly BuildingDef[] = [
   // ── Resource storage ─────────────────────────────────────────────────────────
   {
     name: "barn",
+    description: "Large storage structure that dramatically increases capacity for all basic resources.",
     prices: [{ name: "wood", val: 50 }],
     priceRatio: 1.75,
     effects: {
@@ -174,6 +186,7 @@ export const BUILDING_DEFS: readonly BuildingDef[] = [
   },
   {
     name: "warehouse",
+    description: "Reinforced storage facility built from refined materials for mid-game resources.",
     prices: [
       { name: "beam", val: 1.5 },
       { name: "slab", val: 2 },

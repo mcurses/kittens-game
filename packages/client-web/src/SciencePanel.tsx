@@ -2,6 +2,7 @@
 import type { GameStateResponse } from "@kittens/api-spec";
 import { TECH_DEFS } from "@kittens/engine";
 import React from "react";
+import { useInspector } from "./InspectorContext.js";
 import { useGameAction } from "./useGameAction.js";
 import { canAfford, extractResources } from "./utils.js";
 
@@ -37,6 +38,7 @@ function extractTechs(state: GameStateResponse): TechEntry[] {
 
 export function SciencePanel({ state }: Props): React.ReactElement {
   const { mutate, isPending } = useGameAction();
+  const { setInspected, clearInspected } = useInspector();
 
   if (!state) {
     return <div className="loading-text" data-testid="science-panel-loading">Loading…</div>;
@@ -62,7 +64,34 @@ export function SciencePanel({ state }: Props): React.ReactElement {
                 : "";
 
             return (
-              <li key={t.name} data-testid={`tech-${t.name}`} className="item-row">
+              <li
+                key={t.name}
+                data-testid={`tech-${t.name}`}
+                className="item-row"
+                onMouseEnter={() =>
+                  setInspected({
+                    kind: "tech",
+                    name: t.name,
+                    description: def?.description,
+                    researched: t.researched,
+                    effects: def?.effects ?? {},
+                    prices: [...prices],
+                  })
+                }
+                onMouseLeave={clearInspected}
+                onFocus={() =>
+                  setInspected({
+                    kind: "tech",
+                    name: t.name,
+                    description: def?.description,
+                    researched: t.researched,
+                    effects: def?.effects ?? {},
+                    prices: [...prices],
+                  })
+                }
+                onBlur={clearInspected}
+                tabIndex={0}
+              >
                 <span className="item-row-name tech-name">{t.name}</span>
                 {costLabel && !t.researched && (
                   <span className="item-row-cost">{costLabel}</span>

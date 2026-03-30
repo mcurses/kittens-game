@@ -2,6 +2,7 @@
 import type { GameStateResponse } from "@kittens/api-spec";
 import { UPGRADE_DEFS } from "@kittens/engine";
 import React from "react";
+import { useInspector } from "./InspectorContext.js";
 import { useGameAction } from "./useGameAction.js";
 import { canAfford, extractResources } from "./utils.js";
 
@@ -59,6 +60,7 @@ function extractCrafts(state: GameStateResponse): CraftEntry[] {
 
 export function WorkshopPanel({ state }: Props): React.ReactElement {
   const { mutate, isPending } = useGameAction();
+  const { setInspected, clearInspected } = useInspector();
 
   if (!state) {
     return <div className="loading-text" data-testid="workshop-panel-loading">Loading…</div>;
@@ -85,7 +87,34 @@ export function WorkshopPanel({ state }: Props): React.ReactElement {
                 : "";
 
             return (
-              <li key={u.name} data-testid={`upgrade-${u.name}`} className="item-row">
+              <li
+                key={u.name}
+                data-testid={`upgrade-${u.name}`}
+                className="item-row"
+                onMouseEnter={() =>
+                  setInspected({
+                    kind: "upgrade",
+                    name: u.name,
+                    description: def?.description,
+                    researched: u.researched,
+                    effects: def?.effects ?? {},
+                    prices: [...prices],
+                  })
+                }
+                onMouseLeave={clearInspected}
+                onFocus={() =>
+                  setInspected({
+                    kind: "upgrade",
+                    name: u.name,
+                    description: def?.description,
+                    researched: u.researched,
+                    effects: def?.effects ?? {},
+                    prices: [...prices],
+                  })
+                }
+                onBlur={clearInspected}
+                tabIndex={0}
+              >
                 <span className="item-row-name upgrade-name">{u.name}</span>
                 {costLabel && !u.researched && (
                   <span className="item-row-cost">{costLabel}</span>

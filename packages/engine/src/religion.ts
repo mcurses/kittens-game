@@ -14,6 +14,8 @@ export interface ZigguratUpgradeUnlocks {
 
 export interface ZigguratUpgradeDef {
   readonly name: string;
+  /** Short human-readable description shown in the inspector panel */
+  readonly description?: string;
   readonly prices: readonly PriceEntry[];
   readonly priceRatio: number;
   readonly effects: Readonly<Record<string, number>>;
@@ -31,6 +33,8 @@ export interface ZigguratUpgradeEntry {
 
 export interface ReligionUpgradeDef {
   readonly name: string;
+  /** Short human-readable description shown in the inspector panel */
+  readonly description?: string;
   readonly prices: readonly PriceEntry[];
   readonly priceRatio: number;
   readonly effects: Readonly<Record<string, number>>;
@@ -83,6 +87,7 @@ export interface ReligionState {
 export const ZIGGURAT_UPGRADE_DEFS: readonly ZigguratUpgradeDef[] = [
   {
     name: "unicornTomb",
+    description: "A tomb for fallen unicorns that channels their essence into your religion.",
     prices: [
       { name: "ivory", val: 500 },
       { name: "tears", val: 5 },
@@ -94,6 +99,7 @@ export const ZIGGURAT_UPGRADE_DEFS: readonly ZigguratUpgradeDef[] = [
   },
   {
     name: "ivoryTower",
+    description: "Soaring ivory spire that amplifies unicorn production and rift chances.",
     prices: [
       { name: "ivory", val: 25000 },
       { name: "tears", val: 25 },
@@ -105,6 +111,7 @@ export const ZIGGURAT_UPGRADE_DEFS: readonly ZigguratUpgradeDef[] = [
   },
   {
     name: "ivoryCitadel",
+    description: "Fortified ivory citadel with powerful unicorn and meteor effects.",
     prices: [
       { name: "ivory", val: 50000 },
       { name: "tears", val: 50 },
@@ -116,6 +123,7 @@ export const ZIGGURAT_UPGRADE_DEFS: readonly ZigguratUpgradeDef[] = [
   },
   {
     name: "skyPalace",
+    description: "Heavenly palace floating above clouds, providing gold and unicorn bonuses.",
     prices: [
       { name: "ivory", val: 125000 },
       { name: "tears", val: 500 },
@@ -133,6 +141,7 @@ export const ZIGGURAT_UPGRADE_DEFS: readonly ZigguratUpgradeDef[] = [
   },
   {
     name: "unicornUtopia",
+    description: "Utopian unicorn paradise dramatically boosting production and alicorn rates.",
     prices: [
       { name: "gold", val: 500 },
       { name: "ivory", val: 1000000 },
@@ -150,6 +159,7 @@ export const ZIGGURAT_UPGRADE_DEFS: readonly ZigguratUpgradeDef[] = [
   },
   {
     name: "sunspire",
+    description: "Solar spire radiating divine energy for maximum unicorn generation.",
     prices: [
       { name: "gold", val: 1250 },
       { name: "ivory", val: 750000 },
@@ -166,6 +176,7 @@ export const ZIGGURAT_UPGRADE_DEFS: readonly ZigguratUpgradeDef[] = [
   },
   {
     name: "marker",
+    description: "Ancient marker channelling void corruption into your religion.",
     prices: [
       { name: "unobtainium", val: 2500 },
       { name: "spice", val: 50000 },
@@ -179,6 +190,7 @@ export const ZIGGURAT_UPGRADE_DEFS: readonly ZigguratUpgradeDef[] = [
   },
   {
     name: "unicornGraveyard",
+    description: "Sacred graveyard amplifying culture and the dark library.",
     prices: [
       { name: "necrocorn", val: 5 },
       { name: "megalith", val: 1000 },
@@ -190,6 +202,7 @@ export const ZIGGURAT_UPGRADE_DEFS: readonly ZigguratUpgradeDef[] = [
   },
   {
     name: "unicornNecropolis",
+    description: "Necropolis of unicorn souls granting corruption power bonuses.",
     prices: [
       { name: "alicorn", val: 100 },
       { name: "necrocorn", val: 15 },
@@ -202,6 +215,7 @@ export const ZIGGURAT_UPGRADE_DEFS: readonly ZigguratUpgradeDef[] = [
   },
   {
     name: "blackPyramid",
+    description: "Obsidian pyramid of terrible power — effects are hidden.",
     prices: [
       { name: "unobtainium", val: 5000 },
       { name: "spice", val: 150000 },
@@ -219,6 +233,7 @@ export const ZIGGURAT_UPGRADE_DEFS: readonly ZigguratUpgradeDef[] = [
 export const RELIGION_UPGRADE_DEFS: readonly ReligionUpgradeDef[] = [
   {
     name: "solarchant",
+    description: "Solar chanting ritual boosting faith accumulation rate.",
     prices: [{ name: "faith", val: 100 }],
     priceRatio: 2.5,
     effects: { faithRatioReligion: 0.1 },
@@ -226,6 +241,7 @@ export const RELIGION_UPGRADE_DEFS: readonly ReligionUpgradeDef[] = [
   },
   {
     name: "scholasticism",
+    description: "Religious scholarship deepening theological understanding.",
     prices: [{ name: "faith", val: 250 }],
     priceRatio: 2.5,
     effects: {},
@@ -233,6 +249,7 @@ export const RELIGION_UPGRADE_DEFS: readonly ReligionUpgradeDef[] = [
   },
   {
     name: "goldenSpire",
+    description: "Golden spire channelling divine energy into faith.",
     prices: [
       { name: "gold", val: 150 },
       { name: "faith", val: 350 },
@@ -243,6 +260,7 @@ export const RELIGION_UPGRADE_DEFS: readonly ReligionUpgradeDef[] = [
   },
   {
     name: "sunAltar",
+    description: "Sun altar focusing solar worship into concentrated faith.",
     prices: [
       { name: "gold", val: 250 },
       { name: "faith", val: 500 },
@@ -253,6 +271,7 @@ export const RELIGION_UPGRADE_DEFS: readonly ReligionUpgradeDef[] = [
   },
   {
     name: "stainedGlass",
+    description: "Stained glass windows inspiring kittens to greater devotion.",
     prices: [
       { name: "gold", val: 250 },
       { name: "faith", val: 500 },
@@ -263,6 +282,7 @@ export const RELIGION_UPGRADE_DEFS: readonly ReligionUpgradeDef[] = [
   },
   {
     name: "solarRevolution",
+    description: "Solar revolution transforming faith into multiplicative production.",
     prices: [
       { name: "gold", val: 500 },
       { name: "faith", val: 750 },
@@ -273,6 +293,7 @@ export const RELIGION_UPGRADE_DEFS: readonly ReligionUpgradeDef[] = [
   },
   {
     name: "basilica",
+    description: "Grand basilica for the faithful — major faith generation center.",
     prices: [
       { name: "gold", val: 750 },
       { name: "faith", val: 1250 },

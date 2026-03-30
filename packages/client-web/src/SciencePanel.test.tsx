@@ -1,6 +1,8 @@
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import React from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { InspectorProvider } from "./InspectorContext.js";
+import { InspectorPanel } from "./InspectorPanel.js";
 import { SciencePanel } from "./SciencePanel.js";
 
 const mockMutate = vi.fn();
@@ -20,6 +22,15 @@ function makeState(
   } as unknown as import("@kittens/api-spec").GameStateResponse;
 }
 
+function WithInspector({ children }: { children: React.ReactNode }): React.ReactElement {
+  return (
+    <InspectorProvider>
+      {children}
+      <InspectorPanel />
+    </InspectorProvider>
+  );
+}
+
 afterEach(() => {
   cleanup();
   vi.clearAllMocks();
@@ -27,17 +38,17 @@ afterEach(() => {
 
 describe("SciencePanel", () => {
   it("shows loading placeholder when state is null", () => {
-    render(<SciencePanel state={null} />);
+    render(<WithInspector><SciencePanel state={null} /></WithInspector>);
     expect(screen.getByTestId("science-panel-loading")).toBeTruthy();
   });
 
   it("shows loading placeholder when state is undefined", () => {
-    render(<SciencePanel state={undefined} />);
+    render(<WithInspector><SciencePanel state={undefined} /></WithInspector>);
     expect(screen.getByTestId("science-panel-loading")).toBeTruthy();
   });
 
   it("shows no techs message when science is empty", () => {
-    render(<SciencePanel state={makeState({})} />);
+    render(<WithInspector><SciencePanel state={makeState({})} /></WithInspector>);
     expect(screen.getByText("No technologies available.")).toBeTruthy();
   });
 
@@ -46,7 +57,7 @@ describe("SciencePanel", () => {
       agriculture: { unlocked: false, researched: false },
       archery: { unlocked: true, researched: false },
     });
-    render(<SciencePanel state={state} />);
+    render(<WithInspector><SciencePanel state={state} /></WithInspector>);
     expect(screen.queryByTestId("tech-agriculture")).toBeNull();
     expect(screen.getByTestId("tech-archery")).toBeTruthy();
   });
@@ -57,14 +68,14 @@ describe("SciencePanel", () => {
       { agriculture: { unlocked: true, researched: false } },
       { science: { value: 200 } },
     );
-    render(<SciencePanel state={state} />);
+    render(<WithInspector><SciencePanel state={state} /></WithInspector>);
     expect(screen.getByTestId("tech-agriculture")).toBeTruthy();
     expect(screen.getByRole("button", { name: /research/i })).toBeTruthy();
   });
 
   it("shows researched tech as Done (no button)", () => {
     const state = makeState({ agriculture: { unlocked: true, researched: true } });
-    render(<SciencePanel state={state} />);
+    render(<WithInspector><SciencePanel state={state} /></WithInspector>);
     expect(screen.getByTestId("tech-agriculture")).toBeTruthy();
     expect(screen.queryByRole("button", { name: /research/i })).toBeNull();
     expect(screen.getByText(/done/i)).toBeTruthy();
@@ -76,7 +87,7 @@ describe("SciencePanel", () => {
       { archery: { unlocked: true, researched: false } },
       { science: { value: 1000 } },
     );
-    render(<SciencePanel state={state} />);
+    render(<WithInspector><SciencePanel state={state} /></WithInspector>);
     fireEvent.click(screen.getByRole("button", { name: /research/i }));
     expect(mockMutate).toHaveBeenCalledWith({ type: "RESEARCH", name: "archery" });
   });
@@ -85,7 +96,7 @@ describe("SciencePanel", () => {
   it("shows tech price in Research button text", () => {
     // 'calendar' tech costs 30 science
     const state = makeState({ calendar: { unlocked: true, researched: false } });
-    render(<SciencePanel state={state} />);
+    render(<WithInspector><SciencePanel state={state} /></WithInspector>);
     // button label should include cost info
     expect(screen.getByText(/research/i)).toBeTruthy();
     expect(screen.getByText(/30/)).toBeTruthy();
@@ -97,7 +108,7 @@ describe("SciencePanel", () => {
       { calendar: { unlocked: true, researched: false } },
       { science: { value: 0 } },
     );
-    render(<SciencePanel state={state} />);
+    render(<WithInspector><SciencePanel state={state} /></WithInspector>);
     const btn = screen.getByRole("button", { name: /research/i });
     expect(btn.hasAttribute("disabled")).toBe(true);
   });
@@ -108,7 +119,7 @@ describe("SciencePanel", () => {
       { calendar: { unlocked: true, researched: false } },
       { science: { value: 100 } },
     );
-    render(<SciencePanel state={state} />);
+    render(<WithInspector><SciencePanel state={state} /></WithInspector>);
     const btn = screen.getByRole("button", { name: /research/i });
     expect(btn.hasAttribute("disabled")).toBe(false);
   });
@@ -119,7 +130,7 @@ describe("SciencePanel", () => {
       archery: { unlocked: true, researched: true },
       calendar: { unlocked: false, researched: false },
     });
-    render(<SciencePanel state={state} />);
+    render(<WithInspector><SciencePanel state={state} /></WithInspector>);
     expect(screen.getByTestId("tech-agriculture")).toBeTruthy();
     expect(screen.getByTestId("tech-archery")).toBeTruthy();
     expect(screen.queryByTestId("tech-calendar")).toBeNull();
