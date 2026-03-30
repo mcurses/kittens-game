@@ -270,6 +270,39 @@ describe("VillageManager", () => {
       expect(effects.woodPerTickBase).toBeCloseTo(0.018 * 2);
     });
 
+    it("applies woodJobRatio from effectCache to woodcutter production", () => {
+      // mineralAxes gives woodJobRatio: 0.7 — woodcutters should produce 1.7× base
+      const base = createInitialState();
+      const state = {
+        ...base,
+        effectCache: { ...base.effectCache, woodJobRatio: 0.7 },
+        village: {
+          ...createInitialVillage(),
+          kittens: 1,
+          happiness: 1.0,
+          jobs: { ...createInitialVillage().jobs, woodcutter: { value: 1 } },
+        },
+      };
+      const effects = manager.updateEffects(state);
+      expect(effects.woodPerTickBase).toBeCloseTo(0.018 * 1.7);
+    });
+
+    it("applies catnipJobRatio from effectCache to farmer production", () => {
+      const base = createInitialState();
+      const state = {
+        ...base,
+        effectCache: { ...base.effectCache, catnipJobRatio: 0.5 },
+        village: {
+          ...createInitialVillage(),
+          kittens: 1,
+          happiness: 1.0,
+          jobs: { ...createInitialVillage().jobs, farmer: { value: 1 } },
+        },
+      };
+      const effects = manager.updateEffects(state);
+      expect(effects.catnipPerTickBase).toBeCloseTo(1.0 * 1.5);
+    });
+
     it("contributes catnipPerTickCon based on total kittens", () => {
       const state = {
         ...createInitialState(),

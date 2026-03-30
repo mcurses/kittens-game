@@ -170,12 +170,15 @@ export class VillageManager implements Manager {
     // Port of legacy kittensPerTickBase: 0.01 (hardcoded constant on VillageManager)
     effects.kittensPerTickBase = 0.01;
 
-    // ── Job production (scaled by happiness) ──────────────────────────────────
+    // ── Job production (scaled by happiness and workshop tool ratio) ──────────
+    // Port of legacy game.js:3211: production *= (1 + getEffect(res.name + "JobRatio"))
     const happiness = village.happiness;
     for (const def of JOB_DEFS) {
       const job = village.jobs[def.name];
       if (!job || job.value === 0) continue;
-      const production = def.baseProduction * job.value * happiness;
+      const resourceName = def.effectKey.replace("PerTickBase", "");
+      const jobRatio = state.effectCache[`${resourceName}JobRatio`] ?? 0;
+      const production = def.baseProduction * job.value * happiness * (1 + jobRatio);
       effects[def.effectKey] = (effects[def.effectKey] ?? 0) + production;
     }
 
