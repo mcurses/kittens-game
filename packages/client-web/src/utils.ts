@@ -3,7 +3,7 @@
 import type { GameStateResponse } from "@kittens/api-spec";
 
 export interface ResourceMap {
-  [key: string]: { value: number };
+  [key: string]: { value: number; perTick?: number };
 }
 
 /**
@@ -21,7 +21,11 @@ export function extractResources(state: GameStateResponse): ResourceMap {
       v !== null &&
       typeof (v as Record<string, unknown>).value === "number"
     ) {
-      result[k] = { value: (v as Record<string, unknown>).value as number };
+      const entry = v as Record<string, unknown>;
+      result[k] = {
+        value: entry.value as number,
+        perTick: typeof entry.perTick === "number" ? entry.perTick : undefined,
+      };
     }
   }
   return result;

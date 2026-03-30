@@ -141,7 +141,7 @@ function BuildingDetail({ entity }: { entity: BuildingEntity }): React.ReactElem
         <p className="inspector-description">{entity.description}</p>
       )}
       <EffectsSection effects={entity.effects} />
-      <PricesSection prices={entity.prices} label="Cost (next)" />
+      <PricesSection prices={entity.prices} label="Cost (next)" resources={entity.resources} />
     </div>
   );
 }
@@ -159,7 +159,7 @@ function UpgradeDetail({ entity }: { entity: UpgradeEntity }): React.ReactElemen
         <p className="inspector-description">{entity.description}</p>
       )}
       <EffectsSection effects={entity.effects} />
-      {!entity.researched && <PricesSection prices={entity.prices} label="Cost" />}
+      {!entity.researched && <PricesSection prices={entity.prices} label="Cost" resources={entity.resources} />}
     </div>
   );
 }
@@ -177,7 +177,7 @@ function TechDetail({ entity }: { entity: TechEntity }): React.ReactElement {
         <p className="inspector-description">{entity.description}</p>
       )}
       <EffectsSection effects={entity.effects} />
-      {!entity.researched && <PricesSection prices={entity.prices} label="Cost" />}
+      {!entity.researched && <PricesSection prices={entity.prices} label="Cost" resources={entity.resources} />}
     </div>
   );
 }
@@ -193,7 +193,7 @@ function ZigguratUpgradeDetail({ entity }: { entity: ZigguratUpgradeEntity }): R
         <p className="inspector-description">{entity.description}</p>
       )}
       <EffectsSection effects={entity.effects} />
-      <PricesSection prices={entity.prices} label="Cost (next)" />
+      <PricesSection prices={entity.prices} label="Cost (next)" resources={entity.resources} />
     </div>
   );
 }
@@ -209,7 +209,7 @@ function ReligionUpgradeDetail({ entity }: { entity: ReligionUpgradeEntity }): R
         <p className="inspector-description">{entity.description}</p>
       )}
       <EffectsSection effects={entity.effects} />
-      <PricesSection prices={entity.prices} label="Cost (next)" />
+      <PricesSection prices={entity.prices} label="Cost (next)" resources={entity.resources} />
     </div>
   );
 }
@@ -244,21 +244,47 @@ function EffectsSection({
 function PricesSection({
   prices,
   label,
+  resources = {},
 }: {
   prices: Array<{ name: string; val: number }>;
   label: string;
+  resources?: Record<string, { value: number; perTick?: number }>;
 }): React.ReactElement | null {
   if (prices.length === 0) return null;
   return (
     <div className="inspector-section">
       <div className="inspector-section-label">{label}</div>
-      <dl className="inspector-stats">
-        {prices.map((p) => (
-          <div key={p.name} className="inspector-stat-row">
-            <dt>{p.name}</dt>
-            <dd>{p.val.toFixed(0)}</dd>
-          </div>
-        ))}
+      <dl className="inspector-stats inspector-prices">
+        {prices.map((p) => {
+          const res = resources[p.name];
+          const have = res?.value ?? 0;
+          const need = p.val;
+          const perTick = res?.perTick;
+          const affordable = have >= need;
+          const shortfall = need - have;
+          const ticksNeeded =
+            !affordable && perTick && perTick > 0
+              ? shortfall / perTick
+              : null;
+
+          return (
+            <div key={p.name} className="inspector-stat-row inspector-price-row">
+              <dt className="inspector-price-name">{p.name}</dt>
+              <dd className="inspector-price-detail">
+                <span className={affordable ? "stat-pos" : "stat-neg"}>
+                  {formatValue(have)}
+                </span>
+                <span className="inspector-price-sep"> / </span>
+                <span>{formatValue(need)}</span>
+                {ticksNeeded !== null && (
+                  <span className="inspector-price-eta">
+                    {" "}~{formatDuration(ticksNeeded / TICKS_PER_SECOND)}
+                  </span>
+                )}
+              </dd>
+            </div>
+          );
+        })}
       </dl>
     </div>
   );

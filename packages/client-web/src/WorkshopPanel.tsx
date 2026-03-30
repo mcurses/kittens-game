@@ -99,6 +99,7 @@ export function WorkshopPanel({ state }: Props): React.ReactElement {
                     researched: u.researched,
                     effects: def?.effects ?? {},
                     prices: [...prices],
+                    resources,
                   })
                 }
                 onMouseLeave={clearInspected}
@@ -110,6 +111,7 @@ export function WorkshopPanel({ state }: Props): React.ReactElement {
                     researched: u.researched,
                     effects: def?.effects ?? {},
                     prices: [...prices],
+                    resources,
                   })
                 }
                 onBlur={clearInspected}

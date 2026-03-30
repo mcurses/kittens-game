@@ -17,6 +17,11 @@ export interface ResourceEntity {
   };
 }
 
+export interface ResourceSnapshot {
+  value: number;
+  perTick?: number;
+}
+
 export interface BuildingEntity {
   kind: "building";
   name: string;
@@ -24,6 +29,7 @@ export interface BuildingEntity {
   val: number;
   effects: Record<string, number>;
   prices: Array<{ name: string; val: number }>;
+  resources: Record<string, ResourceSnapshot>;
 }
 
 export interface UpgradeEntity {
@@ -33,6 +39,7 @@ export interface UpgradeEntity {
   researched: boolean;
   effects: Record<string, number>;
   prices: Array<{ name: string; val: number }>;
+  resources: Record<string, ResourceSnapshot>;
 }
 
 export interface TechEntity {
@@ -42,6 +49,7 @@ export interface TechEntity {
   researched: boolean;
   effects: Record<string, number>;
   prices: Array<{ name: string; val: number }>;
+  resources: Record<string, ResourceSnapshot>;
 }
 
 export interface ZigguratUpgradeEntity {
@@ -51,6 +59,7 @@ export interface ZigguratUpgradeEntity {
   val: number;
   effects: Record<string, number>;
   prices: Array<{ name: string; val: number }>;
+  resources: Record<string, ResourceSnapshot>;
 }
 
 export interface ReligionUpgradeEntity {
@@ -60,6 +69,7 @@ export interface ReligionUpgradeEntity {
   val: number;
   effects: Record<string, number>;
   prices: Array<{ name: string; val: number }>;
+  resources: Record<string, ResourceSnapshot>;
 }
 
 export type InspectorEntity =

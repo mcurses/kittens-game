@@ -72,6 +72,7 @@ export function BuildingsPanel({ state }: Props): React.ReactElement {
                     val: b.val,
                     effects: def?.effects ?? {},
                     prices,
+                    resources,
                   })
                 }
                 onMouseLeave={clearInspected}
@@ -83,6 +84,7 @@ export function BuildingsPanel({ state }: Props): React.ReactElement {
                     val: b.val,
                     effects: def?.effects ?? {},
                     prices,
+                    resources,
                   })
                 }
                 onBlur={clearInspected}

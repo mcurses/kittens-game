@@ -985,6 +985,26 @@ body {
   color: #e07070;
 }
 
+.inspector-price-row dd {
+  display: flex;
+  align-items: baseline;
+  gap: 0;
+  flex-wrap: nowrap;
+  min-width: 0;
+}
+
+.inspector-price-sep {
+  color: rgba(255,255,255,.25);
+  margin: 0 1px;
+}
+
+.inspector-price-eta {
+  font-size: var(--text-2xs);
+  color: rgba(220,208,182,.45);
+  margin-left: var(--sp-1);
+  white-space: nowrap;
+}
+
 /* ── Log Sidebar ─────────────────────────────────────────── */
 .log-sidebar {
   display: flex;

@@ -27,6 +27,7 @@ function SetEntityButton({ kind }: { kind: string }): React.ReactElement {
             val: 3,
             effects: { catnipPerTickBase: 0.125 },
             prices: [{ name: "catnip", val: 10 }],
+            resources: {},
           });
         } else if (kind === "resource") {
           setInspected({
@@ -48,6 +49,7 @@ function SetEntityButton({ kind }: { kind: string }): React.ReactElement {
               { name: "minerals", val: 275 },
               { name: "science", val: 100 },
             ],
+            resources: {},
           });
         } else if (kind === "tech") {
           setInspected({
@@ -57,6 +59,17 @@ function SetEntityButton({ kind }: { kind: string }): React.ReactElement {
             researched: false,
             effects: {},
             prices: [{ name: "science", val: 100 }],
+            resources: {},
+          });
+        } else if (kind === "building-with-resources") {
+          setInspected({
+            kind: "building",
+            name: "hut",
+            description: "Houses a kitten.",
+            val: 2,
+            effects: {},
+            prices: [{ name: "wood", val: 5 }],
+            resources: { wood: { value: 2, perTick: 0.5 } },
           });
         }
       }}
@@ -157,6 +170,24 @@ describe("InspectorPanel", () => {
     expect(screen.getByText("Founds organised farming.")).toBeTruthy();
   });
 
+  it("shows current/needed amounts in cost section", () => {
+    render(
+      <TestWrapper>
+        <SetEntityButton kind="building-with-resources" />
+        <InspectorPanel />
+      </TestWrapper>,
+    );
+    act(() => {
+      screen.getByTestId("set-building-with-resources").click();
+    });
+    // Cost section header visible
+    expect(screen.getByText("Cost (next)")).toBeTruthy();
+    // Resource name shown
+    expect(screen.getAllByText(/wood/).length).toBeGreaterThan(0);
+    // Time to afford: shortfall=3, perTick=0.5/tick, 5ticks/sec → 3/(0.5*5)=1.2s → "~1s"
+    expect(screen.getByText(/~1s/)).toBeTruthy();
+  });
+
   it("hides cost section for purchased upgrades", () => {
     render(
       <TestWrapper>
@@ -188,6 +219,7 @@ function HookSetter(): React.ReactElement {
           researched: true,
           effects: { catnipJobRatio: 0.3 },
           prices: [{ name: "iron", val: 25 }],
+          resources: {},
         })
       }
     >

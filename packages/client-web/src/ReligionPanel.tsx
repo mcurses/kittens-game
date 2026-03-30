@@ -2,6 +2,7 @@
 import type { GameStateResponse } from "@kittens/api-spec";
 import { RELIGION_UPGRADE_DEFS, ZIGGURAT_UPGRADE_DEFS } from "@kittens/engine";
 import React from "react";
+import { useInspector } from "./InspectorContext.js";
 import { useGameAction } from "./useGameAction.js";
 import { canAfford, extractResources } from "./utils.js";
 
@@ -47,6 +48,7 @@ function extractReligion(state: GameStateResponse): {
 
 export function ReligionPanel({ state }: Props): React.ReactElement {
   const { mutate, isPending } = useGameAction();
+  const { setInspected, clearInspected } = useInspector();
 
   if (!state) {
     return <div className="loading-text" data-testid="religion-panel-loading">Loading…</div>;
@@ -81,7 +83,16 @@ export function ReligionPanel({ state }: Props): React.ReactElement {
               const prices = def?.prices ?? [];
               const affordable = canAfford(prices, resources);
               return (
-                <li key={u.name} data-testid={`zu-${u.name}`} className="item-row">
+                <li key={u.name} data-testid={`zu-${u.name}`} className="item-row"
+                  onMouseEnter={() => setInspected({ kind: "zigguratUpgrade", name: u.name,
+                    description: def?.description, val: u.val, effects: def?.effects ?? {},
+                    prices, resources })}
+                  onMouseLeave={clearInspected}
+                  onFocus={() => setInspected({ kind: "zigguratUpgrade", name: u.name,
+                    description: def?.description, val: u.val, effects: def?.effects ?? {},
+                    prices, resources })}
+                  onBlur={clearInspected}
+                  tabIndex={0}>
                   <span className="item-row-name">{u.name}</span>
                   <span className="item-row-cost">×{u.val}</span>
                   <button type="button" data-testid={`zu-${u.name}-buy`}
@@ -106,7 +117,16 @@ export function ReligionPanel({ state }: Props): React.ReactElement {
               const prices = def?.prices ?? [];
               const affordable = canAfford(prices, resources);
               return (
-                <li key={u.name} data-testid={`ru-${u.name}`} className="item-row">
+                <li key={u.name} data-testid={`ru-${u.name}`} className="item-row"
+                  onMouseEnter={() => setInspected({ kind: "religionUpgrade", name: u.name,
+                    description: def?.description, val: u.val, effects: def?.effects ?? {},
+                    prices, resources })}
+                  onMouseLeave={clearInspected}
+                  onFocus={() => setInspected({ kind: "religionUpgrade", name: u.name,
+                    description: def?.description, val: u.val, effects: def?.effects ?? {},
+                    prices, resources })}
+                  onBlur={clearInspected}
+                  tabIndex={0}>
                   <span className="item-row-name">{u.name}</span>
                   <span className="item-row-cost">×{u.val}</span>
                   <button type="button" data-testid={`ru-${u.name}-buy`}

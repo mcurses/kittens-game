@@ -76,6 +76,7 @@ export function SciencePanel({ state }: Props): React.ReactElement {
                     researched: t.researched,
                     effects: def?.effects ?? {},
                     prices: [...prices],
+                    resources,
                   })
                 }
                 onMouseLeave={clearInspected}
@@ -87,6 +88,7 @@ export function SciencePanel({ state }: Props): React.ReactElement {
                     researched: t.researched,
                     effects: def?.effects ?? {},
                     prices: [...prices],
+                    resources,
                   })
                 }
                 onBlur={clearInspected}
