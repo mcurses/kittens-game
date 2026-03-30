@@ -131,3 +131,27 @@ Idle stores are kept in-memory indefinitely (no TTL cleanup). This is acceptable
 - The existing single-store tests still work by using `registry.getOrCreate("default")`
 - TanStack Query key includes slot: `["gameState", slot]` — different slots have independent cache entries in the client
 - TanStack Query v5 passes a `mutationFnContext` as second arg to `mutationFn`; wrap with `(action) => postGameAction(action, slot)` to prevent leakage
+
+---
+
+## ADR-008: Effect system — consumed vs produced keys
+**Date:** 2026-03-30
+**Status:** Accepted
+
+### Context
+Sanity check (2026-03-30) found that the effectCache has two classes of keys:
+1. **Fully wired** — produced by managers AND consumed somewhere (e.g. `woodPerTickBase`, `woodRatio`, `woodJobRatio`, `priceRatio`, `unhappinessRatio`, `${name}Max`)
+2. **Stub-only** — produced by defs for buildings/upgrades we haven't implemented yet (e.g. `barnRatio`, `lumberMillRatio`, `culturePerTickBase`, `energyProduction`, ~180 others)
+
+Three bugs were found and fixed in this session:
+- `woodJobRatio` / `catnipJobRatio` set by workshop upgrades but not applied to job production (fixed)
+- `priceRatio` set by prestige perks but not consumed by `getBuildingPrice` (fixed)
+- `unhappinessRatio` set by buildings (not yet implemented) but not consumed in happiness formula (fixed)
+
+### Decision
+Accept that stub-only keys are inert until the buildings/upgrades that produce them are implemented. The contract is: **when a new building/upgrade is added, wire its effect keys end-to-end in the same PR** — do not add defs that silently produce unread keys.
+
+The `happiness` building bonus (e.g. sunAltar in religion) is the one currently-wired consumer with no producer yet (`effectCache.happiness` always 0). This is harmless — will be populated when religion buildings are expanded.
+
+### How to apply
+Before adding a new building or upgrade def, check that every effect key it produces has a consumer. Add the consumer in the same commit. Use `grep -rn "effectCache\[" packages/engine/src/` to audit.
