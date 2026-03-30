@@ -193,7 +193,19 @@ export class VillageManager implements Manager {
       const fursDemandRatio = state.effectCache.fursDemandRatio ?? 0;
       const ivoryDemandRatio = state.effectCache.ivoryDemandRatio ?? 0;
       const spiceDemandRatio = state.effectCache.spiceDemandRatio ?? 0;
-      effects.catnipPerTickCon = -0.85 * village.kittens * (1 + catnipDemandRatio);
+
+      // catnipDemandWorkerRatioGlobal reduces catnip consumption for assigned worker kittens.
+      // Port of legacy workshop.js "assistance" upgrade effect.
+      // Unassigned kittens consume at full rate; assigned workers get the discount applied
+      // proportionally to their share of the total population.
+      const catnipDemandWorkerRatioGlobal = state.effectCache.catnipDemandWorkerRatioGlobal ?? 0;
+      const assignedKittens = Math.min(totalAssignedKittens(village), village.kittens);
+      const unassignedKittens = village.kittens - assignedKittens;
+      const workerCatnipBase = -0.85 * (1 + catnipDemandRatio);
+      const catnipCon =
+        unassignedKittens * workerCatnipBase +
+        assignedKittens * workerCatnipBase * (1 + catnipDemandWorkerRatioGlobal);
+      effects.catnipPerTickCon = catnipCon;
       effects.fursPerTickCon = -0.01 * village.kittens * (1 + fursDemandRatio);
       effects.ivoryPerTickCon = -0.007 * village.kittens * (1 + ivoryDemandRatio);
       effects.spicePerTickCon = -0.001 * village.kittens * (1 + spiceDemandRatio);

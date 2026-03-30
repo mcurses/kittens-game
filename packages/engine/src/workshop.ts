@@ -1707,8 +1707,16 @@ export function applyCraft(state: GameState, craftName: string, amt: number): Ga
   const scaledPrices = def.prices.map((p) => ({ name: p.name, val: p.val * amt }));
   if (!canAfford(scaledPrices, state.resources)) return state;
 
-  // Calculate output amount before producing
-  const craftRatio = def.ignoreBonuses ? 0 : (state.effectCache.craftRatio ?? 0);
+  // Calculate output amount before producing.
+  // Apply tier-specific craft ratio from effectCache (t1CraftRatio through t5CraftRatio).
+  // Port of legacy workshop.js: "t" + craft.tier + "CraftRatio" effect lookup.
+  let craftRatio = 0;
+  if (!def.ignoreBonuses) {
+    craftRatio += state.effectCache.craftRatio ?? 0;
+    if (def.tier >= 1 && def.tier <= 5) {
+      craftRatio += state.effectCache[`t${def.tier}CraftRatio`] ?? 0;
+    }
+  }
   const craftAmt = amt * (1 + craftRatio);
 
   return produce(state, (draft) => {

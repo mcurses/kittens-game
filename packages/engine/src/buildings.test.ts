@@ -460,3 +460,220 @@ describe("Story 21-2: Building unlock system", () => {
     expect(hut?.unlockRatio).toBe(0.3);
   });
 });
+
+// ── Epic 27: New building definitions ─────────────────────────────────────────
+
+describe("Story 27-02: amphitheatre", () => {
+  it("exists in BUILDING_DEFS", () => {
+    expect(BUILDING_DEFS.find((b) => b.name === "amphitheatre")).toBeDefined();
+  });
+
+  it("has correct prices: 200 wood, 1200 minerals, 3 parchment", () => {
+    const def = BUILDING_DEFS.find((b) => b.name === "amphitheatre");
+    expect(def?.prices.find((p) => p.name === "wood")?.val).toBe(200);
+    expect(def?.prices.find((p) => p.name === "minerals")?.val).toBe(1200);
+    expect(def?.prices.find((p) => p.name === "parchment")?.val).toBe(3);
+  });
+
+  it("has priceRatio 1.15", () => {
+    const def = BUILDING_DEFS.find((b) => b.name === "amphitheatre");
+    expect(def?.priceRatio).toBe(1.15);
+  });
+
+  it("has culturePerTickBase: 0.005", () => {
+    const def = BUILDING_DEFS.find((b) => b.name === "amphitheatre");
+    expect(def?.effects.culturePerTickBase).toBe(0.005);
+  });
+
+  it("has cultureMax: 50", () => {
+    const def = BUILDING_DEFS.find((b) => b.name === "amphitheatre");
+    expect(def?.effects.cultureMax).toBe(50);
+  });
+
+  it("has unhappinessRatio: -0.048", () => {
+    const def = BUILDING_DEFS.find((b) => b.name === "amphitheatre");
+    expect(def?.effects.unhappinessRatio).toBe(-0.048);
+  });
+
+  it("produces culture > 0 when 1 amphitheatre is built", () => {
+    const manager = new BuildingManager();
+    const state = {
+      ...createInitialState(),
+      buildings: {
+        ...createInitialBuildings(),
+        amphitheatre: { val: 1, on: 1, unlocked: true },
+      },
+    };
+    const effects = manager.updateEffects(state);
+    expect(effects.culturePerTickBase).toBeGreaterThan(0);
+    expect(effects.cultureMax).toBeGreaterThan(0);
+    expect(effects.unhappinessRatio).toBeLessThan(0);
+  });
+});
+
+describe("Story 27-03: lumberMill", () => {
+  it("exists in BUILDING_DEFS", () => {
+    expect(BUILDING_DEFS.find((b) => b.name === "lumberMill")).toBeDefined();
+  });
+
+  it("has correct prices: 100 wood, 250 minerals, 50 iron", () => {
+    const def = BUILDING_DEFS.find((b) => b.name === "lumberMill");
+    expect(def?.prices.find((p) => p.name === "wood")?.val).toBe(100);
+    expect(def?.prices.find((p) => p.name === "minerals")?.val).toBe(250);
+    expect(def?.prices.find((p) => p.name === "iron")?.val).toBe(50);
+  });
+
+  it("has woodRatio: 0.1", () => {
+    const def = BUILDING_DEFS.find((b) => b.name === "lumberMill");
+    expect(def?.effects.woodRatio).toBe(0.1);
+  });
+
+  it("1 lumberMill → woodRatio 0.1 in effectCache", () => {
+    const manager = new BuildingManager();
+    const state = {
+      ...createInitialState(),
+      buildings: {
+        ...createInitialBuildings(),
+        lumberMill: { val: 1, on: 1, unlocked: true },
+      },
+    };
+    const effects = manager.updateEffects(state);
+    expect(effects.woodRatio).toBeCloseTo(0.1);
+  });
+});
+
+describe("Story 27-04: smelter", () => {
+  it("exists in BUILDING_DEFS", () => {
+    expect(BUILDING_DEFS.find((b) => b.name === "smelter")).toBeDefined();
+  });
+
+  it("has correct price: 200 minerals", () => {
+    const def = BUILDING_DEFS.find((b) => b.name === "smelter");
+    expect(def?.prices.find((p) => p.name === "minerals")?.val).toBe(200);
+  });
+
+  it("has ironRatio: 0.5", () => {
+    const def = BUILDING_DEFS.find((b) => b.name === "smelter");
+    expect(def?.effects.ironRatio).toBe(0.5);
+  });
+});
+
+describe("Story 27-05: observatory", () => {
+  it("exists in BUILDING_DEFS", () => {
+    expect(BUILDING_DEFS.find((b) => b.name === "observatory")).toBeDefined();
+  });
+
+  it("has scienceRatio: 0.25", () => {
+    const def = BUILDING_DEFS.find((b) => b.name === "observatory");
+    expect(def?.effects.scienceRatio).toBe(0.25);
+  });
+
+  it("1 observatory → scienceRatio 0.25 in effectCache", () => {
+    const manager = new BuildingManager();
+    const state = {
+      ...createInitialState(),
+      buildings: {
+        ...createInitialBuildings(),
+        observatory: { val: 1, on: 1, unlocked: true },
+      },
+    };
+    const effects = manager.updateEffects(state);
+    expect(effects.scienceRatio).toBeCloseTo(0.25);
+  });
+});
+
+describe("Story 27-06: brewery", () => {
+  it("exists in BUILDING_DEFS", () => {
+    expect(BUILDING_DEFS.find((b) => b.name === "brewery")).toBeDefined();
+  });
+
+  it("has happiness: 0.01", () => {
+    const def = BUILDING_DEFS.find((b) => b.name === "brewery");
+    expect(def?.effects.happiness).toBe(0.01);
+  });
+});
+
+describe("Story 27-07: mint", () => {
+  it("exists in BUILDING_DEFS", () => {
+    expect(BUILDING_DEFS.find((b) => b.name === "mint")).toBeDefined();
+  });
+
+  it("has goldMax: 100", () => {
+    const def = BUILDING_DEFS.find((b) => b.name === "mint");
+    expect(def?.effects.goldMax).toBe(100);
+  });
+});
+
+describe("Story 27-08: temple", () => {
+  it("exists in BUILDING_DEFS", () => {
+    expect(BUILDING_DEFS.find((b) => b.name === "temple")).toBeDefined();
+  });
+
+  it("has culturePerTickBase: 0.1 and faithMax: 100", () => {
+    const def = BUILDING_DEFS.find((b) => b.name === "temple");
+    expect(def?.effects.culturePerTickBase).toBe(0.1);
+    expect(def?.effects.faithMax).toBe(100);
+  });
+});
+
+describe("Story 27-09: unicornPasture", () => {
+  it("exists in BUILDING_DEFS", () => {
+    expect(BUILDING_DEFS.find((b) => b.name === "unicornPasture")).toBeDefined();
+  });
+
+  it("has correct price: 2 unicorns and priceRatio 1.75", () => {
+    const def = BUILDING_DEFS.find((b) => b.name === "unicornPasture");
+    expect(def?.prices[0]?.name).toBe("unicorns");
+    expect(def?.prices[0]?.val).toBe(2);
+    expect(def?.priceRatio).toBe(1.75);
+  });
+
+  it("has unicornsPerTickBase: 0.001", () => {
+    const def = BUILDING_DEFS.find((b) => b.name === "unicornPasture");
+    expect(def?.effects.unicornsPerTickBase).toBe(0.001);
+  });
+
+  it("1 unicornPasture → unicorns per tick > 0", () => {
+    const manager = new BuildingManager();
+    const state = {
+      ...createInitialState(),
+      buildings: {
+        ...createInitialBuildings(),
+        unicornPasture: { val: 1, on: 1, unlocked: true },
+      },
+    };
+    const effects = manager.updateEffects(state);
+    expect(effects.unicornsPerTickBase).toBeGreaterThan(0);
+  });
+});
+
+describe("Story 27-10: calciner", () => {
+  it("exists in BUILDING_DEFS", () => {
+    expect(BUILDING_DEFS.find((b) => b.name === "calciner")).toBeDefined();
+  });
+
+  it("has ironPerTickBase and titaniumPerTickBase effects", () => {
+    const def = BUILDING_DEFS.find((b) => b.name === "calciner");
+    expect(def?.effects.ironPerTickBase).toBeGreaterThan(0);
+    expect(def?.effects.titaniumPerTickBase).toBeGreaterThan(0);
+  });
+});
+
+describe("Story 27-02: contains all new buildings", () => {
+  it("contains all new buildings in BUILDING_DEFS", () => {
+    const names = BUILDING_DEFS.map((b) => b.name);
+    for (const name of [
+      "amphitheatre",
+      "lumberMill",
+      "smelter",
+      "observatory",
+      "brewery",
+      "mint",
+      "temple",
+      "unicornPasture",
+      "calciner",
+    ]) {
+      expect(names).toContain(name);
+    }
+  });
+});

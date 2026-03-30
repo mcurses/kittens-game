@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { applyAction } from "./actions.js";
+import { createInitialResources } from "./resources.js";
 import { createInitialState } from "./state.js";
 import { tick } from "./tick.js";
 import {
@@ -627,6 +628,88 @@ describe("applyCraft output resource missing from pool", () => {
     // Math.min(0 + 1, 0) = 0 (capped by maxValue:0)
     // This tests that the fallback path doesn't crash
     expect(next).toBeDefined();
+  });
+});
+
+// ── Story 27-11: Tier craft ratio wiring ─────────────────────────────────────
+
+describe("Story 27-11: tier craft ratio wiring", () => {
+  function mkCraftState(resources: Record<string, number>) {
+    const base = createInitialState();
+    const res = { ...createInitialResources() };
+    for (const [name, val] of Object.entries(resources)) {
+      if (res[name] !== undefined) {
+        res[name] = { value: val, maxValue: 0 };
+      } else {
+        res[name] = { value: val, maxValue: 0 };
+      }
+    }
+    return {
+      ...base,
+      resources: res,
+      workshop: {
+        ...base.workshop,
+        crafts: Object.fromEntries(
+          ["beam", "slab", "plate", "steel", "scaffold", "gear", "alloy", "wood", "parchment"].map(
+            (n) => [n, { unlocked: true }],
+          ),
+        ),
+      },
+    };
+  }
+
+  it("applies t1CraftRatio to tier-1 craft (beam)", () => {
+    const s = {
+      ...mkCraftState({ wood: 175, beam: 0 }),
+      effectCache: { t1CraftRatio: 0.5 },
+    };
+    const next = applyCraft(s, "beam", 1);
+    expect(next.resources.beam?.value).toBeCloseTo(1.5);
+  });
+
+  it("applies t2CraftRatio to tier-2 craft (scaffold)", () => {
+    const s = {
+      ...mkCraftState({ beam: 50, scaffold: 0 }),
+      effectCache: { t2CraftRatio: 1.0 },
+    };
+    const next = applyCraft(s, "scaffold", 1);
+    expect(next.resources.scaffold?.value).toBeCloseTo(2);
+  });
+
+  it("applies t3CraftRatio to tier-3 craft (gear)", () => {
+    const s = {
+      ...mkCraftState({ steel: 15, gear: 0 }),
+      effectCache: { t3CraftRatio: 0.25 },
+    };
+    const next = applyCraft(s, "gear", 1);
+    expect(next.resources.gear?.value).toBeCloseTo(1.25);
+  });
+
+  it("stacks craftRatio and t1CraftRatio", () => {
+    const s = {
+      ...mkCraftState({ wood: 175, beam: 0 }),
+      effectCache: { craftRatio: 0.1, t1CraftRatio: 0.2 },
+    };
+    const next = applyCraft(s, "beam", 1);
+    expect(next.resources.beam?.value).toBeCloseTo(1.3);
+  });
+
+  it("t1CraftRatio does NOT apply to tier-2 craft (scaffold)", () => {
+    const s = {
+      ...mkCraftState({ beam: 50, scaffold: 0 }),
+      effectCache: { t1CraftRatio: 10.0 },
+    };
+    const next = applyCraft(s, "scaffold", 1);
+    expect(next.resources.scaffold?.value).toBeCloseTo(1);
+  });
+
+  it("wood craft ignores t1CraftRatio (ignoreBonuses: true)", () => {
+    const s = {
+      ...mkCraftState({ catnip: 100, wood: 0 }),
+      effectCache: { t1CraftRatio: 5.0 },
+    };
+    const next = applyCraft(s, "wood", 1);
+    expect(next.resources.wood?.value).toBe(1);
   });
 });
 

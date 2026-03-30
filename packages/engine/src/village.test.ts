@@ -649,3 +649,87 @@ describe("applyHunt", () => {
     expect((next.resources.furs?.value ?? 0)).toBeGreaterThan(0);
   });
 });
+
+// ── Story 27-12: catnipDemandWorkerRatioGlobal ────────────────────────────────
+
+describe("Story 27-12: catnipDemandWorkerRatioGlobal", () => {
+  const manager = new VillageManager();
+
+  it("catnipDemandWorkerRatioGlobal = -0.5 reduces catnip consumption for assigned kittens", () => {
+    // 2 kittens, 1 assigned farmer → worker gets 50% discount
+    const base = createInitialState();
+    const stateNoWorkerDiscount = {
+      ...base,
+      village: {
+        ...base.village,
+        kittens: 2,
+        jobs: { ...base.village.jobs, farmer: { value: 1 } },
+        happiness: 1.0,
+      },
+      effectCache: { ...base.effectCache },
+    };
+    const stateWithWorkerDiscount = {
+      ...stateNoWorkerDiscount,
+      effectCache: { ...base.effectCache, catnipDemandWorkerRatioGlobal: -0.5 },
+    };
+    const effectsNo = manager.updateEffects(stateNoWorkerDiscount);
+    const effectsWith = manager.updateEffects(stateWithWorkerDiscount);
+
+    // With -0.5 discount on 1 worker out of 2 kittens,
+    // catnip consumption should be less negative (less demand)
+    expect(effectsWith.catnipPerTickCon ?? 0).toBeGreaterThan(effectsNo.catnipPerTickCon ?? -10);
+  });
+
+  it("catnipDemandWorkerRatioGlobal = 0 has no effect", () => {
+    const base = createInitialState();
+    const state1 = {
+      ...base,
+      village: {
+        ...base.village,
+        kittens: 3,
+        jobs: { ...base.village.jobs, farmer: { value: 2 } },
+        happiness: 1.0,
+      },
+      effectCache: { ...base.effectCache },
+    };
+    const state2 = {
+      ...state1,
+      effectCache: { ...base.effectCache, catnipDemandWorkerRatioGlobal: 0 },
+    };
+    const e1 = manager.updateEffects(state1);
+    const e2 = manager.updateEffects(state2);
+    expect(e1.catnipPerTickCon).toBeCloseTo(e2.catnipPerTickCon ?? 0);
+  });
+
+  it("catnipDemandWorkerRatioGlobal = -0.5 with all kittens assigned → half total consumption", () => {
+    const base = createInitialState();
+    const state = {
+      ...base,
+      village: {
+        ...base.village,
+        kittens: 2,
+        jobs: { ...base.village.jobs, farmer: { value: 2 } }, // all assigned
+        happiness: 1.0,
+      },
+      effectCache: { ...base.effectCache, catnipDemandWorkerRatioGlobal: -0.5 },
+    };
+    const stateBaseline = {
+      ...base,
+      village: {
+        ...base.village,
+        kittens: 2,
+        jobs: { ...base.village.jobs, farmer: { value: 0 } },
+        happiness: 1.0,
+      },
+      effectCache: { ...base.effectCache },
+    };
+    const effects = manager.updateEffects(state);
+    const baseline = manager.updateEffects(stateBaseline);
+    // All 2 kittens assigned with -0.5 ratio: consumption = 2 * -0.85 * 0.5 = -0.85
+    // Baseline 2 kittens all unassigned: consumption = 2 * -0.85 = -1.7
+    expect(effects.catnipPerTickCon ?? 0).toBeCloseTo(
+      (baseline.catnipPerTickCon ?? 0) * 0.5,
+      5,
+    );
+  });
+});

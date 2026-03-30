@@ -204,6 +204,147 @@ export const BUILDING_DEFS: readonly BuildingDef[] = [
     unlockRatio: 0.3,
     requiredTech: ["construction"],
   },
+  // ── Culture / happiness ──────────────────────────────────────────────────────
+  {
+    name: "amphitheatre",
+    description: "Entertainment venue that boosts culture production and reduces unhappiness.",
+    prices: [
+      { name: "wood", val: 200 },
+      { name: "minerals", val: 1200 },
+      { name: "parchment", val: 3 },
+    ],
+    priceRatio: 1.15,
+    effects: {
+      culturePerTickBase: 0.005,
+      cultureMax: 50,
+      unhappinessRatio: -0.048,
+    },
+    unlockRatio: 0.3,
+    requiredTech: ["writing"],
+  },
+  {
+    name: "brewery",
+    description: "Produces fermented beverages that boost kitten happiness.",
+    prices: [
+      { name: "wood", val: 1000 },
+      { name: "culture", val: 750 },
+      { name: "spice", val: 5 },
+      { name: "parchment", val: 375 },
+    ],
+    priceRatio: 1.5,
+    effects: {
+      happiness: 0.01,
+    },
+    unlockRatio: 0.2,
+    requiredTech: ["agriculture"],
+  },
+  // ── Resource production multipliers ──────────────────────────────────────────
+  {
+    name: "lumberMill",
+    description: "Advanced sawmill that significantly increases wood production.",
+    prices: [
+      { name: "wood", val: 100 },
+      { name: "minerals", val: 250 },
+      { name: "iron", val: 50 },
+    ],
+    priceRatio: 1.15,
+    effects: {
+      woodRatio: 0.1,
+    },
+    unlockRatio: 0.3,
+    requiredTech: ["construction"],
+  },
+  {
+    name: "smelter",
+    description: "Smelts minerals into refined metals, boosting iron production.",
+    prices: [{ name: "minerals", val: 200 }],
+    priceRatio: 1.15,
+    effects: {
+      ironRatio: 0.5,
+    },
+    unlockRatio: 0.3,
+    requiredTech: ["mining"],
+  },
+  {
+    name: "observatory",
+    description: "Telescope complex that significantly amplifies science output.",
+    prices: [
+      { name: "iron", val: 750 },
+      { name: "science", val: 1000 },
+      { name: "slab", val: 35 },
+      { name: "scaffold", val: 50 },
+    ],
+    priceRatio: 1.1,
+    effects: {
+      scienceRatio: 0.25,
+      scienceMax: 1000,
+    },
+    unlockRatio: 0.3,
+    requiredTech: ["astronomy"],
+  },
+  {
+    name: "mint",
+    description: "Coin mint that expands gold storage capacity.",
+    prices: [
+      { name: "minerals", val: 5000 },
+      { name: "gold", val: 500 },
+      { name: "plate", val: 200 },
+    ],
+    priceRatio: 1.15,
+    effects: {
+      goldMax: 100,
+    },
+    unlockRatio: 0.3,
+    requiredTech: ["currency"],
+  },
+  // ── Religion ─────────────────────────────────────────────────────────────────
+  {
+    name: "temple",
+    description: "Sacred structure that increases culture output, faith capacity, and happiness.",
+    prices: [
+      { name: "gold", val: 50 },
+      { name: "slab", val: 25 },
+      { name: "plate", val: 15 },
+      { name: "manuscript", val: 10 },
+    ],
+    priceRatio: 1.15,
+    effects: {
+      culturePerTickBase: 0.1,
+      faithMax: 100,
+    },
+    unlockRatio: 0.3,
+    requiredTech: ["philosophy"],
+  },
+  // ── Unicorns ─────────────────────────────────────────────────────────────────
+  {
+    name: "unicornPasture",
+    description: "Magical pasture that generates a small trickle of unicorns each tick.",
+    prices: [{ name: "unicorns", val: 2 }],
+    priceRatio: 1.75,
+    effects: {
+      unicornsPerTickBase: 0.001,
+      catnipDemandRatio: -0.0015,
+    },
+    unlockRatio: 0.3,
+  },
+  // ── Advanced production ───────────────────────────────────────────────────────
+  {
+    name: "calciner",
+    description: "Industrial furnace that refines ore into iron and titanium.",
+    prices: [
+      { name: "titanium", val: 15 },
+      { name: "oil", val: 500 },
+      { name: "steel", val: 100 },
+      { name: "blueprint", val: 1 },
+    ],
+    priceRatio: 1.15,
+    effects: {
+      ironPerTickBase: 0.15,
+      titaniumPerTickBase: 0.0005,
+    },
+    unlockRatio: 0.3,
+    requiredTech: ["metallurgy"],
+  },
 ];
 
 // ── Factory ───────────────────────────────────────────────────────────────────

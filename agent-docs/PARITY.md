@@ -2,7 +2,7 @@
 
 Tracks implementation coverage against legacy Kittens Game. **This is the authoritative source of truth for what is and isn't done.** Update it whenever items are added or wired. Do not mark an epic "complete" without updating this file.
 
-Last updated: 2026-03-30 (catnipDemandRatio fixed; fursDemandRatio/ivoryDemandRatio/spiceDemandRatio consumers wired)
+Last updated: 2026-03-30 (Epic 27: amphitheatre, lumberMill, smelter, observatory, brewery, mint, temple, unicornPasture, calciner added; craft tier ratios wired; catnipDemandWorkerRatioGlobal wired)
 
 ---
 
@@ -32,21 +32,21 @@ Legacy has ~35 gameplay buildings. We have 11.
 | mine | ✅ | — |
 | barn | ✅ | — |
 | warehouse | ✅ | — |
-| **amphitheatre** | ❌ | `unhappinessRatio`, `culturePerTickBase`, `cultureMax` |
-| **lumberMill** | ❌ | `woodRatio` (woodcutter yield multiplier beyond jobRatio) |
-| **smelter** | ❌ | `ironRatio`, `steelRatio`, `coalRatio` |
-| **calciner** | ❌ | `titaniumRatio`, `coalRatioGlobal` |
-| **workshop** (building) | ❌ | crafting efficiency — `t1CraftRatio`…`t5CraftRatio` |
-| **observatory** | ❌ | `scienceRatio` (global science multiplier) |
-| **brewery** | ❌ | `happiness` bonus |
-| **mint** | ❌ | `goldRatio` |
+| **amphitheatre** | ✅ | — |
+| **lumberMill** | ✅ | — |
+| **smelter** | ✅ | — |
+| **calciner** | ✅ | — |
+| **workshop** (building) | ⚠️ | building def not added; `t1CraftRatio`…`t5CraftRatio` now wired in CRAFT action |
+| **observatory** | ✅ | — |
+| **brewery** | ✅ | — |
+| **mint** | ✅ | — |
 | **steamworks** | ❌ | `coalPerTickBase`, `steelPerTickBase`, auto-craft triggers |
 | **magneto** | ❌ | `coalPower`, energy net effects |
 | **tradepost** | ❌ | `goldPerTickBase`, trade race modifiers |
 | **harbor** | ❌ | `boatCapacity`, ship/tanker effects |
-| **temple** | ❌ | `faithRatio`, `happiness` |
+| **temple** | ✅ | — |
 | **ziggurat** (building) | ❌ | unicorn production, `unicornsPerTickBase` |
-| **unicornPasture** | ❌ | `unicornsPerTickBase` |
+| **unicornPasture** | ✅ | — |
 | **chronosphere** | ❌ | time crystal production |
 | **reactor** | ❌ | energy, antimatter production |
 | **biolab** | ❌ | various bio/biomass effects |
@@ -69,7 +69,7 @@ Keys that exist in effectCache from implemented defs but are not fully consumed:
 | `fursDemandRatio` | (future buildings) | kitten furs consumption | ⚠️ Consumer wired 2026-03-30, no producer yet |
 | `ivoryDemandRatio` | (future buildings) | kitten ivory consumption | ⚠️ Consumer wired 2026-03-30, no producer yet |
 | `spiceDemandRatio` | (future buildings) | kitten spice consumption | ⚠️ Consumer wired 2026-03-30, no producer yet |
-| `happiness` | (future brewery/temple) | village happiness calc (read path exists, value always 0) | ⚠️ Consumer wired, no producer |
+| `happiness` | brewery, temple buildings | village happiness calc | ✅ Producer and consumer wired 2026-03-30 |
 | `luxuryDemandRatio` | science tech | luxury consumption | ❌ Not consumed |
 | `consumableLuxuryHappiness` | science tech | happiness from consumables | ❌ Not consumed |
 | `breweryConsumptionRatio` | science tech | brewery tick consumption | ❌ No producer/consumer |
@@ -79,9 +79,12 @@ Keys that exist in effectCache from implemented defs but are not fully consumed:
 | `woodJobRatio` | workshop upgrades | VillageManager job production | ✅ Fixed 2026-03-30 |
 | `catnipJobRatio` | workshop upgrades | VillageManager job production | ✅ Fixed 2026-03-30 |
 | `manpowerJobRatio` | workshop upgrades | VillageManager job production | ✅ Fixed 2026-03-30 |
-| `unhappinessRatio` | (future amphitheatre) | village happiness penalty | ✅ Consumer wired 2026-03-30, no producer yet |
-| `woodRatio` | (future lumberMill) | wood per-tick calc via `calcResourcePerTick` | ⚠️ Consumer wired via formula, no producer yet |
-| `scienceRatio` | (future observatory) | science per-tick calc | ⚠️ Consumer wired via formula, no producer yet |
+| `unhappinessRatio` | amphitheatre building | village happiness penalty | ✅ Producer and consumer wired 2026-03-30 |
+| `woodRatio` | lumberMill building | wood per-tick calc via `calcResourcePerTick` | ✅ Producer and consumer wired 2026-03-30 |
+| `scienceRatio` | library, academy, observatory buildings | science per-tick calc | ✅ Producer and consumer wired 2026-03-30 |
+| `ironRatio` | smelter building | iron per-tick calc via `calcResourcePerTick` | ✅ Producer and consumer wired 2026-03-30 |
+| `unicornsPerTickBase` | unicornPasture building | unicorn per-tick base production | ✅ Producer and consumer wired 2026-03-30 |
+| `catnipDemandWorkerRatioGlobal` | "assistance" upgrade | per-worker catnip demand reduction in VillageManager | ✅ Consumer wired 2026-03-30 |
 
 ---
 
@@ -99,10 +102,12 @@ All 56 resources from legacy are declared in `RESOURCE_NAMES`. However, most hav
 | faith | ✅ | ✅ | priest job + religion |
 | coal | ✅ | ⚠️ | geologist job produces it; smelter/steamworks (missing) boost it |
 | iron | ✅ | ⚠️ | crafted from minerals; smelter (missing) ratio |
-| culture | ✅ | ❌ | no producer — amphitheatre (missing) |
-| gold | ✅ | ❌ | no producer — tradepost/mint (missing) |
+| culture | ✅ | ✅ | amphitheatre + temple produce via culturePerTickBase |
+| gold | ✅ | ⚠️ | goldMax from mint, but no goldPerTickBase producer yet |
 | oil | ✅ | ❌ | no producer — oilWell (missing) |
-| unicorns | ✅ | ❌ | no producer — unicornPasture (missing) |
+| unicorns | ✅ | ✅ | unicornPasture produces via unicornsPerTickBase |
+| iron | ✅ | ✅ | crafted + smelter ironRatio boost |
+| titanium | ✅ | ⚠️ | calciner produces ironPerTickBase/titaniumPerTickBase; no ratio yet |
 | (all others) | ✅ | ⚠️/❌ | see building gaps above |
 
 ---
@@ -115,8 +120,8 @@ All 137 upgrade definitions are implemented and their effects are put into effec
 |-----------------|-----------------|-------|
 | `*JobRatio` (woodJobRatio, catnipJobRatio, etc.) | ✅ | Fixed 2026-03-30; VillageManager reads from effectCache |
 | `*Ratio` for resources (woodRatio, scienceRatio, etc.) | ✅ | `calcResourcePerTick` reads `${name}Ratio`; just needs buildings that produce the ratio |
-| crafting ratios (`t1CraftRatio`…`t5CraftRatio`) | ❌ | CRAFT action doesn't use effectCache yet |
-| `catnipDemandWorkerRatioGlobal` | ❌ | Not consumed anywhere |
+| crafting ratios (`t1CraftRatio`…`t5CraftRatio`) | ✅ | CRAFT action now reads tier ratio from effectCache (2026-03-30) |
+| `catnipDemandWorkerRatioGlobal` | ✅ | VillageManager now applies discount to assigned worker kittens (2026-03-30) |
 | `globalResourceRatio` | ❌ | Not consumed |
 | `corruptionRatio` | ❌ | Not consumed (diplomacy corruption) |
 | `pactsAvailable` | ❌ | Not consumed (religion pacts) |
@@ -136,11 +141,11 @@ The CRAFT action uses hardcoded 1:1 ratios. Legacy applies `t1CraftRatio` throug
 
 | Tier | Resources | Status |
 |------|-----------|--------|
-| T1 | beam, slab | ❌ ratio not applied |
-| T2 | plate, steel, gear | ❌ ratio not applied |
-| T3 | scaffold, ship | ❌ ratio not applied |
-| T4 | alloy, eludium | ❌ ratio not applied |
-| T5 | kerosene | ❌ ratio not applied |
+| T1 | beam, slab, plate, parchment | ✅ t1CraftRatio applied 2026-03-30 |
+| T2 | steel, scaffold, kerosene, manuscript | ✅ t2CraftRatio applied 2026-03-30 |
+| T3 | gear, ship, compedium, blueprint | ✅ t3CraftRatio applied 2026-03-30 |
+| T4 | concrate, alloy | ✅ t4CraftRatio applied 2026-03-30 |
+| T5 | eludium, tanker, bloodstone | ✅ t5CraftRatio applied 2026-03-30 |
 
 ---
 
@@ -148,14 +153,14 @@ The CRAFT action uses hardcoded 1:1 ratios. Legacy applies `t1CraftRatio` throug
 
 | Domain | Implemented | Total legacy | Coverage |
 |--------|-------------|--------------|----------|
-| Buildings | 11 | ~35 gameplay buildings | **31%** |
+| Buildings | 20 | ~35 gameplay buildings | **57%** |
 | Resources (declared) | 56 | 56 | 100% |
-| Resources (have production) | ~10 | ~40 have natural production | **25%** |
+| Resources (have production) | ~14 | ~40 have natural production | **35%** |
 | Upgrade defs | 137 | 137 | 100% |
-| Upgrade effects wired | ~10 key types | ~25 key types | **~40%** |
+| Upgrade effects wired | ~13 key types | ~25 key types | **~52%** |
 | Tech defs | 61 | 61 | 100% |
 | Tech effects wired | most `*Ratio` | most `*Ratio` | **~80%** |
-| Craft ratios | 0 | 5 tiers | **0%** |
+| Craft ratios | 5 tiers | 5 tiers | **100%** |
 
 ---
 
