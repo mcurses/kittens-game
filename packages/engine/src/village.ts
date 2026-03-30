@@ -189,10 +189,14 @@ export class VillageManager implements Manager {
 
     // ── Kitten consumption ────────────────────────────────────────────────────
     if (village.kittens > 0) {
-      effects.catnipPerTickCon = -0.85 * village.kittens;
-      effects.fursPerTickCon = -0.01 * village.kittens;
-      effects.ivoryPerTickCon = -0.007 * village.kittens;
-      effects.spicePerTickCon = -0.001 * village.kittens;
+      const catnipDemandRatio = state.effectCache.catnipDemandRatio ?? 0;
+      const fursDemandRatio = state.effectCache.fursDemandRatio ?? 0;
+      const ivoryDemandRatio = state.effectCache.ivoryDemandRatio ?? 0;
+      const spiceDemandRatio = state.effectCache.spiceDemandRatio ?? 0;
+      effects.catnipPerTickCon = -0.85 * village.kittens * (1 + catnipDemandRatio);
+      effects.fursPerTickCon = -0.01 * village.kittens * (1 + fursDemandRatio);
+      effects.ivoryPerTickCon = -0.007 * village.kittens * (1 + ivoryDemandRatio);
+      effects.spicePerTickCon = -0.001 * village.kittens * (1 + spiceDemandRatio);
     }
 
     return effects;

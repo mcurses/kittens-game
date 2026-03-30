@@ -243,7 +243,7 @@ When running `/self-rate`, evaluate against:
 | Dimension | Questions |
 |-----------|-----------|
 | **Test coverage** | Is line coverage ≥ 90% for the epic? Are edge cases covered? |
-| **Feature parity** | Does each story's AC map 1:1 to legacy behavior? |
+| **Feature parity** | Does each story's AC map 1:1 to legacy behavior? Is `agent-docs/PARITY.md` updated? Spot-check 2 ✅ rows against actual code. |
 | **API contract** | Are all new `GameAction` types in `openapi.yaml`? (must be added same epic, not deferred) |
 | **Code quality** | No `any` types, no skipped tests, no TODOs left in code |
 | **Docs** | Is PROGRESS.md updated? Were decisions logged in DECISIONS.md? |
@@ -329,6 +329,8 @@ Reads the current git log and test results, then updates `agent-docs/PROGRESS.md
 - Each epic must include a cross-manager integration test for the full tick loop
 - `agent-docs/PROGRESS.md` updated at the end of every work session
 - Legacy code is **read-only reference** — never modify it
+- **`agent-docs/PARITY.md` is the authoritative coverage tracker** — update it whenever a building, effect key, or resource production path is added. Do not mark an epic complete without updating PARITY.md.
+- **Every new building or upgrade must wire both halves in the same commit**: the def that produces the effectCache key AND the manager code that consumes it. Verify with `grep -rn "effectCache\[" packages/engine/src/` before committing.
 
 ---
 

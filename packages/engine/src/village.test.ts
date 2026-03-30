@@ -329,6 +329,27 @@ describe("VillageManager", () => {
       expect(effects.catnipPerTickCon ?? 0).toBe(0);
     });
 
+    it("applies catnipDemandRatio to kitten catnip consumption", () => {
+      // 3 pastures → catnipDemandRatio = -0.015
+      const state = {
+        ...createInitialState(),
+        village: { ...createInitialVillage(), kittens: 4 },
+        effectCache: { ...createInitialState().effectCache, catnipDemandRatio: -0.015 },
+      };
+      const effects = manager.updateEffects(state);
+      expect(effects.catnipPerTickCon).toBeCloseTo(-0.85 * 4 * (1 - 0.015));
+    });
+
+    it("applies fursDemandRatio to kitten furs consumption", () => {
+      const state = {
+        ...createInitialState(),
+        village: { ...createInitialVillage(), kittens: 2 },
+        effectCache: { ...createInitialState().effectCache, fursDemandRatio: -0.1 },
+      };
+      const effects = manager.updateEffects(state);
+      expect(effects.fursPerTickCon).toBeCloseTo(-0.01 * 2 * 0.9);
+    });
+
     it("returns zero production when no jobs assigned", () => {
       const state = { ...createInitialState(), village: createInitialVillage() };
       const effects = manager.updateEffects(state);

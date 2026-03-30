@@ -13,7 +13,7 @@ Run a structured self-evaluation of the current state of the kittens-mcp rewrite
 
 First run `pnpm turbo build`. If the build fails, rate Test coverage as 1 and stop — a failing build blocks everything else.
 
-Then run `pnpm turbo test --coverage` across all packages. Capture:
+Then run `pnpm turbo test` across all packages. Capture:
 - Pass / fail / skip counts
 - Line coverage % per package
 - List any failing tests
@@ -34,17 +34,28 @@ List each finding with file:line.
 1. Check that every route implemented in `packages/server/` has a corresponding entry in `packages/api-spec/openapi.yaml`. List gaps.
 2. Check that every `GameAction` type defined in `packages/engine/src/actions.ts` appears in the `GameActionRequest` discriminated union in `packages/api-spec/`. List any missing action types — these are failures, not deferrals.
 
-## Step 4 — Docs freshness
+## Step 4 — Parity tracker freshness
+
+Read `agent-docs/PARITY.md`. This is the authoritative record of what is and isn't implemented.
+
+- Were any buildings, effect keys, or features added this epic? If yes, verify their rows in PARITY.md are updated.
+- Pick 2 rows marked ✅ and grep the codebase to confirm they are actually wired end-to-end (producer AND consumer). If a row is wrong, fix it and flag it.
+- Check the Summary Counts table — do the numbers match reality? Run counts if uncertain.
+- Flag any row where status is ✅ but the wiring looks incomplete.
+
+**Rate Parity Tracker as FAIL if PARITY.md was not updated after changes that affect it.**
+
+## Step 5 — Docs freshness
 
 - Is `agent-docs/PROGRESS.md` up to date with story completion counts?
 - Are new architectural decisions recorded in `agent-docs/DECISIONS.md`?
 - Do completed stories have all ACs checked in their STORIES.md?
 
-## Step 5 — Feature parity spot-check
+## Step 6 — Feature parity spot-check
 
 Pick 3 recently completed stories. For each, find the corresponding legacy code and verify edge cases are handled. Note divergences.
 
-## Step 6 — Score
+## Step 7 — Score
 
 Score 1–5 per dimension (5 = excellent, 1 = blocked/missing):
 
@@ -55,13 +66,16 @@ Score 1–5 per dimension (5 = excellent, 1 = blocked/missing):
 | Feature parity | | |
 | API spec completeness | | |
 | Code quality (no `any`) | | |
-| Docs freshness | | |
+| Docs freshness (PROGRESS, DECISIONS, PARITY) | | |
 | Commit hygiene | | |
 | **Overall average** | | |
 
 **Rule: any dimension ≤ 2 → stop and fix before next epic.**
 
-## Step 7 — Record
+The "Feature parity" score must reflect PARITY.md coverage counts, not just story AC checkboxes.
+A score of 5 requires PARITY.md to be current and all ✅ rows to be verified.
+
+## Step 8 — Record
 
 Append to `agent-docs/SELF_RATINGS.md`:
 
