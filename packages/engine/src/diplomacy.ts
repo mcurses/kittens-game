@@ -45,8 +45,8 @@ export interface DiplomacyState {
   readonly races: Record<string, RaceEntry>;
   /** Base gold cost per trade (default 15) */
   readonly baseGoldCost: number;
-  /** Base manpower cost per trade (default 50) */
-  readonly baseManpowerCost: number;
+  /** Base catpower cost per trade (default 50) */
+  readonly baseCatpowerCost: number;
 }
 
 // ── Race Definitions ──────────────────────────────────────────────────────────
@@ -189,7 +189,7 @@ export const RACE_DEFS: readonly RaceDef[] = [
 // ── Constants ─────────────────────────────────────────────────────────────────
 
 export const BASE_GOLD_COST = 15;
-export const BASE_MANPOWER_COST = 50;
+export const BASE_CATPOWER_COST = 50;
 
 // ── Initial state ─────────────────────────────────────────────────────────────
 
@@ -201,7 +201,7 @@ export function createInitialDiplomacy(): DiplomacyState {
   return {
     races,
     baseGoldCost: BASE_GOLD_COST,
-    baseManpowerCost: BASE_MANPOWER_COST,
+    baseCatpowerCost: BASE_CATPOWER_COST,
   };
 }
 
@@ -219,16 +219,16 @@ export function getEmbassyCost(def: RaceDef, level: number): number {
 
 /**
  * Get trade cost for one trade.
- * Returns { gold, manpower, buyResource, buyAmount }
+ * Returns { gold, catpower, buyResource, buyAmount }
  */
 export function getTradeCost(
   def: RaceDef,
   state: DiplomacyState,
-): { gold: number; manpower: number; buyName: string; buyVal: number } {
+): { gold: number; catpower: number; buyName: string; buyVal: number } {
   const buy = def.buys[0];
   return {
     gold: state.baseGoldCost,
-    manpower: state.baseManpowerCost,
+    catpower: state.baseCatpowerCost,
     buyName: buy?.name ?? "",
     buyVal: buy?.val ?? 0,
   };
@@ -315,11 +315,11 @@ export function applyTrade(state: GameState, raceName: string): GameState {
 
   const cost = getTradeCost(def, state.diplomacy);
   const gold = state.resources.gold;
-  const manpower = state.resources.manpower;
+  const catpower = state.resources.catpower;
   const buyRes = state.resources[cost.buyName];
 
   if (!gold || gold.value < cost.gold) return state;
-  if (!manpower || manpower.value < cost.manpower) return state;
+  if (!catpower || catpower.value < cost.catpower) return state;
   if (!buyRes || buyRes.value < cost.buyVal) return state;
 
   const tradeRatio = state.effectCache.tradeRatio ?? 0;
@@ -331,8 +331,8 @@ export function applyTrade(state: GameState, raceName: string): GameState {
     // Deduct costs
     const g = draft.resources.gold;
     if (g) g.value -= cost.gold;
-    const m = draft.resources.manpower;
-    if (m) m.value -= cost.manpower;
+    const m = draft.resources.catpower;
+    if (m) m.value -= cost.catpower;
     const b = draft.resources[cost.buyName];
     if (b) b.value -= cost.buyVal;
 
@@ -411,7 +411,7 @@ export class DiplomacyManager implements Manager {
     return {
       races,
       baseGoldCost: state.diplomacy.baseGoldCost,
-      baseManpowerCost: state.diplomacy.baseManpowerCost,
+      baseCatpowerCost: state.diplomacy.baseCatpowerCost,
     };
   }
 
@@ -419,7 +419,7 @@ export class DiplomacyManager implements Manager {
     const data = saved as {
       races?: Record<string, { unlocked?: boolean; embassyLevel?: number }>;
       baseGoldCost?: number;
-      baseManpowerCost?: number;
+      baseCatpowerCost?: number;
     };
 
     return produce(state, (draft) => {
@@ -437,8 +437,8 @@ export class DiplomacyManager implements Manager {
       if (typeof data.baseGoldCost === "number") {
         draft.diplomacy.baseGoldCost = data.baseGoldCost;
       }
-      if (typeof data.baseManpowerCost === "number") {
-        draft.diplomacy.baseManpowerCost = data.baseManpowerCost;
+      if (typeof data.baseCatpowerCost === "number") {
+        draft.diplomacy.baseCatpowerCost = data.baseCatpowerCost;
       }
     });
   }

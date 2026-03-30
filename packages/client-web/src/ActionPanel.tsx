@@ -5,7 +5,7 @@ import { useGameAction } from "./useGameAction.js";
 
 interface ActionPanelState {
   readonly resources?: {
-    readonly manpower?: {
+    readonly catpower?: {
       readonly value?: number;
     };
   };
@@ -19,9 +19,9 @@ export function ActionPanel({
 } = {}): React.ReactElement {
   const slot = useSlot();
   const { mutate, isPending, error } = useGameAction(slot);
-  const manpower = state?.resources?.manpower?.value ?? 0;
+  const catpower = state?.resources?.catpower?.value ?? 0;
   const huntCost = Math.max(1, 100 - (state?.effectCache?.huntCatpowerDiscount ?? 0));
-  const huntSquads = Math.floor(manpower / huntCost);
+  const huntSquads = Math.floor(catpower / huntCost);
   const huntLabel = huntSquads > 0 ? `Hunt (${huntSquads} squad${huntSquads === 1 ? "" : "s"})` : "Hunt";
 
   return (

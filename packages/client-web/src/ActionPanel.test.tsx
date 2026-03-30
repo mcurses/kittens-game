@@ -68,7 +68,7 @@ describe("ActionPanel", () => {
     renderWithClient(
       <ActionPanel
         state={{
-          resources: { manpower: { value: 250 } },
+          resources: { catpower: { value: 250 } },
           effectCache: {},
         }}
       />,
@@ -111,12 +111,12 @@ describe("ActionPanel", () => {
     expect((screen.getByTestId("btn-hunt") as HTMLButtonElement).disabled).toBe(true);
   });
 
-  it("enables Hunt and shows squad count when enough manpower is available", () => {
+  it("enables Hunt and shows squad count when enough catpower is available", () => {
     mockFetch.mockImplementation(() => new Promise(() => {}));
     renderWithClient(
       <ActionPanel
         state={{
-          resources: { manpower: { value: 250 } },
+          resources: { catpower: { value: 250 } },
           effectCache: {},
         }}
       />,

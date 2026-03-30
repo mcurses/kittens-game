@@ -46,7 +46,7 @@ export const JOB_DEFS: readonly JobDef[] = [
   { name: "woodcutter", effectKey: "woodPerTickBase", baseProduction: 0.018 },
   { name: "farmer", effectKey: "catnipPerTickBase", baseProduction: 1.0 },
   { name: "scholar", effectKey: "sciencePerTickBase", baseProduction: 0.035 },
-  { name: "hunter", effectKey: "manpowerPerTickBase", baseProduction: 0.06 },
+  { name: "hunter", effectKey: "catpowerPerTickBase", baseProduction: 0.06 },
   { name: "miner", effectKey: "mineralsPerTickBase", baseProduction: 0.05 },
   { name: "geologist", effectKey: "coalPerTickBase", baseProduction: 0.015 },
   { name: "priest", effectKey: "faithPerTickBase", baseProduction: 0.0015 },
@@ -291,14 +291,14 @@ function addRes(
 }
 
 /**
- * Apply a HUNT action: spend manpower to gain furs, ivory, and occasionally unicorns.
- * Cost: 100 manpower per squad (reduced by huntCatpowerDiscount effect).
+ * Apply a HUNT action: spend catpower to gain furs, ivory, and occasionally unicorns.
+ * Cost: 100 catpower per squad (reduced by huntCatpowerDiscount effect).
  * Port of legacy village.js huntFraction(1) / gainHuntRes().
  */
 export function applyHunt(state: GameState): GameState {
   const huntCost = 100 - (state.effectCache.huntCatpowerDiscount ?? 0);
-  const manpower = state.resources.manpower?.value ?? 0;
-  const squads = Math.floor(manpower / huntCost);
+  const catpower = state.resources.catpower?.value ?? 0;
+  const squads = Math.floor(catpower / huntCost);
   if (squads < 1) return state;
 
   const hunterRatio = state.effectCache.hunterRatio ?? 0;
@@ -313,7 +313,7 @@ export function applyHunt(state: GameState): GameState {
   const unicornsGained = binomialRandom(squads, 0.05);
 
   return produce(state, (draft) => {
-    const mp = draft.resources.manpower;
+    const mp = draft.resources.catpower;
     if (mp) mp.value = Math.max(0, mp.value - squads * huntCost);
     addRes(draft.resources, "furs", fursGained);
     addRes(draft.resources, "ivory", ivoryGained);

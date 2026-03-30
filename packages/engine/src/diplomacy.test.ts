@@ -6,7 +6,7 @@ import { CalendarManager } from "./calendar.js";
 import { ChallengeManager } from "./challenges.js";
 import {
   BASE_GOLD_COST,
-  BASE_MANPOWER_COST,
+  BASE_CATPOWER_COST,
   DiplomacyManager,
   RACE_DEFS,
   applySendEmbassy,
@@ -90,10 +90,10 @@ describe("createInitialDiplomacy", () => {
     expect(diplomacy.baseGoldCost).toBe(15);
   });
 
-  it("base manpower cost is 50", () => {
+  it("base catpower cost is 50", () => {
     const diplomacy = createInitialDiplomacy();
-    expect(diplomacy.baseManpowerCost).toBe(BASE_MANPOWER_COST);
-    expect(diplomacy.baseManpowerCost).toBe(50);
+    expect(diplomacy.baseCatpowerCost).toBe(BASE_CATPOWER_COST);
+    expect(diplomacy.baseCatpowerCost).toBe(50);
   });
 });
 
@@ -155,24 +155,24 @@ describe("SEND_EMBASSY", () => {
 // ── Story 3: TRADE action ─────────────────────────────────────────────────────
 
 describe("TRADE", () => {
-  it("deducts gold, manpower, and buy resource on trade", () => {
-    // lizards buy minerals:1000, trade costs gold:15, manpower:50
+  it("deducts gold, catpower, and buy resource on trade", () => {
+    // lizards buy minerals:1000, trade costs gold:15, catpower:50
     const state = stateWithRaceUnlocked("lizards", {
       gold: 100,
-      manpower: 500,
+      catpower: 500,
       minerals: 5000,
       wood: 0,
     });
     const next = applyTrade(state, "lizards");
     expect(next.resources.gold?.value).toBeCloseTo(85, 1);
-    expect(next.resources.manpower?.value).toBeCloseTo(450, 1);
+    expect(next.resources.catpower?.value).toBeCloseTo(450, 1);
     expect(next.resources.minerals?.value).toBeCloseTo(4000, 1);
   });
 
   it("adds wood from lizards trade (chance=1, always received)", () => {
     const state = stateWithRaceUnlocked("lizards", {
       gold: 100,
-      manpower: 500,
+      catpower: 500,
       minerals: 5000,
       wood: 0,
     });
@@ -182,25 +182,25 @@ describe("TRADE", () => {
   });
 
   it("returns unchanged state when race not unlocked", () => {
-    const state = stateWithResources({ gold: 100, manpower: 500, minerals: 5000 });
+    const state = stateWithResources({ gold: 100, catpower: 500, minerals: 5000 });
     const next = applyTrade(state, "lizards");
     expect(next).toBe(state);
   });
 
   it("returns unchanged state when gold insufficient", () => {
-    const state = stateWithRaceUnlocked("lizards", { gold: 5, manpower: 500, minerals: 5000 });
+    const state = stateWithRaceUnlocked("lizards", { gold: 5, catpower: 500, minerals: 5000 });
     const next = applyTrade(state, "lizards");
     expect(next).toBe(state);
   });
 
-  it("returns unchanged state when manpower insufficient", () => {
-    const state = stateWithRaceUnlocked("lizards", { gold: 100, manpower: 10, minerals: 5000 });
+  it("returns unchanged state when catpower insufficient", () => {
+    const state = stateWithRaceUnlocked("lizards", { gold: 100, catpower: 10, minerals: 5000 });
     const next = applyTrade(state, "lizards");
     expect(next).toBe(state);
   });
 
   it("returns unchanged state when buy resource insufficient", () => {
-    const state = stateWithRaceUnlocked("lizards", { gold: 100, manpower: 500, minerals: 0 });
+    const state = stateWithRaceUnlocked("lizards", { gold: 100, catpower: 500, minerals: 0 });
     const next = applyTrade(state, "lizards");
     expect(next).toBe(state);
   });
@@ -214,7 +214,7 @@ describe("TRADE", () => {
   it("tradeRatio in effectCache increases trade yield", () => {
     const baseState = stateWithRaceUnlocked("lizards", {
       gold: 100,
-      manpower: 500,
+      catpower: 500,
       minerals: 5000,
       wood: 0,
     });
@@ -234,7 +234,7 @@ describe("TRADE", () => {
     // lizards beam requires minLevel=5, default embassy=0
     const state = stateWithRaceUnlocked("lizards", {
       gold: 100,
-      manpower: 500,
+      catpower: 500,
       minerals: 5000,
       beam: 0,
     });
@@ -247,7 +247,7 @@ describe("TRADE", () => {
     const state = produce(
       stateWithRaceUnlocked("lizards", {
         gold: 100,
-        manpower: 500,
+        catpower: 500,
         minerals: 5000,
         beam: 0,
       }),
@@ -263,7 +263,7 @@ describe("TRADE", () => {
   it("dispatch via applyAction works", () => {
     const state = stateWithRaceUnlocked("lizards", {
       gold: 100,
-      manpower: 500,
+      catpower: 500,
       minerals: 5000,
       wood: 0,
     });
@@ -409,15 +409,15 @@ describe("DiplomacyManager save/load/reset", () => {
     expect(loaded.diplomacy.races.nagas?.unlocked).toBe(true);
   });
 
-  it("load preserves baseGoldCost and baseManpowerCost", () => {
+  it("load preserves baseGoldCost and baseCatpowerCost", () => {
     const state = produce(createInitialState(), (draft) => {
       draft.diplomacy.baseGoldCost = 10;
-      draft.diplomacy.baseManpowerCost = 30;
+      draft.diplomacy.baseCatpowerCost = 30;
     });
     const saved = manager.save(state);
     const loaded = manager.load(saved, createInitialState());
     expect(loaded.diplomacy.baseGoldCost).toBe(10);
-    expect(loaded.diplomacy.baseManpowerCost).toBe(30);
+    expect(loaded.diplomacy.baseCatpowerCost).toBe(30);
   });
 });
 
@@ -465,7 +465,7 @@ describe("DiplomacyManager integration - full tick loop", () => {
     state = produce(state, (draft) => {
       draft.diplomacy.races.lizards = { unlocked: true, embassyLevel: 0 };
       draft.resources.gold = { value: 100, maxValue: 1000 };
-      draft.resources.manpower = { value: 500, maxValue: 5000 };
+      draft.resources.catpower = { value: 500, maxValue: 5000 };
       draft.resources.minerals = { value: 5000, maxValue: 50000 };
       draft.resources.wood = { value: 0, maxValue: 50000 };
     });

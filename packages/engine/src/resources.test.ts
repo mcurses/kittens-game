@@ -26,11 +26,11 @@ describe("RESOURCE_NAMES", () => {
     expect(RESOURCE_NAMES).toContain("spice");
   });
 
-  it("includes science, culture, faith, manpower", () => {
+  it("includes science, culture, faith, catpower", () => {
     expect(RESOURCE_NAMES).toContain("science");
     expect(RESOURCE_NAMES).toContain("culture");
     expect(RESOURCE_NAMES).toContain("faith");
-    expect(RESOURCE_NAMES).toContain("manpower");
+    expect(RESOURCE_NAMES).toContain("catpower");
   });
 });
 

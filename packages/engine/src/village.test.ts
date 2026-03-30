@@ -579,24 +579,24 @@ describe("Story 21-4: Job production scales with happiness", () => {
 // ── applyHunt ────────────────────────────────────────────────────────────────
 
 describe("applyHunt", () => {
-  it("returns state unchanged when manpower < 100 (no squads available)", () => {
+  it("returns state unchanged when catpower < 100 (no squads available)", () => {
     const state = createInitialState();
     const next = applyHunt(state);
     expect(next).toBe(state);
   });
 
-  it("deducts 100 manpower per squad and adds furs", () => {
+  it("deducts 100 catpower per squad and adds furs", () => {
     const state = {
       ...createInitialState(),
       resources: {
         ...createInitialResources(),
-        manpower: { value: 200, maxValue: 0 },
+        catpower: { value: 200, maxValue: 0 },
         furs: { value: 0, maxValue: 0 },
       },
     };
     const next = applyHunt(state);
     // 2 squads spent
-    expect(next.resources.manpower?.value).toBe(0);
+    expect(next.resources.catpower?.value).toBe(0);
     // Furs gained (probabilistic but should be > 0 for 2 squads)
     expect((next.resources.furs?.value ?? 0)).toBeGreaterThan(0);
   });
@@ -607,7 +607,7 @@ describe("applyHunt", () => {
       ...createInitialState(),
       resources: {
         ...createInitialResources(),
-        manpower: { value: 10000, maxValue: 0 },
+        catpower: { value: 10000, maxValue: 0 },
         furs: { value: 0, maxValue: 0 },
         ivory: { value: 0, maxValue: 0 },
       },
@@ -622,7 +622,7 @@ describe("applyHunt", () => {
       ...createInitialState(),
       resources: {
         ...createInitialResources(),
-        manpower: { value: 100, maxValue: 0 },
+        catpower: { value: 100, maxValue: 0 },
         furs: { value: 100, maxValue: 150 },
       },
     };
@@ -635,7 +635,7 @@ describe("applyHunt", () => {
       ...createInitialState(),
       resources: {
         ...createInitialResources(),
-        manpower: { value: 50, maxValue: 0 },
+        catpower: { value: 50, maxValue: 0 },
         furs: { value: 0, maxValue: 0 },
       },
       effectCache: {
@@ -643,9 +643,9 @@ describe("applyHunt", () => {
         huntCatpowerDiscount: 50, // hunt cost = 50
       },
     };
-    // With discount: 50 manpower / 50 cost = 1 squad
+    // With discount: 50 catpower / 50 cost = 1 squad
     const next = applyHunt(state);
-    expect(next.resources.manpower?.value).toBe(0);
+    expect(next.resources.catpower?.value).toBe(0);
     expect((next.resources.furs?.value ?? 0)).toBeGreaterThan(0);
   });
 });

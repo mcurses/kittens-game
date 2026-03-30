@@ -93,7 +93,7 @@ function GameView(): React.ReactElement {
             {/* Left — Resources */}
             <aside data-testid="resource-sidebar" className="resource-sidebar">
               <ResourcePanel state={state} />
-              <ActionPanel />
+              <ActionPanel state={state} />
             </aside>
 
             {/* Center — Main content */}

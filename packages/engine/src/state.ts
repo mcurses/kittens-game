@@ -125,7 +125,7 @@ export interface SerializedGameState {
   diplomacy?: {
     races: Record<string, { unlocked: boolean; embassyLevel: number }>;
     baseGoldCost: number;
-    baseManpowerCost: number;
+    baseCatpowerCost: number;
   };
   time?: {
     cfus: Record<string, { val: number; on: number; unlocked: boolean; heat: number }>;
@@ -283,7 +283,7 @@ export function serialize(state: GameState): SerializedGameState {
         ]),
       ),
       baseGoldCost: state.diplomacy.baseGoldCost,
-      baseManpowerCost: state.diplomacy.baseManpowerCost,
+      baseCatpowerCost: state.diplomacy.baseCatpowerCost,
     },
     time: {
       cfus: Object.fromEntries(

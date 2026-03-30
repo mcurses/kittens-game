@@ -155,3 +155,37 @@ The `happiness` building bonus (e.g. sunAltar in religion) is the one currently-
 
 ### How to apply
 Before adding a new building or upgrade def, check that every effect key it produces has a consumer. Add the consumer in the same commit. Use `grep -rn "effectCache\[" packages/engine/src/` to audit.
+
+---
+
+## ADR-009: UI naming — legacy i18n is source of truth
+**Date:** 2026-03-30
+**Status:** Accepted
+
+### Context
+The engine uses internal identifiers (resource keys, effect keys, etc.) that differ from what the legacy UI displayed. A discrepancy was discovered: the `manpower` resource was displayed as "catpower" in legacy but stored as `"manpower"` in our engine, causing confusion.
+
+### Decision
+**Legacy `legacy/res/i18n/en.json` is the source of truth for all user-facing names.** Internal code (resource keys, effect keys, variable names) should match the legacy internal IDs where possible, but when the legacy internal name diverges from the English display name, use the display name.
+
+Concretely:
+- The `manpower` resource key was renamed to `catpower` throughout (engine, API, client).
+- All derived effect keys follow suit: `manpowerMax` → `catpowerMax`, `manpowerPerTickBase` → `catpowerPerTickBase`, `manpowerJobRatio` → `catpowerJobRatio`, `manpowerMaxChallenge` → `catpowerMaxChallenge`.
+- The diplomacy tab is labeled **"Trade"** (not "Diplomacy") to match `tab.name.trade` in legacy i18n.
+- Tab IDs in code that differ from display names are acceptable (e.g. id `"trade"` for the Trade tab).
+
+### Tab visibility rules (from legacy `updateTabVisibility()`)
+| Tab | Unlock condition |
+|-----|-----------------|
+| Buildings | Always visible |
+| Jobs | Always visible |
+| Science | `library.on > 0` OR `calendar` OR `chronophysics` researched |
+| Workshop | `workshop` building built (fallback: always shown while Epic 27 unimplemented) |
+| Religion | `faith.value > 0` |
+| Space | `rocketry` researched |
+| Time | `calendar` researched OR cryochambers used |
+| Trade | Any race unlocked |
+| Achievements | Any achievement unlocked |
+
+### How to apply
+Before adding a new resource, building, or tab: check `legacy/res/i18n/en.json` for the canonical display name and match it internally.

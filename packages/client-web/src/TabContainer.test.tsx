@@ -32,6 +32,14 @@ vi.mock("./AchievementsPanel.js", () => ({
   AchievementsPanel: () => <div data-testid="achievements-panel">Achievements</div>,
 }));
 
+// Minimal state helpers
+const withLibrary = { buildings: { library: { val: 1, on: 1 } } };
+const withFaith = { resources: { faith: { value: 1 } } };
+const withRocketry = { science: { techs: { rocketry: { researched: true } } } };
+const withCalendar = { science: { techs: { calendar: { researched: true } } } };
+const withTradeUnlocked = { diplomacy: { races: { lizards: { unlocked: true } } } };
+const withAchievement = { achievements: { achievements: [{ unlocked: true }] } };
+
 beforeEach(() => {
   window.localStorage.clear();
 });
@@ -48,46 +56,76 @@ describe("TabContainer", () => {
     expect(screen.queryByTestId("jobs-panel")).toBeNull();
   });
 
-  it("renders tab buttons for all tabs", () => {
+  it("shows only Buildings, Jobs, and Workshop with no state (locked-down start)", () => {
     render(<TabContainer state={null} />);
     expect(screen.getByRole("button", { name: /buildings/i })).toBeTruthy();
     expect(screen.getByRole("button", { name: /jobs/i })).toBeTruthy();
-    expect(screen.getByRole("button", { name: /science/i })).toBeTruthy();
     expect(screen.getByRole("button", { name: /workshop/i })).toBeTruthy();
+    expect(screen.queryByRole("button", { name: /science/i })).toBeNull();
+    expect(screen.queryByRole("button", { name: /religion/i })).toBeNull();
+    expect(screen.queryByRole("button", { name: /space/i })).toBeNull();
+    expect(screen.queryByRole("button", { name: /time/i })).toBeNull();
+    expect(screen.queryByRole("button", { name: /trade/i })).toBeNull();
+    expect(screen.queryByRole("button", { name: /achievements/i })).toBeNull();
+  });
+
+  it("shows Science tab when library is built", () => {
+    render(<TabContainer state={withLibrary as never} />);
+    expect(screen.getByRole("button", { name: /science/i })).toBeTruthy();
+  });
+
+  it("shows Religion tab when faith > 0", () => {
+    render(<TabContainer state={withFaith as never} />);
     expect(screen.getByRole("button", { name: /religion/i })).toBeTruthy();
+  });
+
+  it("shows Space tab when rocketry researched", () => {
+    render(<TabContainer state={withRocketry as never} />);
     expect(screen.getByRole("button", { name: /space/i })).toBeTruthy();
+  });
+
+  it("shows Time tab when calendar researched", () => {
+    render(<TabContainer state={withCalendar as never} />);
     expect(screen.getByRole("button", { name: /time/i })).toBeTruthy();
-    expect(screen.getByRole("button", { name: /diplomacy/i })).toBeTruthy();
+  });
+
+  it("shows Trade tab when a race is unlocked", () => {
+    render(<TabContainer state={withTradeUnlocked as never} />);
+    expect(screen.getByRole("button", { name: /trade/i })).toBeTruthy();
+  });
+
+  it("shows Achievements tab when any achievement unlocked", () => {
+    render(<TabContainer state={withAchievement as never} />);
     expect(screen.getByRole("button", { name: /achievements/i })).toBeTruthy();
   });
 
   it("switches to Religion panel when Religion tab clicked", () => {
-    render(<TabContainer state={null} />);
+    render(<TabContainer state={withFaith as never} />);
     fireEvent.click(screen.getByRole("button", { name: /religion/i }));
     expect(screen.getByTestId("religion-panel")).toBeTruthy();
     expect(screen.queryByTestId("buildings-panel")).toBeNull();
   });
 
   it("switches to Space panel when Space tab clicked", () => {
-    render(<TabContainer state={null} />);
+    render(<TabContainer state={withRocketry as never} />);
     fireEvent.click(screen.getByRole("button", { name: /space/i }));
     expect(screen.getByTestId("space-panel")).toBeTruthy();
   });
 
   it("switches to Time panel when Time tab clicked", () => {
-    render(<TabContainer state={null} />);
+    render(<TabContainer state={withCalendar as never} />);
     fireEvent.click(screen.getByRole("button", { name: /time/i }));
     expect(screen.getByTestId("time-panel")).toBeTruthy();
   });
 
-  it("switches to Diplomacy panel when Diplomacy tab clicked", () => {
-    render(<TabContainer state={null} />);
-    fireEvent.click(screen.getByRole("button", { name: /diplomacy/i }));
+  it("switches to Trade panel when Trade tab clicked", () => {
+    render(<TabContainer state={withTradeUnlocked as never} />);
+    fireEvent.click(screen.getByRole("button", { name: /trade/i }));
     expect(screen.getByTestId("diplomacy-panel")).toBeTruthy();
   });
 
   it("switches to Achievements panel when Achievements tab clicked", () => {
-    render(<TabContainer state={null} />);
+    render(<TabContainer state={withAchievement as never} />);
     fireEvent.click(screen.getByRole("button", { name: /achievements/i }));
     expect(screen.getByTestId("achievements-panel")).toBeTruthy();
     expect(screen.queryByTestId("buildings-panel")).toBeNull();
@@ -107,18 +145,27 @@ describe("TabContainer", () => {
   });
 
   it("restores the saved active tab on remount", () => {
-    const { unmount } = render(<TabContainer state={null} />);
+    const { unmount } = render(<TabContainer state={withLibrary as never} />);
     fireEvent.click(screen.getByRole("button", { name: /science/i }));
     expect(window.localStorage.getItem("kittens.ui.activeMainTab")).toBe('"science"');
     unmount();
 
-    render(<TabContainer state={null} />);
+    render(<TabContainer state={withLibrary as never} />);
     expect(screen.getByTestId("science-panel")).toBeTruthy();
     expect(screen.getByRole("button", { name: /science/i }).getAttribute("data-active")).toBe("true");
   });
 
-  it("switches to Science panel when Science tab clicked", () => {
+  it("falls back to buildings if saved tab becomes hidden", () => {
+    // Save "space" as active tab
+    window.localStorage.setItem("kittens.ui.activeMainTab", '"space"');
+    // Render without rocketry researched — space tab hidden
     render(<TabContainer state={null} />);
+    // Should fall back to buildings
+    expect(screen.getByTestId("buildings-panel")).toBeTruthy();
+  });
+
+  it("switches to Science panel when Science tab clicked", () => {
+    render(<TabContainer state={withLibrary as never} />);
     fireEvent.click(screen.getByRole("button", { name: /science/i }));
     expect(screen.getByTestId("science-panel")).toBeTruthy();
   });

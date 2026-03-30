@@ -123,7 +123,7 @@ export const CHALLENGE_DEFS: readonly ChallengeDef[] = [
       faithSolarRevolutionBoost: 0.1,
       cultureMaxChallenge: 0,
       scienceMaxChallenge: 0,
-      manpowerMaxChallenge: 0,
+      catpowerMaxChallenge: 0,
       challengeHappiness: 0,
     },
     activeEffects: {
@@ -131,7 +131,7 @@ export const CHALLENGE_DEFS: readonly ChallengeDef[] = [
       cultureMaxChallenge: -250,
       scienceMaxChallenge: -500,
       challengeHappiness: -0.5,
-      manpowerMaxChallenge: -125,
+      catpowerMaxChallenge: -125,
     },
     stackOptions: {
       faithSolarRevolutionBoost: { LDRLimit: 4 },

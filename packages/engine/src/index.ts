@@ -127,7 +127,7 @@ export type {
 export {
   RACE_DEFS,
   BASE_GOLD_COST,
-  BASE_MANPOWER_COST,
+  BASE_CATPOWER_COST,
   DiplomacyManager,
   createInitialDiplomacy,
   applySendEmbassy,

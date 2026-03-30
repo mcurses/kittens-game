@@ -508,8 +508,8 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   // ─── hunt upgrades ───
   {
     name: "compositeBow",
-    description: "Composite bows allow hunters to gather significantly more manpower.",
-    effects: { manpowerJobRatio: 0.5 },
+    description: "Composite bows allow hunters to gather significantly more catpower.",
+    effects: { catpowerJobRatio: 0.5 },
     prices: [
       { name: "wood", val: 200 },
       { name: "iron", val: 100 },
@@ -519,7 +519,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   {
     name: "crossbow",
     description: "Crossbows let hunters operate more efficiently.",
-    effects: { manpowerJobRatio: 0.25 },
+    effects: { catpowerJobRatio: 0.25 },
     prices: [
       { name: "iron", val: 1500 },
       { name: "science", val: 12000 },
@@ -528,7 +528,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   {
     name: "railgun",
     description: "Electromagnetic railguns for high-yield hunting expeditions.",
-    effects: { manpowerJobRatio: 0.25 },
+    effects: { catpowerJobRatio: 0.25 },
     prices: [
       { name: "titanium", val: 5000 },
       { name: "science", val: 150000 },

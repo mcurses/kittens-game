@@ -129,7 +129,7 @@ describe("LAUNCH_MISSION", () => {
   it("deducts resources on successful launch", () => {
     const state = stateWithResources({
       oil: 20000,
-      manpower: 10000,
+      catpower: 10000,
       science: 200000,
       starchart: 1000,
     });
@@ -138,7 +138,7 @@ describe("LAUNCH_MISSION", () => {
 
     // Oil reduced by 15000
     expect(next.resources.oil?.value).toBeCloseTo(5000, 0);
-    expect(next.resources.manpower?.value).toBeCloseTo(5000, 0);
+    expect(next.resources.catpower?.value).toBeCloseTo(5000, 0);
     expect(next.resources.science?.value).toBeCloseTo(100000, 0);
     expect(next.resources.starchart?.value).toBeCloseTo(750, 0);
   });
@@ -146,7 +146,7 @@ describe("LAUNCH_MISSION", () => {
   it("marks orbitalLaunch val=1 after launch", () => {
     const state = stateWithResources({
       oil: 20000,
-      manpower: 10000,
+      catpower: 10000,
       science: 200000,
       starchart: 1000,
     });
@@ -157,7 +157,7 @@ describe("LAUNCH_MISSION", () => {
   it("unlocks cath planet after orbitalLaunch", () => {
     const state = stateWithResources({
       oil: 20000,
-      manpower: 10000,
+      catpower: 10000,
       science: 200000,
       starchart: 1000,
     });
@@ -168,7 +168,7 @@ describe("LAUNCH_MISSION", () => {
   it("cath is immediately reached (routeDays=0) after orbitalLaunch", () => {
     const state = stateWithResources({
       oil: 20000,
-      manpower: 10000,
+      catpower: 10000,
       science: 200000,
       starchart: 1000,
     });
@@ -179,7 +179,7 @@ describe("LAUNCH_MISSION", () => {
   it("unlocks moonMission spaceMission after orbitalLaunch", () => {
     const state = stateWithResources({
       oil: 20000,
-      manpower: 10000,
+      catpower: 10000,
       science: 200000,
       starchart: 1000,
     });
@@ -208,7 +208,7 @@ describe("LAUNCH_MISSION", () => {
   it("returns unchanged state when mission already completed (on=1)", () => {
     const state = stateWithResources({
       oil: 20000,
-      manpower: 10000,
+      catpower: 10000,
       science: 200000,
       starchart: 1000,
     });
@@ -216,7 +216,7 @@ describe("LAUNCH_MISSION", () => {
     // Give enough resources again
     const withRes = stateWithResources({
       oil: 20000,
-      manpower: 10000,
+      catpower: 10000,
       science: 200000,
       starchart: 1000,
     });
@@ -241,7 +241,7 @@ describe("LAUNCH_MISSION", () => {
   it("dispatch via applyAction works", () => {
     const state = stateWithResources({
       oil: 20000,
-      manpower: 10000,
+      catpower: 10000,
       science: 200000,
       starchart: 1000,
     });
@@ -395,7 +395,7 @@ describe("SpaceManager.update - route travel", () => {
   it("cath with routeDays=0 is immediately reached when unlocked", () => {
     const state = stateWithResources({
       oil: 20000,
-      manpower: 10000,
+      catpower: 10000,
       science: 200000,
       starchart: 1000,
     });
@@ -588,7 +588,7 @@ describe("SpaceManager integration - full tick loop", () => {
     // Give enough resources for orbitalLaunch
     state = produce(state, (draft) => {
       draft.resources.oil = { value: 20000, maxValue: 100000 };
-      draft.resources.manpower = { value: 10000, maxValue: 50000 };
+      draft.resources.catpower = { value: 10000, maxValue: 50000 };
       draft.resources.science = { value: 200000, maxValue: 500000 };
       draft.resources.starchart = { value: 1000, maxValue: 5000 };
     });

@@ -19,7 +19,7 @@ function makeState(
     diplomacy: {
       races: diplomacy.races ?? {},
       baseGoldCost: 15,
-      baseManpowerCost: 100,
+      baseCatpowerCost: 100,
     },
   } as unknown as import("@kittens/api-spec").GameStateResponse;
 }

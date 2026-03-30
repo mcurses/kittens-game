@@ -61,7 +61,7 @@ function logStatus(s: GameState) {
     `  [t=${s.tick}] 🐱${s.village.kittens}/${s.effectCache?.maxKittens ?? 0} ` +
       `catnip=${r(s, "catnip").toFixed(0)} wood=${r(s, "wood").toFixed(1)} ` +
       `minerals=${r(s, "minerals").toFixed(0)} science=${r(s, "science").toFixed(0)} ` +
-      `manpower=${r(s, "manpower").toFixed(0)} furs=${r(s, "furs").toFixed(0)} ` +
+      `catpower=${r(s, "catpower").toFixed(0)} furs=${r(s, "furs").toFixed(0)} ` +
       `culture=${r(s, "culture").toFixed(0)} manuscript=${r(s, "manuscript").toFixed(0)}`,
   );
 }
@@ -273,7 +273,7 @@ async function main() {
   // Manuscript = 25 parchment + 400 culture
   // Parchment = 175 furs
   // Total furs needed: 35 * 25 * 175 = 153,125 furs
-  // With hunters accumulating manpower → hunting → furs
+  // With hunters accumulating catpower → hunting → furs
 
   // Grow to 25 kittens
   while (s.village.kittens < 25) {
@@ -291,8 +291,8 @@ async function main() {
   // Hunt + craft loop until 35 manuscripts
   console.log("  Hunting for furs and crafting manuscripts...");
   while (r(s, "manuscript") < 35) {
-    // Hunt whenever we have ≥100 manpower
-    if (r(s, "manpower") >= 100) {
+    // Hunt whenever we have ≥100 catpower
+    if (r(s, "catpower") >= 100) {
       await tryHunt();
       s = await getState();
     }
@@ -343,7 +343,7 @@ async function main() {
   while (!researched(s, "theology")) {
     // Top up manuscripts if somehow consumed
     if (r(s, "manuscript") < 35) {
-      if (r(s, "manpower") >= 100) { await tryHunt(); s = await getState(); }
+      if (r(s, "catpower") >= 100) { await tryHunt(); s = await getState(); }
       const p = Math.floor(r(s, "furs") / 175);
       if (p >= 1) { await tryCraft("parchment", p); s = await getState(); }
       const m = Math.floor(Math.min(r(s, "parchment") / 25, r(s, "culture") / 400));

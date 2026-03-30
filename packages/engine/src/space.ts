@@ -88,7 +88,7 @@ export const PROGRAM_DEFS: readonly ProgramDef[] = [
     name: "orbitalLaunch",
     prices: [
       { name: "oil", val: 15000 },
-      { name: "manpower", val: 5000 },
+      { name: "catpower", val: 5000 },
       { name: "science", val: 100000 },
       { name: "starchart", val: 250 },
     ],

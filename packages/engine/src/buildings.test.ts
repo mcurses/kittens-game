@@ -45,10 +45,10 @@ describe("BUILDING_DEFS", () => {
     expect(field?.priceRatio).toBe(1.12);
   });
 
-  it("hut has maxKittens:2 and manpowerMax:75", () => {
+  it("hut has maxKittens:2 and catpowerMax:75", () => {
     const hut = BUILDING_DEFS.find((b) => b.name === "hut");
     expect(hut?.effects.maxKittens).toBe(2);
-    expect(hut?.effects.manpowerMax).toBe(75);
+    expect(hut?.effects.catpowerMax).toBe(75);
   });
 
   it("barn has catnipMax:5000", () => {

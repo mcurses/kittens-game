@@ -22,7 +22,7 @@ export const RESOURCE_NAMES = [
   "unobtainium",
   // Common — transient
   "antimatter",
-  "manpower",
+  "catpower",
   "science",
   "culture",
   "faith",
