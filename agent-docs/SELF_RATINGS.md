@@ -832,3 +832,33 @@ If any dimension scores ≤ 2, pause and fix before moving to the next epic.
 ### Action items for next epic
 - [ ] Consider a React Context for slot so all panels/hooks can read it without prop drilling
 - [ ] Add biome lint check to CI to catch `any` regressions automatically
+
+---
+
+## Epic 26: UI Information Architecture — 2026-03-30
+
+| Dimension | Score | Notes |
+|-----------|-------|-------|
+| Test coverage (≥90% target) | 4 | client-web 95.24% lines; InspectorPanel 88.28% (ZigguratUpgrade/ReligionUpgrade detail paths untested), SciencePanel 80.23% (hover paths) |
+| No skipped tests / no TODOs | 5 | Zero skips, zero TODOs, zero HACK comments |
+| Feature parity | 5 | Inspector on hover mirrors original KG tooltip behavior; all 4 panels wired |
+| API spec completeness | 5 | All 32 action types in engine match api-spec; 7 routes in openapi.yaml |
+| Code quality (no `any`) | 5 | No `any` usage in source files; duck-typing via `unknown` + explicit casts |
+| Docs freshness | 4 | PROGRESS.md updated; ACs all checked; DECISIONS.md has no new ADR (no arch decision was novel enough) |
+| Commit hygiene | 5 | Single focused commit; descriptive message; no noise |
+| **Overall average** | **4.7** | |
+
+### What went well
+- Parallelising description-writing (background agent for 200+ engine def strings) while building client infra was a big time win
+- InspectorContext + InspectorPanel design is clean and extensible — adding new entity kinds is just a new union member + detail component
+- All 238 client tests pass; 0 regressions from tooltip→inspector migration
+
+### What to improve
+- InspectorPanel ZigguratUpgrade and ReligionUpgrade detail branches are untested (lines 87–215); coverage dips to 88%
+- SciencePanel hover wiring is covered by BuildingsPanel.test hover pattern but SciencePanel.test itself doesn't have a hover test — branch coverage 77%
+- WorkshopPanel crafts section has no inspector wiring (craft items don't hover-inspect), which is fine per spec but results in uncovered hover branches for upgrade items in WorkshopPanel
+
+### Action items for next epic
+- [ ] Add hover test to SciencePanel.test.tsx (mirrors BuildingsPanel hover test)
+- [ ] Add InspectorPanel tests for ZigguratUpgrade and ReligionUpgrade entity kinds
+- [ ] Consider wiring craft items to inspector if there's a CraftDef with descriptions

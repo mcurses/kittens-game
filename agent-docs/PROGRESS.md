@@ -1,6 +1,6 @@
 # Kittens Game Rewrite — Progress Tracker
 
-Last updated: 2026-03-29
+Last updated: 2026-03-30
 
 ---
 
@@ -402,3 +402,31 @@ Client-web tests: 176 passing | Line coverage: 98.44%
 Total: 972 tests across all packages
 
 Prerequisites: Epics 20, 21
+
+---
+
+## Epic 26: UI Information Architecture
+**Status:** Complete | **Started:** 2026-03-30 | **Finished:** 2026-03-30
+Stories: 10 / 10 complete
+
+- [x] Story 26-1: SlotContext — React context for slot name propagation
+- [x] Story 26-2: description? field on engine defs (buildings, upgrades, techs, religion)
+- [x] Story 26-3: InspectorContext — shared hover entity state
+- [x] Story 26-4: InspectorPanel — right sidebar detail view
+- [x] Story 26-5: ResourcePanel hover → inspector (replaces inline tooltip)
+- [x] Story 26-6: BuildingsPanel hover → inspector
+- [x] Story 26-7: WorkshopPanel hover → inspector
+- [x] Story 26-8: SciencePanel hover → inspector
+- [x] Story 26-9: Inspector + LogPanel share log-sidebar (inspector above, log below)
+- [x] Story 26-10: Inspector CSS — styles for all entity kinds
+
+Pre-epic action items executed:
+- [x] Biome lint check in CI — already present as `pnpm run check`
+- [x] SlotContext creation
+
+Engine tests: 724 passing | Line coverage: 99.65%
+Server tests: 48 passing | Line coverage: 96.35%
+Client-web tests: 238 passing | Line coverage: 95.24%
+Total: 1010 tests across all packages
+
+Prerequisites: Epics 22, 25
