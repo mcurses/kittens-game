@@ -487,3 +487,19 @@ Client-web tests: 257 passing
 Total: 1145 tests across all packages
 
 Prerequisites: Epics 17, 18, 25
+
+---
+
+## Epic 29: Critical Bug Fixes
+**Status:** Complete | **Started:** 2026-03-31 | **Finished:** 2026-03-31
+Stories: 2 / 2 complete
+
+- [x] Story 29-01: Fix VSU/CFU migration unlocked:false bug — `bool(item.unlocked) || num(item.val) > 0`
+- [x] Story 29-02: Fix auto-tick not starting for runtime-created slots — `getOrCreate` now calls `startAutoTick()`
+
+Engine tests: 805 passing
+Server tests: 86 passing
+Client-web tests: 260 passing
+Total: 1151 tests across all packages
+
+Prerequisites: Epic 28

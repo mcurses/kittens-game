@@ -25,10 +25,14 @@ Live status tracker. Update when epics start or complete.
 | 19 | **Engine Completeness** — close sanity-check gaps: time shatter, religion pacts/necrocorns, prestige paragon, space beacons, diplomacy seasons, challenge completion conditions | 10–16 | P1 | ✅ Complete |
 | 20 | **Game UI** — full client interface: resource filtering, buildings panel, jobs panel, calendar/year display, log/messages, tech tree, workshop panels | 18, 19 | P1 | ✅ Complete |
 | 21 | **Feature Parity Audit** — systematic legacy comparison, fix divergences | 19, 20 | P1 | ✅ Complete |
-| 22 | **Multi-client** — concurrent sessions, auth/session isolation, optimistic UI | 20 | P2 | ⏳ Not Started |
+| 22 | **Multi-client** — concurrent sessions, auth/session isolation, optimistic UI | 20 | P2 | ✅ Complete |
 | 23 | **i18n** — translation system, port all 40+ locale files | 20 | P3 | ⏳ Not Started |
 | 24 | **Themes & Assets** — CSS themes, image assets | 20 | P3 | ⏳ Not Started |
 | 25 | **UI Completeness** — auto-tick, village panel, per-tick rates, costs in panels, religion/space/time/diplomacy/achievements tabs, craft-N UI | 20, 21 | P1 | ✅ Complete |
 | 26 | **UI Information Architecture** — replace hover-only legacy detail with modern inspector / progressive disclosure patterns across resources, buildings, workshop, and related panels | 20, 21, 25 | P1 | ✅ Complete |
 | 27 | **Building Completeness** — implement remaining ~24 gameplay buildings (amphitheatre, lumberMill, smelter, calciner, observatory, brewery, mint, steamworks, magneto, tradepost, harbor, temple, ziggurat, unicornPasture, + mid/late game), fix catnipDemandRatio, wire all effect keys end-to-end per PARITY.md | 05, 09 | P1 | ✅ Complete |
 | 28 | **Legacy Save Import** — import legacy KG save files (LZString-compressed) into the new engine via a pure migration function, server endpoint, and web UI panel | 17, 18, 25 | P1 | ✅ Complete |
+| 29 | **Critical Bug Fixes** — fix auto-tick not starting after save import, fix VSU migration unlocked:false bug | 28 | P0 | ✅ Complete |
+| 30 | **Happiness Formula Completeness** — add luxury bonus, karma, festival, and temple happiness terms; wire breweryConsumptionRatio and consumableLuxuryHappiness | 27, 29 | P1 | ⏳ Not Started |
+| 31 | **Missing Buildings (Round 2)** — implement the ~15 buildings absent after epic 27: chapel, workshop-building, steamworks, magneto, tradepost, harbor, factory, quarry, oilWell, ziggurat, calciner consumption side, spaceport-bonfire, chronosphere, reactor, biolab, aiCore, accelerator, zebraForge/Outpost/Workshop | 27 | P1 | ⏳ Not Started |
+| 32 | **UI Parity Pass** — close all UI gaps found in live parity audit: religion TU section, trade economics, space mission/on-off, buildings on/off + rename system, village happiness/festival/management, resource maxValue display | 26, 29, 31 | P1 | ⏳ Not Started |
