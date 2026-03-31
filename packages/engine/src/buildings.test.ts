@@ -777,3 +777,611 @@ describe("Story 27-02: contains all new buildings", () => {
     }
   });
 });
+
+// ── Epic 31: Missing Buildings (Round 2) ─────────────────────────────────────
+
+describe("Story 31-01: chapel", () => {
+  it("exists in BUILDING_DEFS", () => {
+    expect(BUILDING_DEFS.find((b) => b.name === "chapel")).toBeDefined();
+  });
+
+  it("has correct prices: 2000 minerals, 250 culture, 250 parchment", () => {
+    const def = BUILDING_DEFS.find((b) => b.name === "chapel");
+    expect(def?.prices.find((p) => p.name === "minerals")?.val).toBe(2000);
+    expect(def?.prices.find((p) => p.name === "culture")?.val).toBe(250);
+    expect(def?.prices.find((p) => p.name === "parchment")?.val).toBe(250);
+  });
+
+  it("has priceRatio 1.15", () => {
+    const def = BUILDING_DEFS.find((b) => b.name === "chapel");
+    expect(def?.priceRatio).toBe(1.15);
+  });
+
+  it("has culturePerTickBase:0.05, faithPerTickBase:0.005, cultureMax:200", () => {
+    const def = BUILDING_DEFS.find((b) => b.name === "chapel");
+    expect(def?.effects.culturePerTickBase).toBe(0.05);
+    expect(def?.effects.faithPerTickBase).toBe(0.005);
+    expect(def?.effects.cultureMax).toBe(200);
+  });
+
+  it("1 chapel → culture and faith production in effectCache", () => {
+    const manager = new BuildingManager();
+    const state = {
+      ...createInitialState(),
+      buildings: { ...createInitialBuildings(), chapel: { val: 1, on: 1, unlocked: true } },
+    };
+    const effects = manager.updateEffects(state);
+    expect(effects.culturePerTickBase).toBeCloseTo(0.05);
+    expect(effects.faithPerTickBase).toBeCloseTo(0.005);
+    expect(effects.cultureMax).toBe(200);
+  });
+});
+
+describe("Story 31-02: workshop building def", () => {
+  it("exists in BUILDING_DEFS", () => {
+    expect(BUILDING_DEFS.find((b) => b.name === "workshop")).toBeDefined();
+  });
+
+  it("has correct prices: 100 wood, 400 minerals and priceRatio 1.15", () => {
+    const def = BUILDING_DEFS.find((b) => b.name === "workshop");
+    expect(def?.prices.find((p) => p.name === "wood")?.val).toBe(100);
+    expect(def?.prices.find((p) => p.name === "minerals")?.val).toBe(400);
+    expect(def?.priceRatio).toBe(1.15);
+  });
+
+  it("has defaultUnlockable:true and unlockRatio:0.0025", () => {
+    const def = BUILDING_DEFS.find((b) => b.name === "workshop");
+    expect(def?.defaultUnlockable).toBe(true);
+    expect(def?.unlockRatio).toBe(0.0025);
+  });
+
+  it("has craftRatio:0.06", () => {
+    const def = BUILDING_DEFS.find((b) => b.name === "workshop");
+    expect(def?.effects.craftRatio).toBe(0.06);
+  });
+
+  it("1 workshop → craftRatio 0.06 in effectCache", () => {
+    const manager = new BuildingManager();
+    const state = {
+      ...createInitialState(),
+      buildings: { ...createInitialBuildings(), workshop: { val: 1, on: 1, unlocked: true } },
+    };
+    const effects = manager.updateEffects(state);
+    expect(effects.craftRatio).toBeCloseTo(0.06);
+  });
+});
+
+describe("Story 31-03: steamworks", () => {
+  it("exists in BUILDING_DEFS", () => {
+    expect(BUILDING_DEFS.find((b) => b.name === "steamworks")).toBeDefined();
+  });
+
+  it("has correct prices: 65 steel, 20 gear, 1 blueprint", () => {
+    const def = BUILDING_DEFS.find((b) => b.name === "steamworks");
+    expect(def?.prices.find((p) => p.name === "steel")?.val).toBe(65);
+    expect(def?.prices.find((p) => p.name === "gear")?.val).toBe(20);
+    expect(def?.prices.find((p) => p.name === "blueprint")?.val).toBe(1);
+  });
+
+  it("has priceRatio 1.25", () => {
+    const def = BUILDING_DEFS.find((b) => b.name === "steamworks");
+    expect(def?.priceRatio).toBe(1.25);
+  });
+
+  it("has energyProduction:1, magnetoBoostRatio:0.15, coalRatioGlobal:-0.8", () => {
+    const def = BUILDING_DEFS.find((b) => b.name === "steamworks");
+    expect(def?.effects.energyProduction).toBe(1);
+    expect(def?.effects.magnetoBoostRatio).toBe(0.15);
+    expect(def?.effects.coalRatioGlobal).toBe(-0.8);
+  });
+
+  it("1 steamworks → energyProduction and coalRatioGlobal in effectCache", () => {
+    const manager = new BuildingManager();
+    const state = {
+      ...createInitialState(),
+      buildings: { ...createInitialBuildings(), steamworks: { val: 1, on: 1, unlocked: true } },
+    };
+    const effects = manager.updateEffects(state);
+    expect(effects.energyProduction).toBeCloseTo(1);
+    expect(effects.coalRatioGlobal).toBeCloseTo(-0.8);
+    expect(effects.magnetoBoostRatio).toBeCloseTo(0.15);
+  });
+});
+
+describe("Story 31-04: magneto", () => {
+  it("exists in BUILDING_DEFS", () => {
+    expect(BUILDING_DEFS.find((b) => b.name === "magneto")).toBeDefined();
+  });
+
+  it("has correct prices: 5 gear, 10 alloy, 1 blueprint and priceRatio 1.25", () => {
+    const def = BUILDING_DEFS.find((b) => b.name === "magneto");
+    expect(def?.prices.find((p) => p.name === "gear")?.val).toBe(5);
+    expect(def?.prices.find((p) => p.name === "alloy")?.val).toBe(10);
+    expect(def?.prices.find((p) => p.name === "blueprint")?.val).toBe(1);
+    expect(def?.priceRatio).toBe(1.25);
+  });
+
+  it("has oilPerTick:-0.05, energyProduction:5, magnetoRatio:0.02", () => {
+    const def = BUILDING_DEFS.find((b) => b.name === "magneto");
+    expect(def?.effects.oilPerTick).toBe(-0.05);
+    expect(def?.effects.energyProduction).toBe(5);
+    expect(def?.effects.magnetoRatio).toBe(0.02);
+  });
+
+  it("1 magneto → magnetoRatio 0.02 in effectCache", () => {
+    const manager = new BuildingManager();
+    const state = {
+      ...createInitialState(),
+      buildings: { ...createInitialBuildings(), magneto: { val: 1, on: 1, unlocked: true } },
+    };
+    const effects = manager.updateEffects(state);
+    expect(effects.magnetoRatio).toBeCloseTo(0.02);
+    expect(effects.energyProduction).toBeCloseTo(5);
+    expect(effects.oilPerTick).toBeCloseTo(-0.05);
+  });
+});
+
+describe("Story 31-05: tradepost", () => {
+  it("exists in BUILDING_DEFS", () => {
+    expect(BUILDING_DEFS.find((b) => b.name === "tradepost")).toBeDefined();
+  });
+
+  it("has correct prices: 500 wood, 200 minerals, 10 gold and unlockRatio 0.3", () => {
+    const def = BUILDING_DEFS.find((b) => b.name === "tradepost");
+    expect(def?.prices.find((p) => p.name === "wood")?.val).toBe(500);
+    expect(def?.prices.find((p) => p.name === "minerals")?.val).toBe(200);
+    expect(def?.prices.find((p) => p.name === "gold")?.val).toBe(10);
+    expect(def?.unlockRatio).toBe(0.3);
+  });
+
+  it("has fursDemandRatio:-0.04, ivoryDemandRatio:-0.04, spiceDemandRatio:-0.04, tradeRatio:0.015", () => {
+    const def = BUILDING_DEFS.find((b) => b.name === "tradepost");
+    expect(def?.effects.fursDemandRatio).toBe(-0.04);
+    expect(def?.effects.ivoryDemandRatio).toBe(-0.04);
+    expect(def?.effects.spiceDemandRatio).toBe(-0.04);
+    expect(def?.effects.tradeRatio).toBe(0.015);
+  });
+
+  it("1 tradepost → demand ratios in effectCache", () => {
+    const manager = new BuildingManager();
+    const state = {
+      ...createInitialState(),
+      buildings: { ...createInitialBuildings(), tradepost: { val: 1, on: 1, unlocked: true } },
+    };
+    const effects = manager.updateEffects(state);
+    expect(effects.fursDemandRatio).toBeCloseTo(-0.04);
+    expect(effects.ivoryDemandRatio).toBeCloseTo(-0.04);
+    expect(effects.spiceDemandRatio).toBeCloseTo(-0.04);
+    expect(effects.tradeRatio).toBeCloseTo(0.015);
+  });
+});
+
+describe("Story 31-06: harbor", () => {
+  it("exists in BUILDING_DEFS", () => {
+    expect(BUILDING_DEFS.find((b) => b.name === "harbor")).toBeDefined();
+  });
+
+  it("has correct prices: 50 slab, 75 plate, 5 scaffold and priceRatio 1.15", () => {
+    const def = BUILDING_DEFS.find((b) => b.name === "harbor");
+    expect(def?.prices.find((p) => p.name === "slab")?.val).toBe(50);
+    expect(def?.prices.find((p) => p.name === "plate")?.val).toBe(75);
+    expect(def?.prices.find((p) => p.name === "scaffold")?.val).toBe(5);
+    expect(def?.priceRatio).toBe(1.15);
+  });
+
+  it("has catnipMax:2500, woodMax:700, mineralsMax:950, coalMax:100, ironMax:150, titaniumMax:50, goldMax:25", () => {
+    const def = BUILDING_DEFS.find((b) => b.name === "harbor");
+    expect(def?.effects.catnipMax).toBe(2500);
+    expect(def?.effects.woodMax).toBe(700);
+    expect(def?.effects.mineralsMax).toBe(950);
+    expect(def?.effects.coalMax).toBe(100);
+    expect(def?.effects.ironMax).toBe(150);
+    expect(def?.effects.titaniumMax).toBe(50);
+    expect(def?.effects.goldMax).toBe(25);
+  });
+
+  it("1 harbor → storage boosts in effectCache (val-based)", () => {
+    const manager = new BuildingManager();
+    const state = {
+      ...createInitialState(),
+      buildings: { ...createInitialBuildings(), harbor: { val: 1, on: 1, unlocked: true } },
+    };
+    const effects = manager.updateEffects(state);
+    expect(effects.catnipMax).toBe(2500);
+    expect(effects.woodMax).toBe(700);
+    expect(effects.goldMax).toBe(25);
+  });
+});
+
+describe("Story 31-07: calciner consumption side", () => {
+  it("calciner has mineralsPerTickCon and oilPerTickCon effects", () => {
+    const def = BUILDING_DEFS.find((b) => b.name === "calciner");
+    expect(def?.effects.mineralsPerTickCon).toBeLessThan(0);
+    expect(def?.effects.oilPerTickCon).toBeLessThan(0);
+  });
+
+  it("1 calciner on → minerals and oil consumption in effectCache", () => {
+    const manager = new BuildingManager();
+    const state = {
+      ...createInitialState(),
+      buildings: { ...createInitialBuildings(), calciner: { val: 1, on: 1, unlocked: true } },
+    };
+    const effects = manager.updateEffects(state);
+    expect(effects.mineralsPerTickCon).toBeCloseTo(-1.5);
+    expect(effects.oilPerTickCon).toBeCloseTo(-0.024);
+  });
+
+  it("calciner off → no consumption", () => {
+    const manager = new BuildingManager();
+    const state = {
+      ...createInitialState(),
+      buildings: { ...createInitialBuildings(), calciner: { val: 1, on: 0, unlocked: true } },
+    };
+    const effects = manager.updateEffects(state);
+    expect(effects.mineralsPerTickCon ?? 0).toBe(0);
+    expect(effects.oilPerTickCon ?? 0).toBe(0);
+  });
+});
+
+describe("Story 31-08: quarry", () => {
+  it("exists in BUILDING_DEFS", () => {
+    expect(BUILDING_DEFS.find((b) => b.name === "quarry")).toBeDefined();
+  });
+
+  it("has correct prices: 1000 slab, 125 steel, 50 scaffold and unlockRatio 0.3", () => {
+    const def = BUILDING_DEFS.find((b) => b.name === "quarry");
+    expect(def?.prices.find((p) => p.name === "slab")?.val).toBe(1000);
+    expect(def?.prices.find((p) => p.name === "steel")?.val).toBe(125);
+    expect(def?.prices.find((p) => p.name === "scaffold")?.val).toBe(50);
+    expect(def?.unlockRatio).toBe(0.3);
+  });
+
+  it("has mineralsRatio:0.35 and coalPerTickBase:0.015", () => {
+    const def = BUILDING_DEFS.find((b) => b.name === "quarry");
+    expect(def?.effects.mineralsRatio).toBe(0.35);
+    expect(def?.effects.coalPerTickBase).toBe(0.015);
+  });
+
+  it("1 quarry → mineralsRatio and coalPerTickBase in effectCache", () => {
+    const manager = new BuildingManager();
+    const state = {
+      ...createInitialState(),
+      buildings: { ...createInitialBuildings(), quarry: { val: 1, on: 1, unlocked: true } },
+    };
+    const effects = manager.updateEffects(state);
+    expect(effects.mineralsRatio).toBeCloseTo(0.35);
+    expect(effects.coalPerTickBase).toBeCloseTo(0.015);
+  });
+});
+
+describe("Story 31-09: oilWell", () => {
+  it("exists in BUILDING_DEFS", () => {
+    expect(BUILDING_DEFS.find((b) => b.name === "oilWell")).toBeDefined();
+  });
+
+  it("has correct prices: 50 steel, 25 gear, 25 scaffold and priceRatio 1.15", () => {
+    const def = BUILDING_DEFS.find((b) => b.name === "oilWell");
+    expect(def?.prices.find((p) => p.name === "steel")?.val).toBe(50);
+    expect(def?.prices.find((p) => p.name === "gear")?.val).toBe(25);
+    expect(def?.prices.find((p) => p.name === "scaffold")?.val).toBe(25);
+    expect(def?.priceRatio).toBe(1.15);
+  });
+
+  it("has oilPerTickBase:0.02 and oilMax:1500", () => {
+    const def = BUILDING_DEFS.find((b) => b.name === "oilWell");
+    expect(def?.effects.oilPerTickBase).toBe(0.02);
+    expect(def?.effects.oilMax).toBe(1500);
+  });
+
+  it("1 oilWell → oilPerTickBase in effectCache", () => {
+    const manager = new BuildingManager();
+    const state = {
+      ...createInitialState(),
+      buildings: { ...createInitialBuildings(), oilWell: { val: 1, on: 1, unlocked: true } },
+    };
+    const effects = manager.updateEffects(state);
+    expect(effects.oilPerTickBase).toBeCloseTo(0.02);
+    expect(effects.oilMax).toBe(1500);
+  });
+});
+
+describe("Story 31-10: factory", () => {
+  it("exists in BUILDING_DEFS", () => {
+    expect(BUILDING_DEFS.find((b) => b.name === "factory")).toBeDefined();
+  });
+
+  it("has correct prices: 2000 titanium, 2500 plate, 15 concrate and priceRatio 1.15", () => {
+    const def = BUILDING_DEFS.find((b) => b.name === "factory");
+    expect(def?.prices.find((p) => p.name === "titanium")?.val).toBe(2000);
+    expect(def?.prices.find((p) => p.name === "plate")?.val).toBe(2500);
+    expect(def?.prices.find((p) => p.name === "concrate")?.val).toBe(15);
+    expect(def?.priceRatio).toBe(1.15);
+  });
+
+  it("has craftRatio:0.05 and energyConsumption:2", () => {
+    const def = BUILDING_DEFS.find((b) => b.name === "factory");
+    expect(def?.effects.craftRatio).toBe(0.05);
+    expect(def?.effects.energyConsumption).toBe(2);
+  });
+
+  it("1 factory → craftRatio 0.05 in effectCache", () => {
+    const manager = new BuildingManager();
+    const state = {
+      ...createInitialState(),
+      buildings: { ...createInitialBuildings(), factory: { val: 1, on: 1, unlocked: true } },
+    };
+    const effects = manager.updateEffects(state);
+    expect(effects.craftRatio).toBeCloseTo(0.05);
+    expect(effects.energyConsumption).toBeCloseTo(2);
+  });
+});
+
+describe("Story 31-11: ziggurat building", () => {
+  it("exists in BUILDING_DEFS", () => {
+    expect(BUILDING_DEFS.find((b) => b.name === "ziggurat")).toBeDefined();
+  });
+
+  it("has correct prices: 50 scaffold, 1 blueprint, 50 megalith and unlockRatio 0.01", () => {
+    const def = BUILDING_DEFS.find((b) => b.name === "ziggurat");
+    expect(def?.prices.find((p) => p.name === "scaffold")?.val).toBe(50);
+    expect(def?.prices.find((p) => p.name === "blueprint")?.val).toBe(1);
+    expect(def?.prices.find((p) => p.name === "megalith")?.val).toBe(50);
+    expect(def?.unlockRatio).toBe(0.01);
+    expect(def?.priceRatio).toBe(1.25);
+  });
+
+  it("has cultureMaxRatio:0.08", () => {
+    const def = BUILDING_DEFS.find((b) => b.name === "ziggurat");
+    expect(def?.effects.cultureMaxRatio).toBe(0.08);
+  });
+
+  it("1 ziggurat → cultureMaxRatio 0.08 in effectCache", () => {
+    const manager = new BuildingManager();
+    const state = {
+      ...createInitialState(),
+      buildings: { ...createInitialBuildings(), ziggurat: { val: 1, on: 1, unlocked: true } },
+    };
+    const effects = manager.updateEffects(state);
+    expect(effects.cultureMaxRatio).toBeCloseTo(0.08);
+  });
+});
+
+describe("Story 31-13: chronosphere", () => {
+  it("exists in BUILDING_DEFS", () => {
+    expect(BUILDING_DEFS.find((b) => b.name === "chronosphere")).toBeDefined();
+  });
+
+  it("has correct prices: 2500 unobtainium, 250000 science, 1 timeCrystal, 100 blueprint", () => {
+    const def = BUILDING_DEFS.find((b) => b.name === "chronosphere");
+    expect(def?.prices.find((p) => p.name === "unobtainium")?.val).toBe(2500);
+    expect(def?.prices.find((p) => p.name === "science")?.val).toBe(250000);
+    expect(def?.prices.find((p) => p.name === "timeCrystal")?.val).toBe(1);
+    expect(def?.prices.find((p) => p.name === "blueprint")?.val).toBe(100);
+    expect(def?.priceRatio).toBe(1.25);
+  });
+
+  it("has temporalParadoxChance:0.01, resStasisRatio:0.015, energyConsumption:20", () => {
+    const def = BUILDING_DEFS.find((b) => b.name === "chronosphere");
+    expect(def?.effects.temporalParadoxChance).toBe(0.01);
+    expect(def?.effects.resStasisRatio).toBe(0.015);
+    expect(def?.effects.energyConsumption).toBe(20);
+  });
+
+  it("1 chronosphere → effects in effectCache", () => {
+    const manager = new BuildingManager();
+    const state = {
+      ...createInitialState(),
+      buildings: { ...createInitialBuildings(), chronosphere: { val: 1, on: 1, unlocked: true } },
+    };
+    const effects = manager.updateEffects(state);
+    expect(effects.temporalParadoxChance).toBeCloseTo(0.01);
+    expect(effects.resStasisRatio).toBeCloseTo(0.015);
+    expect(effects.energyConsumption).toBeCloseTo(20);
+  });
+});
+
+describe("Story 31-14: reactor", () => {
+  it("exists in BUILDING_DEFS", () => {
+    expect(BUILDING_DEFS.find((b) => b.name === "reactor")).toBeDefined();
+  });
+
+  it("has correct prices: 3500 titanium, 5000 plate, 50 concrate, 25 blueprint", () => {
+    const def = BUILDING_DEFS.find((b) => b.name === "reactor");
+    expect(def?.prices.find((p) => p.name === "titanium")?.val).toBe(3500);
+    expect(def?.prices.find((p) => p.name === "plate")?.val).toBe(5000);
+    expect(def?.prices.find((p) => p.name === "concrate")?.val).toBe(50);
+    expect(def?.prices.find((p) => p.name === "blueprint")?.val).toBe(25);
+    expect(def?.priceRatio).toBe(1.15);
+  });
+
+  it("has uraniumPerTick:-0.001, productionRatio:0.05, uraniumMax:250, energyProduction:10", () => {
+    const def = BUILDING_DEFS.find((b) => b.name === "reactor");
+    expect(def?.effects.uraniumPerTick).toBe(-0.001);
+    expect(def?.effects.productionRatio).toBe(0.05);
+    expect(def?.effects.uraniumMax).toBe(250);
+    expect(def?.effects.energyProduction).toBe(10);
+  });
+
+  it("1 reactor → productionRatio and energyProduction in effectCache", () => {
+    const manager = new BuildingManager();
+    const state = {
+      ...createInitialState(),
+      buildings: { ...createInitialBuildings(), reactor: { val: 1, on: 1, unlocked: true } },
+    };
+    const effects = manager.updateEffects(state);
+    expect(effects.productionRatio).toBeCloseTo(0.05);
+    expect(effects.energyProduction).toBeCloseTo(10);
+    expect(effects.uraniumPerTick).toBeCloseTo(-0.001);
+    expect(effects.uraniumMax).toBe(250);
+  });
+});
+
+describe("Story 31-15: biolab", () => {
+  it("exists in BUILDING_DEFS", () => {
+    expect(BUILDING_DEFS.find((b) => b.name === "biolab")).toBeDefined();
+  });
+
+  it("has correct prices: 1500 science, 100 slab, 25 alloy and priceRatio 1.10", () => {
+    const def = BUILDING_DEFS.find((b) => b.name === "biolab");
+    expect(def?.prices.find((p) => p.name === "science")?.val).toBe(1500);
+    expect(def?.prices.find((p) => p.name === "slab")?.val).toBe(100);
+    expect(def?.prices.find((p) => p.name === "alloy")?.val).toBe(25);
+    expect(def?.priceRatio).toBe(1.10);
+  });
+
+  it("has scienceRatio:0.35, refineRatio:0.1, scienceMax:1500", () => {
+    const def = BUILDING_DEFS.find((b) => b.name === "biolab");
+    expect(def?.effects.scienceRatio).toBe(0.35);
+    expect(def?.effects.refineRatio).toBe(0.1);
+    expect(def?.effects.scienceMax).toBe(1500);
+  });
+
+  it("1 biolab → scienceRatio and scienceMax in effectCache", () => {
+    const manager = new BuildingManager();
+    const state = {
+      ...createInitialState(),
+      buildings: { ...createInitialBuildings(), biolab: { val: 1, on: 1, unlocked: true } },
+    };
+    const effects = manager.updateEffects(state);
+    expect(effects.scienceRatio).toBeCloseTo(0.35);
+    expect(effects.scienceMax).toBe(1500);
+    expect(effects.refineRatio).toBeCloseTo(0.1);
+  });
+});
+
+describe("Story 31-16: aiCore", () => {
+  it("exists in BUILDING_DEFS", () => {
+    expect(BUILDING_DEFS.find((b) => b.name === "aiCore")).toBeDefined();
+  });
+
+  it("has correct prices: 125 antimatter, 500000 science and unlockRatio 0.01", () => {
+    const def = BUILDING_DEFS.find((b) => b.name === "aiCore");
+    expect(def?.prices.find((p) => p.name === "antimatter")?.val).toBe(125);
+    expect(def?.prices.find((p) => p.name === "science")?.val).toBe(500000);
+    expect(def?.unlockRatio).toBe(0.01);
+    expect(def?.priceRatio).toBe(1.15);
+  });
+
+  it("has gflopsPerTickBase:0.02 and energyConsumption:2", () => {
+    const def = BUILDING_DEFS.find((b) => b.name === "aiCore");
+    expect(def?.effects.gflopsPerTickBase).toBe(0.02);
+    expect(def?.effects.energyConsumption).toBe(2);
+  });
+
+  it("1 aiCore → gflopsPerTickBase and energyConsumption in effectCache", () => {
+    const manager = new BuildingManager();
+    const state = {
+      ...createInitialState(),
+      buildings: { ...createInitialBuildings(), aiCore: { val: 1, on: 1, unlocked: true } },
+    };
+    const effects = manager.updateEffects(state);
+    expect(effects.gflopsPerTickBase).toBeCloseTo(0.02);
+    expect(effects.energyConsumption).toBeCloseTo(2);
+  });
+});
+
+describe("Story 31-17: accelerator and zebra buildings", () => {
+  it("accelerator exists in BUILDING_DEFS", () => {
+    expect(BUILDING_DEFS.find((b) => b.name === "accelerator")).toBeDefined();
+  });
+
+  it("accelerator has correct prices: 7500 titanium, 25 uranium, 125 concrate", () => {
+    const def = BUILDING_DEFS.find((b) => b.name === "accelerator");
+    expect(def?.prices.find((p) => p.name === "titanium")?.val).toBe(7500);
+    expect(def?.prices.find((p) => p.name === "uranium")?.val).toBe(25);
+    expect(def?.prices.find((p) => p.name === "concrate")?.val).toBe(125);
+    expect(def?.priceRatio).toBe(1.15);
+  });
+
+  it("accelerator has titaniumPerTickCon:-0.015, uraniumPerTickAutoprod:0.0025, energyConsumption:2", () => {
+    const def = BUILDING_DEFS.find((b) => b.name === "accelerator");
+    expect(def?.effects.titaniumPerTickCon).toBe(-0.015);
+    expect(def?.effects.uraniumPerTickAutoprod).toBe(0.0025);
+    expect(def?.effects.energyConsumption).toBe(2);
+  });
+
+  it("zebraOutpost exists in BUILDING_DEFS with hunterRatio:0.05 and catpowerMax:5", () => {
+    const def = BUILDING_DEFS.find((b) => b.name === "zebraOutpost");
+    expect(def).toBeDefined();
+    expect(def?.effects.hunterRatio).toBe(0.05);
+    expect(def?.effects.catpowerMax).toBe(5);
+    expect(def?.prices.find((p) => p.name === "bloodstone")?.val).toBe(1);
+    expect(def?.priceRatio).toBe(1.35);
+  });
+
+  it("zebraWorkshop exists in BUILDING_DEFS with catpowerMax:25", () => {
+    const def = BUILDING_DEFS.find((b) => b.name === "zebraWorkshop");
+    expect(def).toBeDefined();
+    expect(def?.effects.catpowerMax).toBe(25);
+    expect(def?.prices.find((p) => p.name === "bloodstone")?.val).toBe(5);
+  });
+
+  it("zebraForge exists in BUILDING_DEFS with catpowerMax:50 and tMythrilCraftRatio:0.01", () => {
+    const def = BUILDING_DEFS.find((b) => b.name === "zebraForge");
+    expect(def).toBeDefined();
+    expect(def?.effects.catpowerMax).toBe(50);
+    expect(def?.effects.tMythrilCraftRatio).toBe(0.01);
+    expect(def?.prices.find((p) => p.name === "bloodstone")?.val).toBe(50);
+  });
+
+  it("1 accelerator on → titaniumPerTickCon and uraniumPerTickAutoprod in effectCache", () => {
+    const manager = new BuildingManager();
+    const state = {
+      ...createInitialState(),
+      buildings: { ...createInitialBuildings(), accelerator: { val: 1, on: 1, unlocked: true } },
+    };
+    const effects = manager.updateEffects(state);
+    expect(effects.titaniumPerTickCon).toBeCloseTo(-0.015);
+    expect(effects.uraniumPerTickAutoprod).toBeCloseTo(0.0025);
+    expect(effects.energyConsumption).toBeCloseTo(2);
+  });
+
+  it("zebraOutpost catpowerMax scales by val not on", () => {
+    const manager = new BuildingManager();
+    const state = {
+      ...createInitialState(),
+      buildings: { ...createInitialBuildings(), zebraOutpost: { val: 3, on: 0, unlocked: true } },
+    };
+    const effects = manager.updateEffects(state);
+    expect(effects.catpowerMax).toBe(5 * 3);
+  });
+});
+
+describe("Story 31: all new buildings in BUILDING_DEFS and createInitialBuildings", () => {
+  it("contains all 17 new buildings in BUILDING_DEFS", () => {
+    const names = BUILDING_DEFS.map((b) => b.name);
+    for (const name of [
+      "chapel",
+      "workshop",
+      "steamworks",
+      "magneto",
+      "tradepost",
+      "harbor",
+      "quarry",
+      "oilWell",
+      "factory",
+      "ziggurat",
+      "chronosphere",
+      "reactor",
+      "biolab",
+      "aiCore",
+      "accelerator",
+      "zebraOutpost",
+      "zebraWorkshop",
+      "zebraForge",
+    ]) {
+      expect(names, `missing: ${name}`).toContain(name);
+    }
+  });
+
+  it("createInitialBuildings includes all new buildings", () => {
+    const buildings = createInitialBuildings();
+    for (const name of [
+      "chapel", "workshop", "steamworks", "magneto", "tradepost", "harbor",
+      "quarry", "oilWell", "factory", "ziggurat", "chronosphere", "reactor",
+      "biolab", "aiCore", "accelerator", "zebraOutpost", "zebraWorkshop", "zebraForge",
+    ]) {
+      expect(buildings[name], `missing in initial state: ${name}`).toBeDefined();
+    }
+  });
+});

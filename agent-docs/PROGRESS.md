@@ -507,5 +507,41 @@ Prerequisites: Epic 28
 ---
 
 ## Epic 30: Happiness Formula Completeness
-**Status:** In Progress | **Started:** 2026-03-31
-Stories: 0 / 5 complete
+**Status:** Complete | **Started:** 2026-03-31 | **Finished:** 2026-03-31
+Stories: 5 / 5 complete
+
+- [x] Story 30-01: Temple dynamic happiness — BuildingManager computes `(0.4 + 0.1 × sunAltar.on) × temple.on` per tick
+- [x] Story 30-02: Luxury resource happiness loop — +10 (+ `luxuryHappinessBonus`) per luxury resource with value > 0
+- [x] Story 30-03: Karma happiness — +1% per karma point
+- [x] Story 30-04: Festival bonus — +30 × (1 + festivalRatio) when festivalDays > 0
+- [x] Story 30-05: Brewery consumption — per active brewery: -1 catnip/tick, -0.1 spice/tick, scaled by breweryConsumptionRatio
+- [x] Story 30-06 (bonus): consumableLuxuryHappiness consumer — uncommon resources in luxury loop get additional bonus
+
+Engine tests: 830 passing | Line coverage: 99.51% | Branch: 88.64%
+Server tests: 86 passing | Line coverage: 95.12%
+Client-web tests: ~260 passing | Line coverage: 96.5%
+Total: ~1176 tests across all packages
+
+---
+
+## Epic 31: Missing Buildings (Round 2)
+**Status:** In Progress | **Started:** 2026-03-31 | **Finished:** —
+Stories: 0 / 17 complete
+
+- [ ] Story 31-01: Chapel — culturePerTickBase, faithPerTickBase, cultureMax
+- [ ] Story 31-02: Workshop building def — craftRatio
+- [ ] Story 31-03: Steamworks — energyProduction, magnetoBoostRatio, coalRatioGlobal
+- [ ] Story 31-04: Magneto — energyProduction, magnetoRatio, oilPerTick
+- [ ] Story 31-05: Tradepost — fursDemandRatio, ivoryDemandRatio, spiceDemandRatio, tradeRatio
+- [ ] Story 31-06: Harbor — multi-resource storage boosts
+- [ ] Story 31-07: Calciner consumption side — mineralsPerTickCon, oilPerTickCon
+- [ ] Story 31-08: Quarry — mineralsRatio, coalPerTickBase
+- [ ] Story 31-09: Oil Well — oilPerTickBase, oilMax
+- [ ] Story 31-10: Factory — craftRatio, energyConsumption
+- [ ] Story 31-11: Ziggurat building — cultureMaxRatio
+- [ ] Story 31-12: Spaceport (bonfire building)
+- [ ] Story 31-13: Chronosphere — resStasisRatio, energyConsumption
+- [ ] Story 31-14: Reactor — productionRatio, energyProduction, uraniumPerTick
+- [ ] Story 31-15: Biolab — scienceRatio, scienceMax
+- [ ] Story 31-16: AI Core — gflopsPerTickBase, energyConsumption
+- [ ] Story 31-17: Accelerator + zebra buildings (zebraOutpost, zebraWorkshop, zebraForge)

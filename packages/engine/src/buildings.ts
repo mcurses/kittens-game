@@ -341,9 +341,324 @@ export const BUILDING_DEFS: readonly BuildingDef[] = [
     effects: {
       ironPerTickBase: 0.15,
       titaniumPerTickBase: 0.0005,
+      // Story 31-07: consumption side (legacy buildings.js:1110–1198)
+      mineralsPerTickCon: -1.5,
+      oilPerTickCon: -0.024,
     },
     unlockRatio: 0.3,
     requiredTech: ["metallurgy"],
+  },
+
+  // ── Story 31-01: Chapel ───────────────────────────────────────────────────────
+  // Legacy buildings.js lines 1832–1861
+  {
+    name: "chapel",
+    description: "A small place of worship that produces culture and faith.",
+    prices: [
+      { name: "minerals", val: 2000 },
+      { name: "culture", val: 250 },
+      { name: "parchment", val: 250 },
+    ],
+    priceRatio: 1.15,
+    effects: {
+      culturePerTickBase: 0.05,
+      faithPerTickBase: 0.005,
+      cultureMax: 200,
+    },
+  },
+
+  // ── Story 31-02: Workshop (building def) ──────────────────────────────────────
+  // Legacy buildings.js lines 1436–1463
+  {
+    name: "workshop",
+    description: "Provides crafting capacity and boosts craft output.",
+    prices: [
+      { name: "wood", val: 100 },
+      { name: "minerals", val: 400 },
+    ],
+    priceRatio: 1.15,
+    defaultUnlockable: true,
+    unlockRatio: 0.0025,
+    effects: {
+      craftRatio: 0.06,
+    },
+  },
+
+  // ── Story 31-03: Steamworks ───────────────────────────────────────────────────
+  // Legacy buildings.js lines 1208–1315
+  {
+    name: "steamworks",
+    description: "Steam-powered factory that produces energy and boosts magneto efficiency.",
+    prices: [
+      { name: "steel", val: 65 },
+      { name: "gear", val: 20 },
+      { name: "blueprint", val: 1 },
+    ],
+    priceRatio: 1.25,
+    effects: {
+      energyProduction: 1,
+      magnetoBoostRatio: 0.15,
+      coalRatioGlobal: -0.8,
+      cathPollutionPerTickProd: 1,
+    },
+  },
+
+  // ── Story 31-04: Magneto ──────────────────────────────────────────────────────
+  // Legacy buildings.js lines 1317–1365
+  {
+    name: "magneto",
+    description: "Electromagnetic generator that produces energy and boosts production.",
+    prices: [
+      { name: "gear", val: 5 },
+      { name: "alloy", val: 10 },
+      { name: "blueprint", val: 1 },
+    ],
+    priceRatio: 1.25,
+    effects: {
+      oilPerTick: -0.05,
+      energyProduction: 5,
+      magnetoRatio: 0.02,
+      cathPollutionPerTickProd: 5,
+    },
+  },
+
+  // ── Story 31-05: Tradepost ────────────────────────────────────────────────────
+  // Legacy buildings.js lines 1630–1653
+  {
+    name: "tradepost",
+    description: "Reduces luxury demand and improves trade capacity.",
+    prices: [
+      { name: "wood", val: 500 },
+      { name: "minerals", val: 200 },
+      { name: "gold", val: 10 },
+    ],
+    priceRatio: 1.15,
+    unlockRatio: 0.3,
+    effects: {
+      fursDemandRatio: -0.04,
+      ivoryDemandRatio: -0.04,
+      spiceDemandRatio: -0.04,
+      tradeRatio: 0.015,
+    },
+  },
+
+  // ── Story 31-06: Harbor ───────────────────────────────────────────────────────
+  // Legacy buildings.js lines 870–920
+  {
+    name: "harbor",
+    description: "Port facility that increases storage capacity for many resources.",
+    prices: [
+      { name: "slab", val: 50 },
+      { name: "plate", val: 75 },
+      { name: "scaffold", val: 5 },
+    ],
+    priceRatio: 1.15,
+    effects: {
+      catnipMax: 2500,
+      woodMax: 700,
+      mineralsMax: 950,
+      coalMax: 100,
+      ironMax: 150,
+      titaniumMax: 50,
+      goldMax: 25,
+    },
+  },
+
+  // ── Story 31-08: Quarry ───────────────────────────────────────────────────────
+  // Legacy buildings.js lines 961–995
+  {
+    name: "quarry",
+    description: "Mine that boosts mineral production and provides coal.",
+    prices: [
+      { name: "slab", val: 1000 },
+      { name: "steel", val: 125 },
+      { name: "scaffold", val: 50 },
+    ],
+    priceRatio: 1.15,
+    unlockRatio: 0.3,
+    effects: {
+      mineralsRatio: 0.35,
+      coalPerTickBase: 0.015,
+      cathPollutionPerTickProd: 0.25,
+    },
+  },
+
+  // ── Story 31-09: Oil Well ─────────────────────────────────────────────────────
+  // Legacy buildings.js lines 1386–1432
+  {
+    name: "oilWell",
+    description: "Extracts crude oil from the ground.",
+    prices: [
+      { name: "steel", val: 50 },
+      { name: "gear", val: 25 },
+      { name: "scaffold", val: 25 },
+    ],
+    priceRatio: 1.15,
+    effects: {
+      oilPerTickBase: 0.02,
+      oilMax: 1500,
+    },
+  },
+
+  // ── Story 31-10: Factory ──────────────────────────────────────────────────────
+  // Legacy buildings.js lines 1465–1515
+  {
+    name: "factory",
+    description: "Industrial facility that greatly boosts craft output.",
+    prices: [
+      { name: "titanium", val: 2000 },
+      { name: "plate", val: 2500 },
+      { name: "concrate", val: 15 },
+    ],
+    priceRatio: 1.15,
+    effects: {
+      craftRatio: 0.05,
+      energyConsumption: 2,
+    },
+  },
+
+  // ── Story 31-11: Ziggurat (building) ─────────────────────────────────────────
+  // Legacy buildings.js lines 1977–2025
+  {
+    name: "ziggurat",
+    description: "Ancient wonder that boosts culture capacity and unlocks religion upgrades.",
+    prices: [
+      { name: "scaffold", val: 50 },
+      { name: "blueprint", val: 1 },
+      { name: "megalith", val: 50 },
+    ],
+    priceRatio: 1.25,
+    unlockRatio: 0.01,
+    effects: {
+      cultureMaxRatio: 0.08,
+    },
+  },
+
+  // ── Story 31-13: Chronosphere ─────────────────────────────────────────────────
+  // Legacy buildings.js lines 2027–2049
+  {
+    name: "chronosphere",
+    description: "Temporal wonder that preserves resources across resets.",
+    prices: [
+      { name: "unobtainium", val: 2500 },
+      { name: "science", val: 250000 },
+      { name: "timeCrystal", val: 1 },
+      { name: "blueprint", val: 100 },
+    ],
+    priceRatio: 1.25,
+    effects: {
+      temporalParadoxChance: 0.01,
+      resStasisRatio: 0.015,
+      energyConsumption: 20,
+    },
+  },
+
+  // ── Story 31-14: Reactor ──────────────────────────────────────────────────────
+  // Legacy buildings.js lines 1517–1565
+  {
+    name: "reactor",
+    description: "Nuclear reactor that generates energy and boosts global production.",
+    prices: [
+      { name: "titanium", val: 3500 },
+      { name: "plate", val: 5000 },
+      { name: "concrate", val: 50 },
+      { name: "blueprint", val: 25 },
+    ],
+    priceRatio: 1.15,
+    effects: {
+      uraniumPerTick: -0.001,
+      productionRatio: 0.05,
+      uraniumMax: 250,
+      energyProduction: 10,
+    },
+  },
+
+  // ── Story 31-15: Biolab ───────────────────────────────────────────────────────
+  // Legacy buildings.js lines 675–743
+  {
+    name: "biolab",
+    description: "Biological laboratory that boosts science production.",
+    prices: [
+      { name: "science", val: 1500 },
+      { name: "slab", val: 100 },
+      { name: "alloy", val: 25 },
+    ],
+    priceRatio: 1.10,
+    effects: {
+      scienceRatio: 0.35,
+      refineRatio: 0.1,
+      scienceMax: 1500,
+    },
+  },
+
+  // ── Story 31-16: AI Core ──────────────────────────────────────────────────────
+  // Legacy buildings.js lines 2051–2098
+  {
+    name: "aiCore",
+    description: "Artificial intelligence system that produces gflops.",
+    prices: [
+      { name: "antimatter", val: 125 },
+      { name: "science", val: 500000 },
+    ],
+    priceRatio: 1.15,
+    unlockRatio: 0.01,
+    effects: {
+      gflopsPerTickBase: 0.02,
+      energyConsumption: 2,
+    },
+  },
+
+  // ── Story 31-17: Accelerator ──────────────────────────────────────────────────
+  // Legacy buildings.js lines 1567–1627
+  {
+    name: "accelerator",
+    description: "Particle accelerator that converts titanium into uranium.",
+    prices: [
+      { name: "titanium", val: 7500 },
+      { name: "uranium", val: 25 },
+      { name: "concrate", val: 125 },
+    ],
+    priceRatio: 1.15,
+    effects: {
+      titaniumPerTickCon: -0.015,
+      uraniumPerTickAutoprod: 0.0025,
+      energyConsumption: 2,
+    },
+  },
+
+  // ── Story 31-17: Zebra buildings ─────────────────────────────────────────────
+  // Legacy buildings.js lines 2102–2182
+  {
+    name: "zebraOutpost",
+    description: "Zebra outpost that boosts hunter efficiency.",
+    prices: [{ name: "bloodstone", val: 1 }],
+    priceRatio: 1.35,
+    unlockRatio: 0.01,
+    effects: {
+      hunterRatio: 0.05,
+      catpowerMax: 5,
+    },
+  },
+  {
+    name: "zebraWorkshop",
+    description: "Zebra workshop that provides catpower storage.",
+    prices: [{ name: "bloodstone", val: 5 }],
+    priceRatio: 1.15,
+    unlockRatio: 0.01,
+    effects: {
+      catpowerMax: 25,
+    },
+  },
+  {
+    name: "zebraForge",
+    description: "Zebra forge that provides catpower storage and tMythril crafting.",
+    prices: [{ name: "bloodstone", val: 50 }],
+    priceRatio: 1.15,
+    unlockRatio: 0.01,
+    effects: {
+      catpowerMax: 50,
+      tMythrilCraftRatio: 0.01,
+    },
   },
 ];
 
