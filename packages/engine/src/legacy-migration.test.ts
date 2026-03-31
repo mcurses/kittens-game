@@ -293,6 +293,56 @@ describe("migrateLegacySave", () => {
     expect(time?.timestamp).toBeUndefined();
   });
 
+  // ── Time: unlocked inference from val ────────────────────────────────────
+
+  it("forces vsu unlocked:true when val > 0 even if explicit unlocked is missing", () => {
+    const save = {
+      ...minimalLegacySave,
+      time: {
+        heat: 0, flux: 0, isAccelerated: false,
+        cfu: [],
+        vsu: [
+          { name: "voidHoover", val: 4, on: 4 },  // no unlocked field
+          { name: "voidRift", val: 0, on: 0 },     // val:0 → still false
+        ],
+      },
+    };
+    const result = migrateLegacySave(save);
+    expect(result.time?.vsus.voidHoover?.unlocked).toBe(true);
+    expect(result.time?.vsus.voidRift?.unlocked).toBe(false);
+  });
+
+  it("forces cfu unlocked:true when val > 0 even if explicit unlocked is missing", () => {
+    const save = {
+      ...minimalLegacySave,
+      time: {
+        heat: 0, flux: 0, isAccelerated: false,
+        cfu: [
+          { name: "blastFurnace", val: 3, on: 2, heat: 1 }, // no unlocked field
+          { name: "temporalAccelerator", val: 0, on: 0, heat: 0 },
+        ],
+        vsu: [],
+      },
+    };
+    const result = migrateLegacySave(save);
+    expect(result.time?.cfus.blastFurnace?.unlocked).toBe(true);
+    expect(result.time?.cfus.temporalAccelerator?.unlocked).toBe(false);
+  });
+
+  it("preserves explicit unlocked:false when val is 0", () => {
+    const save = {
+      ...minimalLegacySave,
+      time: {
+        heat: 0, flux: 0, isAccelerated: false,
+        cfu: [{ name: "blastFurnace", val: 0, on: 0, unlocked: false, heat: 0 }],
+        vsu: [{ name: "voidHoover", val: 0, on: 0, unlocked: false }],
+      },
+    };
+    const result = migrateLegacySave(save);
+    expect(result.time?.cfus.blastFurnace?.unlocked).toBe(false);
+    expect(result.time?.vsus.voidHoover?.unlocked).toBe(false);
+  });
+
   // ── Achievements ─────────────────────────────────────────────────────────
 
   it("converts achievements and badges", () => {

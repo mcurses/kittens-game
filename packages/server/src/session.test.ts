@@ -106,6 +106,30 @@ describe("SessionRegistry", () => {
     expect(saved).not.toBeNull();
   });
 
+  it("getOrCreate starts auto-tick for new slots created at runtime", () => {
+    vi.useFakeTimers();
+    const reg = new SessionRegistry(createMemoryAdapter());
+    const store = reg.getOrCreate("runtime-slot");
+    expect(store.getSerialized().tick).toBe(0);
+    vi.advanceTimersByTime(250);
+    expect(store.getSerialized().tick).toBeGreaterThan(0);
+    store.stopAutoTick();
+    vi.useRealTimers();
+  });
+
+  it("loadFromSave on an already-ticking store keeps ticking", () => {
+    vi.useFakeTimers();
+    const reg = new SessionRegistry(createMemoryAdapter());
+    const store = reg.getOrCreate("import-slot");
+    // Simulate a legacy import by calling loadFromSave
+    const serialized = store.getSerialized();
+    store.loadFromSave(serialized);
+    vi.advanceTimersByTime(250);
+    expect(store.getSerialized().tick).toBeGreaterThan(0);
+    store.stopAutoTick();
+    vi.useRealTimers();
+  });
+
   it("named slots can resume auto-ticking after restart when recreated", () => {
     vi.useFakeTimers();
     const db = createMemoryAdapter();
@@ -116,11 +140,10 @@ describe("SessionRegistry", () => {
     initialStore.stopAutoTick();
 
     const reg = new SessionRegistry(db);
-    const restored = reg.getOrCreate("save-a");
-    restored.startAutoTick(50);
+    const restored = reg.getOrCreate("save-a"); // starts auto-tick at 200ms
 
     expect(restored.getSerialized().tick).toBe(1);
-    vi.advanceTimersByTime(120);
+    vi.advanceTimersByTime(500); // 2+ ticks at 200ms interval
     expect(restored.getSerialized().tick).toBeGreaterThan(1);
 
     restored.stopAutoTick();

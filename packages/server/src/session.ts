@@ -27,6 +27,7 @@ export class SessionRegistry {
     if (store === undefined) {
       store = new GameStateStore(this.db, slot);
       store.init();
+      store.startAutoTick();
       this.stores.set(slot, store);
     }
     return store;

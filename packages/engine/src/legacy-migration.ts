@@ -273,7 +273,7 @@ function migrateTime(raw: unknown): NonNullable<SerializedGameState["time"]> {
       ? arrayToRecord(raw.cfu, (item) => ({
           val: num(item.val),
           on: num(item.on),
-          unlocked: bool(item.unlocked),
+          unlocked: bool(item.unlocked) || num(item.val) > 0,
           heat: num(item.heat),
         }))
       : {},
@@ -281,7 +281,7 @@ function migrateTime(raw: unknown): NonNullable<SerializedGameState["time"]> {
       ? arrayToRecord(raw.vsu, (item) => ({
           val: num(item.val),
           on: num(item.on),
-          unlocked: bool(item.unlocked),
+          unlocked: bool(item.unlocked) || num(item.val) > 0,
         }))
       : {},
     heat: num(raw.heat),
