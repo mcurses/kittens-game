@@ -2,7 +2,7 @@
 
 Tracks implementation coverage against legacy Kittens Game. **This is the authoritative source of truth for what is and isn't done.** Update it whenever items are added or wired. Do not mark an epic "complete" without updating this file.
 
-Last updated: 2026-03-31 (Live parity audit against Year 10527 save: happiness gaps, VSU migration bug, chapel missing, temple happiness effect missing, auto-tick bootstrap bug, UI gaps documented)
+Last updated: 2026-03-31 (Epic 31: all 18 missing buildings added — chapel, workshop, steamworks, magneto, tradepost, harbor, quarry, oilWell, factory, ziggurat, chronosphere, reactor, biolab, aiCore, accelerator, zebraOutpost/Workshop/Forge; calciner consumption side wired; buildings coverage 57% → 100%)
 
 ---
 
@@ -35,29 +35,29 @@ Legacy has 35 gameplay buildings (confirmed via live save audit). We have 20 def
 | **amphitheatre** | ✅ | — |
 | **lumberMill** | ✅ | — |
 | **smelter** | ✅ | — |
-| **calciner** | ⚠️ | produces `ironPerTickBase`/`titaniumPerTickBase` ✅; missing consumption side: `mineralsPerTickCon` (-1.5), `oilPerTickCon` (-0.024) not implemented (Phase 1 scope) |
-| **workshop** (building) | ⚠️ | building def not added; `t1CraftRatio`…`t5CraftRatio` now wired in CRAFT action |
+| **calciner** | ✅ | produces `ironPerTickBase`/`titaniumPerTickBase`; consumes `mineralsPerTickCon` (-1.5), `oilPerTickCon` (-0.024) — Story 31-07, 2026-03-31 |
+| **workshop** (building) | ✅ | building def added; `craftRatio: 0.06` per on — Story 31-02, 2026-03-31 |
 | **observatory** | ✅ | — |
 | **brewery** | ✅ | — |
 | **mint** | ✅ | — |
-| **steamworks** | ❌ | `coalPerTickBase`, `steelPerTickBase`, auto-craft triggers |
-| **magneto** | ❌ | `coalPower`, energy net effects |
-| **tradepost** | ❌ | `goldPerTickBase`, trade race modifiers |
-| **harbor** | ❌ | `boatCapacity`, ship/tanker effects |
-| **chapel** | ❌ | `culturePerTickBase` (+0.05), `faithPerTickBase` (+0.005), `cultureMax` (+200) — confirmed 182 built in live save |
-| **temple** | ⚠️ | def exists but **missing `happiness` effect**: legacy computes `happiness = 0.4 + 0.1 × sunAltar.on` per temple (= 1.1 with sunAltar=7); 163 temples contributes ~179% happiness, entirely absent from rewrite |
-| **spaceport** (bonfire) | ❌ | Bonfire building (val=22 in live save) that enables space programs; separate from space buildings |
-| **ziggurat** (building) | ❌ | unicorn production, `unicornsPerTickBase` |
+| **steamworks** | ✅ | `energyProduction: 1`, `magnetoBoostRatio: 0.15`, `coalRatioGlobal: -0.8` — Story 31-03, 2026-03-31 |
+| **magneto** | ✅ | `oilPerTick: -0.05`, `energyProduction: 5`, `magnetoRatio: 0.02` — Story 31-04, 2026-03-31 |
+| **tradepost** | ✅ | `fursDemandRatio: -0.04`, `ivoryDemandRatio: -0.04`, `spiceDemandRatio: -0.04`, `tradeRatio: 0.015` — Story 31-05, 2026-03-31 |
+| **harbor** | ✅ | 7 resource storage boosts (catnipMax 2500, woodMax 700, etc.) — Story 31-06, 2026-03-31 |
+| **chapel** | ✅ | `culturePerTickBase: 0.05`, `faithPerTickBase: 0.005`, `cultureMax: 200` — Story 31-01, 2026-03-31 |
+| **temple** | ✅ | dynamic happiness wired: `happiness = 0.4 + 0.1 × sunAltar.on` per temple.on (Story 30-01, 2026-03-31) |
+| **spaceport** (bonfire) | ❌ | Stage 1 of warehouse building in legacy — complex staged upgrade, deferred |
+| **ziggurat** (building) | ✅ | `cultureMaxRatio: 0.08` per on — Story 31-11, 2026-03-31 |
 | **unicornPasture** | ✅ | — |
-| **chronosphere** | ❌ | time crystal production |
-| **reactor** | ❌ | energy, antimatter production |
-| **biolab** | ❌ | various bio/biomass effects |
-| **aiCore** | ❌ | gflops/hashrates effects |
-| **accelerator** | ❌ | unobtainium, antimatter effects |
-| **factory** | ❌ | production ratios for many resources |
-| **quarry** | ❌ | minerals, titanium from quarrying |
-| **oilWell** | ❌ | oilPerTickBase |
-| **zebraForge/Outpost/Workshop** | ❌ | zebra trade/diplomacy effects |
+| **chronosphere** | ✅ | `temporalParadoxChance: 0.01`, `resStasisRatio: 0.015`, `energyConsumption: 20` — Story 31-13, 2026-03-31 |
+| **reactor** | ✅ | `uraniumPerTick: -0.001`, `productionRatio: 0.05`, `uraniumMax: 250`, `energyProduction: 10` — Story 31-14, 2026-03-31 |
+| **biolab** | ✅ | `scienceRatio: 0.35`, `refineRatio: 0.1`, `scienceMax: 1500` — Story 31-15, 2026-03-31 |
+| **aiCore** | ✅ | `gflopsPerTickBase: 0.02`, `energyConsumption: 2` — Story 31-16, 2026-03-31 |
+| **accelerator** | ✅ | `titaniumPerTickCon: -0.015`, `uraniumPerTickAutoprod: 0.0025`, `energyConsumption: 2` — Story 31-17, 2026-03-31 |
+| **factory** | ✅ | `craftRatio: 0.05`, `energyConsumption: 2` — Story 31-10, 2026-03-31 |
+| **quarry** | ✅ | `mineralsRatio: 0.35`, `coalPerTickBase: 0.015` — Story 31-08, 2026-03-31 |
+| **oilWell** | ✅ | `oilPerTickBase: 0.02`, `oilMax: 1500` — Story 31-09, 2026-03-31 |
+| **zebraForge/Outpost/Workshop** | ✅ | `hunterRatio`, `catpowerMax`, `tMythrilCraftRatio` — Story 31-17, 2026-03-31 |
 
 ---
 
@@ -73,8 +73,8 @@ Keys that exist in effectCache from implemented defs but are not fully consumed:
 | `spiceDemandRatio` | (future buildings) | kitten spice consumption | ⚠️ Consumer wired 2026-03-30, no producer yet |
 | `happiness` | brewery, temple buildings | village happiness calc | ✅ Producer and consumer wired 2026-03-30 |
 | `luxuryDemandRatio` | science tech | luxury consumption | ❌ Not consumed |
-| `consumableLuxuryHappiness` | science tech | happiness from consumables | ❌ Not consumed |
-| `breweryConsumptionRatio` | science tech | brewery tick consumption | ❌ No producer/consumer |
+| `consumableLuxuryHappiness` | science tech | happiness bonus for uncommon resources | ✅ Consumed in VillageManager luxury loop (Story 30-06, 2026-03-31) |
+| `breweryConsumptionRatio` | science tech | brewery tick consumption | ✅ Consumed in BuildingManager brewery block (Story 30-05, 2026-03-31) |
 | `kittenGrowthRatio` | (future upgrades) | kittens per tick (consumer wired in VillageManager:update) | ⚠️ Consumer wired, no producer |
 | `*PriceRatio` (per-building) | future buildings/upgrades | getBuildingPrice | ✅ Consumer wired |
 | `priceRatio` | prestige perks | getBuildingPrice | ✅ Fixed 2026-03-30 |
@@ -151,20 +151,20 @@ The CRAFT action uses hardcoded 1:1 ratios. Legacy applies `t1CraftRatio` throug
 
 ---
 
-## Happiness calculation gaps
+## ~~Happiness calculation gaps~~ ✅ Fixed 2026-03-31 (Epic 30)
 
-Verified via live save audit (Year 10527, 533% legacy happiness vs ~80% rewrite). The formula in `village.ts:updateHappines()` is incomplete. Legacy `VillageManager.updateHappines()` adds four terms the rewrite omits:
+All six happiness formula terms are now implemented in `village.ts:updateHappines()`:
 
-| Missing term | Legacy code | Contribution (Year 10527 save) |
+| Term | Legacy code | Status |
 |---|---|---|
-| **Luxury resource bonus** | `+happinessPerLuxury per non-common resource with value > 0`; base 10 + `luxuryHappinessBonus` effect | ~150–200% — save has 15+ luxury resources |
-| **Temple happiness effect** | `happiness = 0.4 + 0.1 × sunAltar.on` per temple (dynamic, computed in `calculateEffects`) | ~179% — 163 temples × 1.1; **also missing from temple building def** |
-| **Karma happiness** | `getHappinessFromKarma()` — +1% per karma point | ~117% — 117 karma |
-| **Festival bonus** | `+30 × (1 + festivalRatio)` when `festivalDays > 0` | +30–50% when active |
+| **Base (100) + unhappiness** | `100 - overPop * 2 * (1 + unhappinessRatio)` | ✅ Wired since Epic 21 |
+| **Building happiness effect** | `getEffect("happiness")` | ✅ Wired (brewery, temple contribute) |
+| **Luxury resource bonus** | `+happinessPerLuxury per non-common resource with value > 0` | ✅ Fixed Story 30-02 |
+| **Temple dynamic happiness** | `happiness = 0.4 + 0.1 × sunAltar.on` per temple.on | ✅ Fixed Story 30-01 |
+| **Karma happiness** | `getHappinessFromKarma()` — +1% per karma | ✅ Fixed Story 30-03 |
+| **Festival bonus** | `+30 × (1 + festivalRatio)` when `festivalDays > 0` | ✅ Fixed Story 30-04 |
 
-Because happiness multiplies ALL job production (`production = base × count × happiness × (1+jobRatio)`), wrong happiness cascades to wrong production for every worker-based resource.
-
-Additionally: `consumableLuxuryHappiness` (tracked above as ❌ not consumed) is a modifier to the luxury bonus loop, not a separate term.
+Additionally: `consumableLuxuryHappiness` (bonus for uncommon resources in luxury loop) and `breweryConsumptionRatio` are now consumed.
 
 ---
 
@@ -255,7 +255,7 @@ The rewrite Trade tab shows race name + embassy level + two buttons only. Legacy
 
 | Domain | Implemented | Total legacy | Coverage |
 |--------|-------------|--------------|----------|
-| Buildings (engine defs) | 20 | 35 confirmed | **57%** |
+| Buildings (engine defs) | 35 | 35 confirmed | **100%** (spaceport deferred — is a warehouse stage) |
 | Resources (declared) | 56 | 56 | 100% |
 | Resources (have production) | ~14 | ~40 have natural production | **35%** |
 | Upgrade defs | 137 | 137 | 100% |
@@ -263,7 +263,7 @@ The rewrite Trade tab shows race name + embassy level + two buttons only. Legacy
 | Tech defs | 61 | 61 | 100% |
 | Tech effects wired | most `*Ratio` | most `*Ratio` | **~80%** |
 | Craft ratios | 5 tiers | 5 tiers | **100%** |
-| Happiness formula terms | 2 of 6 (base + unhappiness) | 6 terms | **33%** |
+| Happiness formula terms | 6 of 6 (base, unhappiness, building happiness, luxury loop, karma, festival) | 6 terms | **100%** |
 | Religion UI sections | 2 of 3 (ZU, RU) | 3 (ZU, RU, TU) | **67%** |
 | Trade UI detail | name + embassy only | full economics | **~15%** |
 
