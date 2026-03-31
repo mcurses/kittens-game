@@ -328,6 +328,7 @@ Reads the current git log and test results, then updates `agent-docs/PROGRESS.md
 - `legacy/test/` must be read before writing stories for any domain it covers
 - Each epic must include a cross-manager integration test for the full tick loop
 - `agent-docs/PROGRESS.md` updated at the end of every work session
+- **`agent-docs/EPICS.md` status must be updated when an epic completes** — mark the row ✅ Complete before closing out the epic
 - Legacy code is **read-only reference** — never modify it
 - **`agent-docs/PARITY.md` is the authoritative coverage tracker** — update it whenever a building, effect key, or resource production path is added. Do not mark an epic complete without updating PARITY.md.
 - **Every new building or upgrade must wire both halves in the same commit**: the def that produces the effectCache key AND the manager code that consumes it. Verify with `grep -rn "effectCache\[" packages/engine/src/` before committing.

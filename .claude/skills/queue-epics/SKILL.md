@@ -16,7 +16,7 @@ For each epic in order:
 2. Execute the TDD loop from `epic-start` Step 6: failing tests → implement → build passes → commit → check off ACs. Repeat per story.
 3. Run `/self-rate` — build + tests + coverage + audit + score.
 4. If any dimension scored ≤ 2: stop, fix it, re-run `/self-rate`. Do not advance until all dimensions are ≥ 3.
-5. If all dimensions ≥ 3: proceed to the next epic in the queue.
+5. If all dimensions ≥ 3: mark the epic ✅ Complete in `agent-docs/EPICS.md`, then proceed to the next epic in the queue.
 
 When all epics in the queue are done, run `/sanity-check` across the completed batch. If any category is FAIL, fix it before reporting completion.
 

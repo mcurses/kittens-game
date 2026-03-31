@@ -87,6 +87,11 @@ export const SaveImportRequestSchema = z.object({
 });
 export type SaveImportRequest = z.infer<typeof SaveImportRequestSchema>;
 
+export const LegacyImportRequestSchema = z.object({
+  data: z.string().min(1),
+});
+export type LegacyImportRequest = z.infer<typeof LegacyImportRequestSchema>;
+
 export const GameResetRequestSchema = z.object({
   /** true = wipe everything including prestige. false/absent = soft reset only. */
   hard: z.boolean().optional(),

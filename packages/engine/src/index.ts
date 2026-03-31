@@ -3,6 +3,7 @@
 
 export type { GameState, SerializedGameState } from "./state.js";
 export { createInitialState, serialize, deserialize } from "./state.js";
+export { migrateLegacySave } from "./legacy-migration.js";
 export type { GameAction } from "./actions.js";
 export { applyAction } from "./actions.js";
 export type { Manager } from "./manager.js";

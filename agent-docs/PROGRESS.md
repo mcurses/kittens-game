@@ -437,3 +437,48 @@ Client-web tests: 238 passing | Line coverage: 95.24%
 Total: 1010 tests across all packages
 
 Prerequisites: Epics 22, 25
+
+---
+
+## Epic 27: Building Completeness
+**Status:** Complete | **Started:** 2026-03-30 | **Finished:** 2026-03-30
+Stories: 12 / 12 complete
+
+- [x] Story 27-01: Fix catnipDemandRatio consumption in VillageManager (+ furs/ivory/spice demand)
+- [x] Story 27-02: Amphitheatre — culturePerTickBase, cultureMax, unhappinessRatio
+- [x] Story 27-03: Lumber Mill — woodRatio
+- [x] Story 27-04: Smelter — ironRatio, steelRatio, coalRatio
+- [x] Story 27-05: Observatory — scienceRatio
+- [x] Story 27-06: Brewery — happiness
+- [x] Story 27-07: Mint — goldRatio, goldMax
+- [x] Story 27-08: Temple — faithRatio, happiness
+- [x] Story 27-09: Unicorn Pasture — unicornsPerTickBase
+- [x] Story 27-10: Calciner — titaniumRatio, coalRatioGlobal
+- [x] Story 27-11: Craft ratio wiring (T1–T5) — applyCraft reads tier ratios from effectCache
+- [x] Story 27-12: catnipDemandWorkerRatioGlobal wiring in VillageManager worker consumption
+
+Pre-epic action items executed:
+- [x] manpower → catpower rename (engine, server, client — all packages)
+- [x] Tab visibility gating in TabContainer (Science/Religion/Space/Time/Trade/Achievements unlock conditions)
+- [x] Diplomacy tab renamed to Trade (per ADR-009: legacy i18n is source of truth)
+- [x] ADR-009 added to DECISIONS.md (UI naming + tab visibility rules)
+- [x] PARITY.md enforcement rules added to agents.md
+
+Engine tests: 776 passing | Line coverage: 99.62%
+Server tests: 48 passing | Line coverage: 96.35%
+Client-web tests: 304 passing | Line coverage: ~95%
+Total: 1128 tests across all packages
+
+Prerequisites: Epics 20, 21, 26
+
+---
+
+## Epic 28: Legacy Save Import
+**Status:** In Progress | **Started:** 2026-03-30
+Stories: 0 / 3 complete
+
+- [ ] Story 28-1: Engine — `migrateLegacySave` pure function
+- [ ] Story 28-2: Server — `POST /api/game/import-legacy` endpoint with LZString decompression
+- [ ] Story 28-3: Client UI — Import Save panel (paste or file upload)
+
+Prerequisites: Epics 17, 18, 25

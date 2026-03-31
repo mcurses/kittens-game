@@ -1,5 +1,6 @@
 import type { Hono } from "hono";
 // Integration tests for the Hono app — uses in-memory adapter, no network, no bun:sqlite
+import LZString from "lz-string";
 import { describe, expect, it } from "vitest";
 import { createApp } from "./app.js";
 import { createMemoryAdapter } from "./db.js";
@@ -245,6 +246,83 @@ describe("POST /api/game/load", () => {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ notdata: {} }),
+    });
+    expect(res.status).toBe(400);
+  });
+});
+
+// ── POST /api/game/import-legacy ─────────────────────────────────────────────
+
+const minimalLegacySave = JSON.stringify({
+  saveVersion: 15,
+  resources: [{ name: "catnip", value: 100, maxValue: 5000 }],
+  buildings: [{ name: "field", val: 1, on: 1, unlocked: true }],
+  village: {
+    kittens: [],
+    nextKittenProgress: 0,
+    jobs: [{ name: "farmer", value: 0 }],
+  },
+  calendar: { day: 0, season: 0, year: 1 },
+  science: { techs: [], policies: [] },
+  workshop: { upgrades: [], crafts: [] },
+});
+
+describe("POST /api/game/import-legacy", () => {
+  it("loads a raw JSON legacy save string", async () => {
+    const { app } = makeApp();
+    const res = await req(app, "/api/game/import-legacy", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ data: minimalLegacySave }),
+    });
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as { calendar: { year: number } };
+    expect(body.calendar.year).toBe(1);
+  });
+
+  it("loads a base64 LZString-compressed legacy save", async () => {
+    const { app } = makeApp();
+    const compressed = LZString.compressToBase64(minimalLegacySave);
+    const res = await req(app, "/api/game/import-legacy", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ data: compressed }),
+    });
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as { calendar: { year: number } };
+    expect(body.calendar.year).toBe(1);
+  });
+
+  it("loads a UTF-16 LZString-compressed legacy save", async () => {
+    const { app } = makeApp();
+    const compressed = LZString.compressToUTF16(minimalLegacySave);
+    const res = await req(app, "/api/game/import-legacy", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ data: compressed }),
+    });
+    expect(res.status).toBe(200);
+  });
+
+  it("returns 400 for garbage data that cannot be decompressed", async () => {
+    const { app } = makeApp();
+    const res = await req(app, "/api/game/import-legacy", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ data: "notjsonnotcompressed" }),
+    });
+    expect(res.status).toBe(400);
+    const body = (await res.json()) as { ok: boolean; error: string };
+    expect(body.ok).toBe(false);
+    expect(body.error).toContain("decompress");
+  });
+
+  it("returns 400 for missing data field", async () => {
+    const { app } = makeApp();
+    const res = await req(app, "/api/game/import-legacy", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ notdata: "oops" }),
     });
     expect(res.status).toBe(400);
   });

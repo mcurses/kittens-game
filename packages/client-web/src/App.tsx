@@ -3,6 +3,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import React from "react";
 import { ActionPanel } from "./ActionPanel.js";
 import { CalendarDisplay } from "./CalendarDisplay.js";
+import { ImportSavePanel } from "./ImportSavePanel.js";
 import { InspectorPanel } from "./InspectorPanel.js";
 import { InspectorProvider } from "./InspectorContext.js";
 import { LogPanel } from "./LogPanel.js";
@@ -56,6 +57,7 @@ export function getWsUrl(
 function GameView(): React.ReactElement {
   const slot = getSlot(window.location.search);
   const { data: state, error, isError, isSuccess } = useGameState(slot);
+  const [showImport, setShowImport] = React.useState(false);
   const wsUrl = isSuccess ? getWsUrl(window.location, import.meta.env.DEV, slot) : null;
   const { messages } = useWebSocket(wsUrl, slot);
 
@@ -94,6 +96,17 @@ function GameView(): React.ReactElement {
             <aside data-testid="resource-sidebar" className="resource-sidebar">
               <ResourcePanel state={state} />
               <ActionPanel state={state} />
+              <button
+                type="button"
+                className="import-legacy-toggle"
+                data-testid="import-legacy-toggle"
+                onClick={() => setShowImport((v) => !v)}
+              >
+                {showImport ? "Hide Import" : "Import Legacy Save"}
+              </button>
+              {showImport && (
+                <ImportSavePanel onClose={() => setShowImport(false)} />
+              )}
             </aside>
 
             {/* Center — Main content */}

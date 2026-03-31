@@ -177,9 +177,28 @@ Legacy reference: `legacy/js/buildings.js`, `legacy/js/village.js`, `legacy/test
 
 ## Future / deferred stories
 
+## Story 27-13 — Calciner consumption side
+
+**Why it exists**: Calciner currently produces `ironPerTickBase` and `titaniumPerTickBase` but does not consume the minerals/oil that legacy requires.
+
+**Legacy reference**: `legacy/js/buildings.js` → calciner `calculateEffects()`:
+- `mineralsPerTickCon: -1.5` (consumes minerals per tick when active)
+- `oilPerTickCon: -0.024` (consumes oil per tick when active)
+
+**ACs**:
+- [ ] BuildingManager contributes `mineralsPerTickCon` and `oilPerTickCon` from active calciners
+- [ ] Values: -1.5 minerals/tick, -0.024 oil/tick per active calciner
+- [ ] `calcResourcePerTick` already handles `*PerTickCon` keys — just need production side
+- [ ] Test: 1 active calciner → minerals and oil are consumed each tick
+- [ ] PARITY.md calciner row updated to ✅
+
+---
+
+## Future / deferred stories
+
 The following buildings are mid-to-late-game and depend on resources/systems not yet fully implemented. File as separate stories when prerequisites are met:
 
-- **Steamworks** (27-13): coalPerTickBase, steelPerTickBase, auto-craft triggers — requires coal/steel production pipeline
+- **Steamworks** (27-13, renumbered 27-14): coalPerTickBase, steelPerTickBase, auto-craft triggers — requires coal/steel production pipeline
 - **Magneto** (27-14): energy system, coalPower — requires energy net system
 - **Tradepost** (27-15): goldPerTickBase, race trade modifiers — requires gold + diplomacy integration
 - **Harbor** (27-16): boatCapacity, ship/tanker — requires late-game resource system

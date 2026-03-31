@@ -120,6 +120,29 @@ paths:
         "400":
           description: Invalid or unmigratable save data
 
+  /api/game/import-legacy:
+    post:
+      operationId: postGameImportLegacy
+      summary: Import a legacy Kittens Game save
+      description: |
+        Accepts a legacy KG save string (LZString-compressed base64 or UTF-16,
+        or raw JSON). Decompresses, migrates to the new schema, and loads it.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LegacyImportRequest"
+      responses:
+        "200":
+          description: Legacy save imported and loaded successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GameStateResponse"
+        "400":
+          description: Decompression failed, invalid JSON, or migration error
+
   /api/game/reset:
     post:
       operationId: postGameReset
@@ -439,6 +462,15 @@ components:
         data:
           type: object
           additionalProperties: true
+
+    LegacyImportRequest:
+      type: object
+      required: [data]
+      properties:
+        data:
+          type: string
+          minLength: 1
+          description: LZString-compressed (base64 or UTF-16) or raw JSON save string
 
     GameResetRequest:
       type: object

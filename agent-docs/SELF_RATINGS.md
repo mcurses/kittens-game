@@ -862,3 +862,34 @@ If any dimension scores ≤ 2, pause and fix before moving to the next epic.
 - [ ] Add hover test to SciencePanel.test.tsx (mirrors BuildingsPanel hover test)
 - [ ] Add InspectorPanel tests for ZigguratUpgrade and ReligionUpgrade entity kinds
 - [ ] Consider wiring craft items to inspector if there's a CraftDef with descriptions
+
+---
+
+## Epic 27: Building Completeness — 2026-03-30
+
+| Dimension | Score | Notes |
+|-----------|-------|-------|
+| Test coverage (≥90% target) | 5 | Engine 99.62% lines, 89.1% branches; all packages ≥95% |
+| No skipped tests / no TODOs | 5 | Zero skips, zero TODOs/FIXMEs in all packages |
+| Feature parity | 4 | 20/~35 buildings (57%); craft ratios 100%; upgrade effects ~52%; intentional deferrals for late-game buildings documented in STORIES.md |
+| API spec completeness | 5 | All 32 action types in engine match api-spec; no gaps found |
+| Code quality (no `any`) | 5 | No `any` in production code; unknown + explicit casts throughout |
+| Docs freshness (PROGRESS, DECISIONS, PARITY) | 5 | PROGRESS.md updated; ADR-009 added; PARITY.md kept current; 2 stale manpower→catpower rows caught and fixed in Step 4 |
+| Commit hygiene | 5 | Clean focused commits per feature; descriptive messages |
+| **Overall average** | **4.9** | |
+
+### What went well
+- PARITY.md enforcement proved its value immediately — Step 4 spot-check caught 2 stale rows the test suite didn't surface
+- Tab visibility gating + "Trade" rename cleanup fixed visible UI bugs (hunt button, wrong tab labels)
+- Worker/unassigned catnip split correctly fills a gap legacy had (effect defined but not consumed)
+- All 1128 tests pass with zero regressions across 3 packages
+
+### What to improve
+- STORIES.md ACs not ticked off as stories complete; boxes remain `[ ]` and need post-hoc review
+- Turbo cache false failure caused unnecessary investigation — `--force` should be standard for self-rate runs
+- Engine branch coverage at 89.1% is just under 90% target; building edge paths (max level, locked) may be under-tested
+
+### Action items for next epic
+- [ ] Tick AC checkboxes in STORIES.md as each story completes (not at end)
+- [ ] Add `--force` to turbo test invocations in self-rate to avoid stale cache confusion
+- [ ] Review engine branch coverage — identify uncovered building edge paths and add tests if significant

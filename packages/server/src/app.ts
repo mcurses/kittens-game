@@ -5,10 +5,13 @@ import {
   GameResetRequestSchema,
   GameStateResponseSchema,
   HealthResponseSchema,
+  LegacyImportRequestSchema,
   SaveExportResponseSchema,
   SaveImportRequestSchema,
 } from "@kittens/api-spec";
 import type { SerializedGameState } from "@kittens/engine";
+import { migrateLegacySave } from "@kittens/engine";
+import LZString from "lz-string";
 // Hono app factory — creates the HTTP + WS app given a SessionRegistry
 import { Hono } from "hono";
 import { cors } from "hono/cors";
@@ -140,6 +143,60 @@ export function createApp(registry: SessionRegistry): Hono {
     try {
       const stateData = parseSerializedState(parsed.data.data);
       const newState = store.loadFromSave(stateData);
+      return c.json(newState);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      return c.json({ ok: false, error: message }, 400);
+    }
+  });
+
+  // ── Import Legacy ────────────────────────────────────────────────────────────
+  app.post("/api/game/import-legacy", async (c) => {
+    const result = resolveStore(c, registry);
+    if (result instanceof Response) return result;
+    const { store } = result;
+
+    let body: unknown;
+    try {
+      body = await c.req.json();
+    } catch {
+      return c.json({ ok: false, error: "Invalid JSON body" }, 400);
+    }
+
+    const parsed = LegacyImportRequestSchema.safeParse(body);
+    if (!parsed.success) {
+      return c.json({ ok: false, error: parsed.error.message }, 400);
+    }
+
+    // Decompress: raw JSON → try base64 → try UTF-16
+    let jsonStr: string;
+    const raw = parsed.data.data;
+    if (raw[0] === "{") {
+      jsonStr = raw;
+    } else {
+      const fromBase64 = LZString.decompressFromBase64(raw);
+      if (fromBase64 && fromBase64[0] === "{") {
+        jsonStr = fromBase64;
+      } else {
+        const fromUTF16 = LZString.decompressFromUTF16(raw);
+        if (fromUTF16 && fromUTF16[0] === "{") {
+          jsonStr = fromUTF16;
+        } else {
+          return c.json({ ok: false, error: "Failed to decompress save data" }, 400);
+        }
+      }
+    }
+
+    let legacyJson: unknown;
+    try {
+      legacyJson = JSON.parse(jsonStr);
+    } catch {
+      return c.json({ ok: false, error: "Failed to parse save data as JSON" }, 400);
+    }
+
+    try {
+      const migrated = migrateLegacySave(legacyJson);
+      const newState = store.loadFromSave(migrated);
       return c.json(newState);
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : String(err);

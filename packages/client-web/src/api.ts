@@ -72,3 +72,21 @@ export async function postReset(
   if (!res.ok) throw new Error(`Failed to reset game: ${res.status}`);
   return res.json() as Promise<GameStateResponse>;
 }
+
+/** POST /api/game/import-legacy */
+export async function postImportLegacy(
+  data: string,
+  slot = "default",
+): Promise<GameStateResponse> {
+  const suffix = slot !== "default" ? `?slot=${slot}` : "";
+  const res = await fetch(`${BASE_URL}/api/game/import-legacy${suffix}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ data }),
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({})) as { error?: string };
+    throw new Error(body.error ?? `Import failed: ${res.status}`);
+  }
+  return res.json() as Promise<GameStateResponse>;
+}

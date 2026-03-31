@@ -35,7 +35,7 @@ Legacy has ~35 gameplay buildings. We have 11.
 | **amphitheatre** | ✅ | — |
 | **lumberMill** | ✅ | — |
 | **smelter** | ✅ | — |
-| **calciner** | ✅ | — |
+| **calciner** | ⚠️ | produces `ironPerTickBase`/`titaniumPerTickBase` ✅; missing consumption side: `mineralsPerTickCon` (-1.5), `oilPerTickCon` (-0.024) not implemented (Phase 1 scope) |
 | **workshop** (building) | ⚠️ | building def not added; `t1CraftRatio`…`t5CraftRatio` now wired in CRAFT action |
 | **observatory** | ✅ | — |
 | **brewery** | ✅ | — |
@@ -78,7 +78,7 @@ Keys that exist in effectCache from implemented defs but are not fully consumed:
 | `priceRatio` | prestige perks | getBuildingPrice | ✅ Fixed 2026-03-30 |
 | `woodJobRatio` | workshop upgrades | VillageManager job production | ✅ Fixed 2026-03-30 |
 | `catnipJobRatio` | workshop upgrades | VillageManager job production | ✅ Fixed 2026-03-30 |
-| `manpowerJobRatio` | workshop upgrades | VillageManager job production | ✅ Fixed 2026-03-30 |
+| `catpowerJobRatio` | workshop upgrades | VillageManager job production | ✅ Fixed 2026-03-30 |
 | `unhappinessRatio` | amphitheatre building | village happiness penalty | ✅ Producer and consumer wired 2026-03-30 |
 | `woodRatio` | lumberMill building | wood per-tick calc via `calcResourcePerTick` | ✅ Producer and consumer wired 2026-03-30 |
 | `scienceRatio` | library, academy, observatory buildings | science per-tick calc | ✅ Producer and consumer wired 2026-03-30 |
@@ -98,7 +98,7 @@ All 56 resources from legacy are declared in `RESOURCE_NAMES`. However, most hav
 | wood | ✅ | ✅ | woodcutter job |
 | minerals | ✅ | ✅ | miner job |
 | science | ✅ | ✅ | scholar job + library/academy |
-| manpower | ✅ | ✅ | hunter job |
+| catpower | ✅ | ✅ | hunter job |
 | faith | ✅ | ✅ | priest job + religion |
 | coal | ✅ | ⚠️ | geologist job produces it; smelter/steamworks (missing) boost it |
 | iron | ✅ | ⚠️ | crafted from minerals; smelter (missing) ratio |
