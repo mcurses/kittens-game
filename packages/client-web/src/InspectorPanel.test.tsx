@@ -188,6 +188,40 @@ describe("InspectorPanel", () => {
     expect(screen.getByText(/~1s/)).toBeTruthy();
   });
 
+  it("shows zigguratUpgrade name, val, and effects", () => {
+    render(
+      <TestWrapper>
+        <ZigguratSetter />
+        <InspectorPanel />
+      </TestWrapper>,
+    );
+    act(() => {
+      screen.getByTestId("set-ziggurat-upgrade").click();
+    });
+    expect(screen.getByText("solarRevolution")).toBeTruthy();
+    expect(screen.getByText(/Ziggurat Upgrade/)).toBeTruthy();
+    expect(screen.getByText(/×2/)).toBeTruthy();
+    expect(screen.getByText("faithPerTickBase")).toBeTruthy();
+    expect(screen.getByText("Cost (next)")).toBeTruthy();
+  });
+
+  it("shows religionUpgrade name, val, and effects", () => {
+    render(
+      <TestWrapper>
+        <ReligionSetter />
+        <InspectorPanel />
+      </TestWrapper>,
+    );
+    act(() => {
+      screen.getByTestId("set-religion-upgrade").click();
+    });
+    expect(screen.getByText("sunAltar")).toBeTruthy();
+    expect(screen.getByText(/Religion Upgrade/)).toBeTruthy();
+    expect(screen.getByText(/×7/)).toBeTruthy();
+    expect(screen.getByText("happiness")).toBeTruthy();
+    expect(screen.getByText("Cost (next)")).toBeTruthy();
+  });
+
   it("hides cost section for purchased upgrades", () => {
     render(
       <TestWrapper>
@@ -204,6 +238,52 @@ describe("InspectorPanel", () => {
     expect(screen.getByText("Workshop Upgrade · Purchased")).toBeTruthy();
   });
 });
+
+function ZigguratSetter(): React.ReactElement {
+  const { setInspected } = useInspector();
+  return (
+    <button
+      type="button"
+      data-testid="set-ziggurat-upgrade"
+      onClick={() =>
+        setInspected({
+          kind: "zigguratUpgrade",
+          name: "solarRevolution",
+          description: "Harness the power of the sun.",
+          val: 2,
+          effects: { faithPerTickBase: 0.05 },
+          prices: [{ name: "unicorns", val: 5000 }],
+          resources: {},
+        })
+      }
+    >
+      set ziggurat
+    </button>
+  );
+}
+
+function ReligionSetter(): React.ReactElement {
+  const { setInspected } = useInspector();
+  return (
+    <button
+      type="button"
+      data-testid="set-religion-upgrade"
+      onClick={() =>
+        setInspected({
+          kind: "religionUpgrade",
+          name: "sunAltar",
+          description: "An altar to the sun god.",
+          val: 7,
+          effects: { happiness: 0.1 },
+          prices: [{ name: "faith", val: 50 }],
+          resources: {},
+        })
+      }
+    >
+      set religion
+    </button>
+  );
+}
 
 function HookSetter(): React.ReactElement {
   const { setInspected } = useInspector();

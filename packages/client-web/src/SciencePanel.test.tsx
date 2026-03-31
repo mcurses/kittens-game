@@ -124,6 +124,15 @@ describe("SciencePanel", () => {
     expect(btn.hasAttribute("disabled")).toBe(false);
   });
 
+  it("shows tech details in inspector on hover", async () => {
+    const state = makeState({ agriculture: { unlocked: true, researched: false } });
+    const userEvent = (await import("@testing-library/user-event")).default;
+    render(<WithInspector><SciencePanel state={state} /></WithInspector>);
+    await userEvent.hover(screen.getByTestId("tech-agriculture"));
+    expect(screen.getByTestId("inspector-panel")).toBeTruthy();
+    expect(screen.getAllByText(/agriculture/).length).toBeGreaterThan(0);
+  });
+
   it("renders multiple unlocked techs", () => {
     const state = makeState({
       agriculture: { unlocked: true, researched: false },
