@@ -474,11 +474,16 @@ Prerequisites: Epics 20, 21, 26
 ---
 
 ## Epic 28: Legacy Save Import
-**Status:** In Progress | **Started:** 2026-03-30
-Stories: 0 / 3 complete
+**Status:** Complete | **Started:** 2026-03-31 | **Finished:** 2026-03-31
+Stories: 3 / 3 complete
 
-- [ ] Story 28-1: Engine — `migrateLegacySave` pure function
-- [ ] Story 28-2: Server — `POST /api/game/import-legacy` endpoint with LZString decompression
-- [ ] Story 28-3: Client UI — Import Save panel (paste or file upload)
+- [x] Story 28-1: Engine — `migrateLegacySave` pure function
+- [x] Story 28-2: Server — `POST /api/game/import-legacy` endpoint with LZString decompression
+- [x] Story 28-3: Client UI — Import Save panel (paste or file upload)
+
+Engine tests: 802 passing | Line coverage: ~99%
+Server tests: 86 passing
+Client-web tests: 257 passing
+Total: 1145 tests across all packages
 
 Prerequisites: Epics 17, 18, 25
