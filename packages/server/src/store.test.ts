@@ -254,7 +254,7 @@ describe("GameStateStore", () => {
     // DAYS_PER_SEASON = 100, TICKS_PER_DAY = 10 -> last day = 99
     store["state"] = {
       ...prevState,
-      calendar: { day: 99.9, season: 0, year: 0 },
+      calendar: { day: 99.9, season: 0, year: 0, festivalDays: 0 },
     };
     const messages: string[] = [];
     const client = { send: (data: string) => messages.push(data) };

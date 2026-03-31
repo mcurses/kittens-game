@@ -44,12 +44,14 @@ export interface CalendarState {
   readonly season: number;
   /** Current in-game year (starts at 0). */
   readonly year: number;
+  /** Remaining festival days. Decrements by 1 per in-game day when > 0. */
+  readonly festivalDays: number;
 }
 
 // ── Factory ───────────────────────────────────────────────────────────────────
 
 export function createInitialCalendar(): CalendarState {
-  return { day: 0, season: 0, year: 0 };
+  return { day: 0, season: 0, year: 0, festivalDays: 0 };
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -77,8 +79,12 @@ export class CalendarManager implements Manager {
     let newSeason = cal.season;
     let newYear = cal.year;
 
+    let newFestivalDays = cal.festivalDays;
+
     // Only process day/season/year events when the integer day changes
     if (Math.floor(newDay) !== prevIntDay) {
+      if (newFestivalDays > 0) newFestivalDays -= 1;
+
       if (newDay >= DAYS_PER_SEASON) {
         newDay = roundToCentiday(newDay - DAYS_PER_SEASON);
         newSeason = cal.season + 1;
@@ -92,7 +98,7 @@ export class CalendarManager implements Manager {
 
     return {
       ...state,
-      calendar: { day: newDay, season: newSeason, year: newYear },
+      calendar: { day: newDay, season: newSeason, year: newYear, festivalDays: newFestivalDays },
     };
   }
 
@@ -123,7 +129,8 @@ export class CalendarManager implements Manager {
     const day = typeof raw.day === "number" ? raw.day : 0;
     const season = typeof raw.season === "number" ? raw.season : 0;
     const year = typeof raw.year === "number" ? raw.year : 0;
-    return { ...state, calendar: { day, season, year } };
+    const festivalDays = typeof raw.festivalDays === "number" ? Math.max(0, raw.festivalDays) : 0;
+    return { ...state, calendar: { day, season, year, festivalDays } };
   }
 
   resetState(state: GameState): GameState {

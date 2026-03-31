@@ -109,7 +109,7 @@ describe("season advancement", () => {
     const mgr = new CalendarManager();
     const s0 = {
       ...createInitialState(),
-      calendar: { day: 99.9, season: 0, year: 0 },
+      calendar: { day: 99.9, season: 0, year: 0, festivalDays: 0 },
     };
     const s1 = mgr.update(s0);
     // 99.9 + 0.1 = 100.0 → season increments, day = 100.0 - 100 = 0.0
@@ -132,7 +132,7 @@ describe("season advancement", () => {
     // Place at last tick of winter
     const s0 = {
       ...createInitialState(),
-      calendar: { day: 99.9, season: 3, year: 0 },
+      calendar: { day: 99.9, season: 3, year: 0, festivalDays: 0 },
     };
     const s1 = mgr.update(s0);
     expect(s1.calendar.season).toBe(0);
@@ -156,35 +156,35 @@ describe("season advancement", () => {
 describe("CalendarManager.updateEffects — season catnip modifier", () => {
   it("Spring (season=0) contributes catnipRatio = 0.5", () => {
     const mgr = new CalendarManager();
-    const state = { ...createInitialState(), calendar: { day: 0, season: 0, year: 0 } };
+    const state = { ...createInitialState(), calendar: { day: 0, season: 0, year: 0, festivalDays: 0 } };
     const effects = mgr.updateEffects(state);
     expect(effects.catnipRatio).toBeCloseTo(0.5);
   });
 
   it("Summer (season=1) contributes catnipRatio = 0.0", () => {
     const mgr = new CalendarManager();
-    const state = { ...createInitialState(), calendar: { day: 0, season: 1, year: 0 } };
+    const state = { ...createInitialState(), calendar: { day: 0, season: 1, year: 0, festivalDays: 0 } };
     const effects = mgr.updateEffects(state);
     expect(effects.catnipRatio).toBeCloseTo(0.0);
   });
 
   it("Autumn (season=2) contributes catnipRatio = 0.0", () => {
     const mgr = new CalendarManager();
-    const state = { ...createInitialState(), calendar: { day: 0, season: 2, year: 0 } };
+    const state = { ...createInitialState(), calendar: { day: 0, season: 2, year: 0, festivalDays: 0 } };
     const effects = mgr.updateEffects(state);
     expect(effects.catnipRatio).toBeCloseTo(0.0);
   });
 
   it("Winter (season=3) contributes catnipRatio = -0.75", () => {
     const mgr = new CalendarManager();
-    const state = { ...createInitialState(), calendar: { day: 0, season: 3, year: 0 } };
+    const state = { ...createInitialState(), calendar: { day: 0, season: 3, year: 0, festivalDays: 0 } };
     const effects = mgr.updateEffects(state);
     expect(effects.catnipRatio).toBeCloseTo(-0.75);
   });
 
   it("out-of-bounds season index falls back to catnipRatio = 0.0", () => {
     const mgr = new CalendarManager();
-    const state = { ...createInitialState(), calendar: { day: 0, season: 99, year: 0 } };
+    const state = { ...createInitialState(), calendar: { day: 0, season: 99, year: 0, festivalDays: 0 } };
     const effects = mgr.updateEffects(state);
     expect(effects.catnipRatio).toBeCloseTo(0.0);
   });
@@ -223,15 +223,15 @@ describe("CalendarManager save/load/reset", () => {
     const mgr = new CalendarManager();
     const state = {
       ...createInitialState(),
-      calendar: { day: 42.5, season: 2, year: 7 },
+      calendar: { day: 42.5, season: 2, year: 7, festivalDays: 0 },
     };
     const saved = mgr.save(state);
-    expect(saved).toEqual({ day: 42.5, season: 2, year: 7 });
+    expect(saved).toEqual({ day: 42.5, season: 2, year: 7, festivalDays: 0 });
   });
 
   it("load restores calendar from save data", () => {
     const mgr = new CalendarManager();
-    const saved = { day: 42.5, season: 2, year: 7 };
+    const saved = { day: 42.5, season: 2, year: 7, festivalDays: 0 };
     const baseState = { ...createInitialState(), calendar: createInitialCalendar() };
     const restored = mgr.load(saved, baseState);
     expect(restored.calendar.day).toBe(42.5);
@@ -251,7 +251,7 @@ describe("CalendarManager save/load/reset", () => {
     const baseState = { ...createInitialState(), calendar: createInitialCalendar() };
     // Pass an object with invalid (non-number) field values
     const restored = mgr.load(
-      { day: "bad", season: null, year: undefined } as unknown as Parameters<typeof mgr.load>[0],
+      { day: "bad", season: null, year: undefined, festivalDays: 0 } as unknown as Parameters<typeof mgr.load>[0],
       baseState,
     );
     expect(restored.calendar.day).toBe(0);
@@ -263,7 +263,7 @@ describe("CalendarManager save/load/reset", () => {
     const mgr = new CalendarManager();
     const state = {
       ...createInitialState(),
-      calendar: { day: 42.5, season: 2, year: 7 },
+      calendar: { day: 42.5, season: 2, year: 7, festivalDays: 0 },
     };
     const reset = mgr.resetState(state);
     expect(reset.calendar).toEqual(createInitialCalendar());

@@ -278,7 +278,7 @@ describe("serialize / deserialize", () => {
   it("calendar is preserved through round-trip", () => {
     const state = {
       ...createInitialState(),
-      calendar: { day: 55.5, season: 3, year: 12 },
+      calendar: { day: 55.5, season: 3, year: 12, festivalDays: 0 },
     };
     const restored = deserialize(serialize(state));
     expect(restored.calendar.day).toBe(55.5);

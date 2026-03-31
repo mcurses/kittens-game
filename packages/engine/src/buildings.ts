@@ -468,6 +468,25 @@ export class BuildingManager implements Manager {
       }
     }
 
+    // ── Temple dynamic happiness (Story 30-01) ────────────────────────────────
+    // Legacy buildings.js temple.calculateEffects(): happiness = 0.4 + 0.1 * sunAltar.on
+    // sunAltar is a religion upgrade; value depends on state, so must be dynamic.
+    const temple = state.buildings.temple;
+    if (temple && temple.on > 0) {
+      const sunAltarOn = state.religion?.religionUpgrades?.sunAltar?.on ?? 0;
+      effects.happiness = (effects.happiness ?? 0) + (0.4 + 0.1 * sunAltarOn) * temple.on;
+    }
+
+    // ── Brewery consumption (Story 30-05) ─────────────────────────────────────
+    // Legacy buildings.js: per active brewery per tick: -1 catnip, -0.1 spice
+    // Both scaled by (1 + breweryConsumptionRatio).
+    const brewery = state.buildings.brewery;
+    if (brewery && brewery.on > 0) {
+      const brewRatio = state.effectCache.breweryConsumptionRatio ?? 0;
+      effects.catnipPerTickCon = (effects.catnipPerTickCon ?? 0) + -1 * brewery.on * (1 + brewRatio);
+      effects.spicePerTickCon = (effects.spicePerTickCon ?? 0) + -0.1 * brewery.on * (1 + brewRatio);
+    }
+
     return effects;
   }
 

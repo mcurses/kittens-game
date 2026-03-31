@@ -33,6 +33,28 @@ export interface VillageState {
   readonly happiness: number;
 }
 
+// ── Luxury resource constants ─────────────────────────────────────────────────
+
+/**
+ * All non-common resource names that contribute to happiness.
+ * Port of legacy village.js updateHappines() luxury loop:
+ * resources where type != "common".
+ * Uncommon: furs, ivory, spice
+ * Rare: unicorns, alicorn, necrocorn, tears, karma
+ * Exotic: relic, void, elderBox, wrappingPaper, blackcoin, bloodstone, tMythril
+ */
+export const LUXURY_RESOURCE_NAMES: ReadonlySet<string> = new Set([
+  "furs", "ivory", "spice",
+  "unicorns", "alicorn", "necrocorn", "tears", "karma",
+  "relic", "void", "elderBox", "wrappingPaper", "blackcoin", "bloodstone", "tMythril",
+]);
+
+/**
+ * Uncommon resources that also receive the consumableLuxuryHappiness bonus.
+ * Port of legacy village.js luxury loop: type == "uncommon".
+ */
+export const UNCOMMON_RESOURCE_NAMES: ReadonlySet<string> = new Set(["furs", "ivory", "spice"]);
+
 // ── Job Definitions ───────────────────────────────────────────────────────────
 
 /**
@@ -158,6 +180,32 @@ export class VillageManager implements Manager {
       happinessPct -= overPop * unhappinessPerKitten * (1 + unhappinessRatio);
     }
     happinessPct += state.effectCache.happiness ?? 0;
+
+    // ── Luxury resource happiness (Story 30-02) ────────────────────────────────
+    // Port of legacy village.js updateHappines() luxury loop:
+    // +happinessPerLuxury for each non-common resource with value > 0.
+    // elderBox and wrappingPaper don't stack (elderBox canceled if wrappingPaper present).
+    // Uncommon resources also get consumableLuxuryHappiness bonus.
+    const happinessPerLuxury = 10 + (state.effectCache.luxuryHappinessBonus ?? 0);
+    const consumableLuxuryHappiness = state.effectCache.consumableLuxuryHappiness ?? 0;
+    for (const name of LUXURY_RESOURCE_NAMES) {
+      const res = state.resources[name];
+      if (!res || res.value <= 0) continue;
+      if (name === "elderBox" && (state.resources.wrappingPaper?.value ?? 0) > 0) continue;
+      happinessPct += happinessPerLuxury;
+      if (UNCOMMON_RESOURCE_NAMES.has(name)) happinessPct += consumableLuxuryHappiness;
+    }
+
+    // ── Festival bonus (Story 30-04) ───────────────────────────────────────────
+    // Port of legacy village.js: +30 * (1 + festivalRatio) when festivalDays > 0.
+    if (state.calendar.festivalDays > 0) {
+      happinessPct += 30 * (1 + (state.effectCache.festivalRatio ?? 0));
+    }
+
+    // ── Karma happiness (Story 30-03) ─────────────────────────────────────────
+    // Port of legacy village.js getHappinessFromKarma(): +1% per karma point.
+    happinessPct += state.resources.karma?.value ?? 0;
+
     if (happinessPct < 25) happinessPct = 25;
     const happiness = happinessPct / 100;
 

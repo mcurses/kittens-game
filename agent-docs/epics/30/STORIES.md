@@ -1,5 +1,9 @@
 # Epic 30 — Happiness Formula Completeness
 
+**Status:** In Progress
+**Started:** 2026-03-31
+**Legacy refs:** legacy/js/village.js (updateHappines, getHappinessFromKarma), legacy/js/buildings.js (temple calculateEffects), legacy/js/resources.js (resource luxury flags)
+
 The happiness formula in `village.ts:updateHappines()` is missing four of six terms from legacy. Because happiness is a multiplier on ALL job production (`production = base × count × happiness × (1 + jobRatio)`), wrong happiness cascades directly to wrong production for every worker-based resource. This epic implements all missing terms.
 
 Legacy reference: `legacy/js/village.js` → `updateHappines()`, `getHappinessFromKarma()`, `calcBonus()`; `legacy/js/buildings.js` → temple `calculateEffects()`

@@ -91,6 +91,7 @@ export interface SerializedGameState {
     day: number;
     season: number;
     year: number;
+    festivalDays?: number;
   };
   science: {
     techs: Record<string, { unlocked: boolean; researched: boolean }>;
@@ -184,6 +185,7 @@ export function serialize(state: GameState): SerializedGameState {
       day: state.calendar.day,
       season: state.calendar.season,
       year: state.calendar.year,
+      festivalDays: state.calendar.festivalDays,
     },
     science: {
       techs: Object.fromEntries(
@@ -370,6 +372,7 @@ export function deserialize(data: SerializedGameState): GameState {
       day: typeof savedCalendar.day === "number" ? savedCalendar.day : 0,
       season: typeof savedCalendar.season === "number" ? savedCalendar.season : 0,
       year: typeof savedCalendar.year === "number" ? savedCalendar.year : 0,
+      festivalDays: typeof savedCalendar.festivalDays === "number" ? Math.max(0, savedCalendar.festivalDays) : 0,
     };
   }
 

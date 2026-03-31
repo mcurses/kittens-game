@@ -659,6 +659,106 @@ describe("Story 27-10: calciner", () => {
   });
 });
 
+// ── Story 30-01: temple dynamic happiness ─────────────────────────────────────
+describe("Story 30-01: temple dynamic happiness", () => {
+  it("1 temple, sunAltar.on=0 → happiness = 0.4", () => {
+    const manager = new BuildingManager();
+    const state = {
+      ...createInitialState(),
+      buildings: { ...createInitialBuildings(), temple: { val: 1, on: 1, unlocked: true } },
+    };
+    const effects = manager.updateEffects(state);
+    expect(effects.happiness).toBeCloseTo(0.4);
+  });
+
+  it("2 temples, sunAltar.on=7 → happiness = 2 * (0.4 + 0.1*7) = 2.2", () => {
+    const manager = new BuildingManager();
+    const state = {
+      ...createInitialState(),
+      buildings: { ...createInitialBuildings(), temple: { val: 2, on: 2, unlocked: true } },
+      religion: {
+        ...createInitialState().religion,
+        religionUpgrades: {
+          ...createInitialState().religion.religionUpgrades,
+          sunAltar: { val: 7, on: 7 },
+        },
+      },
+    };
+    const effects = manager.updateEffects(state);
+    expect(effects.happiness).toBeCloseTo(2.2);
+  });
+
+  it("0 temples → no temple happiness contribution", () => {
+    const manager = new BuildingManager();
+    const state = {
+      ...createInitialState(),
+      buildings: { ...createInitialBuildings(), temple: { val: 0, on: 0, unlocked: false } },
+    };
+    const effects = manager.updateEffects(state);
+    // Only brewery contributes happiness (0 breweries = 0); total should be 0
+    expect(effects.happiness ?? 0).toBe(0);
+  });
+
+  it("temple on=1 but val=0 → no happiness (off buildings)", () => {
+    // on should never exceed val in practice, but defensive test
+    const manager = new BuildingManager();
+    const state = {
+      ...createInitialState(),
+      buildings: { ...createInitialBuildings(), temple: { val: 1, on: 0, unlocked: true } },
+    };
+    const effects = manager.updateEffects(state);
+    expect(effects.happiness ?? 0).toBe(0);
+  });
+});
+
+// ── Story 30-05: brewery consumption ─────────────────────────────────────────
+describe("Story 30-05: brewery consumption", () => {
+  it("1 brewery, no breweryConsumptionRatio → catnipPerTickCon = -1", () => {
+    const manager = new BuildingManager();
+    const state = {
+      ...createInitialState(),
+      buildings: { ...createInitialBuildings(), brewery: { val: 1, on: 1, unlocked: true } },
+    };
+    const effects = manager.updateEffects(state);
+    expect(effects.catnipPerTickCon).toBeCloseTo(-1);
+    expect(effects.spicePerTickCon).toBeCloseTo(-0.1);
+  });
+
+  it("3 breweries → catnipPerTickCon = -3", () => {
+    const manager = new BuildingManager();
+    const state = {
+      ...createInitialState(),
+      buildings: { ...createInitialBuildings(), brewery: { val: 3, on: 3, unlocked: true } },
+    };
+    const effects = manager.updateEffects(state);
+    expect(effects.catnipPerTickCon).toBeCloseTo(-3);
+    expect(effects.spicePerTickCon).toBeCloseTo(-0.3);
+  });
+
+  it("1 brewery, breweryConsumptionRatio=0.5 → catnipPerTickCon = -1.5", () => {
+    const manager = new BuildingManager();
+    const state = {
+      ...createInitialState(),
+      buildings: { ...createInitialBuildings(), brewery: { val: 1, on: 1, unlocked: true } },
+      effectCache: { breweryConsumptionRatio: 0.5 },
+    };
+    const effects = manager.updateEffects(state);
+    expect(effects.catnipPerTickCon).toBeCloseTo(-1.5);
+    expect(effects.spicePerTickCon).toBeCloseTo(-0.15);
+  });
+
+  it("0 breweries on → no consumption", () => {
+    const manager = new BuildingManager();
+    const state = {
+      ...createInitialState(),
+      buildings: { ...createInitialBuildings(), brewery: { val: 2, on: 0, unlocked: true } },
+    };
+    const effects = manager.updateEffects(state);
+    expect(effects.catnipPerTickCon ?? 0).toBe(0);
+    expect(effects.spicePerTickCon ?? 0).toBe(0);
+  });
+});
+
 describe("Story 27-02: contains all new buildings", () => {
   it("contains all new buildings in BUILDING_DEFS", () => {
     const names = BUILDING_DEFS.map((b) => b.name);

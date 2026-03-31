@@ -1,7 +1,10 @@
 import { describe, expect, it } from "vitest";
+import { BuildingManager } from "./buildings.js";
+import { CalendarManager } from "./calendar.js";
 import { createInitialResources } from "./resources.js";
 import { createInitialState } from "./state.js";
-import { JOB_DEFS, VillageManager, applyHunt, createInitialVillage, totalAssignedKittens } from "./village.js";
+import { tick } from "./tick.js";
+import { JOB_DEFS, LUXURY_RESOURCE_NAMES, UNCOMMON_RESOURCE_NAMES, VillageManager, applyHunt, createInitialVillage, totalAssignedKittens } from "./village.js";
 
 describe("JOB_DEFS", () => {
   it("contains all core jobs", () => {
@@ -731,5 +734,270 @@ describe("Story 27-12: catnipDemandWorkerRatioGlobal", () => {
       (baseline.catnipPerTickCon ?? 0) * 0.5,
       5,
     );
+  });
+});
+
+// ── Story 30-02: Luxury resource happiness bonus ───────────────────────────────
+describe("Story 30-02: luxury resource happiness", () => {
+  it("LUXURY_RESOURCE_NAMES contains furs, ivory, spice, unicorns, karma, relic", () => {
+    for (const name of ["furs", "ivory", "spice", "unicorns", "karma", "relic"]) {
+      expect(LUXURY_RESOURCE_NAMES.has(name)).toBe(true);
+    }
+  });
+
+  it("UNCOMMON_RESOURCE_NAMES contains furs, ivory, spice only", () => {
+    expect(UNCOMMON_RESOURCE_NAMES.has("furs")).toBe(true);
+    expect(UNCOMMON_RESOURCE_NAMES.has("ivory")).toBe(true);
+    expect(UNCOMMON_RESOURCE_NAMES.has("spice")).toBe(true);
+    expect(UNCOMMON_RESOURCE_NAMES.has("unicorns")).toBe(false);
+    expect(UNCOMMON_RESOURCE_NAMES.has("karma")).toBe(false);
+  });
+
+  it("1 luxury resource (furs=10) → happiness +10%", () => {
+    const manager = new VillageManager();
+    const base = createInitialState();
+    const state = {
+      ...base,
+      village: { ...base.village, kittens: 5 },
+      resources: { ...base.resources, furs: { value: 10, maxValue: 1000 } },
+    };
+    const next = manager.update(state);
+    // 100 (base) + 10 (1 luxury) = 110 → 1.10
+    expect(next.village.happiness).toBeCloseTo(1.10);
+  });
+
+  it("3 luxury resources (furs, ivory, unicorns) → happiness +30%", () => {
+    const manager = new VillageManager();
+    const base = createInitialState();
+    const state = {
+      ...base,
+      village: { ...base.village, kittens: 5 },
+      resources: {
+        ...base.resources,
+        furs: { value: 1, maxValue: 1000 },
+        ivory: { value: 1, maxValue: 1000 },
+        unicorns: { value: 1, maxValue: 1000 },
+      },
+    };
+    const next = manager.update(state);
+    expect(next.village.happiness).toBeCloseTo(1.30);
+  });
+
+  it("luxury resource with value=0 does NOT add happiness", () => {
+    const manager = new VillageManager();
+    const base = createInitialState();
+    const state = {
+      ...base,
+      village: { ...base.village, kittens: 5 },
+      resources: { ...base.resources, furs: { value: 0, maxValue: 1000 } },
+    };
+    const next = manager.update(state);
+    expect(next.village.happiness).toBeCloseTo(1.0); // no bonus
+  });
+
+  it("uncommon resource (furs) with consumableLuxuryHappiness=5 → +15 happiness", () => {
+    const manager = new VillageManager();
+    const base = createInitialState();
+    const state = {
+      ...base,
+      village: { ...base.village, kittens: 5 },
+      resources: { ...base.resources, furs: { value: 1, maxValue: 1000 } },
+      effectCache: { ...base.effectCache, consumableLuxuryHappiness: 5 },
+    };
+    const next = manager.update(state);
+    // 100 + 10 (luxury base) + 5 (consumable) = 115 → 1.15
+    expect(next.village.happiness).toBeCloseTo(1.15);
+  });
+
+  it("rare resource (unicorns) does NOT get consumableLuxuryHappiness bonus", () => {
+    const manager = new VillageManager();
+    const base = createInitialState();
+    const state = {
+      ...base,
+      village: { ...base.village, kittens: 5 },
+      resources: { ...base.resources, unicorns: { value: 1, maxValue: 1000 } },
+      effectCache: { ...base.effectCache, consumableLuxuryHappiness: 5 },
+    };
+    const next = manager.update(state);
+    // 100 + 10 (luxury base) = 110 → 1.10 (no consumable bonus for rare)
+    expect(next.village.happiness).toBeCloseTo(1.10);
+  });
+
+  it("elderBox + wrappingPaper both present → only wrappingPaper counts", () => {
+    const manager = new VillageManager();
+    const base = createInitialState();
+    const state = {
+      ...base,
+      village: { ...base.village, kittens: 5 },
+      resources: {
+        ...base.resources,
+        elderBox: { value: 5, maxValue: 1000 },
+        wrappingPaper: { value: 3, maxValue: 1000 },
+      },
+    };
+    const next = manager.update(state);
+    // only wrappingPaper counts → +10, elderBox is cancelled → total 110
+    expect(next.village.happiness).toBeCloseTo(1.10);
+  });
+
+  it("elderBox alone (no wrappingPaper) → counts normally", () => {
+    const manager = new VillageManager();
+    const base = createInitialState();
+    const state = {
+      ...base,
+      village: { ...base.village, kittens: 5 },
+      resources: {
+        ...base.resources,
+        elderBox: { value: 5, maxValue: 1000 },
+      },
+    };
+    const next = manager.update(state);
+    expect(next.village.happiness).toBeCloseTo(1.10);
+  });
+});
+
+// ── Story 30-03: Karma happiness bonus ───────────────────────────────────────
+describe("Story 30-03: karma happiness", () => {
+  it("50 karma points → +60% happiness (50 karma + 10 luxury bonus)", () => {
+    const manager = new VillageManager();
+    const base = createInitialState();
+    const state = {
+      ...base,
+      village: { ...base.village, kittens: 5 },
+      resources: { ...base.resources, karma: { value: 50, maxValue: 0 } },
+    };
+    const next = manager.update(state);
+    // karma is a rare (non-common) resource → +10 luxury bonus
+    // karma happiness function → +50
+    // total: 100 + 10 + 50 = 160 → 1.60
+    expect(next.village.happiness).toBeCloseTo(1.60);
+  });
+
+  it("0 karma → no karma bonus", () => {
+    const manager = new VillageManager();
+    const base = createInitialState();
+    const state = {
+      ...base,
+      village: { ...base.village, kittens: 5 },
+    };
+    const next = manager.update(state);
+    expect(next.village.happiness).toBeCloseTo(1.0);
+  });
+});
+
+// ── Story 30-04: Festival happiness bonus ────────────────────────────────────
+describe("Story 30-04: festival happiness", () => {
+  it("festivalDays=10 → +30% happiness bonus", () => {
+    const manager = new VillageManager();
+    const base = createInitialState();
+    const state = {
+      ...base,
+      village: { ...base.village, kittens: 5 },
+      calendar: { ...base.calendar, festivalDays: 10 },
+    };
+    const next = manager.update(state);
+    expect(next.village.happiness).toBeCloseTo(1.30);
+  });
+
+  it("festivalDays=0 → no festival bonus", () => {
+    const manager = new VillageManager();
+    const base = createInitialState();
+    const state = {
+      ...base,
+      village: { ...base.village, kittens: 5 },
+      calendar: { ...base.calendar, festivalDays: 0 },
+    };
+    const next = manager.update(state);
+    expect(next.village.happiness).toBeCloseTo(1.0);
+  });
+
+  it("festivalDays=5, festivalRatio=0.5 → +45% bonus (30 * 1.5)", () => {
+    const manager = new VillageManager();
+    const base = createInitialState();
+    const state = {
+      ...base,
+      village: { ...base.village, kittens: 5 },
+      calendar: { ...base.calendar, festivalDays: 5 },
+      effectCache: { ...base.effectCache, festivalRatio: 0.5 },
+    };
+    const next = manager.update(state);
+    expect(next.village.happiness).toBeCloseTo(1.45);
+  });
+
+  it("CalendarManager decrements festivalDays by 1 per tick", () => {
+    const manager = new CalendarManager();
+    const base = createInitialState();
+    const state = {
+      ...base,
+      calendar: { ...base.calendar, festivalDays: 5, day: 0 },
+    };
+    // Advance enough ticks for 1 day (TICKS_PER_DAY = 10 in calendar.ts)
+    const TICKS_PER_DAY = 10;
+    let s = state;
+    for (let i = 0; i < TICKS_PER_DAY; i++) s = manager.update(s);
+    expect(s.calendar.festivalDays).toBe(4);
+  });
+});
+
+// ── Epic 30: Cross-manager integration ───────────────────────────────────────
+describe("Epic 30: happiness cross-manager integration", () => {
+  it("happiness includes temple, luxury, festival, and karma contributions over multi-tick loop", () => {
+    // Set up: 5 kittens (no overpop penalty), 2 active temples, sunAltar.on=3,
+    // 1 luxury (furs=50), festival active, 10 karma
+    const managers = [new BuildingManager(), new CalendarManager(), new VillageManager()];
+    const base = createInitialState();
+    const state = {
+      ...base,
+      buildings: {
+        ...base.buildings,
+        temple: { val: 2, on: 2, unlocked: true },
+        brewery: { val: 0, on: 0 },
+      },
+      religion: {
+        ...base.religion,
+        religionUpgrades: {
+          ...base.religion.religionUpgrades,
+          sunAltar: { val: 3, on: 3 },
+        },
+      },
+      village: { ...base.village, kittens: 5 },
+      resources: {
+        ...base.resources,
+        furs: { value: 50, maxValue: 1000 },
+        karma: { value: 10, maxValue: 0 },
+      },
+      calendar: { ...base.calendar, festivalDays: 5 },
+    };
+
+    const next = tick(state, managers);
+
+    // Expected happiness:
+    // 100 base
+    // + temple: (0.4 + 0.1*3) * 2 = 1.4 * 2 = 2.8 → effectCache.happiness = 2.8
+    // + furs luxury: +10 (uncommon, but no consumableLuxuryHappiness)
+    // + karma luxury: +10 (rare resource)
+    // + karma happiness: +10 (karmaValue = 10)
+    // + festival: +30
+    // total = 100 + 2.8 + 10 + 10 + 10 + 30 = 162.8 → 1.628
+    expect(next.village.happiness).toBeCloseTo(162.8 / 100, 1);
+    // Also verify festivalDays decremented (CalendarManager ran)
+    expect(next.calendar.festivalDays).toBe(5); // 5 ticks per day, only 1 tick here
+  });
+
+  it("brewery consumption reduces catnip via effectCache", () => {
+    const managers = [new BuildingManager()];
+    const base = createInitialState();
+    const state = {
+      ...base,
+      buildings: {
+        ...base.buildings,
+        brewery: { val: 3, on: 3, unlocked: true },
+      },
+    };
+    const next = tick(state, managers);
+    // 3 breweries on → catnipPerTickCon = -3 * (1 + 0) = -3
+    expect(next.effectCache.catnipPerTickCon).toBeCloseTo(-3);
+    // spicePerTickCon = -0.3
+    expect(next.effectCache.spicePerTickCon).toBeCloseTo(-0.3);
   });
 });

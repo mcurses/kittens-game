@@ -265,7 +265,7 @@ describe("applySoftReset", () => {
     const s = createInitialState();
     const withCalendar = {
       ...s,
-      calendar: { day: 100, season: 3, year: 5 },
+      calendar: { day: 100, season: 3, year: 5, festivalDays: 0 },
     };
     const next = applySoftReset(withCalendar, managers);
     expect(next.calendar.day).toBe(0);
