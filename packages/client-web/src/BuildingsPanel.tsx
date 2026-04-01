@@ -12,6 +12,8 @@ interface BuildingEntry {
   val: number;
   on: number;
   unlocked: boolean;
+  automationEnabled?: boolean;
+  jammed?: boolean;
 }
 
 interface Props {
@@ -40,6 +42,8 @@ function extractBuildings(state: GameStateResponse): BuildingEntry[] {
         val: typeof e.val === "number" ? e.val : 0,
         on: typeof e.on === "number" ? e.on : 0,
         unlocked: typeof e.unlocked === "boolean" ? e.unlocked : false,
+        automationEnabled: typeof e.automationEnabled === "boolean" ? e.automationEnabled : undefined,
+        jammed: typeof e.jammed === "boolean" ? e.jammed : undefined,
       };
     })
     .filter((e): e is BuildingEntry => e !== null && e.unlocked);
@@ -121,6 +125,26 @@ export function BuildingsPanel({ state }: Props): React.ReactElement {
                 )}
 
                 <div className="item-actions">
+                  {b.val > 0 && visibility.buildings[b.name]?.automationVisible && (
+                    <>
+                      <button
+                        type="button"
+                        className="btn btn--sm btn--secondary"
+                        disabled={isPending || b.automationEnabled === true}
+                        onClick={() => mutate({ type: "ENABLE_BUILDING_AUTOMATION", name: b.name })}
+                      >
+                        Auto On
+                      </button>
+                      <button
+                        type="button"
+                        className="btn btn--sm btn--secondary"
+                        disabled={isPending || b.automationEnabled === false}
+                        onClick={() => mutate({ type: "DISABLE_BUILDING_AUTOMATION", name: b.name })}
+                      >
+                        Auto Off
+                      </button>
+                    </>
+                  )}
                   {b.val > 0 && visibility.buildings[b.name]?.toggleVisible && (
                     <>
                       <button

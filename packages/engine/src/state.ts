@@ -79,7 +79,10 @@ export interface SerializedGameState {
   tick: number;
   effectCache: Record<string, number>;
   resources: Record<string, { value: number; maxValue: number; perTick: number }>;
-  buildings: Record<string, { val: number; on: number; unlocked?: boolean }>;
+  buildings: Record<
+    string,
+    { val: number; on: number; unlocked?: boolean; jammed?: boolean; automationEnabled?: boolean }
+  >;
   village: {
     kittens: number;
     kittenProgress: number;
@@ -156,11 +159,18 @@ export function serialize(state: GameState): SerializedGameState {
     };
   }
 
-  const buildings: Record<string, { val: number; on: number; unlocked?: boolean }> = {};
+  const buildings: Record<
+    string,
+    { val: number; on: number; unlocked?: boolean; jammed?: boolean; automationEnabled?: boolean }
+  > = {};
   for (const [name, entry] of Object.entries(state.buildings)) {
-    buildings[name] = entry.unlocked !== undefined
-      ? { val: entry.val, on: entry.on, unlocked: entry.unlocked }
-      : { val: entry.val, on: entry.on };
+    buildings[name] = {
+      val: entry.val,
+      on: entry.on,
+      ...(entry.unlocked !== undefined ? { unlocked: entry.unlocked } : {}),
+      ...(entry.jammed !== undefined ? { jammed: entry.jammed } : {}),
+      ...(entry.automationEnabled !== undefined ? { automationEnabled: entry.automationEnabled } : {}),
+    };
   }
 
   const jobs: Record<string, { value: number }> = {};
@@ -337,12 +347,23 @@ export function deserialize(data: SerializedGameState): GameState {
   }
 
   const savedBuildings = data.buildings ?? {};
-  const buildings: Record<string, { val: number; on: number }> = {
+  const buildings: Record<
+    string,
+    { val: number; on: number; unlocked?: boolean; jammed?: boolean; automationEnabled?: boolean }
+  > = {
     ...createInitialBuildings(),
   };
   for (const [name, entry] of Object.entries(savedBuildings)) {
     if (entry && typeof entry.val === "number" && typeof entry.on === "number") {
-      buildings[name] = { val: entry.val, on: entry.on };
+      buildings[name] = {
+        val: entry.val,
+        on: entry.on,
+        ...(typeof entry.unlocked === "boolean" ? { unlocked: entry.unlocked } : {}),
+        ...(typeof entry.jammed === "boolean" ? { jammed: entry.jammed } : {}),
+        ...(typeof entry.automationEnabled === "boolean"
+          ? { automationEnabled: entry.automationEnabled }
+          : {}),
+      };
     }
   }
 

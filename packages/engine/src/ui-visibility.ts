@@ -29,6 +29,7 @@ export interface UiResourceVisibility {
 
 export interface UiBuildingControlsVisibility {
   readonly toggleVisible: boolean;
+  readonly automationVisible: boolean;
 }
 
 export interface DerivedUiVisibility {
@@ -265,14 +266,23 @@ function getBuildingControlsVisibility(state: SerializableStateLike): Record<str
   const ecology = isTechResearched(state, "ecology");
   const pumpjack = isUpgradeResearched(state, "pumpjack");
   const biofuel = isUpgradeResearched(state, "biofuel");
+  const factoryAutomation = isUpgradeResearched(state, "factoryAutomation");
 
   const result: Record<string, UiBuildingControlsVisibility> = {};
   for (const name of Object.keys(buildings)) {
     let toggleVisible = false;
+    let automationVisible = false;
     switch (name) {
+      case "smelter":
+      case "calciner":
+      case "accelerator":
+      case "mint":
       case "brewery":
+        toggleVisible = true;
+        break;
       case "steamworks":
         toggleVisible = true;
+        automationVisible = factoryAutomation;
         break;
       case "mine":
       case "quarry":
@@ -288,7 +298,7 @@ function getBuildingControlsVisibility(state: SerializableStateLike): Record<str
         toggleVisible = false;
         break;
     }
-    result[name] = { toggleVisible };
+    result[name] = { toggleVisible, automationVisible };
   }
 
   return result;

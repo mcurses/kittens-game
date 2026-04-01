@@ -247,6 +247,25 @@ describe("serialize / deserialize", () => {
     expect(restored.buildings.field?.on).toBe(5);
   });
 
+  it("building automation flags are preserved through round-trip", () => {
+    const state = {
+      ...createInitialState(),
+      buildings: {
+        ...createInitialBuildings(),
+        steamworks: {
+          val: 1,
+          on: 1,
+          unlocked: true,
+          jammed: true,
+          automationEnabled: false,
+        },
+      },
+    };
+    const restored = deserialize(serialize(state));
+    expect(restored.buildings.steamworks?.jammed).toBe(true);
+    expect(restored.buildings.steamworks?.automationEnabled).toBe(false);
+  });
+
   it("deserialize falls back to initial buildings if field is missing", () => {
     const raw = { version: 1, tick: 0 } as ReturnType<typeof serialize>;
     const restored = deserialize(raw);

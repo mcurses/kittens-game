@@ -6,7 +6,7 @@ import { describe, expect, it } from "vitest";
 import { AchievementManager } from "./achievements.js";
 import { applyAction } from "./actions.js";
 import { BuildingManager } from "./buildings.js";
-import { CalendarManager } from "./calendar.js";
+import { CalendarManager, DAYS_PER_SEASON, SEASONS_PER_YEAR, TICKS_PER_DAY } from "./calendar.js";
 import { ChallengeManager } from "./challenges.js";
 import { DiplomacyManager } from "./diplomacy.js";
 import { type Manager } from "./manager.js";
@@ -38,6 +38,14 @@ function createManagers(): readonly Manager[] {
     new TimeManager(),
     new AchievementManager(),
   ];
+}
+
+function tickMany(state: ReturnType<typeof createInitialState>, managers: readonly Manager[], count: number) {
+  let next = state;
+  for (let i = 0; i < count; i++) {
+    next = tick(next, managers);
+  }
+  return next;
 }
 
 describe("Epic 21 — Feature Parity Integration Tests", () => {
@@ -162,5 +170,117 @@ describe("Epic 21 — Feature Parity Integration Tests", () => {
     state = tick(state, managers);
     const next = tick(state, managers);
     expect(next.resources.manuscript?.value ?? 0).toBeCloseTo(0.008);
+  });
+
+  it("steamworks automation crafts yearly batches and jams afterward", () => {
+    const ticksPerYear = TICKS_PER_DAY * DAYS_PER_SEASON * SEASONS_PER_YEAR;
+    let state = resetState(managers);
+    state = {
+      ...state,
+      buildings: {
+        ...state.buildings,
+        steamworks: { val: 1, on: 1, unlocked: true },
+      },
+      workshop: {
+        ...state.workshop,
+        upgrades: {
+          ...state.workshop.upgrades,
+          factoryAutomation: { unlocked: true, researched: true },
+          pneumaticPress: { unlocked: true, researched: true },
+        },
+      },
+      resources: {
+        ...state.resources,
+        wood: { value: 10000, maxValue: 10000 },
+        minerals: { value: 10000, maxValue: 10000 },
+        iron: { value: 10000, maxValue: 10000 },
+        beam: { value: 0, maxValue: 0 },
+        slab: { value: 0, maxValue: 0 },
+        plate: { value: 0, maxValue: 0 },
+      },
+    };
+
+    const next = tickMany(state, managers, ticksPerYear);
+    expect(next.resources.beam?.value ?? 0).toBeGreaterThan(0);
+    expect(next.resources.slab?.value ?? 0).toBeGreaterThan(0);
+    expect(next.resources.plate?.value ?? 0).toBeGreaterThan(0);
+    expect(next.buildings.steamworks?.jammed).toBe(true);
+  });
+
+  it("disabled steamworks automation skips crafting but still jams for the cycle", () => {
+    const ticksPerYear = TICKS_PER_DAY * DAYS_PER_SEASON * SEASONS_PER_YEAR;
+    let state = resetState(managers);
+    state = {
+      ...state,
+      buildings: {
+        ...state.buildings,
+        steamworks: {
+          val: 1,
+          on: 1,
+          unlocked: true,
+          automationEnabled: false,
+        },
+      },
+      workshop: {
+        ...state.workshop,
+        upgrades: {
+          ...state.workshop.upgrades,
+          factoryAutomation: { unlocked: true, researched: true },
+          pneumaticPress: { unlocked: true, researched: true },
+        },
+      },
+      resources: {
+        ...state.resources,
+        wood: { value: 10000, maxValue: 10000 },
+        minerals: { value: 10000, maxValue: 10000 },
+        iron: { value: 10000, maxValue: 10000 },
+        beam: { value: 0, maxValue: 0 },
+        slab: { value: 0, maxValue: 0 },
+        plate: { value: 0, maxValue: 0 },
+      },
+    };
+
+    const next = tickMany(state, managers, ticksPerYear);
+    expect(next.resources.beam?.value ?? 0).toBe(0);
+    expect(next.resources.slab?.value ?? 0).toBe(0);
+    expect(next.resources.plate?.value ?? 0).toBe(0);
+    expect(next.buildings.steamworks?.jammed).toBe(true);
+  });
+
+  it("advanced automation triggers a second steamworks batch in autumn", () => {
+    const ticksPerHalfYear = TICKS_PER_DAY * DAYS_PER_SEASON * 2;
+    let state = resetState(managers);
+    state = {
+      ...state,
+      buildings: {
+        ...state.buildings,
+        steamworks: { val: 1, on: 1, unlocked: true },
+      },
+      workshop: {
+        ...state.workshop,
+        upgrades: {
+          ...state.workshop.upgrades,
+          factoryAutomation: { unlocked: true, researched: true },
+          advancedAutomation: { unlocked: true, researched: true },
+          pneumaticPress: { unlocked: true, researched: true },
+        },
+      },
+      resources: {
+        ...state.resources,
+        wood: { value: 10000, maxValue: 10000 },
+        minerals: { value: 10000, maxValue: 10000 },
+        iron: { value: 10000, maxValue: 10000 },
+        beam: { value: 0, maxValue: 0 },
+        slab: { value: 0, maxValue: 0 },
+        plate: { value: 0, maxValue: 0 },
+      },
+    };
+
+    const next = tickMany(state, managers, ticksPerHalfYear);
+    expect(next.resources.beam?.value ?? 0).toBeGreaterThan(0);
+    expect(next.resources.slab?.value ?? 0).toBeGreaterThan(0);
+    expect(next.resources.plate?.value ?? 0).toBeGreaterThan(0);
+    expect(next.buildings.steamworks?.jammed).toBe(true);
+    expect(next.calendar.season).toBe(2);
   });
 });

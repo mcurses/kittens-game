@@ -85,15 +85,15 @@ Retroactively file and continue the live-save production/control fixes discovere
 **So that** enabling steamworks affects production flow the same way as the original game
 
 ### Acceptance Criteria
-- [ ] Given steamworks automation is enabled and inputs are available, when ticks advance, then beam/slab/plate auto-crafting follows legacy batch rules.
-- [ ] Given a jam or delay condition is hit in legacy, when automation runs, then the rewrite reproduces the same blocked or delayed behavior.
-- [ ] Given automation state changes, when the UI renders, then the control surface matches the engine state instead of a client-only toggle.
+- [x] Given steamworks automation is enabled and inputs are available, when ticks advance, then beam/slab/plate auto-crafting follows legacy batch rules.
+- [x] Given a jam or delay condition is hit in legacy, when automation runs, then the rewrite reproduces the same blocked or delayed behavior.
+- [x] Given automation state changes, when the UI renders, then the control surface matches the engine state instead of a client-only toggle.
 
 ### Legacy Reference
 - `legacy/js/buildings.js:1208-1315`
 - `legacy/js/workshop.js:1685-1828`
 
-### Status: [ ] Tests | [ ] Impl | [ ] Rated
+### Status: [x] Tests | [x] Impl | [ ] Rated
 
 ## Story: 34-06 — Factory automation mode parity
 

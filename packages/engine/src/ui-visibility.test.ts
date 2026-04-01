@@ -105,6 +105,7 @@ describe("deriveUiVisibility", () => {
         buildings: {
           field: { val: 2, on: 2, unlocked: true },
           brewery: { val: 1, on: 1, unlocked: true },
+          smelter: { val: 1, on: 1, unlocked: true },
           mine: { val: 1, on: 1, unlocked: true },
         },
       }),
@@ -120,8 +121,36 @@ describe("deriveUiVisibility", () => {
 
     expect(hidden.buildings.field?.toggleVisible).toBe(false);
     expect(hidden.buildings.brewery?.toggleVisible).toBe(true);
+    expect(hidden.buildings.smelter?.toggleVisible).toBe(true);
     expect(hidden.buildings.mine?.toggleVisible).toBe(false);
     expect(ecologyShown.buildings.mine?.toggleVisible).toBe(true);
+  });
+
+  it("only exposes automation controls for steamworks after factory automation is researched", () => {
+    const locked = deriveUiVisibility(
+      makeState({
+        buildings: {
+          steamworks: { val: 1, on: 1, unlocked: true },
+          smelter: { val: 1, on: 1, unlocked: true },
+        },
+      }),
+    );
+    const unlocked = deriveUiVisibility(
+      makeState({
+        buildings: {
+          steamworks: { val: 1, on: 1, unlocked: true },
+          smelter: { val: 1, on: 1, unlocked: true },
+        },
+        workshop: {
+          upgrades: { factoryAutomation: { unlocked: true, researched: true } },
+          crafts: {},
+        },
+      }),
+    );
+
+    expect(locked.buildings.steamworks?.automationVisible).toBe(false);
+    expect(unlocked.buildings.steamworks?.automationVisible).toBe(true);
+    expect(unlocked.buildings.smelter?.automationVisible).toBe(false);
   });
 
   it("only exposes legacy-default jobs until their unlock techs are researched", () => {

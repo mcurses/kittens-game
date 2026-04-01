@@ -51,21 +51,29 @@ Epic 34 therefore treats these as separate questions:
 
 ### 3. Steamworks and factory remain partial
 
-The first slice corrected dynamic production consumers and some runtime effects, but legacy automation behavior is still missing:
+The first slice corrected dynamic production consumers and some runtime effects. The second slice now adds a real steamworks automation loop with persisted `jammed` / `automationEnabled` building state, annual automation, and the autumn reset/second batch path from `advancedAutomation`.
 
-- steamworks batch auto-crafting
-- jam/delay behavior
+Factory-specific automation behavior is still missing:
+
 - factory automation mode
 - carbon-sequestration mode switching
 - automation state UI
 
-These remain open stories inside this epic and must not be marked complete in `PARITY.md`.
+These remaining factory gaps stay open inside this epic and must not be marked complete in `PARITY.md`.
+
+## Steamworks Automation Notes
+
+- Legacy reset points live in `legacy/js/calendar.js`, not just in the building def. Normal automation resets at new year; `advancedAutomation` also clears jammed state on entry to autumn.
+- The rewrite now stores steamworks-local `jammed` and `automationEnabled` state in serialized building entries instead of dropping them on save/load.
+- Automation controls are now engine-backed actions, not client-only toggles.
+- The current rewrite covers live tick cadence. Offline `daysOffset` catch-up batching is still not modeled as a separate path because the server currently advances the game through real ticks.
 
 ## Key Decisions
 
 - Retroactively file the post-Epic 33 production/control work under Epic 34 instead of pretending it belonged to Epic 33.
 - Treat control visibility as engine-owned selector logic, but derive it from the full legacy control path rather than only explicit building metadata.
 - Keep smelter, steamworks, and factory at `⚠️` in `PARITY.md` until stock-limited runtime scaling and automation behavior are proven by tests.
+- Model steamworks automation off calendar boundaries because legacy jam reset and automation cadence are season/year events, not free-running per-tick production.
 - Record the workflow correction in `agents.md` and ADR-011 so future agents cannot treat undocumented drive-by parity fixes as acceptable.
 
 ## Gotchas & Edge Cases

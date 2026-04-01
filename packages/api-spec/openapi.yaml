@@ -229,6 +229,22 @@ components:
             name:
               type: string
         - type: object
+          required: [type, name]
+          properties:
+            type:
+              type: string
+              enum: [ENABLE_BUILDING_AUTOMATION]
+            name:
+              type: string
+        - type: object
+          required: [type, name]
+          properties:
+            type:
+              type: string
+              enum: [DISABLE_BUILDING_AUTOMATION]
+            name:
+              type: string
+        - type: object
           required: [type, job]
           properties:
             type:

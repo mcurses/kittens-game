@@ -40,7 +40,7 @@ Legacy has 35 gameplay buildings (confirmed via live save audit). We have 20 def
 | **observatory** | ✅ | — |
 | **brewery** | ✅ | — |
 | **mint** | ✅ | — |
-| **steamworks** | ⚠️ | Story 34-03: dynamic `coalRatioGlobal`, `magnetoBoostRatio`, and `manuscriptPerTickProd` now produce real resources. Remaining gaps: factory automation, jam logic, and delayed batch crafting. |
+| **steamworks** | ⚠️ | Story 34-03/34-05: dynamic `coalRatioGlobal`, `magnetoBoostRatio`, `manuscriptPerTickProd`, persisted automation state, yearly automation batching, autumn `advancedAutomation` cadence, jam state, and web controls are now wired. Remaining gaps: offline catch-up `daysOffset` parity and any factory-coupled automation nuances still deferred under Epic 34. |
 | **magneto** | ✅ | `oilPerTick: -0.05`, `energyProduction: 5`, `magnetoRatio: 0.02` — Story 31-04, 2026-03-31 |
 | **tradepost** | ✅ | `fursDemandRatio: -0.04`, `ivoryDemandRatio: -0.04`, `spiceDemandRatio: -0.04`, `tradeRatio: 0.015` — Story 31-05, 2026-03-31 |
 | **harbor** | ✅ | 7 resource storage boosts (catnipMax 2500, woodMax 700, etc.) — Story 31-06, 2026-03-31 |
@@ -239,7 +239,7 @@ Root cause: `legacy-migration.ts:migrateTime()` used `bool(item.unlocked)` which
 | Gap | Detail |
 |-----|--------|
 | **Smelter runtime parity** | Story 34-03 wired base autoproduction/consumption, but legacy still scales output by available wood/minerals per active smelter and has iron-will auto-disable behavior. ❌ Not fully implemented. |
-| **Steamworks automation** | Epic 34 Story 34-05 target. Legacy `factoryAutomation` auto-crafts beam/slab/plate with jam/delay behavior. Rewrite has no equivalent action loop or automation state. ❌ Not implemented. |
+| **Steamworks automation** | Story 34-05 implemented the live tick loop: yearly automation by default, autumn extra batch with `advancedAutomation`, persisted `jammed` / `automationEnabled` state, and engine-backed controls. Remaining gap: legacy offline `daysOffset` batching is not modeled separately. ⚠️ Partial. |
 | **Factory automation mode** | Epic 34 Story 34-06 target. Legacy `carbonSequestration` changes factory automation state, doubles energy use when enabled, and changes pollution behavior. Rewrite only has static craft/energy effects. ❌ Not implemented. |
 
 ---

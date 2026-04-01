@@ -30,6 +30,8 @@ export type GameAction =
   | { readonly type: "BUY_BUILDING"; readonly name: string }
   | { readonly type: "ENABLE_BUILDING"; readonly name: string }
   | { readonly type: "DISABLE_BUILDING"; readonly name: string }
+  | { readonly type: "ENABLE_BUILDING_AUTOMATION"; readonly name: string }
+  | { readonly type: "DISABLE_BUILDING_AUTOMATION"; readonly name: string }
   | { readonly type: "ASSIGN_JOB"; readonly job: string }
   | { readonly type: "UNASSIGN_JOB"; readonly job: string }
   | { readonly type: "RESEARCH"; readonly name: string }
@@ -139,6 +141,24 @@ export function applyAction(
         const b = draft.buildings[action.name];
         if (!b || b.on <= 0) return;
         b.on -= 1;
+      });
+    }
+    case "ENABLE_BUILDING_AUTOMATION": {
+      if (!BUILDING_DEFS.some((b) => b.name === action.name)) return state;
+
+      return produce(state, (draft) => {
+        const b = draft.buildings[action.name];
+        if (!b) return;
+        b.automationEnabled = true;
+      });
+    }
+    case "DISABLE_BUILDING_AUTOMATION": {
+      if (!BUILDING_DEFS.some((b) => b.name === action.name)) return state;
+
+      return produce(state, (draft) => {
+        const b = draft.buildings[action.name];
+        if (!b) return;
+        b.automationEnabled = false;
       });
     }
     case "ASSIGN_JOB": {

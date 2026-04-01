@@ -60,18 +60,22 @@ vi.mock("@kittens/engine", () => ({
     actions: {},
     time: {},
     buildings: {
-      brewery: { toggleVisible: true },
-      steamworks: { toggleVisible: true },
-      mine: { toggleVisible: state.science?.techs?.ecology?.researched === true },
-      field: { toggleVisible: false },
-      hut: { toggleVisible: false },
-      pasture: { toggleVisible: false },
+      brewery: { toggleVisible: true, automationVisible: false },
+      smelter: { toggleVisible: true, automationVisible: false },
+      calciner: { toggleVisible: true, automationVisible: false },
+      accelerator: { toggleVisible: true, automationVisible: false },
+      mint: { toggleVisible: true, automationVisible: false },
+      steamworks: { toggleVisible: true, automationVisible: true },
+      mine: { toggleVisible: state.science?.techs?.ecology?.researched === true, automationVisible: false },
+      field: { toggleVisible: false, automationVisible: false },
+      hut: { toggleVisible: false, automationVisible: false },
+      pasture: { toggleVisible: false, automationVisible: false },
     },
   }),
 }));
 
 function makeState(
-  buildings: Record<string, { val: number; on: number; unlocked?: boolean }>,
+  buildings: Record<string, { val: number; on: number; unlocked?: boolean; automationEnabled?: boolean; jammed?: boolean }>,
   resources?: Record<string, { value: number; maxValue: number }>,
 ) {
   return {
@@ -192,6 +196,26 @@ describe("BuildingsPanel", () => {
     render(<WithInspector><BuildingsPanel state={state} /></WithInspector>);
     fireEvent.click(screen.getByRole("button", { name: /on/i }));
     expect(mockMutate).toHaveBeenCalledWith({ type: "ENABLE_BUILDING", name: "brewery" });
+  });
+
+  it("dispatches DISABLE_BUILDING_AUTOMATION when auto off is clicked", () => {
+    const state = makeState(
+      { steamworks: { val: 1, on: 1, unlocked: true, automationEnabled: true } },
+      { wood: { value: 2000, maxValue: 10000 } },
+    );
+    render(<WithInspector><BuildingsPanel state={state} /></WithInspector>);
+    fireEvent.click(screen.getByRole("button", { name: /auto off/i }));
+    expect(mockMutate).toHaveBeenCalledWith({ type: "DISABLE_BUILDING_AUTOMATION", name: "steamworks" });
+  });
+
+  it("dispatches ENABLE_BUILDING_AUTOMATION when auto on is clicked", () => {
+    const state = makeState(
+      { steamworks: { val: 1, on: 1, unlocked: true, automationEnabled: false } },
+      { wood: { value: 2000, maxValue: 10000 } },
+    );
+    render(<WithInspector><BuildingsPanel state={state} /></WithInspector>);
+    fireEvent.click(screen.getByRole("button", { name: /auto on/i }));
+    expect(mockMutate).toHaveBeenCalledWith({ type: "ENABLE_BUILDING_AUTOMATION", name: "steamworks" });
   });
 
   it("uses the current slot when wiring building actions", () => {

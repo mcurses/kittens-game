@@ -51,6 +51,10 @@ export interface BuildingEntry {
   readonly on: number;
   /** Whether this building has been unlocked (visible to the player). One-way: once true, stays true. */
   readonly unlocked?: boolean;
+  /** Legacy automation jam flag for buildings like steamworks. */
+  readonly jammed?: boolean;
+  /** Whether player-enabled automation is on for buildings that support it. */
+  readonly automationEnabled?: boolean;
 }
 
 /** Flat map of all building states, keyed by building name */
@@ -676,6 +680,135 @@ export function createInitialBuildings(): BuildingState {
   return state;
 }
 
+const STEAMWORKS_AUTOMATION_BASE_RATE = 0.02;
+const STEAMWORKS_AUTOMATION_PRICE_BY_RESOURCE = {
+  wood: 175,
+  minerals: 250,
+  iron: 125,
+} as const;
+
+function getTierOneCraftRatio(effectCache: Record<string, number>): number {
+  return (effectCache.craftRatio ?? 0) + (effectCache.t1CraftRatio ?? 0);
+}
+
+function addCraftOutput(
+  resources: Record<string, { value: number; maxValue: number }>,
+  name: string,
+  crafts: number,
+  effectCache: Record<string, number>,
+): void {
+  if (crafts <= 0) return;
+  const ratio = getTierOneCraftRatio(effectCache);
+  const output = crafts * (1 + ratio);
+  const resource = resources[name] ?? { value: 0, maxValue: 0 };
+  const nextValue = resource.value + output;
+  resources[name] = {
+    ...resource,
+    value: resource.maxValue > 0 ? Math.min(nextValue, resource.maxValue) : nextValue,
+  };
+}
+
+function getSteamworksCraftCount(
+  resource: GameState["resources"][string] | undefined,
+  price: number,
+  automationRate: number,
+): number {
+  if (!resource || resource.maxValue <= 0) return 0;
+  const threshold = resource.maxValue * (1 - STEAMWORKS_AUTOMATION_BASE_RATE);
+  if (resource.value < threshold) return 0;
+  return Math.max(0, Math.floor((Math.min(resource.value, resource.maxValue) * automationRate) / price));
+}
+
+export function applySteamworksAutomation(state: GameState): GameState {
+  const steamworks = state.buildings.steamworks;
+  if (!steamworks) return state;
+
+  const resetSteamworks = { ...steamworks, jammed: false };
+  const buildings = { ...state.buildings, steamworks: resetSteamworks };
+
+  if (steamworks.on < 1 || state.workshop.upgrades.factoryAutomation?.researched !== true) {
+    return { ...state, buildings };
+  }
+
+  const wood = state.resources.wood;
+  const minerals = state.resources.minerals;
+  if ((wood?.maxValue ?? 0) <= 0 || (minerals?.maxValue ?? 0) <= 0) {
+    return { ...state, buildings };
+  }
+
+  const automationRate = Math.min(STEAMWORKS_AUTOMATION_BASE_RATE * (steamworks.on + 1), 0.9);
+  const beamCrafts = getSteamworksCraftCount(
+    wood,
+    STEAMWORKS_AUTOMATION_PRICE_BY_RESOURCE.wood,
+    automationRate,
+  );
+  const slabCrafts = getSteamworksCraftCount(
+    minerals,
+    STEAMWORKS_AUTOMATION_PRICE_BY_RESOURCE.minerals,
+    automationRate,
+  );
+  const plateCrafts = state.workshop.upgrades.pneumaticPress?.researched === true
+    ? getSteamworksCraftCount(
+      state.resources.iron,
+      STEAMWORKS_AUTOMATION_PRICE_BY_RESOURCE.iron,
+      automationRate,
+    )
+    : 0;
+
+  if (beamCrafts === 0 && slabCrafts === 0 && plateCrafts === 0) {
+    return { ...state, buildings };
+  }
+
+  const nextBuildings = {
+    ...buildings,
+    steamworks: {
+      ...resetSteamworks,
+      jammed: true,
+      automationEnabled: steamworks.automationEnabled ?? true,
+    },
+  };
+
+  if (steamworks.automationEnabled === false) {
+    return { ...state, buildings: nextBuildings };
+  }
+
+  const resources: Record<string, { value: number; maxValue: number }> = {
+    ...state.resources,
+    wood: wood ? { ...wood } : { value: 0, maxValue: 0 },
+    minerals: minerals ? { ...minerals } : { value: 0, maxValue: 0 },
+    iron: state.resources.iron ? { ...state.resources.iron } : { value: 0, maxValue: 0 },
+    beam: state.resources.beam ? { ...state.resources.beam } : { value: 0, maxValue: 0 },
+    slab: state.resources.slab ? { ...state.resources.slab } : { value: 0, maxValue: 0 },
+    plate: state.resources.plate ? { ...state.resources.plate } : { value: 0, maxValue: 0 },
+  };
+
+  const woodRes = resources.wood!;
+  const mineralsRes = resources.minerals!;
+  const ironRes = resources.iron!;
+  resources.wood = {
+    value: woodRes.value - beamCrafts * STEAMWORKS_AUTOMATION_PRICE_BY_RESOURCE.wood,
+    maxValue: woodRes.maxValue,
+  };
+  resources.minerals = {
+    value: mineralsRes.value - slabCrafts * STEAMWORKS_AUTOMATION_PRICE_BY_RESOURCE.minerals,
+    maxValue: mineralsRes.maxValue,
+  };
+  resources.iron = {
+    value: ironRes.value - plateCrafts * STEAMWORKS_AUTOMATION_PRICE_BY_RESOURCE.iron,
+    maxValue: ironRes.maxValue,
+  };
+
+  addCraftOutput(resources, "plate", plateCrafts, state.effectCache);
+  addCraftOutput(resources, "slab", slabCrafts, state.effectCache);
+  addCraftOutput(resources, "beam", beamCrafts, state.effectCache);
+
+  return {
+    ...state,
+    buildings: nextBuildings,
+    resources,
+  };
+}
+
 // ── Price calculation ─────────────────────────────────────────────────────────
 
 /**
@@ -876,6 +1009,10 @@ export class BuildingManager implements Manager {
           val: e.val as number,
           on: e.on as number,
           unlocked: typeof e.unlocked === "boolean" ? e.unlocked : false,
+          jammed: typeof e.jammed === "boolean" ? e.jammed : false,
+          ...(typeof e.automationEnabled === "boolean"
+            ? { automationEnabled: e.automationEnabled }
+            : {}),
         };
       }
     }

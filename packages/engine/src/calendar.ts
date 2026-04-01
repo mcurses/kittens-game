@@ -1,4 +1,5 @@
 import type { Serializable } from "@kittens/shared";
+import { applySteamworksAutomation } from "./buildings.js";
 import type { Manager } from "./manager.js";
 import type { GameState } from "./state.js";
 
@@ -96,10 +97,22 @@ export class CalendarManager implements Manager {
       }
     }
 
-    return {
+    let nextState: GameState = {
       ...state,
       calendar: { day: newDay, season: newSeason, year: newYear, festivalDays: newFestivalDays },
     };
+
+    if (Math.floor(newDay) !== prevIntDay) {
+      const enteredAutumn = newSeason === 2 && newSeason !== cal.season;
+      const enteredNewYear = newYear !== cal.year;
+      const advancedAutomation = state.workshop.upgrades.advancedAutomation?.researched === true;
+
+      if (enteredNewYear || (enteredAutumn && advancedAutomation)) {
+        nextState = applySteamworksAutomation(nextState);
+      }
+    }
+
+    return nextState;
   }
 
   /**
