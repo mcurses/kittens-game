@@ -647,3 +647,26 @@ Follow-up:
 Parity gaps noted:
 - Legacy trade shortcuts are dynamic (50% / 20% of max affordable), not fixed ×5/×25 — filed for future epic
 - Story 35-02 mechanization requires engineer-state engine work before UI can be implemented
+
+---
+
+## Epic 37: Building Control Granularity Parity
+**Status:** Not Started | **Planned:** 2026-04-01
+Stories: 0 / 4 complete
+
+- [ ] Story 37-01: Engine-owned building control-mode metadata — distinguish legacy `togglable` (count-adjustable) from `togglableOnOff` (binary) in the derived UI contract
+- [ ] Story 37-02: Building count-adjust action surface — API + engine support for `+1/-1`, `+25/-25`, and `All` semantics for count-adjustable buildings
+- [ ] Story 37-03: Web UI quantity controls for count-adjustable buildings — smelter/calciner/mint/accelerator style controls and `(on/val)` display parity
+- [ ] Story 37-04: Binary toggle parity for on/off-only buildings — keep `On/Off` controls only where legacy uses `togglableOnOff`, and cover mixed-control regression cases
+
+---
+
+## Epic 36: Building Unlock Architecture
+**Status:** In Progress | **Started:** 2026-04-01
+Stories: 0/5 complete
+
+- [ ] Story 36-01: Add `unlockable` to building state and seed defaults
+- [ ] Story 36-02: Wire science.ts to set `unlockable` on research completion
+- [ ] Story 36-03: Update reveal logic to use the two-step check
+- [ ] Story 36-04: Retire duplicated `requiredTech` gates
+- [ ] Story 36-05: Regression tests for representative cases
