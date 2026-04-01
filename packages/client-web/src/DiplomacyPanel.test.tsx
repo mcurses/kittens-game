@@ -90,3 +90,41 @@ describe("DiplomacyPanel", () => {
     expect(mockMutate).toHaveBeenCalledWith({ type: "TRADE", race: "zebras" });
   });
 });
+
+// ── Epic 32 Story 32-05: Trade economics + relationship status ─────────────────
+
+describe("Story 32-05: Trade economics and relationship display", () => {
+  it("shows Friendly for lizards (standing 0.25 > 0)", () => {
+    const state = makeState({ races: { lizards: { unlocked: true, embassyLevel: 0 } } });
+    render(<DiplomacyPanel state={state} />);
+    expect(screen.getByTestId("race-lizards-relation")).toBeTruthy();
+    expect(screen.getByTestId("race-lizards-relation").textContent).toMatch(/friendly/i);
+  });
+
+  it("shows Neutral for nagas (standing 0)", () => {
+    const state = makeState({ races: { nagas: { unlocked: true, embassyLevel: 0 } } });
+    render(<DiplomacyPanel state={state} />);
+    expect(screen.getByTestId("race-nagas-relation").textContent).toMatch(/neutral/i);
+  });
+
+  it("shows Hostile for griffins (standing -0.15 < 0)", () => {
+    const state = makeState({ races: { griffins: { unlocked: true, embassyLevel: 0 } } });
+    render(<DiplomacyPanel state={state} />);
+    expect(screen.getByTestId("race-griffins-relation").textContent).toMatch(/hostile/i);
+  });
+
+  it("shows what resource the race buys", () => {
+    const state = makeState({ races: { lizards: { unlocked: true, embassyLevel: 0 } } });
+    render(<DiplomacyPanel state={state} />);
+    // lizards buys minerals
+    expect(screen.getByTestId("race-lizards-buys").textContent).toMatch(/minerals/i);
+  });
+
+  it("shows what resources the race sells", () => {
+    const state = makeState({ races: { lizards: { unlocked: true, embassyLevel: 0 } } });
+    render(<DiplomacyPanel state={state} />);
+    // lizards sells wood, beam, scaffold
+    const sells = screen.getByTestId("race-lizards-sells");
+    expect(sells.textContent).toMatch(/wood/i);
+  });
+});

@@ -1,10 +1,18 @@
 // DiplomacyPanel — races, embassies, trade
 import type { GameStateResponse } from "@kittens/api-spec";
+import { RACE_DEFS } from "@kittens/engine";
 import React from "react";
+import { useSlot } from "./SlotContext.js";
 import { useGameAction } from "./useGameAction.js";
 import { extractResources } from "./utils.js";
 
 interface RaceEntry { name: string; unlocked: boolean; embassyLevel: number; }
+
+function getRelation(standing: number): string {
+  if (standing < 0) return "Hostile";
+  if (standing > 0) return "Friendly";
+  return "Neutral";
+}
 interface Props { state: GameStateResponse | null | undefined; }
 
 function extractDiplomacy(state: GameStateResponse): RaceEntry[] {
@@ -24,7 +32,8 @@ function extractDiplomacy(state: GameStateResponse): RaceEntry[] {
 }
 
 export function DiplomacyPanel({ state }: Props): React.ReactElement {
-  const { mutate, isPending } = useGameAction();
+  const slot = useSlot();
+  const { mutate, isPending } = useGameAction(slot);
 
   if (!state) {
     return <div className="loading-text" data-testid="diplomacy-panel-loading">Loading…</div>;
@@ -32,6 +41,7 @@ export function DiplomacyPanel({ state }: Props): React.ReactElement {
 
   const races = extractDiplomacy(state);
   const _resources = extractResources(state);
+  void _resources;
 
   return (
     <div data-testid="diplomacy-panel">
@@ -40,26 +50,45 @@ export function DiplomacyPanel({ state }: Props): React.ReactElement {
         <p className="panel-empty">No races encountered yet.</p>
       ) : (
         <ul className="item-list">
-          {races.map((r) => (
-            <li key={r.name} data-testid={`race-${r.name}`} className="item-row">
-              <span className="item-row-name">{r.name}</span>
-              <span className="item-row-cost">Embassy Lv.{r.embassyLevel}</span>
-              <div className="item-row-actions">
-                <button type="button" data-testid={`race-${r.name}-embassy`}
-                  className="btn btn--secondary btn--sm"
-                  disabled={isPending}
-                  onClick={() => mutate({ type: "SEND_EMBASSY", race: r.name })}>
-                  Embassy
-                </button>
-                <button type="button" data-testid={`race-${r.name}-trade`}
-                  className="btn btn--primary btn--sm"
-                  disabled={isPending}
-                  onClick={() => mutate({ type: "TRADE", race: r.name })}>
-                  Trade
-                </button>
-              </div>
-            </li>
-          ))}
+          {races.map((r) => {
+            const def = RACE_DEFS.find((d) => d.name === r.name);
+            const relation = def ? getRelation(def.standing) : "Neutral";
+            return (
+              <li key={r.name} data-testid={`race-${r.name}`} className="item-row race-row">
+                <div className="race-header">
+                  <span className="item-row-name">{r.name}</span>
+                  <span data-testid={`race-${r.name}-relation`} className={`race-relation race-relation--${relation.toLowerCase()}`}>
+                    {relation}
+                  </span>
+                  <span className="item-row-cost">Embassy Lv.{r.embassyLevel}</span>
+                </div>
+                {def && (
+                  <div className="race-economics">
+                    <span data-testid={`race-${r.name}-buys`} className="race-buys">
+                      Buys: {def.buys.map((b) => `${b.name} (${b.val})`).join(", ")}
+                    </span>
+                    <span data-testid={`race-${r.name}-sells`} className="race-sells">
+                      Sells: {def.sells.map((s) => s.name).join(", ")}
+                    </span>
+                  </div>
+                )}
+                <div className="item-row-actions">
+                  <button type="button" data-testid={`race-${r.name}-embassy`}
+                    className="btn btn--secondary btn--sm"
+                    disabled={isPending}
+                    onClick={() => mutate({ type: "SEND_EMBASSY", race: r.name })}>
+                    Embassy
+                  </button>
+                  <button type="button" data-testid={`race-${r.name}-trade`}
+                    className="btn btn--primary btn--sm"
+                    disabled={isPending}
+                    onClick={() => mutate({ type: "TRADE", race: r.name })}>
+                    Trade
+                  </button>
+                </div>
+              </li>
+            );
+          })}
         </ul>
       )}
     </div>
