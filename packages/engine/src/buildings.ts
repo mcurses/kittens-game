@@ -665,6 +665,23 @@ export const BUILDING_DEFS: readonly BuildingDef[] = [
       tMythrilCraftRatio: 0.01,
     },
   },
+  // ── Story: ivoryTemple ────────────────────────────────────────────────────────
+  // Legacy buildings.js lines 2183–2242
+  // Base mode (whispers not researched): converts ivory → minerals
+  // Enhanced mode (whispers researched): also consumes titanium+alicorn, produces tMythril
+  // Dynamic effect scaling deferred — using base-mode static effects.
+  {
+    name: "ivoryTemple",
+    description: "Ivory temple that converts ivory into minerals (and more when whispers researched).",
+    prices: [{ name: "tMythril", val: 1 }, { name: "ivory", val: 100 }],
+    priceRatio: 1.15,
+    unlockRatio: 0.1,
+    effects: {
+      ivoryPerTickCon: -100,
+      mineralsPerTickProd: 1,
+      manpowerMax: 10,
+    },
+  },
 ];
 
 // ── Factory ───────────────────────────────────────────────────────────────────

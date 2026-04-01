@@ -2,7 +2,7 @@
 
 Tracks implementation coverage against legacy Kittens Game. **This is the authoritative source of truth for what is and isn't done.** Update it whenever items are added or wired. Do not mark an epic "complete" without updating this file.
 
-Last updated: 2026-04-01 (Epic 34 Story 34-06 — factory carbon-sequestration mode, pollution switching, persisted automation state, and UI controls wired)
+Last updated: 2026-04-01 (post-Epic-34 deep parity audit — zebra system gaps, ivoryTemple, wrong lizard/shark policy names filed)
 
 ---
 
@@ -57,7 +57,8 @@ Legacy has 35 gameplay buildings (confirmed via live save audit). We have 20 def
 | **factory** | ✅ | Story 34-06: legacy carbon-sequestration mode is wired end-to-end. Factory now defaults into the high-energy / low-pollution path when researched, falls back to capped-pollution mode when disabled, persists automation state, exposes engine-backed UI controls, and applies the `factoryLogistics` `craftRatio` bump. |
 | **quarry** | ✅ | `mineralsRatio: 0.35`, `coalPerTickBase: 0.015` — Story 31-08, 2026-03-31 |
 | **oilWell** | ✅ | `oilPerTickBase: 0.02`, `oilMax: 1500` — Story 31-09, 2026-03-31 |
-| **zebraForge/Outpost/Workshop** | ✅ | `hunterRatio`, `catpowerMax`, `tMythrilCraftRatio` — Story 31-17, 2026-03-31 |
+| **zebraForge/Outpost/Workshop** | ⚠️ | Effects correct but unlock chain broken: legacy requires zebraUpgrade prerequisites (`darkRevolution`→zebraOutpost, `bloodstoneInstitute`→zebraWorkshop, `whispers`→ivoryTemple); our rewrite uses `unlockRatio: 0.01` only. Also missing `zebraPreparations` effect key and `bloodstoneRatio` dynamic effect on zebraWorkshop. |
+| **ivoryTemple** | ⚠️ | Building added 2026-04-01 with base-mode effects (ivoryPerTickCon: -100, mineralsPerTickProd: 1, manpowerMax: 10). Dynamic `whispers`-enhanced mode (double rates + titaniumPerTickCon + alicornPerTickCon + tMythrilPerTick) not yet implemented — deferred as it requires zebraUpgrade subsystem. |
 
 ---
 
@@ -142,6 +143,39 @@ All 61 tech definitions are implemented. Most effects feed into the same `calcRe
 
 ---
 
+## Policy (isRelation) parity — lizard/shark names wrong
+
+Deep audit found 5 of the 6 lizard/shark relation policies use invented names with empty effects. Correct legacy names and effects:
+
+| Our name (wrong) | Legacy name (correct) | Effects |
+|---|---|---|
+| `lizardRelationsGeologists` | `lizardRelationsPriests` | `cultureFromManuscripts: -0.25`, `faithFromManuscripts: 1` |
+| `lizardRelationsEngineeers` | `lizardRelationsDiplomats` | `neutralRaceEmbassyStanding: 0.001` |
+| `sharkRelationsRaiders` | `sharkRelationsScribes` | `parchmentTradeChanceIncrease: 0.25`, `manuscriptTradeChanceIncrease: 0.15`, `ironBuyRatioIncrease: 0.5` |
+| `sharkRelationsScientists` | `sharkRelationsMerchants` | `tradeRatio: 0` (dynamic) |
+| `sharkRelationsSmugglers` | `sharkRelationsBotanists` | `refinePolicyRatio: 0.25`, `woodRatio: 0` (dynamic per ironWill) |
+| `lizardRelationsEcologists` | `lizardRelationsEcologists` ✅ | effects `{}` in our code, should be `cathPollutionRatio: -0.05`, `hydroPlantRatio: 0`; blocks array also wrong |
+
+Status: ❌ Not fixed — all `blocks:` arrays reference the wrong names, creating a broken mutual-exclusion graph.
+
+---
+
+## Zebra upgrade subsystem (zebraUpgrades)
+
+Legacy `workshop.js` has a separate `zebraUpgrades[]` array with 5 entries that gate zebra building unlocks and festival modifiers. Not present in our rewrite at all.
+
+| Upgrade | Prices | Unlocks | Status |
+|---|---|---|---|
+| `darkRevolution` | bloodstone×15, science×100 | zebraOutpost building | ❌ |
+| `darkBrew` | bloodstone×1, parchment×3000, science×100 | festival modifier (doubles zebra arrivals) | ❌ |
+| `whispers` | tMythril×5 | ivoryTemple building | ❌ |
+| `minerologyDepartment` | science×75000, compedium×75 | academy building, unlocks bloodstoneInstitute | ❌ |
+| `bloodstoneInstitute` | science×85000, blueprint×50, bloodstone×25, tMythril×10 | zebraWorkshop building | ❌ |
+
+The zebraUpgrades panel is only shown when `zebraWorkshop.val > 0`. Entries gate via `zebraRequired` (zebra count) instead of standard affordability checks.
+
+---
+
 ## CRAFT action — missing craft ratio
 
 The CRAFT action uses hardcoded 1:1 ratios. Legacy applies `t1CraftRatio` through `t5CraftRatio` to crafting output. Not implemented.
@@ -209,7 +243,7 @@ Root cause: `legacy-migration.ts:migrateTime()` used `bool(item.unlocked)` which
 | **Buy/sell economics** | ✅ Fixed 2026-04-01 (Epic 32-05): Per-race buys (resource + cost) and sells (resource names) displayed inline. |
 | **Relationship status** | ✅ Fixed 2026-04-01 (Epic 32-05): Hostile/Neutral/Friendly badge derived from `race.standing`. |
 | **SEND_EMBASSY/TRADE field name bug** | ✅ Fixed 2026-04-01: was dispatching `race:` field, now correctly dispatches `name:` per engine `GameAction` type. |
-| **Caravan quantity buttons** | ×366 / ×916 / all send buttons ❌ Not implemented. |
+| **Caravan quantity buttons** | Legacy has multi-send shortcuts with dynamic `xN` / percentage labels (`20%`, `50%`, `All`) depending on `usePercentageConsumptionValues`. Rewrite only exposes single `Trade` / `Embassy` buttons in [DiplomacyPanel.tsx](/Users/max/code/kittens-mcp/packages/client-web/src/DiplomacyPanel.tsx#L75). ❌ Not implemented. |
 | **Leviathan energy display** | Energy: 69/140, Time to leave: 47y 257d ❌ Not implemented. |
 
 ---
@@ -220,6 +254,7 @@ Root cause: `legacy-migration.ts:migrateTime()` used `bool(item.unlocked)` which
 |-----|--------|
 | **Mission done state** | ✅ Fixed 2026-04-01 (Epic 32-06): Programs with `val > 0` show "Reached" badge instead of "Launch" button. |
 | **Building on/off display** | ✅ Fixed 2026-04-01 (Epic 32-06): Space buildings now show `on/val` ratio when `on < val`. |
+| **Hide complete missions toggle** | Legacy Space tab exposes `hideResearched` / "hide complete missions"; rewrite renders all unlocked missions/buildings with no equivalent filter in [SpacePanel.tsx](/Users/max/code/kittens-mcp/packages/client-web/src/SpacePanel.tsx#L60). ❌ Not implemented. |
 
 ---
 
@@ -258,12 +293,28 @@ Root cause: `legacy-migration.ts:migrateTime()` used `bool(item.unlocked)` which
 
 ---
 
-## Resource sidebar gaps
+## Workshop / Science UI QoL gaps
+
+| Gap | Detail |
+|-----|--------|
+| **Craft shortcuts are not legacy-faithful** | Legacy craft rows use adaptive shortcuts: `max(1, 1%)`, `max(25, 5%)`, `max(100, 10%)`, plus `All`, and the labels can switch between amount and percentage modes. Rewrite hardcodes `×1/×5/×25/×100` in [WorkshopPanel.tsx](/Users/max/code/kittens-mcp/packages/client-web/src/WorkshopPanel.tsx#L146). ❌ Not implemented. |
+| **Craft bonus/source-material affordance missing** | Legacy craft controls show output after craft bonus in the button title and compute tooltip costs from the actual source-material spend for that shortcut. Rewrite craft buttons expose no dynamic output or source-cost preview. ❌ Not implemented. |
+| **Workshop craft effectiveness header missing** | Legacy Workshop tab shows the current global craft effectiveness percentage at the top of the tab. Rewrite has no equivalent summary in [WorkshopPanel.tsx](/Users/max/code/kittens-mcp/packages/client-web/src/WorkshopPanel.tsx#L75). ❌ Not implemented. |
+| **Hide researched toggle missing in Workshop** | Legacy Workshop tab persists a `hideResearched` checkbox; rewrite always lists researched upgrades and only marks them `Done` in [WorkshopPanel.tsx](/Users/max/code/kittens-mcp/packages/client-web/src/WorkshopPanel.tsx#L126). ❌ Not implemented. |
+| **Hide researched toggle missing in Science** | Legacy Science/Library tab supports `hideResearched`; rewrite always lists researched techs with a `Done` badge in [SciencePanel.tsx](/Users/max/code/kittens-mcp/packages/client-web/src/SciencePanel.tsx#L103). ❌ Not implemented. |
+| **Mechanization craft details missing** | Legacy mechanization UI exposes per-craft engineer allocation, progress percentage, tier bonus, and throughput/countdown. Rewrite Workshop panel has no craft-progress or engineer-management surface. ❌ Not implemented. |
+
+---
+
+## Resource UI QoL gaps
 
 | Gap | Detail |
 |-----|--------|
 | **maxValue = 0 for all resources** | ✅ Fixed 2026-04-01 (Epic 32-08): Resources with `maxValue = 0` no longer show `/0.00`. Storage caps from buildings (barn, warehouse, harbor) now display correctly since all buildings were added in Epic 31. |
 | **catnipDemandRatio display** | ✅ Fixed 2026-04-01 (Epic 32-08): Catnip row shows demand reduction percentage badge when `catnipDemandRatio < 0`. |
+| **Main resource table vs craft table split missing** | Legacy moves dual resources like blueprint into the lower craft table once their recipe unlocks. Rewrite uses one flat resource list in [ResourcePanel.tsx](/Users/max/code/kittens-mcp/packages/client-web/src/ResourcePanel.tsx#L97) and a separate workshop craft list with no migration logic. ❌ Not implemented. |
+| **Resource visibility editing missing** | Legacy allows hiding/showing resource rows from the left panel; rewrite has no equivalent per-resource visibility control. ❌ Not implemented. |
+| **Domain-specific resource tooltips replaced by generic inspector** | The inspector adds useful ETAs, but legacy resource tooltips are still richer in domain-specific contexts like crafting and dual-table placement. Rewrite has not reached parity there. ⚠️ Partial. |
 
 ---
 
@@ -271,7 +322,7 @@ Root cause: `legacy-migration.ts:migrateTime()` used `bool(item.unlocked)` which
 
 | Domain | Implemented | Total legacy | Coverage |
 |--------|-------------|--------------|----------|
-| Buildings (engine defs) | 35 | 35 confirmed | **100%** (spaceport deferred — is a warehouse stage) |
+| Buildings (engine defs) | 36 | 36 (ivoryTemple base mode ⚠️) | **~97%** (ivoryTemple enhanced mode + spaceport deferred) |
 | Resources (declared) | 56 | 56 | 100% |
 | Resources (have production) | ~14 | ~40 have natural production | **35%** |
 | Upgrade defs | 137 | 137 | 100% |
