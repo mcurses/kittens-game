@@ -40,7 +40,7 @@ Legacy has 35 gameplay buildings (confirmed via live save audit). We have 20 def
 | **observatory** | ✅ | — |
 | **brewery** | ✅ | — |
 | **mint** | ✅ | — |
-| **steamworks** | ⚠️ | Dynamic `coalRatioGlobal`, `magnetoBoostRatio`, and `manuscriptPerTickProd` now produced, but factory automation / jam logic / delayed batch crafting are still missing. |
+| **steamworks** | ⚠️ | Dynamic `coalRatioGlobal`, `magnetoBoostRatio`, and `manuscriptPerTickProd` now produce real resources. Remaining gaps: factory automation / jam logic / delayed batch crafting. |
 | **magneto** | ✅ | `oilPerTick: -0.05`, `energyProduction: 5`, `magnetoRatio: 0.02` — Story 31-04, 2026-03-31 |
 | **tradepost** | ✅ | `fursDemandRatio: -0.04`, `ivoryDemandRatio: -0.04`, `spiceDemandRatio: -0.04`, `tradeRatio: 0.015` — Story 31-05, 2026-03-31 |
 | **harbor** | ✅ | 7 resource storage boosts (catnipMax 2500, woodMax 700, etc.) — Story 31-06, 2026-03-31 |
@@ -89,7 +89,7 @@ Keys that exist in effectCache from implemented defs but are not fully consumed:
 | `coalPerTickAutoprod` | smelter | resource per-tick calc via `calcResourcePerTick` | ✅ Consumer added 2026-04-01 |
 | `goldPerTickAutoprod` | smelter | resource per-tick calc via `calcResourcePerTick` | ✅ Consumer added 2026-04-01 |
 | `titaniumPerTickAutoprod` | smelter, calciner, accelerator | resource per-tick calc via `calcResourcePerTick` | ✅ Consumer added 2026-04-01 |
-| `manuscriptPerTickProd` | steamworks | resource per-tick calc | ❌ Produced, but no runtime consumer yet |
+| `manuscriptPerTickProd` | steamworks | resource per-tick calc | ✅ Consumer added 2026-04-01 |
 | `unicornsPerTickBase` | unicornPasture building | unicorn per-tick base production | ✅ Producer and consumer wired 2026-03-30 |
 | `catnipDemandWorkerRatioGlobal` | "assistance" upgrade | per-worker catnip demand reduction in VillageManager | ✅ Consumer wired 2026-03-30 |
 
@@ -227,7 +227,7 @@ Root cause: `legacy-migration.ts:migrateTime()` used `bool(item.unlocked)` which
 
 | Gap | Detail |
 |-----|--------|
-| **Enable/disable controls** | ✅ Fixed 2026-04-01: BuildingsPanel now exposes `On` / `Off` controls backed by engine + API actions. |
+| **Enable/disable controls** | ✅ Fixed 2026-04-01: BuildingsPanel now exposes `On` / `Off` controls only for legacy-toggleable buildings, backed by engine + API actions. |
 | **on/off state not displayed** | ✅ Fixed 2026-04-01 (Epic 32-04): BuildingsPanel now shows `on/val` when `on < val`. |
 | **Internal names in UI** | ✅ Fixed 2026-04-01 (Epic 32-04): `prettifyName()` splits camelCase → Title Case ("Lumber Mill", "Log House"). |
 | **Building rename system missing** | Late-game upgrades rename buildings in legacy (Solar Farm, Hydro Plant, etc.). Rewrite shows prettified base names only. ❌ Not yet implemented. |

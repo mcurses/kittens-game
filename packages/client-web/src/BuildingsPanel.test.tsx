@@ -37,9 +37,37 @@ vi.mock("@kittens/engine", () => ({
       priceRatio: 1.15,
       effects: {},
     },
+    {
+      name: "brewery",
+      prices: [{ name: "wood", val: 1000 }],
+      priceRatio: 1.5,
+      effects: {},
+    },
+    {
+      name: "mine",
+      prices: [{ name: "wood", val: 100 }],
+      priceRatio: 1.15,
+      effects: {},
+    },
   ],
   // getBuildingPrice returns base prices unchanged for test simplicity
   getBuildingPrice: (def: { prices: readonly { name: string; val: number }[] }) => def.prices,
+  deriveUiVisibility: (state: { science?: { techs?: Record<string, { researched?: boolean }> } }) => ({
+    tabs: {},
+    village: {},
+    jobs: {},
+    resources: {},
+    actions: {},
+    time: {},
+    buildings: {
+      brewery: { toggleVisible: true },
+      steamworks: { toggleVisible: true },
+      mine: { toggleVisible: state.science?.techs?.ecology?.researched === true },
+      field: { toggleVisible: false },
+      hut: { toggleVisible: false },
+      pasture: { toggleVisible: false },
+    },
+  }),
 }));
 
 function makeState(
@@ -148,22 +176,22 @@ describe("BuildingsPanel", () => {
 
   it("dispatches DISABLE_BUILDING when off button is clicked", () => {
     const state = makeState(
-      { field: { val: 2, on: 2, unlocked: true } },
-      { catnip: { value: 100, maxValue: 0 } },
+      { brewery: { val: 2, on: 2, unlocked: true } },
+      { wood: { value: 2000, maxValue: 0 } },
     );
     render(<WithInspector><BuildingsPanel state={state} /></WithInspector>);
     fireEvent.click(screen.getByRole("button", { name: /off/i }));
-    expect(mockMutate).toHaveBeenCalledWith({ type: "DISABLE_BUILDING", name: "field" });
+    expect(mockMutate).toHaveBeenCalledWith({ type: "DISABLE_BUILDING", name: "brewery" });
   });
 
   it("dispatches ENABLE_BUILDING when on button is clicked", () => {
     const state = makeState(
-      { field: { val: 3, on: 1, unlocked: true } },
-      { catnip: { value: 100, maxValue: 0 } },
+      { brewery: { val: 3, on: 1, unlocked: true } },
+      { wood: { value: 2000, maxValue: 0 } },
     );
     render(<WithInspector><BuildingsPanel state={state} /></WithInspector>);
     fireEvent.click(screen.getByRole("button", { name: /on/i }));
-    expect(mockMutate).toHaveBeenCalledWith({ type: "ENABLE_BUILDING", name: "field" });
+    expect(mockMutate).toHaveBeenCalledWith({ type: "ENABLE_BUILDING", name: "brewery" });
   });
 
   it("uses the current slot when wiring building actions", () => {
@@ -239,11 +267,37 @@ describe("Story 32-04: Buildings on/off display and labels", () => {
     expect(screen.getByText(/^Hut$/)).toBeTruthy();
   });
 
-  it("shows on/off controls for purchased buildings", () => {
-    const state = makeState({ hut: { val: 5, on: 3, unlocked: true } });
+  it("shows on/off controls only for legacy-toggleable buildings", () => {
+    const state = makeState({
+      brewery: { val: 5, on: 3, unlocked: true },
+      hut: { val: 5, on: 3, unlocked: true },
+    });
     render(<WithInspector><BuildingsPanel state={state} /></WithInspector>);
     expect(screen.getByRole("button", { name: /on/i })).toBeTruthy();
     expect(screen.getByRole("button", { name: /off/i })).toBeTruthy();
+    expect(screen.getAllByRole("button", { name: /buy/i }).length).toBe(2);
+  });
+
+  it("hides on/off controls for non-toggleable buildings", () => {
+    const state = makeState({ hut: { val: 5, on: 3, unlocked: true } });
+    render(<WithInspector><BuildingsPanel state={state} /></WithInspector>);
+    expect(screen.queryByRole("button", { name: /on/i })).toBeNull();
+    expect(screen.queryByRole("button", { name: /off/i })).toBeNull();
+  });
+
+  it("shows ecology-gated controls only after ecology is researched", () => {
+    const hidden = makeState({ mine: { val: 2, on: 2, unlocked: true } });
+    const shown = makeState({ mine: { val: 2, on: 2, unlocked: true } });
+    (shown as Record<string, unknown>).science = {
+      techs: { ecology: { unlocked: true, researched: true } },
+      policies: {},
+    };
+
+    const { rerender } = render(<WithInspector><BuildingsPanel state={hidden} /></WithInspector>);
+    expect(screen.queryByRole("button", { name: /on/i })).toBeNull();
+
+    rerender(<WithInspector><BuildingsPanel state={shown} /></WithInspector>);
+    expect(screen.getByRole("button", { name: /on/i })).toBeTruthy();
   });
 });
 

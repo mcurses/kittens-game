@@ -1,6 +1,6 @@
 // BuildingsPanel — displays unlocked buildings as cards with buy controls
 import type { GameStateResponse } from "@kittens/api-spec";
-import { BUILDING_DEFS, getBuildingPrice } from "@kittens/engine";
+import { BUILDING_DEFS, deriveUiVisibility, getBuildingPrice } from "@kittens/engine";
 import React from "react";
 import { useInspector } from "./InspectorContext.js";
 import { useSlot } from "./SlotContext.js";
@@ -57,6 +57,7 @@ export function BuildingsPanel({ state }: Props): React.ReactElement {
   const buildings = extractBuildings(state);
   const resources = extractResources(state);
   const effectCache = extractEffectCache(state);
+  const visibility = deriveUiVisibility(state);
 
   return (
     <div data-testid="buildings-panel">
@@ -120,7 +121,7 @@ export function BuildingsPanel({ state }: Props): React.ReactElement {
                 )}
 
                 <div className="item-actions">
-                  {b.val > 0 && (
+                  {b.val > 0 && visibility.buildings[b.name]?.toggleVisible && (
                     <>
                       <button
                         type="button"

@@ -104,6 +104,7 @@ export function createInitialResources(): ResourceState {
  * Formula (simplified from legacy `calcResourcePerTick` in game.js:~3174):
  *   perTick = effectCache[name + 'PerTickBase'] * (1 + effectCache[name + 'Ratio'])
  *           + effectCache[name + 'PerTick']
+ *           + effectCache[name + 'PerTickProd']
  *           + effectCache[name + 'PerTickAutoprod']
  *           + effectCache[name + 'PerTickCon']
  *
@@ -115,10 +116,11 @@ export function calcResourcePerTick(effectCache: Record<string, number>, name: s
   const base = effectCache[`${name}PerTickBase`] ?? 0;
   const ratio = effectCache[`${name}Ratio`] ?? 0;
   const direct = effectCache[`${name}PerTick`] ?? 0;
+  const prod = effectCache[`${name}PerTickProd`] ?? 0;
   const autoprod = effectCache[`${name}PerTickAutoprod`] ?? 0;
   const con = effectCache[`${name}PerTickCon`] ?? 0;
 
-  return base * (1 + ratio) + direct + autoprod + con;
+  return base * (1 + ratio) + direct + prod + autoprod + con;
 }
 
 // ── ResourceManager ───────────────────────────────────────────────────────────

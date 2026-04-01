@@ -135,4 +135,32 @@ describe("Epic 21 — Feature Parity Integration Tests", () => {
     const next = applyAction(state, { type: "CRAFT", name: "wood", amount: 1 }, managers);
     expect(next.resources.wood?.value ?? 0).toBeGreaterThan(0);
   });
+
+  it("steamworks printing upgrades produce manuscripts after the effect-cache lag", () => {
+    let state = resetState(managers);
+    state = {
+      ...state,
+      buildings: {
+        ...state.buildings,
+        steamworks: { val: 1, on: 1, unlocked: true },
+      },
+      workshop: {
+        ...state.workshop,
+        upgrades: {
+          ...state.workshop.upgrades,
+          printingPress: { unlocked: true, researched: true },
+          offsetPress: { unlocked: true, researched: true },
+          photolithography: { unlocked: true, researched: true },
+        },
+      },
+      resources: {
+        ...state.resources,
+        manuscript: { value: 0, maxValue: 0 },
+      },
+    };
+
+    state = tick(state, managers);
+    const next = tick(state, managers);
+    expect(next.resources.manuscript?.value ?? 0).toBeCloseTo(0.008);
+  });
 });

@@ -99,6 +99,31 @@ describe("deriveUiVisibility", () => {
     expect(shown.village.festivalVisible).toBe(true);
   });
 
+  it("only exposes building on/off controls for legacy-toggleable buildings", () => {
+    const hidden = deriveUiVisibility(
+      makeState({
+        buildings: {
+          field: { val: 2, on: 2, unlocked: true },
+          brewery: { val: 1, on: 1, unlocked: true },
+          mine: { val: 1, on: 1, unlocked: true },
+        },
+      }),
+    );
+    const ecologyShown = deriveUiVisibility(
+      makeState({
+        buildings: {
+          mine: { val: 1, on: 1, unlocked: true },
+        },
+        science: { techs: { ecology: { unlocked: true, researched: true } }, policies: {} },
+      }),
+    );
+
+    expect(hidden.buildings.field?.toggleVisible).toBe(false);
+    expect(hidden.buildings.brewery?.toggleVisible).toBe(true);
+    expect(hidden.buildings.mine?.toggleVisible).toBe(false);
+    expect(ecologyShown.buildings.mine?.toggleVisible).toBe(true);
+  });
+
   it("only exposes legacy-default jobs until their unlock techs are researched", () => {
     const early = deriveUiVisibility(makeState());
     const afterAgriculture = deriveUiVisibility(

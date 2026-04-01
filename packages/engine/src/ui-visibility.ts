@@ -27,8 +27,13 @@ export interface UiResourceVisibility {
   readonly visible: boolean;
 }
 
+export interface UiBuildingControlsVisibility {
+  readonly toggleVisible: boolean;
+}
+
 export interface DerivedUiVisibility {
   readonly tabs: Record<UiMainTabId, UiTabVisibility>;
+  readonly buildings: Record<string, UiBuildingControlsVisibility>;
   readonly village: {
     readonly jobsVisible: boolean;
     readonly managementVisible: boolean;
@@ -255,6 +260,40 @@ function getResourceVisibility(state: SerializableStateLike): Record<string, UiR
   return result;
 }
 
+function getBuildingControlsVisibility(state: SerializableStateLike): Record<string, UiBuildingControlsVisibility> {
+  const buildings = asRecord(asRecord(state).buildings);
+  const ecology = isTechResearched(state, "ecology");
+  const pumpjack = isUpgradeResearched(state, "pumpjack");
+  const biofuel = isUpgradeResearched(state, "biofuel");
+
+  const result: Record<string, UiBuildingControlsVisibility> = {};
+  for (const name of Object.keys(buildings)) {
+    let toggleVisible = false;
+    switch (name) {
+      case "brewery":
+      case "steamworks":
+        toggleVisible = true;
+        break;
+      case "mine":
+      case "quarry":
+        toggleVisible = ecology;
+        break;
+      case "oilWell":
+        toggleVisible = pumpjack;
+        break;
+      case "biolab":
+        toggleVisible = biofuel;
+        break;
+      default:
+        toggleVisible = false;
+        break;
+    }
+    result[name] = { toggleVisible };
+  }
+
+  return result;
+}
+
 export function deriveUiVisibility(state: SerializableStateLike): DerivedUiVisibility {
   const jobsVisible =
     getBuildingOn(state, "hut") > 0 ||
@@ -317,6 +356,7 @@ export function deriveUiVisibility(state: SerializableStateLike): DerivedUiVisib
 
   return {
     tabs,
+    buildings: getBuildingControlsVisibility(state),
     village: {
       jobsVisible: !isChallengeActive(state, "ironWill") || getVillageKittens(state) > 0,
       managementVisible: getVillageKittens(state) >= 5 || getResourceValue(state, "zebras") > 0 || getRaceUnlocked(state, "zebras"),
