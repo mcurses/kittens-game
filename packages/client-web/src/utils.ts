@@ -3,7 +3,7 @@
 import type { GameStateResponse } from "@kittens/api-spec";
 
 export interface ResourceMap {
-  [key: string]: { value: number; perTick?: number };
+  [key: string]: { value: number; maxValue?: number; perTick?: number };
 }
 
 /**
@@ -24,6 +24,7 @@ export function extractResources(state: GameStateResponse): ResourceMap {
       const entry = v as Record<string, unknown>;
       result[k] = {
         value: entry.value as number,
+        maxValue: typeof entry.maxValue === "number" ? entry.maxValue : undefined,
         perTick: typeof entry.perTick === "number" ? entry.perTick : undefined,
       };
     }
@@ -53,4 +54,22 @@ export function canAfford(
   resources: ResourceMap,
 ): boolean {
   return prices.every((p) => (resources[p.name]?.value ?? 0) >= p.val);
+}
+
+/**
+ * Match legacy resPool.isStorageLimited() for the common priced-action case:
+ * if the player does not already have enough and the price exceeds current cap,
+ * the action is "maxed out" rather than merely unaffordable.
+ */
+export function isStorageLimited(
+  prices: readonly { name: string; val: number }[],
+  resources: ResourceMap,
+): boolean {
+  return prices.some((p) => {
+    const resource = resources[p.name];
+    const value = resource?.value ?? 0;
+    const maxValue = resource?.maxValue ?? 0;
+    if (p.val === Infinity) return true;
+    return maxValue > 0 && p.val > maxValue && p.val > value;
+  });
 }

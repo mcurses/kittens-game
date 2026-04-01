@@ -12,13 +12,15 @@ vi.mock("./useGameAction.js", () => ({
 
 function makeState(
   techs: Record<string, { unlocked: boolean; researched: boolean }>,
-  resources: Record<string, { value: number }> = {},
+  resources: Record<string, { value: number; maxValue?: number }> = {},
 ) {
   return {
     version: 1,
     tick: 0,
     science: { techs, policies: {} },
-    resources: Object.fromEntries(Object.entries(resources).map(([k, v]) => [k, { value: v.value, maxValue: 0, perTick: 0 }])),
+    resources: Object.fromEntries(
+      Object.entries(resources).map(([k, v]) => [k, { value: v.value, maxValue: v.maxValue ?? 0, perTick: 0 }]),
+    ),
   } as unknown as import("@kittens/api-spec").GameStateResponse;
 }
 
@@ -122,6 +124,16 @@ describe("SciencePanel", () => {
     render(<WithInspector><SciencePanel state={state} /></WithInspector>);
     const btn = screen.getByRole("button", { name: /research/i });
     expect(btn.hasAttribute("disabled")).toBe(false);
+  });
+
+  it("shows Maxed state when tech cost exceeds current storage", () => {
+    const state = makeState(
+      { archery: { unlocked: true, researched: false } },
+      { science: { value: 0, maxValue: 200 } },
+    );
+    render(<WithInspector><SciencePanel state={state} /></WithInspector>);
+    expect(screen.getByTestId("tech-archery-maxed").textContent).toMatch(/maxed/i);
+    expect(screen.queryByRole("button", { name: /research/i })).toBeNull();
   });
 
   it("shows tech details in inspector on hover", async () => {

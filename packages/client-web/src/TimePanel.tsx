@@ -4,7 +4,7 @@ import { CFU_DEFS, VSU_DEFS, deriveUiVisibility, getCfuPrice, getVsuPrice } from
 import React from "react";
 import { useSlot } from "./SlotContext.js";
 import { useGameAction } from "./useGameAction.js";
-import { canAfford, extractResources } from "./utils.js";
+import { canAfford, extractResources, isStorageLimited } from "./utils.js";
 
 interface CfuEntry { name: string; val: number; on: number; unlocked: boolean; heat: number; }
 interface VsuEntry { name: string; val: number; on: number; unlocked: boolean; }
@@ -91,16 +91,21 @@ export function TimePanel({ state }: Props): React.ReactElement {
               const def = CFU_DEFS.find((d) => d.name === c.name);
               const prices = def ? getCfuPrice(def, c.val) : [];
               const affordable = canAfford(prices, resources);
+              const storageLimited = isStorageLimited(prices, resources);
               return (
                 <li key={c.name} data-testid={`cfu-${c.name}`} className="item-row">
                   <span className="item-row-name">{c.name}</span>
                   <span className="item-row-cost">×{c.val}</span>
-                  <button type="button" data-testid={`cfu-${c.name}-buy`}
-                    className={`btn btn--sm${affordable ? " btn--primary" : " btn--secondary"}`}
-                    disabled={isPending || !affordable}
-                    onClick={() => mutate({ type: "BUY_CFU", name: c.name })}>
-                    Buy
-                  </button>
+                  {storageLimited ? (
+                    <span className="limit-badge" data-testid={`cfu-${c.name}-maxed`}>Maxed</span>
+                  ) : (
+                    <button type="button" data-testid={`cfu-${c.name}-buy`}
+                      className={`btn btn--sm${affordable ? " btn--primary" : " btn--secondary"}`}
+                      disabled={isPending || !affordable}
+                      onClick={() => mutate({ type: "BUY_CFU", name: c.name })}>
+                      Buy
+                    </button>
+                  )}
                 </li>
               );
             })}
@@ -116,16 +121,21 @@ export function TimePanel({ state }: Props): React.ReactElement {
               const def = VSU_DEFS.find((d) => d.name === v.name);
               const prices = def ? getVsuPrice(def, v.val) : [];
               const affordable = canAfford(prices, resources);
+              const storageLimited = isStorageLimited(prices, resources);
               return (
                 <li key={v.name} data-testid={`vsu-${v.name}`} className="item-row">
                   <span className="item-row-name">{v.name}</span>
                   <span className="item-row-cost">×{v.val}</span>
-                  <button type="button" data-testid={`vsu-${v.name}-buy`}
-                    className={`btn btn--sm${affordable ? " btn--primary" : " btn--secondary"}`}
-                    disabled={isPending || !affordable}
-                    onClick={() => mutate({ type: "BUY_VSU", name: v.name })}>
-                    Buy
-                  </button>
+                  {storageLimited ? (
+                    <span className="limit-badge" data-testid={`vsu-${v.name}-maxed`}>Maxed</span>
+                  ) : (
+                    <button type="button" data-testid={`vsu-${v.name}-buy`}
+                      className={`btn btn--sm${affordable ? " btn--primary" : " btn--secondary"}`}
+                      disabled={isPending || !affordable}
+                      onClick={() => mutate({ type: "BUY_VSU", name: v.name })}>
+                      Buy
+                    </button>
+                  )}
                 </li>
               );
             })}

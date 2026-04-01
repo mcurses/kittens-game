@@ -14,7 +14,7 @@ function makeState(
     planets?: Record<string, { unlocked: boolean; reached: boolean; routeDays: number }>;
     spaceBuildings?: Record<string, { val: number; on: number; unlocked: boolean }>;
   },
-  resources: Record<string, { value: number }> = {},
+  resources: Record<string, { value: number; maxValue?: number }> = {},
 ) {
   return {
     version: 1,
@@ -25,7 +25,7 @@ function makeState(
       spaceBuildings: space.spaceBuildings ?? {},
     },
     resources: Object.fromEntries(
-      Object.entries(resources).map(([k, v]) => [k, { value: v.value, maxValue: 0, perTick: 0 }]),
+      Object.entries(resources).map(([k, v]) => [k, { value: v.value, maxValue: v.maxValue ?? 0, perTick: 0 }]),
     ),
   } as unknown as import("@kittens/api-spec").GameStateResponse;
 }
@@ -116,6 +116,21 @@ describe("SpacePanel", () => {
     const btn = screen.getByTestId("sb-moonBase-buy");
     fireEvent.click(btn);
     expect(mockMutate).toHaveBeenCalledWith({ type: "BUY_SPACE_BUILDING", name: "moonBase" });
+  });
+
+  it("shows Maxed state when mission cost exceeds current storage", () => {
+    const state = makeState(
+      { programs: { moonMission: { val: 0, on: 0, unlocked: true } } },
+      {
+        titanium: { value: 0, maxValue: 4000 },
+        oil: { value: 0, maxValue: 50000 },
+        science: { value: 0, maxValue: 200000 },
+        starchart: { value: 0, maxValue: 1000 },
+      },
+    );
+    render(<SpacePanel state={state} />);
+    expect(screen.getByTestId("program-moonMission-maxed").textContent).toMatch(/maxed/i);
+    expect(screen.queryByTestId("program-moonMission-launch")).toBeNull();
   });
 
   it("renders panel when state has no space key", () => {

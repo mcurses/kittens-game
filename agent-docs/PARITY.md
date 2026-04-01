@@ -17,7 +17,7 @@ Last updated: 2026-04-01 (post-Epic-35 — adaptive craft shortcuts, hide-resear
 
 ## Buildings
 
-Legacy has 35 gameplay buildings (confirmed via live save audit). We have 20 defined in `buildings.ts`.
+Legacy has 35+ gameplay buildings (confirmed via live save audit). We have 39 defined in `buildings.ts` (covers all legacy buildings; ivoryTemple base-mode only, spaceport deferred as staged upgrade).
 
 | Building | Status | Missing effect wiring |
 |----------|--------|-----------------------|
@@ -137,7 +137,7 @@ Legacy starts with non-zero base storage from `buildings.js` `effectsBase`, even
 - `cultureMax: 100`
 - `faithMax: 100`
 
-The rewrite currently initializes every resource with `maxValue: 0` in [resources.ts](/Users/max/code/kittens-mcp/packages/engine/src/resources.ts), and [buildings.ts](/Users/max/code/kittens-mcp/packages/engine/src/buildings.ts) only contributes storage when actual buildings are purchased. That means fresh-game storage is below legacy and some early-game UI/storage behavior is wrong. ❌ Not implemented.
+✅ Fixed in Epic 35 prerequisite: `BuildingManager.updateEffects()` now seeds `effectCache` with `effectsBase` values (catnipMax:5000, woodMax:200, mineralMax:400, cultureMax:100, etc.) before building contributions, matching legacy `buildings.js` `effectsBase`. Fresh-game storage now starts at legacy-faithful baseline values.
 
 ---
 
@@ -323,6 +323,7 @@ Root cause: `legacy-migration.ts:migrateTime()` used `bool(item.unlocked)` which
 | **Workshop craft effectiveness header missing** | ✅ Fixed in Epic 35-01: WorkshopPanel shows `+N% effectiveness` banner when `effectCache.craftRatio > 0`. |
 | **Hide researched toggle missing in Workshop** | ✅ Fixed in Epic 35-03: WorkshopPanel exposes `usePersistentUiState("workshop:hideResearched")` checkbox; researched upgrades filtered when enabled. |
 | **Hide researched toggle missing in Science** | ✅ Fixed in Epic 35-03: SciencePanel exposes `usePersistentUiState("science:hideResearched")` checkbox; researched techs filtered when enabled. |
+| **Maxed-out storage-limited state missing in priced UI** | ✅ Fixed in Epic 35-05: client resource extraction now preserves `maxValue`; shared `isStorageLimited()` logic marks actions as `Maxed` when a price exceeds current storage cap. Wired into Buildings, Science, Workshop, Space, Time, and Religion priced actions. |
 | **Mechanization craft details missing** | Legacy mechanization UI exposes per-craft engineer allocation, progress percentage, tier bonus, and throughput/countdown. Blocked on engineer-state engine work. ❌ Deferred (Story 35-02). |
 
 ---

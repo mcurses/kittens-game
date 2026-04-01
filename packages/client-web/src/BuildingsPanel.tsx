@@ -5,7 +5,7 @@ import React from "react";
 import { useInspector } from "./InspectorContext.js";
 import { useSlot } from "./SlotContext.js";
 import { useGameAction } from "./useGameAction.js";
-import { canAfford, extractEffectCache, extractResources } from "./utils.js";
+import { canAfford, extractEffectCache, extractResources, isStorageLimited } from "./utils.js";
 
 interface BuildingEntry {
   name: string;
@@ -74,6 +74,7 @@ export function BuildingsPanel({ state }: Props): React.ReactElement {
             const def = BUILDING_DEFS.find((d) => d.name === b.name);
             const prices = def ? getBuildingPrice(def, b.val, effectCache) : [];
             const affordable = canAfford(prices, resources);
+            const storageLimited = isStorageLimited(prices, resources);
 
             return (
               <li
@@ -165,14 +166,18 @@ export function BuildingsPanel({ state }: Props): React.ReactElement {
                       </button>
                     </>
                   )}
-                  <button
-                    type="button"
-                    className={`btn btn--sm${affordable ? " btn--primary" : " btn--secondary"}`}
-                    disabled={isPending || !affordable}
-                    onClick={() => mutate({ type: "BUY_BUILDING", name: b.name })}
-                  >
-                    Buy
-                  </button>
+                  {storageLimited ? (
+                    <span className="limit-badge" data-testid={`building-${b.name}-maxed`}>Maxed</span>
+                  ) : (
+                    <button
+                      type="button"
+                      className={`btn btn--sm${affordable ? " btn--primary" : " btn--secondary"}`}
+                      disabled={isPending || !affordable}
+                      onClick={() => mutate({ type: "BUY_BUILDING", name: b.name })}
+                    >
+                      Buy
+                    </button>
+                  )}
                 </div>
               </li>
             );

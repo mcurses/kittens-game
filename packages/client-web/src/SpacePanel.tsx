@@ -5,7 +5,7 @@ import React from "react";
 import { useSlot } from "./SlotContext.js";
 import { useGameAction } from "./useGameAction.js";
 import { usePersistentUiState } from "./usePersistentUiState.js";
-import { canAfford, extractResources } from "./utils.js";
+import { canAfford, extractResources, isStorageLimited } from "./utils.js";
 
 interface ProgramEntry { name: string; val: number; on: number; unlocked: boolean; }
 interface SpaceBuildingEntry { name: string; val: number; on: number; unlocked: boolean; }
@@ -83,11 +83,14 @@ export function SpacePanel({ state }: Props): React.ReactElement {
               const def = PROGRAM_DEFS.find((d) => d.name === p.name);
               const prices = def?.prices ?? [];
               const affordable = canAfford(prices, resources);
+              const storageLimited = isStorageLimited(prices, resources);
               return (
                 <li key={p.name} data-testid={`program-${p.name}`} className="item-row">
                   <span className="item-row-name">{p.name}</span>
                   {p.val > 0 ? (
                     <span className="mission-reached" data-testid={`program-${p.name}-reached`}>Reached</span>
+                  ) : storageLimited ? (
+                    <span className="limit-badge" data-testid={`program-${p.name}-maxed`}>Maxed</span>
                   ) : (
                     <button type="button" data-testid={`program-${p.name}-launch`}
                       className={`btn btn--sm${affordable ? " btn--primary" : " btn--secondary"}`}
@@ -113,6 +116,7 @@ export function SpacePanel({ state }: Props): React.ReactElement {
                 name: p.name, val: p.val * Math.pow(def.priceRatio, b.val),
               })) : [];
               const affordable = canAfford(prices, resources);
+              const storageLimited = isStorageLimited(prices, resources);
               return (
                 <li key={b.name} data-testid={`sb-${b.name}`} className="item-card">
                   <div className="item-card-header">
@@ -121,12 +125,16 @@ export function SpacePanel({ state }: Props): React.ReactElement {
                       {b.on < b.val ? `${b.on}/${b.val}` : b.val}
                     </span>
                   </div>
-                  <button type="button" data-testid={`sb-${b.name}-buy`}
-                    className={`btn btn--sm${affordable ? " btn--primary" : " btn--secondary"}`}
-                    disabled={isPending || !affordable}
-                    onClick={() => mutate({ type: "BUY_SPACE_BUILDING", name: b.name })}>
-                    Build
-                  </button>
+                  {storageLimited ? (
+                    <span className="limit-badge" data-testid={`sb-${b.name}-maxed`}>Maxed</span>
+                  ) : (
+                    <button type="button" data-testid={`sb-${b.name}-buy`}
+                      className={`btn btn--sm${affordable ? " btn--primary" : " btn--secondary"}`}
+                      disabled={isPending || !affordable}
+                      onClick={() => mutate({ type: "BUY_SPACE_BUILDING", name: b.name })}>
+                      Build
+                    </button>
+                  )}
                 </li>
               );
             })}

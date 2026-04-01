@@ -17,7 +17,7 @@ function makeState(
     ru?: Record<string, { val: number; on: number }>;
     tu?: Record<string, { val: number; on: number; unlocked: boolean }>;
   },
-  resources: Record<string, { value: number }> = {},
+  resources: Record<string, { value: number; maxValue?: number }> = {},
 ) {
   return {
     version: 1,
@@ -31,7 +31,7 @@ function makeState(
       tu: religion.tu ?? {},
     },
     resources: Object.fromEntries(
-      Object.entries(resources).map(([k, v]) => [k, { value: v.value, maxValue: 0, perTick: 0 }]),
+      Object.entries(resources).map(([k, v]) => [k, { value: v.value, maxValue: v.maxValue ?? 0, perTick: 0 }]),
     ),
   } as unknown as import("@kittens/api-spec").GameStateResponse;
 }
@@ -118,6 +118,16 @@ describe("ReligionPanel", () => {
     expect(mockMutate).toHaveBeenCalledWith({ type: "BUY_RELIGION_UPGRADE", name: "solarchant" });
   });
 
+  it("shows Maxed state when ziggurat upgrade cost exceeds current storage", () => {
+    const state = makeState(
+      { zu: { unicornTomb: { val: 0, on: 0, unlocked: true } } },
+      { ivory: { value: 0, maxValue: 250 }, tears: { value: 0, maxValue: 1 } },
+    );
+    render(<ReligionPanel state={state} />);
+    expect(screen.getByTestId("zu-unicornTomb-maxed").textContent).toMatch(/maxed/i);
+    expect(screen.queryByTestId("zu-unicornTomb-buy")).toBeNull();
+  });
+
   it("shows transcendence tier", () => {
     const state = makeState({ transcendenceTier: 3 });
     render(<ReligionPanel state={state} />);
@@ -180,7 +190,7 @@ describe("Story 32-01: Religion TU section", () => {
   it("dispatches BUY_TRANSCENDENCE_UPGRADE when TU buy is clicked", () => {
     const state = makeState(
       { tu: { blackObelisk: { val: 1, on: 0, unlocked: true } } },
-      { faith: { value: 100000 } },
+      { relic: { value: 1000, maxValue: 1000 } },
     );
     render(<ReligionPanel state={state} />);
     const btn = screen.getByTestId("tu-blackObelisk-buy");

@@ -13,13 +13,15 @@ vi.mock("./useGameAction.js", () => ({
 function makeState(
   upgrades: Record<string, { unlocked: boolean; researched: boolean }>,
   crafts: Record<string, { unlocked: boolean }> = {},
-  resources: Record<string, { value: number }> = {},
+  resources: Record<string, { value: number; maxValue?: number }> = {},
 ) {
   return {
     version: 1,
     tick: 0,
     workshop: { upgrades, crafts },
-    resources: Object.fromEntries(Object.entries(resources).map(([k, v]) => [k, { value: v.value, maxValue: 0, perTick: 0 }])),
+    resources: Object.fromEntries(
+      Object.entries(resources).map(([k, v]) => [k, { value: v.value, maxValue: v.maxValue ?? 0, perTick: 0 }]),
+    ),
   } as unknown as import("@kittens/api-spec").GameStateResponse;
 }
 
@@ -125,6 +127,17 @@ describe("WorkshopPanel", () => {
     render(<WithInspector><WorkshopPanel state={state} /></WithInspector>);
     const btn = screen.getByRole("button", { name: /purchase/i });
     expect(btn.hasAttribute("disabled")).toBe(false);
+  });
+
+  it("shows Maxed state when upgrade cost exceeds current storage", () => {
+    const state = makeState(
+      { mineralHoes: { unlocked: true, researched: false } },
+      {},
+      { minerals: { value: 0, maxValue: 200 }, science: { value: 0, maxValue: 80 } },
+    );
+    render(<WithInspector><WorkshopPanel state={state} /></WithInspector>);
+    expect(screen.getByTestId("upgrade-mineralHoes-maxed").textContent).toMatch(/maxed/i);
+    expect(screen.queryByRole("button", { name: /purchase/i })).toBeNull();
   });
 
   it("renders unlocked crafts with Craft button", () => {

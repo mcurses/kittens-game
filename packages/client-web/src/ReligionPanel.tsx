@@ -5,7 +5,7 @@ import React from "react";
 import { useInspector } from "./InspectorContext.js";
 import { useSlot } from "./SlotContext.js";
 import { useGameAction } from "./useGameAction.js";
-import { canAfford, extractResources } from "./utils.js";
+import { canAfford, extractResources, isStorageLimited } from "./utils.js";
 
 interface ZuEntry { name: string; val: number; on: number; unlocked: boolean; }
 interface RuEntry { name: string; val: number; on: number; }
@@ -101,6 +101,7 @@ export function ReligionPanel({ state }: Props): React.ReactElement {
               const def = ZIGGURAT_UPGRADE_DEFS.find((d) => d.name === u.name);
               const prices = def?.prices ?? [];
               const affordable = canAfford(prices, resources);
+              const storageLimited = isStorageLimited(prices, resources);
               return (
                 <li key={u.name} data-testid={`zu-${u.name}`} className="item-row"
                   onMouseEnter={() => setInspected({ kind: "zigguratUpgrade", name: u.name,
@@ -114,12 +115,16 @@ export function ReligionPanel({ state }: Props): React.ReactElement {
                   tabIndex={0}>
                   <span className="item-row-name">{u.name}</span>
                   <span className="item-row-cost">×{u.val}</span>
-                  <button type="button" data-testid={`zu-${u.name}-buy`}
-                    className={`btn btn--sm${affordable ? " btn--primary" : " btn--secondary"}`}
-                    disabled={isPending || !affordable}
-                    onClick={() => mutate({ type: "BUY_ZIGGURAT_UPGRADE", name: u.name })}>
-                    Buy
-                  </button>
+                  {storageLimited ? (
+                    <span className="limit-badge" data-testid={`zu-${u.name}-maxed`}>Maxed</span>
+                  ) : (
+                    <button type="button" data-testid={`zu-${u.name}-buy`}
+                      className={`btn btn--sm${affordable ? " btn--primary" : " btn--secondary"}`}
+                      disabled={isPending || !affordable}
+                      onClick={() => mutate({ type: "BUY_ZIGGURAT_UPGRADE", name: u.name })}>
+                      Buy
+                    </button>
+                  )}
                 </li>
               );
             })}
@@ -135,6 +140,7 @@ export function ReligionPanel({ state }: Props): React.ReactElement {
               const def = RELIGION_UPGRADE_DEFS.find((d) => d.name === u.name);
               const prices = def?.prices ?? [];
               const affordable = canAfford(prices, resources);
+              const storageLimited = isStorageLimited(prices, resources);
               const isDone = def?.oneTime === true && u.val >= 1;
               return (
                 <li key={u.name} data-testid={`ru-${u.name}`} className="item-row"
@@ -150,6 +156,8 @@ export function ReligionPanel({ state }: Props): React.ReactElement {
                   <span className="item-row-name">{u.name}</span>
                   {isDone ? (
                     <span className="item-row-done">✓ Done</span>
+                  ) : storageLimited ? (
+                    <span className="limit-badge" data-testid={`ru-${u.name}-maxed`}>Maxed</span>
                   ) : (
                     <>
                       <span className="item-row-cost">×{u.val}</span>
@@ -187,6 +195,8 @@ export function ReligionPanel({ state }: Props): React.ReactElement {
             {tu.map((u) => {
               const def = TRANSCENDENCE_UPGRADE_DEFS.find((d) => d.name === u.name);
               const prices = def?.prices ?? [];
+              const storageLimited = isStorageLimited(prices, resources);
+              const affordable = canAfford(prices, resources);
               return (
                 <li key={u.name} data-testid={`tu-${u.name}`} className="item-row"
                   onMouseEnter={() => setInspected({ kind: "zigguratUpgrade", name: u.name,
@@ -200,12 +210,16 @@ export function ReligionPanel({ state }: Props): React.ReactElement {
                   tabIndex={0}>
                   <span className="item-row-name">{u.name}</span>
                   <span className="item-row-cost">×{u.val}</span>
-                  <button type="button" data-testid={`tu-${u.name}-buy`}
-                    className="btn btn--sm btn--primary"
-                    disabled={isPending}
-                    onClick={() => mutate({ type: "BUY_TRANSCENDENCE_UPGRADE", name: u.name })}>
-                    Buy
-                  </button>
+                  {storageLimited ? (
+                    <span className="limit-badge" data-testid={`tu-${u.name}-maxed`}>Maxed</span>
+                  ) : (
+                    <button type="button" data-testid={`tu-${u.name}-buy`}
+                      className={`btn btn--sm${affordable ? " btn--primary" : " btn--secondary"}`}
+                      disabled={isPending || !affordable}
+                      onClick={() => mutate({ type: "BUY_TRANSCENDENCE_UPGRADE", name: u.name })}>
+                      Buy
+                    </button>
+                  )}
                 </li>
               );
             })}

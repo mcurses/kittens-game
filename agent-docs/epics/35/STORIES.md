@@ -64,3 +64,14 @@ Legacy reference:
 - [x] PARITY.md Trade UI gaps row updated
 
 **Parity gap noted**: Legacy trade shortcuts are dynamic (`tradeHalf = floor(tradeMax / 2)` and `tradeFifth = floor(tradeMax / 5)`) not fixed ×5/×25. The rewrite's fixed shortcuts are functional but not strictly faithful. Filed for a future epic.
+
+## Story 35-05 — Storage-limited maxed-out action state
+
+**Why it exists**: Legacy distinguishes ordinary unaffordability from "you cannot ever afford this with current storage." That state is core game feedback and needs to be visible in the rewrite UI instead of appearing as a generic disabled buy/research button.
+
+**ACs**:
+- [x] Client affordability utilities preserve `maxValue` from serialized resources
+- [x] Client exposes a shared legacy-faithful storage-limit check matching the common `res.maxValue < price` rule
+- [x] Buildings, Science, Workshop, Space, Time, and Religion panels show explicit `Maxed` state for priced actions when cost exceeds current storage
+- [x] Standard buy/research buttons remain available for ordinary unaffordable cases where storage is sufficient but current amount is too low
+- [x] PARITY.md UI QoL notes updated

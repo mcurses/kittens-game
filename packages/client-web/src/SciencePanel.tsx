@@ -6,7 +6,7 @@ import { useInspector } from "./InspectorContext.js";
 import { useSlot } from "./SlotContext.js";
 import { useGameAction } from "./useGameAction.js";
 import { usePersistentUiState } from "./usePersistentUiState.js";
-import { canAfford, extractResources } from "./utils.js";
+import { canAfford, extractResources, isStorageLimited } from "./utils.js";
 
 interface TechEntry {
   name: string;
@@ -76,6 +76,7 @@ export function SciencePanel({ state }: Props): React.ReactElement {
             const def = TECH_DEFS.find((d) => d.name === t.name);
             const prices = def?.prices ?? [];
             const affordable = canAfford(prices, resources);
+            const storageLimited = isStorageLimited(prices, resources);
             const costLabel =
               prices.length > 0
                 ? prices.map((p) => `${p.val} ${p.name}`).join(", ")
@@ -119,6 +120,8 @@ export function SciencePanel({ state }: Props): React.ReactElement {
                 <div className="item-row-actions">
                   {t.researched ? (
                     <span className="done-badge tech-done">✓ Done</span>
+                  ) : storageLimited ? (
+                    <span className="limit-badge" data-testid={`tech-${t.name}-maxed`}>Maxed</span>
                   ) : (
                     <button
                       type="button"

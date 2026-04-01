@@ -624,20 +624,21 @@ Current parity note:
 
 ## Epic 35: UI QoL Parity
 **Status:** Complete | **Started:** 2026-04-01 | **Finished:** 2026-04-01
-Stories: 2 fully complete + 2 partially complete (1 deferred)
+Stories: 4 complete + 1 partial (deferred)
 
 - [x] Story 35-01: Adaptive craft shortcuts — `max(1,1%)`, `max(25,5%)`, `max(100,10%)`, `All` buttons computed from live resources; global craft effectiveness `+N%` banner
 - [ ] Story 35-02: Mechanization craft controls — deferred, requires engineer-assignment engine state not yet implemented
 - [x] Story 35-03: Hide-researched/complete toggles — Science, Workshop, and Space panels each expose persistent localStorage-backed toggles
 - [x] Story 35-04: Trade multi-send shortcuts — ×5 and ×25 buttons added to DiplomacyPanel; TRADE action extended with optional `amount`
+- [x] Story 35-05: Storage-limited maxed-out state — shared client `isStorageLimited()` check added; Buildings, Science, Workshop, Space, Time, and Religion now render explicit `Maxed` state when price exceeds current storage cap
 
 Engine changes:
 - `packages/engine/src/actions.ts`: TRADE action gains optional `amount` field; action handler loops `applyTrade` N times
 - `packages/engine/src/buildings.ts`: `effectsBase` base storage caps (catnipMax:5000, woodMax:200, etc.) added to `BuildingManager.updateEffects()`
 - Fixed 4 test regressions from effectsBase: harbor goldMax baseline, 3 steamworks parity tests requiring full-capacity resources
 
-Client-web tests: 325 passing | Line coverage: 96.5%
-Total: 1376 tests across all packages
+Client-web tests: 334 passing | Line coverage: 96.4%
+Total: 1385 tests across all packages
 
 Parity gaps noted:
 - Legacy trade shortcuts are dynamic (50% / 20% of max affordable), not fixed ×5/×25 — filed for future epic

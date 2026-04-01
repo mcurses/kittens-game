@@ -15,7 +15,7 @@ function makeState(
     cfus?: Record<string, { val: number; on: number; unlocked: boolean; heat: number }>;
     vsus?: Record<string, { val: number; on: number; unlocked: boolean }>;
   },
-  resources: Record<string, { value: number }> = {},
+  resources: Record<string, { value: number; maxValue?: number }> = {},
   workshop: { upgrades?: Record<string, { unlocked?: boolean; researched?: boolean }> } = {},
 ) {
   return {
@@ -29,7 +29,7 @@ function makeState(
       vsus: time.vsus ?? {},
     },
     resources: Object.fromEntries(
-      Object.entries(resources).map(([k, v]) => [k, { value: v.value, maxValue: 0, perTick: 0 }]),
+      Object.entries(resources).map(([k, v]) => [k, { value: v.value, maxValue: v.maxValue ?? 0, perTick: 0 }]),
     ),
     workshop: { upgrades: workshop.upgrades ?? {}, crafts: {} },
   } as unknown as import("@kittens/api-spec").GameStateResponse;
@@ -130,6 +130,16 @@ describe("TimePanel", () => {
     const btn = screen.getByTestId("vsu-usedCryochambers-buy");
     fireEvent.click(btn);
     expect(mockMutate).toHaveBeenCalledWith({ type: "BUY_VSU", name: "usedCryochambers" });
+  });
+
+  it("shows Maxed state when CFU cost exceeds current storage", () => {
+    const state = makeState(
+      { heat: 1, cfus: { blastFurnace: { val: 0, on: 0, unlocked: true, heat: 0 } } },
+      { timeCrystal: { value: 0, maxValue: 10 }, relic: { value: 0, maxValue: 10 } },
+    );
+    render(<TimePanel state={state} />);
+    expect(screen.getByTestId("cfu-blastFurnace-maxed").textContent).toMatch(/maxed/i);
+    expect(screen.queryByTestId("cfu-blastFurnace-buy")).toBeNull();
   });
 
   it("renders panel when state has no time key", () => {

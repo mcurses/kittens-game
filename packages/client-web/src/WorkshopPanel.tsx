@@ -6,7 +6,7 @@ import { useInspector } from "./InspectorContext.js";
 import { useSlot } from "./SlotContext.js";
 import { useGameAction } from "./useGameAction.js";
 import { usePersistentUiState } from "./usePersistentUiState.js";
-import { type ResourceMap, canAfford, extractEffectCache, extractResources } from "./utils.js";
+import { type ResourceMap, canAfford, extractEffectCache, extractResources, isStorageLimited } from "./utils.js";
 
 interface UpgradeEntry {
   name: string;
@@ -119,6 +119,7 @@ export function WorkshopPanel({ state }: Props): React.ReactElement {
             const def = UPGRADE_DEFS.find((d) => d.name === u.name);
             const prices = def?.prices ?? [];
             const affordable = canAfford(prices, resources);
+            const storageLimited = isStorageLimited(prices, resources);
             const costLabel =
               prices.length > 0
                 ? prices.map((p) => `${p.val} ${p.name}`).join(", ")
@@ -162,6 +163,8 @@ export function WorkshopPanel({ state }: Props): React.ReactElement {
                 <div className="item-row-actions">
                   {u.researched ? (
                     <span className="done-badge upgrade-done">✓ Done</span>
+                  ) : storageLimited ? (
+                    <span className="limit-badge" data-testid={`upgrade-${u.name}-maxed`}>Maxed</span>
                   ) : (
                     <button
                       type="button"
