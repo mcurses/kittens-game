@@ -146,6 +146,26 @@ describe("BuildingsPanel", () => {
     expect(mockMutate).toHaveBeenCalledWith({ type: "BUY_BUILDING", name: "field" });
   });
 
+  it("dispatches DISABLE_BUILDING when off button is clicked", () => {
+    const state = makeState(
+      { field: { val: 2, on: 2, unlocked: true } },
+      { catnip: { value: 100, maxValue: 0 } },
+    );
+    render(<WithInspector><BuildingsPanel state={state} /></WithInspector>);
+    fireEvent.click(screen.getByRole("button", { name: /off/i }));
+    expect(mockMutate).toHaveBeenCalledWith({ type: "DISABLE_BUILDING", name: "field" });
+  });
+
+  it("dispatches ENABLE_BUILDING when on button is clicked", () => {
+    const state = makeState(
+      { field: { val: 3, on: 1, unlocked: true } },
+      { catnip: { value: 100, maxValue: 0 } },
+    );
+    render(<WithInspector><BuildingsPanel state={state} /></WithInspector>);
+    fireEvent.click(screen.getByRole("button", { name: /on/i }));
+    expect(mockMutate).toHaveBeenCalledWith({ type: "ENABLE_BUILDING", name: "field" });
+  });
+
   it("uses the current slot when wiring building actions", () => {
     const state = makeState({ field: { val: 0, on: 0, unlocked: true } });
     render(<WithInspector slot="new"><BuildingsPanel state={state} /></WithInspector>);
@@ -217,6 +237,13 @@ describe("Story 32-04: Buildings on/off display and labels", () => {
     render(<WithInspector><BuildingsPanel state={state} /></WithInspector>);
     // "hut" → "Hut" (single word); in a realistic case: "lumberMill" → "Lumber Mill"
     expect(screen.getByText(/^Hut$/)).toBeTruthy();
+  });
+
+  it("shows on/off controls for purchased buildings", () => {
+    const state = makeState({ hut: { val: 5, on: 3, unlocked: true } });
+    render(<WithInspector><BuildingsPanel state={state} /></WithInspector>);
+    expect(screen.getByRole("button", { name: /on/i })).toBeTruthy();
+    expect(screen.getByRole("button", { name: /off/i })).toBeTruthy();
   });
 });
 

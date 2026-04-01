@@ -556,6 +556,65 @@ describe("Story 27-04: smelter", () => {
     const def = BUILDING_DEFS.find((b) => b.name === "smelter");
     expect(def?.effects.ironRatio).toBe(0.5);
   });
+
+  it("1 active smelter → legacy base autoproduction and consumption", () => {
+    const manager = new BuildingManager();
+    const state = {
+      ...createInitialState(),
+      buildings: {
+        ...createInitialBuildings(),
+        smelter: { val: 1, on: 1, unlocked: true },
+      },
+    };
+    const effects = manager.updateEffects(state);
+    expect(effects.ironPerTickAutoprod).toBeCloseTo(0.02);
+    expect(effects.woodPerTickCon).toBeCloseTo(-0.05);
+    expect(effects.mineralsPerTickCon).toBeCloseTo(-0.1);
+  });
+
+  it("smelterRatio upgrade scales iron and coal autoproduction", () => {
+    const manager = new BuildingManager();
+    const state = {
+      ...createInitialState(),
+      buildings: {
+        ...createInitialBuildings(),
+        smelter: { val: 1, on: 1, unlocked: true },
+      },
+      effectCache: { smelterRatio: 0.95 },
+      workshop: {
+        ...createInitialState().workshop,
+        upgrades: {
+          ...createInitialState().workshop.upgrades,
+          coalFurnace: { unlocked: true, researched: true },
+        },
+      },
+    };
+    const effects = manager.updateEffects(state);
+    expect(effects.ironPerTickAutoprod).toBeCloseTo(0.039);
+    expect(effects.coalPerTickAutoprod).toBeCloseTo(0.00975);
+  });
+
+  it("goldOre and nuclearSmelters unlock gold and titanium autoproduction", () => {
+    const manager = new BuildingManager();
+    const state = {
+      ...createInitialState(),
+      buildings: {
+        ...createInitialBuildings(),
+        smelter: { val: 2, on: 2, unlocked: true },
+      },
+      workshop: {
+        ...createInitialState().workshop,
+        upgrades: {
+          ...createInitialState().workshop.upgrades,
+          goldOre: { unlocked: true, researched: true },
+          nuclearSmelters: { unlocked: true, researched: true },
+        },
+      },
+    };
+    const effects = manager.updateEffects(state);
+    expect(effects.goldPerTickAutoprod).toBeCloseTo(0.002);
+    expect(effects.titaniumPerTickAutoprod).toBeCloseTo(0.003);
+  });
 });
 
 describe("Story 27-05: observatory", () => {
@@ -885,6 +944,31 @@ describe("Story 31-03: steamworks", () => {
     expect(effects.energyProduction).toBeCloseTo(1);
     expect(effects.coalRatioGlobal).toBeCloseTo(-0.8);
     expect(effects.magnetoBoostRatio).toBeCloseTo(0.15);
+  });
+
+  it("coalRatioGlobalReduction and printing upgrades feed dynamic steamworks effects", () => {
+    const manager = new BuildingManager();
+    const state = {
+      ...createInitialState(),
+      buildings: { ...createInitialBuildings(), steamworks: { val: 1, on: 1, unlocked: true } },
+      effectCache: {
+        coalRatioGlobalReduction: 0.4,
+        magnetoBoostBonusPolicy: 0.05,
+      },
+      workshop: {
+        ...createInitialState().workshop,
+        upgrades: {
+          ...createInitialState().workshop.upgrades,
+          printingPress: { unlocked: true, researched: true },
+          offsetPress: { unlocked: true, researched: true },
+          photolithography: { unlocked: true, researched: true },
+        },
+      },
+    };
+    const effects = manager.updateEffects(state);
+    expect(effects.coalRatioGlobal).toBeCloseTo(-0.4);
+    expect(effects.magnetoBoostRatio).toBeCloseTo(0.2);
+    expect(effects.manuscriptPerTickProd).toBeCloseTo(0.008);
   });
 });
 

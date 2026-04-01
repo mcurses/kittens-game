@@ -28,6 +28,8 @@ export type GameAction =
   | { readonly type: "TICK" }
   | { readonly type: "GATHER_CATNIP" }
   | { readonly type: "BUY_BUILDING"; readonly name: string }
+  | { readonly type: "ENABLE_BUILDING"; readonly name: string }
+  | { readonly type: "DISABLE_BUILDING"; readonly name: string }
   | { readonly type: "ASSIGN_JOB"; readonly job: string }
   | { readonly type: "UNASSIGN_JOB"; readonly job: string }
   | { readonly type: "RESEARCH"; readonly name: string }
@@ -113,6 +115,30 @@ export function applyAction(
         b.val += 1;
         b.on += 1;
         draft.buildings[action.name] = b;
+      });
+    }
+    case "ENABLE_BUILDING": {
+      if (!BUILDING_DEFS.some((b) => b.name === action.name)) return state;
+
+      const building = state.buildings[action.name];
+      if (!building || building.on >= building.val) return state;
+
+      return produce(state, (draft) => {
+        const b = draft.buildings[action.name];
+        if (!b || b.on >= b.val) return;
+        b.on += 1;
+      });
+    }
+    case "DISABLE_BUILDING": {
+      if (!BUILDING_DEFS.some((b) => b.name === action.name)) return state;
+
+      const building = state.buildings[action.name];
+      if (!building || building.on <= 0) return state;
+
+      return produce(state, (draft) => {
+        const b = draft.buildings[action.name];
+        if (!b || b.on <= 0) return;
+        b.on -= 1;
       });
     }
     case "ASSIGN_JOB": {

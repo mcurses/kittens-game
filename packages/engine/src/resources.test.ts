@@ -76,6 +76,11 @@ describe("calcResourcePerTick", () => {
     expect(calcResourcePerTick(cache, "catnip")).toBe(0.5);
   });
 
+  it("adds PerTickAutoprod directly", () => {
+    const cache = { ironPerTickAutoprod: 0.02 };
+    expect(calcResourcePerTick(cache, "iron")).toBe(0.02);
+  });
+
   it("adds PerTickCon (consumption, negative value) without ratio scaling", () => {
     const cache = { catnipPerTickBase: 1.0, catnipPerTickCon: -0.85 };
     expect(calcResourcePerTick(cache, "catnip")).toBeCloseTo(0.15);
@@ -86,10 +91,11 @@ describe("calcResourcePerTick", () => {
       catnipPerTickBase: 1.0,
       catnipRatio: 0.5,
       catnipPerTick: 0.1,
+      catnipPerTickAutoprod: 0.05,
       catnipPerTickCon: -0.2,
     };
-    // 1.0 * 1.5 + 0.1 - 0.2 = 1.5 + 0.1 - 0.2 = 1.4
-    expect(calcResourcePerTick(cache, "catnip")).toBeCloseTo(1.4);
+    // 1.0 * 1.5 + 0.1 + 0.05 - 0.2 = 1.45
+    expect(calcResourcePerTick(cache, "catnip")).toBeCloseTo(1.45);
   });
 
   it("works for non-catnip resources", () => {

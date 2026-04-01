@@ -394,6 +394,64 @@ describe("applyAction BUY_BUILDING", () => {
   });
 });
 
+describe("applyAction ENABLE_BUILDING / DISABLE_BUILDING", () => {
+  it("enables one inactive building when capacity exists", () => {
+    const state = {
+      ...createInitialState(),
+      buildings: {
+        ...createInitialBuildings(),
+        smelter: { val: 3, on: 1, unlocked: true },
+      },
+    };
+    const next = applyAction(state, { type: "ENABLE_BUILDING", name: "smelter" });
+    expect(next.buildings.smelter?.on).toBe(2);
+    expect(next.buildings.smelter?.val).toBe(3);
+  });
+
+  it("does not enable beyond val", () => {
+    const state = {
+      ...createInitialState(),
+      buildings: {
+        ...createInitialBuildings(),
+        smelter: { val: 2, on: 2, unlocked: true },
+      },
+    };
+    const next = applyAction(state, { type: "ENABLE_BUILDING", name: "smelter" });
+    expect(next.buildings.smelter?.on).toBe(2);
+  });
+
+  it("disables one active building", () => {
+    const state = {
+      ...createInitialState(),
+      buildings: {
+        ...createInitialBuildings(),
+        smelter: { val: 3, on: 2, unlocked: true },
+      },
+    };
+    const next = applyAction(state, { type: "DISABLE_BUILDING", name: "smelter" });
+    expect(next.buildings.smelter?.on).toBe(1);
+    expect(next.buildings.smelter?.val).toBe(3);
+  });
+
+  it("does not disable below zero", () => {
+    const state = {
+      ...createInitialState(),
+      buildings: {
+        ...createInitialBuildings(),
+        smelter: { val: 3, on: 0, unlocked: true },
+      },
+    };
+    const next = applyAction(state, { type: "DISABLE_BUILDING", name: "smelter" });
+    expect(next.buildings.smelter?.on).toBe(0);
+  });
+
+  it("does nothing for unknown building name", () => {
+    const state = createInitialState();
+    const next = applyAction(state, { type: "ENABLE_BUILDING", name: "missing" });
+    expect(next).toBe(state);
+  });
+});
+
 describe("applyAction ASSIGN_JOB", () => {
   it("assigns a job when idle kittens exist", () => {
     const state = {

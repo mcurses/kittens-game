@@ -119,14 +119,36 @@ export function BuildingsPanel({ state }: Props): React.ReactElement {
                   </div>
                 )}
 
-                <button
-                  type="button"
-                  className={`btn btn--sm${affordable ? " btn--primary" : " btn--secondary"}`}
-                  disabled={isPending || !affordable}
-                  onClick={() => mutate({ type: "BUY_BUILDING", name: b.name })}
-                >
-                  Buy
-                </button>
+                <div className="item-actions">
+                  {b.val > 0 && (
+                    <>
+                      <button
+                        type="button"
+                        className="btn btn--sm btn--secondary"
+                        disabled={isPending || b.on >= b.val}
+                        onClick={() => mutate({ type: "ENABLE_BUILDING", name: b.name })}
+                      >
+                        On
+                      </button>
+                      <button
+                        type="button"
+                        className="btn btn--sm btn--secondary"
+                        disabled={isPending || b.on <= 0}
+                        onClick={() => mutate({ type: "DISABLE_BUILDING", name: b.name })}
+                      >
+                        Off
+                      </button>
+                    </>
+                  )}
+                  <button
+                    type="button"
+                    className={`btn btn--sm${affordable ? " btn--primary" : " btn--secondary"}`}
+                    disabled={isPending || !affordable}
+                    onClick={() => mutate({ type: "BUY_BUILDING", name: b.name })}
+                  >
+                    Buy
+                  </button>
+                </div>
               </li>
             );
           })}

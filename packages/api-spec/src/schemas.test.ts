@@ -66,6 +66,11 @@ describe("GameActionRequestSchema", () => {
     const result = GameActionRequestSchema.safeParse({});
     expect(result.success).toBe(false);
   });
+
+  it("accepts building on/off actions", () => {
+    expect(GameActionRequestSchema.safeParse({ type: "ENABLE_BUILDING", name: "smelter" }).success).toBe(true);
+    expect(GameActionRequestSchema.safeParse({ type: "DISABLE_BUILDING", name: "smelter" }).success).toBe(true);
+  });
 });
 
 describe("ActionResultSchema", () => {

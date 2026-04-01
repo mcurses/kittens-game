@@ -213,6 +213,22 @@ components:
             name:
               type: string
         - type: object
+          required: [type, name]
+          properties:
+            type:
+              type: string
+              enum: [ENABLE_BUILDING]
+            name:
+              type: string
+        - type: object
+          required: [type, name]
+          properties:
+            type:
+              type: string
+              enum: [DISABLE_BUILDING]
+            name:
+              type: string
+        - type: object
           required: [type, job]
           properties:
             type:

@@ -727,6 +727,10 @@ export function canAfford(prices: readonly PriceEntry[], resources: ResourceStat
 export class BuildingManager implements Manager {
   readonly sectionKey = "buildings";
 
+  private isUpgradeResearched(state: GameState, name: string): boolean {
+    return state.workshop.upgrades[name]?.researched === true;
+  }
+
   update(state: GameState): GameState {
     // Check auto-unlock for defaultUnlockable buildings (one-way: never lock back once unlocked).
     // Port of legacy BuildingsManager.update() isUnlocked() check with unlockRatio.
@@ -801,6 +805,47 @@ export class BuildingManager implements Manager {
       const brewRatio = state.effectCache.breweryConsumptionRatio ?? 0;
       effects.catnipPerTickCon = (effects.catnipPerTickCon ?? 0) + -1 * brewery.on * (1 + brewRatio);
       effects.spicePerTickCon = (effects.spicePerTickCon ?? 0) + -0.1 * brewery.on * (1 + brewRatio);
+    }
+
+    // ── Smelter dynamic autoproduction + consumption parity ───────────────────
+    const smelter = state.buildings.smelter;
+    if (smelter && smelter.on > 0) {
+      const smelterRatio = 1 + (state.effectCache.smelterRatio ?? 0);
+      effects.ironPerTickAutoprod = (effects.ironPerTickAutoprod ?? 0) + 0.02 * smelterRatio * smelter.on;
+      effects.woodPerTickCon = (effects.woodPerTickCon ?? 0) - 0.05 * smelter.on;
+      effects.mineralsPerTickCon = (effects.mineralsPerTickCon ?? 0) - 0.1 * smelter.on;
+
+      if (this.isUpgradeResearched(state, "coalFurnace")) {
+        effects.coalPerTickAutoprod = (effects.coalPerTickAutoprod ?? 0) + 0.005 * smelterRatio * smelter.on;
+      }
+      if (this.isUpgradeResearched(state, "goldOre")) {
+        effects.goldPerTickAutoprod = (effects.goldPerTickAutoprod ?? 0) + 0.001 * smelter.on;
+      }
+      if (this.isUpgradeResearched(state, "nuclearSmelters")) {
+        effects.titaniumPerTickAutoprod = (effects.titaniumPerTickAutoprod ?? 0) + 0.0015 * smelter.on;
+      }
+    }
+
+    // ── Steamworks dynamic effect parity ──────────────────────────────────────
+    const steamworks = state.buildings.steamworks;
+    if (steamworks && steamworks.on > 0) {
+      effects.coalRatioGlobal = (-0.8 + (state.effectCache.coalRatioGlobalReduction ?? 0)) * steamworks.on;
+      effects.magnetoBoostRatio = (0.15 + (state.effectCache.magnetoBoostBonusPolicy ?? 0)) * steamworks.on;
+
+      let manuscriptPerTickProd = 0;
+      if (this.isUpgradeResearched(state, "printingPress")) {
+        manuscriptPerTickProd = 0.0005;
+        if (this.isUpgradeResearched(state, "offsetPress")) {
+          manuscriptPerTickProd *= 4;
+        }
+        if (this.isUpgradeResearched(state, "photolithography")) {
+          manuscriptPerTickProd *= 4;
+        }
+      }
+
+      if (manuscriptPerTickProd > 0) {
+        effects.manuscriptPerTickProd = (effects.manuscriptPerTickProd ?? 0) + manuscriptPerTickProd * steamworks.on;
+      }
     }
 
     return effects;
