@@ -42,6 +42,8 @@ export interface ReligionUpgradeDef {
   readonly faith: number;
   /** Names of religion upgrades to also increment val+on when this is purchased */
   readonly upgradesReligion?: readonly string[];
+  /** If true, this upgrade can only be purchased once; UI shows "Done" after val >= 1 */
+  readonly oneTime?: boolean;
 }
 
 export interface ReligionUpgradeEntry {
@@ -290,6 +292,7 @@ export const RELIGION_UPGRADE_DEFS: readonly ReligionUpgradeDef[] = [
     priceRatio: 2.5,
     effects: { solarRevolutionRatio: 0 }, // calculated dynamically
     faith: 1000,
+    oneTime: true,
   },
   {
     name: "basilica",
@@ -321,6 +324,7 @@ export const RELIGION_UPGRADE_DEFS: readonly ReligionUpgradeDef[] = [
     priceRatio: 2.5,
     effects: {},
     faith: 100000,
+    oneTime: true,
   },
   {
     name: "transcendence",
@@ -331,6 +335,7 @@ export const RELIGION_UPGRADE_DEFS: readonly ReligionUpgradeDef[] = [
     priceRatio: 2.5,
     effects: {},
     faith: 125000,
+    oneTime: true,
     // When transcendence is bought, it grants val to these religion upgrades
     upgradesReligion: [
       "solarchant",

@@ -427,6 +427,12 @@ components:
             type:
               type: string
               enum: [HUNT]
+        - type: object
+          required: [type]
+          properties:
+            type:
+              type: string
+              enum: [HOLD_FESTIVAL]
       discriminator:
         propertyName: type
 

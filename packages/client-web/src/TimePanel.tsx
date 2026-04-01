@@ -2,6 +2,7 @@
 import type { GameStateResponse } from "@kittens/api-spec";
 import { CFU_DEFS, VSU_DEFS, getCfuPrice, getVsuPrice } from "@kittens/engine";
 import React from "react";
+import { useSlot } from "./SlotContext.js";
 import { useGameAction } from "./useGameAction.js";
 import { canAfford, extractResources } from "./utils.js";
 
@@ -43,7 +44,8 @@ function extractTime(state: GameStateResponse): { heat: number; flux: number; cf
 }
 
 export function TimePanel({ state }: Props): React.ReactElement {
-  const { mutate, isPending } = useGameAction();
+  const slot = useSlot();
+  const { mutate, isPending } = useGameAction(slot);
 
   if (!state) {
     return <div className="loading-text" data-testid="time-panel-loading">Loading…</div>;

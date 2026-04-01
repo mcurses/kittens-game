@@ -341,9 +341,10 @@ export const BUILDING_DEFS: readonly BuildingDef[] = [
     effects: {
       ironPerTickBase: 0.15,
       titaniumPerTickBase: 0.0005,
-      // Story 31-07: consumption side (legacy buildings.js:1110–1198)
+      // Story 31-07: consumption side (legacy buildings.js:1092–1097)
       mineralsPerTickCon: -1.5,
       oilPerTickCon: -0.024,
+      energyConsumption: 1,
     },
     unlockRatio: 0.3,
     requiredTech: ["metallurgy"],

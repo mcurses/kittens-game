@@ -3,6 +3,7 @@ import type { GameStateResponse } from "@kittens/api-spec";
 import { TECH_DEFS } from "@kittens/engine";
 import React from "react";
 import { useInspector } from "./InspectorContext.js";
+import { useSlot } from "./SlotContext.js";
 import { useGameAction } from "./useGameAction.js";
 import { canAfford, extractResources } from "./utils.js";
 
@@ -37,7 +38,8 @@ function extractTechs(state: GameStateResponse): TechEntry[] {
 }
 
 export function SciencePanel({ state }: Props): React.ReactElement {
-  const { mutate, isPending } = useGameAction();
+  const slot = useSlot();
+  const { mutate, isPending } = useGameAction(slot);
   const { setInspected, clearInspected } = useInspector();
 
   if (!state) {

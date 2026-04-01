@@ -4,7 +4,7 @@ import { CalendarManager } from "./calendar.js";
 import { createInitialResources } from "./resources.js";
 import { createInitialState } from "./state.js";
 import { tick } from "./tick.js";
-import { JOB_DEFS, LUXURY_RESOURCE_NAMES, UNCOMMON_RESOURCE_NAMES, VillageManager, applyHunt, createInitialVillage, totalAssignedKittens } from "./village.js";
+import { JOB_DEFS, LUXURY_RESOURCE_NAMES, UNCOMMON_RESOURCE_NAMES, VillageManager, applyHoldFestival, applyHunt, createInitialVillage, totalAssignedKittens } from "./village.js";
 
 describe("JOB_DEFS", () => {
   it("contains all core jobs", () => {
@@ -999,5 +999,54 @@ describe("Epic 30: happiness cross-manager integration", () => {
     expect(next.effectCache.catnipPerTickCon).toBeCloseTo(-3);
     // spicePerTickCon = -0.3
     expect(next.effectCache.spicePerTickCon).toBeCloseTo(-0.3);
+  });
+});
+
+// ── Story 32-07: HOLD_FESTIVAL action ────────────────────────────────────────
+
+describe("applyHoldFestival", () => {
+  it("costs manpower:1500, culture:5000, parchment:2500 and sets festivalDays=400", () => {
+    const base = createInitialState();
+    const state = {
+      ...base,
+      resources: {
+        ...base.resources,
+        catpower: { value: 2000, maxValue: 5000 },
+        culture: { value: 6000, maxValue: 0 },
+        parchment: { value: 3000, maxValue: 0 },
+      },
+    };
+    const next = applyHoldFestival(state);
+    expect(next.resources.catpower?.value).toBe(500); // 2000 - 1500
+    expect(next.resources.culture?.value).toBe(1000); // 6000 - 5000
+    expect(next.resources.parchment?.value).toBe(500); // 3000 - 2500
+    expect(next.calendar.festivalDays).toBe(400); // 100 days * 4 seasons
+  });
+
+  it("returns state unchanged if insufficient resources", () => {
+    const base = createInitialState();
+    const next = applyHoldFestival(base);
+    expect(next).toBe(base);
+    expect(next.calendar.festivalDays).toBe(0);
+  });
+
+  it("adds to festivalDays when carnivals perk is researched", () => {
+    const base = createInitialState();
+    const state = {
+      ...base,
+      resources: {
+        ...base.resources,
+        catpower: { value: 2000, maxValue: 5000 },
+        culture: { value: 6000, maxValue: 0 },
+        parchment: { value: 3000, maxValue: 0 },
+      },
+      calendar: { ...base.calendar, festivalDays: 200 },
+      prestige: {
+        ...base.prestige,
+        perks: { carnivals: { researched: true, unlocked: true } },
+      },
+    };
+    const next = applyHoldFestival(state);
+    expect(next.calendar.festivalDays).toBe(600); // 200 + 400
   });
 });

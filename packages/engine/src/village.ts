@@ -1,6 +1,7 @@
 import type { Serializable } from "@kittens/shared";
 import { produce } from "immer";
 import type { Manager } from "./manager.js";
+import { DAYS_PER_SEASON, SEASONS_PER_YEAR } from "./calendar.js";
 import { calcResourcePerTick } from "./resources.js";
 import type { GameState } from "./state.js";
 
@@ -378,5 +379,35 @@ export function applyHunt(state: GameState): GameState {
     addRes(draft.resources, "furs", fursGained);
     addRes(draft.resources, "ivory", ivoryGained);
     if (unicornsGained > 0) addRes(draft.resources, "unicorns", unicornsGained);
+  });
+}
+
+/**
+ * Hold a festival: costs manpower:1500, culture:5000, parchment:2500.
+ * Sets festivalDays = DAYS_PER_SEASON * SEASONS_PER_YEAR (= 400).
+ * If "carnivals" perk is researched, adds to festivalDays instead of setting.
+ */
+export function applyHoldFestival(state: GameState): GameState {
+  const manpower = state.resources.catpower?.value ?? 0;
+  const culture = state.resources.culture?.value ?? 0;
+  const parchment = state.resources.parchment?.value ?? 0;
+
+  if (manpower < 1500 || culture < 5000 || parchment < 2500) return state;
+
+  const festivalLength = DAYS_PER_SEASON * SEASONS_PER_YEAR;
+  const carnivalsResearched = state.prestige?.perks?.carnivals?.researched === true;
+
+  return produce(state, (draft) => {
+    const mp = draft.resources.catpower;
+    if (mp) mp.value = Math.max(0, mp.value - 1500);
+    const cult = draft.resources.culture;
+    if (cult) cult.value = Math.max(0, cult.value - 5000);
+    const parch = draft.resources.parchment;
+    if (parch) parch.value = Math.max(0, parch.value - 2500);
+    if (carnivalsResearched) {
+      draft.calendar.festivalDays = (draft.calendar.festivalDays ?? 0) + festivalLength;
+    } else {
+      draft.calendar.festivalDays = festivalLength;
+    }
   });
 }

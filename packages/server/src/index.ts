@@ -14,7 +14,7 @@ async function main(): Promise<void> {
   const registry = new SessionRegistry(adapter);
 
   for (const slot of getStartupSlots(adapter.listSlots())) {
-    registry.getOrCreate(slot).startAutoTick();
+    registry.getOrCreate(slot); // init + startAutoTick handled by getOrCreate
   }
 
   const app = createApp(registry);
