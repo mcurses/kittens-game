@@ -136,3 +136,48 @@ describe("SpacePanel", () => {
     expect(screen.getByTestId("space-panel")).toBeTruthy();
   });
 });
+
+// ── Epic 32 Story 32-06: Space mission done state + building on/off ────────────
+
+describe("Story 32-06: Space mission done state and building on/off", () => {
+  it("shows 'Reached' badge when mission val > 0", () => {
+    const state = makeState({
+      programs: { moonMission: { val: 1, on: 0, unlocked: true } },
+    });
+    render(<SpacePanel state={state} />);
+    expect(screen.getByText(/reached/i)).toBeTruthy();
+  });
+
+  it("hides Launch button when mission val > 0 (already reached)", () => {
+    const state = makeState({
+      programs: { moonMission: { val: 1, on: 0, unlocked: true } },
+    });
+    render(<SpacePanel state={state} />);
+    expect(screen.queryByTestId("program-moonMission-launch")).toBeNull();
+  });
+
+  it("still shows Launch button when mission val === 0 (not yet reached)", () => {
+    const state = makeState({
+      programs: { moonMission: { val: 0, on: 0, unlocked: true } },
+    });
+    render(<SpacePanel state={state} />);
+    expect(screen.getByTestId("program-moonMission-launch")).toBeTruthy();
+  });
+
+  it("shows on/val for space building when on < val", () => {
+    const state = makeState({
+      spaceBuildings: { moonBase: { val: 12, on: 9, unlocked: true } },
+    });
+    render(<SpacePanel state={state} />);
+    expect(screen.getByText(/9\/12|9 \/ 12/)).toBeTruthy();
+  });
+
+  it("shows just val when space building on === val", () => {
+    const state = makeState({
+      spaceBuildings: { moonBase: { val: 5, on: 5, unlocked: true } },
+    });
+    render(<SpacePanel state={state} />);
+    const countEl = screen.getByTestId("sb-moonBase").querySelector(".item-count");
+    expect(countEl?.textContent).toBe("5");
+  });
+});

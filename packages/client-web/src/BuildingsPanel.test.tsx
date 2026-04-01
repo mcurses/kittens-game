@@ -3,12 +3,14 @@ import React from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { InspectorProvider } from "./InspectorContext.js";
 import { InspectorPanel } from "./InspectorPanel.js";
+import { SlotProvider } from "./SlotContext.js";
 import { BuildingsPanel } from "./BuildingsPanel.js";
 
 // Mock useGameAction
 const mockMutate = vi.fn();
+const mockUseGameAction = vi.fn(() => ({ mutate: mockMutate, isPending: false, error: null }));
 vi.mock("./useGameAction.js", () => ({
-  useGameAction: () => ({ mutate: mockMutate, isPending: false, error: null }),
+  useGameAction: (slot?: string) => mockUseGameAction(slot),
 }));
 
 // Mock BUILDING_DEFS and getBuildingPrice from @kittens/engine
@@ -52,18 +54,27 @@ function makeState(
   } as unknown as import("@kittens/api-spec").GameStateResponse;
 }
 
-function WithInspector({ children }: { children: React.ReactNode }): React.ReactElement {
+function WithInspector({
+  children,
+  slot = "default",
+}: {
+  children: React.ReactNode;
+  slot?: string;
+}): React.ReactElement {
   return (
-    <InspectorProvider>
-      {children}
-      <InspectorPanel />
-    </InspectorProvider>
+    <SlotProvider slot={slot}>
+      <InspectorProvider>
+        {children}
+        <InspectorPanel />
+      </InspectorProvider>
+    </SlotProvider>
   );
 }
 
 afterEach(() => {
   cleanup();
   vi.clearAllMocks();
+  mockUseGameAction.mockClear();
 });
 
 describe("BuildingsPanel", () => {
@@ -99,7 +110,7 @@ describe("BuildingsPanel", () => {
     const state = makeState({ field: { val: 3, on: 3, unlocked: true } });
     render(<WithInspector><BuildingsPanel state={state} /></WithInspector>);
     expect(screen.getByTestId("building-field")).toBeTruthy();
-    expect(screen.getByText(/field/)).toBeTruthy();
+    expect(screen.getByText(/field/i)).toBeTruthy();
     expect(screen.getByText(/3/)).toBeTruthy();
   });
 
@@ -133,6 +144,12 @@ describe("BuildingsPanel", () => {
     const buyButton = screen.getByRole("button", { name: /buy/i });
     fireEvent.click(buyButton);
     expect(mockMutate).toHaveBeenCalledWith({ type: "BUY_BUILDING", name: "field" });
+  });
+
+  it("uses the current slot when wiring building actions", () => {
+    const state = makeState({ field: { val: 0, on: 0, unlocked: true } });
+    render(<WithInspector slot="new"><BuildingsPanel state={state} /></WithInspector>);
+    expect(mockUseGameAction).toHaveBeenCalledWith("new");
   });
 
   it("disables Buy button when player cannot afford the building", () => {
@@ -175,5 +192,39 @@ describe("BuildingsPanel", () => {
     expect(screen.getByTestId("inspector-panel")).toBeTruthy();
     // Inspector should show entity name
     expect(screen.getAllByText(/field/).length).toBeGreaterThan(0);
+  });
+});
+
+// ── Epic 32 Story 32-04: Buildings on/off display + human-readable names ──────
+
+describe("Story 32-04: Buildings on/off display and labels", () => {
+  it("shows 'on/val' when on < val", () => {
+    const state = makeState({ hut: { val: 12, on: 9, unlocked: true } });
+    render(<WithInspector><BuildingsPanel state={state} /></WithInspector>);
+    expect(screen.getByText(/9\/12|9 \/ 12/)).toBeTruthy();
+  });
+
+  it("shows just val when on === val", () => {
+    const state = makeState({ hut: { val: 5, on: 5, unlocked: true } });
+    render(<WithInspector><BuildingsPanel state={state} /></WithInspector>);
+    // Should show "5" without a slash
+    const countEl = screen.getByTestId("building-hut").querySelector(".building-count");
+    expect(countEl?.textContent).toBe("5");
+  });
+
+  it("shows human-readable label instead of camelCase name", () => {
+    const state = makeState({ hut: { val: 1, on: 1, unlocked: true } });
+    render(<WithInspector><BuildingsPanel state={state} /></WithInspector>);
+    // "hut" → "Hut" (single word); in a realistic case: "lumberMill" → "Lumber Mill"
+    expect(screen.getByText(/^Hut$/)).toBeTruthy();
+  });
+});
+
+describe("camelCase prettifier (via BuildingsPanel)", () => {
+  it("splits camelCase into Title Case words", () => {
+    // We test via rendering; use "field" which maps to "Field"
+    const state = makeState({ field: { val: 1, on: 1, unlocked: true } });
+    render(<WithInspector><BuildingsPanel state={state} /></WithInspector>);
+    expect(screen.getByText(/^Field$/)).toBeTruthy();
   });
 });

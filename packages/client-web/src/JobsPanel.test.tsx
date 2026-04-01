@@ -69,3 +69,53 @@ describe("JobsPanel", () => {
     expect(screen.getByTestId("job-scholar")).toBeTruthy();
   });
 });
+
+// ── Epic 32 Story 32-07: Village happiness/festival in JobsPanel ──────────────
+
+function makeStateWithVillage(
+  jobs: Record<string, { value: number }>,
+  village: { kittens?: number; happiness?: number } = {},
+  calendar: { festivalDays?: number } = {},
+) {
+  return {
+    version: 1,
+    tick: 0,
+    village: { kittens: village.kittens ?? 0, happiness: village.happiness ?? 1.0, jobs },
+    calendar: { festivalDays: calendar.festivalDays ?? 0, day: 0, season: 0, year: 0 },
+  } as unknown as import("@kittens/api-spec").GameStateResponse;
+}
+
+describe("Story 32-07: Happiness display and festival in JobsPanel", () => {
+  it("shows happiness percentage in jobs panel", () => {
+    const state = makeStateWithVillage({}, { happiness: 5.33 });
+    render(<JobsPanel state={state} />);
+    expect(screen.getByTestId("jobs-happiness")).toBeTruthy();
+    expect(screen.getByTestId("jobs-happiness").textContent).toMatch(/533%/);
+  });
+
+  it("shows festival duration when festivalDays > 0", () => {
+    const state = makeStateWithVillage({}, {}, { festivalDays: 172 });
+    render(<JobsPanel state={state} />);
+    expect(screen.getByTestId("jobs-festival")).toBeTruthy();
+    expect(screen.getByTestId("jobs-festival").textContent).toMatch(/172/);
+  });
+
+  it("does not show festival element when festivalDays === 0", () => {
+    const state = makeStateWithVillage({}, {}, { festivalDays: 0 });
+    render(<JobsPanel state={state} />);
+    expect(screen.queryByTestId("jobs-festival")).toBeNull();
+  });
+
+  it("shows Hold Festival button", () => {
+    const state = makeStateWithVillage({});
+    render(<JobsPanel state={state} />);
+    expect(screen.getByTestId("btn-hold-festival")).toBeTruthy();
+  });
+
+  it("dispatches HOLD_FESTIVAL when Hold Festival is clicked", () => {
+    const state = makeStateWithVillage({});
+    render(<JobsPanel state={state} />);
+    fireEvent.click(screen.getByTestId("btn-hold-festival"));
+    expect(mockMutate).toHaveBeenCalledWith({ type: "HOLD_FESTIVAL" });
+  });
+});

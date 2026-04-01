@@ -2,6 +2,7 @@
 import type { GameStateResponse } from "@kittens/api-spec";
 import { PROGRAM_DEFS, SPACE_BUILDING_DEFS } from "@kittens/engine";
 import React from "react";
+import { useSlot } from "./SlotContext.js";
 import { useGameAction } from "./useGameAction.js";
 import { canAfford, extractResources } from "./utils.js";
 
@@ -38,7 +39,8 @@ function extractSpace(state: GameStateResponse): { programs: ProgramEntry[]; spa
 }
 
 export function SpacePanel({ state }: Props): React.ReactElement {
-  const { mutate, isPending } = useGameAction();
+  const slot = useSlot();
+  const { mutate, isPending } = useGameAction(slot);
 
   if (!state) {
     return <div className="loading-text" data-testid="space-panel-loading">Loading…</div>;
@@ -68,12 +70,16 @@ export function SpacePanel({ state }: Props): React.ReactElement {
               return (
                 <li key={p.name} data-testid={`program-${p.name}`} className="item-row">
                   <span className="item-row-name">{p.name}</span>
-                  <button type="button" data-testid={`program-${p.name}-launch`}
-                    className={`btn btn--sm${affordable ? " btn--primary" : " btn--secondary"}`}
-                    disabled={isPending || !affordable}
-                    onClick={() => mutate({ type: "LAUNCH_MISSION", name: p.name })}>
-                    Launch
-                  </button>
+                  {p.val > 0 ? (
+                    <span className="mission-reached" data-testid={`program-${p.name}-reached`}>Reached</span>
+                  ) : (
+                    <button type="button" data-testid={`program-${p.name}-launch`}
+                      className={`btn btn--sm${affordable ? " btn--primary" : " btn--secondary"}`}
+                      disabled={isPending || !affordable}
+                      onClick={() => mutate({ type: "LAUNCH_MISSION", name: p.name })}>
+                      Launch
+                    </button>
+                  )}
                 </li>
               );
             })}
@@ -95,7 +101,9 @@ export function SpacePanel({ state }: Props): React.ReactElement {
                 <li key={b.name} data-testid={`sb-${b.name}`} className="item-card">
                   <div className="item-card-header">
                     <span className="item-name">{b.name}</span>
-                    <span className={`item-count${b.val > 0 ? " item-count--has" : ""}`}>{b.val}</span>
+                    <span className={`item-count${b.val > 0 ? " item-count--has" : ""}`}>
+                      {b.on < b.val ? `${b.on}/${b.val}` : b.val}
+                    </span>
                   </div>
                   <button type="button" data-testid={`sb-${b.name}-buy`}
                     className={`btn btn--sm${affordable ? " btn--primary" : " btn--secondary"}`}

@@ -151,3 +151,99 @@ describe("ReligionPanel", () => {
     expect(screen.getByTestId("religion-panel")).toBeTruthy();
   });
 });
+
+// ── Epic 32 Story 32-01: Religion TU (Cryptotheology) section ────────────────
+
+describe("Story 32-01: Religion TU section", () => {
+  it("renders TU section when tu has entries with val > 0", () => {
+    const state = makeState({
+      tu: { blackObelisk: { val: 1, on: 1, unlocked: true } },
+    });
+    render(<ReligionPanel state={state} />);
+    expect(screen.getByTestId("tu-blackObelisk")).toBeTruthy();
+  });
+
+  it("does not render TU section when tu is empty", () => {
+    const state = makeState({ tu: {} });
+    render(<ReligionPanel state={state} />);
+    expect(screen.queryByTestId(/^tu-/)).toBeNull();
+  });
+
+  it("shows Cryptotheology subsection label when TU entries present", () => {
+    const state = makeState({
+      tu: { blackObelisk: { val: 1, on: 1, unlocked: true } },
+    });
+    render(<ReligionPanel state={state} />);
+    expect(screen.getByText(/cryptotheology/i)).toBeTruthy();
+  });
+
+  it("dispatches BUY_TRANSCENDENCE_UPGRADE when TU buy is clicked", () => {
+    const state = makeState(
+      { tu: { blackObelisk: { val: 1, on: 0, unlocked: true } } },
+      { faith: { value: 100000 } },
+    );
+    render(<ReligionPanel state={state} />);
+    const btn = screen.getByTestId("tu-blackObelisk-buy");
+    fireEvent.click(btn);
+    expect(mockMutate).toHaveBeenCalledWith({
+      type: "BUY_TRANSCENDENCE_UPGRADE",
+      name: "blackObelisk",
+    });
+  });
+
+  it("shows TU count (val)", () => {
+    const state = makeState({
+      tu: { blackObelisk: { val: 3, on: 3, unlocked: true } },
+    });
+    render(<ReligionPanel state={state} />);
+    expect(screen.getByText(/×3/)).toBeTruthy();
+  });
+
+  it("TU section absent when tu is undefined", () => {
+    const state = makeState({});
+    render(<ReligionPanel state={state} />);
+    expect(screen.queryByText(/cryptotheology/i)).toBeNull();
+  });
+});
+
+// ── Epic 32 Story 32-02: RU one-time upgrade "Done" state ────────────────────
+
+describe("Story 32-02: RU one-time upgrades show Done state", () => {
+  it("shows Done label for RU with val >= 1", () => {
+    const state = makeState({
+      ru: { solarRevolution: { val: 1, on: 1 } },
+    });
+    render(<ReligionPanel state={state} />);
+    // Should show "Done" instead of a Buy button for val:1 one-time upgrades
+    expect(screen.queryByTestId("ru-solarRevolution-buy")).toBeNull();
+    expect(screen.getByText(/done/i)).toBeTruthy();
+  });
+
+  it("still shows Buy for stackable RU with val > 0", () => {
+    const state = makeState({
+      ru: { solarchant: { val: 2, on: 2 } },
+    });
+    render(<ReligionPanel state={state} />);
+    // solarchant is stackable (no maxVal restriction) — Buy should still appear
+    expect(screen.getByTestId("ru-solarchant-buy")).toBeTruthy();
+  });
+});
+
+// ── Epic 32 Story 32-03: Praise/adore multiplier display ──────────────────────
+
+describe("Story 32-03: Praise/adore multiplier display", () => {
+  it("shows worship gain multiplier near Praise button when faithRatio > 0", () => {
+    const state = makeState({ faithRatio: 2.5, worship: 100 });
+    render(<ReligionPanel state={state} />);
+    // Should show a multiplier based on faithRatio (e.g. "+250%" or "×2.5" or similar)
+    expect(screen.getByTestId("praise-multiplier")).toBeTruthy();
+  });
+
+  it("multiplier reflects faithRatio value", () => {
+    const state = makeState({ faithRatio: 3.0 });
+    render(<ReligionPanel state={state} />);
+    const multiplier = screen.getByTestId("praise-multiplier");
+    // should contain "300" or "3" or relevant ratio display
+    expect(multiplier.textContent).toMatch(/3/);
+  });
+});

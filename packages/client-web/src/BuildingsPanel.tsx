@@ -3,6 +3,7 @@ import type { GameStateResponse } from "@kittens/api-spec";
 import { BUILDING_DEFS, getBuildingPrice } from "@kittens/engine";
 import React from "react";
 import { useInspector } from "./InspectorContext.js";
+import { useSlot } from "./SlotContext.js";
 import { useGameAction } from "./useGameAction.js";
 import { canAfford, extractEffectCache, extractResources } from "./utils.js";
 
@@ -15,6 +16,14 @@ interface BuildingEntry {
 
 interface Props {
   state: GameStateResponse | null | undefined;
+}
+
+/** Split camelCase to Title Case: "lumberMill" → "Lumber Mill" */
+function prettifyName(name: string): string {
+  return name
+    .replace(/([A-Z])/g, " $1")
+    .replace(/^./, (c) => c.toUpperCase())
+    .trim();
 }
 
 /** Extract buildings array from serialized game state (duck-typed). Returns only unlocked buildings. */
@@ -37,7 +46,8 @@ function extractBuildings(state: GameStateResponse): BuildingEntry[] {
 }
 
 export function BuildingsPanel({ state }: Props): React.ReactElement {
-  const { mutate, isPending } = useGameAction();
+  const slot = useSlot();
+  const { mutate, isPending } = useGameAction(slot);
   const { setInspected, clearInspected } = useInspector();
 
   if (!state) {
@@ -92,9 +102,9 @@ export function BuildingsPanel({ state }: Props): React.ReactElement {
                 tabIndex={0}
               >
                 <div className="item-card-header">
-                  <span className="item-name building-name">{b.name}</span>
+                  <span className="item-name building-name">{prettifyName(b.name)}</span>
                   <span className={`item-count building-count${b.val > 0 ? " item-count--has" : ""}`}>
-                    {b.val}
+                    {b.on < b.val ? `${b.on}/${b.val}` : b.val}
                   </span>
                 </div>
 
