@@ -126,14 +126,28 @@ describe("SciencePanel", () => {
     expect(btn.hasAttribute("disabled")).toBe(false);
   });
 
-  it("shows Maxed state when tech cost exceeds current storage", () => {
+  it("keeps Research button and marks it storage-limited when tech cost exceeds current storage", () => {
     const state = makeState(
       { archery: { unlocked: true, researched: false } },
       { science: { value: 0, maxValue: 200 } },
     );
     render(<WithInspector><SciencePanel state={state} /></WithInspector>);
-    expect(screen.getByTestId("tech-archery-maxed").textContent).toMatch(/maxed/i);
-    expect(screen.queryByRole("button", { name: /research/i })).toBeNull();
+    const btn = screen.getByTestId("tech-archery-research");
+    expect(btn.textContent).toBe("Research");
+    expect(btn.className).toMatch(/btn--limited/);
+    expect(btn.hasAttribute("disabled")).toBe(true);
+  });
+
+  it("inspector highlights the storage-limited resource line", async () => {
+    const state = makeState(
+      { archery: { unlocked: true, researched: false } },
+      { science: { value: 0, maxValue: 200 } },
+    );
+    const userEvent = (await import("@testing-library/user-event")).default;
+    render(<WithInspector><SciencePanel state={state} /></WithInspector>);
+    await userEvent.hover(screen.getByTestId("tech-archery"));
+    expect(screen.getByTestId("inspector-price-science-limited").textContent).toMatch(/\*/);
+    expect(screen.getByText(/limited by current storage/i)).toBeTruthy();
   });
 
   it("shows tech details in inspector on hover", async () => {

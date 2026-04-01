@@ -19,6 +19,7 @@ export interface ResourceEntity {
 
 export interface ResourceSnapshot {
   value: number;
+  maxValue?: number;
   perTick?: number;
 }
 

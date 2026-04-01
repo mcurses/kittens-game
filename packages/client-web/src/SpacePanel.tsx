@@ -89,11 +89,9 @@ export function SpacePanel({ state }: Props): React.ReactElement {
                   <span className="item-row-name">{p.name}</span>
                   {p.val > 0 ? (
                     <span className="mission-reached" data-testid={`program-${p.name}-reached`}>Reached</span>
-                  ) : storageLimited ? (
-                    <span className="limit-badge" data-testid={`program-${p.name}-maxed`}>Maxed</span>
                   ) : (
                     <button type="button" data-testid={`program-${p.name}-launch`}
-                      className={`btn btn--sm${affordable ? " btn--primary" : " btn--secondary"}`}
+                      className={`btn btn--sm${affordable ? " btn--primary" : " btn--secondary"}${storageLimited ? " btn--limited" : ""}`}
                       disabled={isPending || !affordable}
                       onClick={() => mutate({ type: "LAUNCH_MISSION", name: p.name })}>
                       Launch
@@ -125,16 +123,12 @@ export function SpacePanel({ state }: Props): React.ReactElement {
                       {b.on < b.val ? `${b.on}/${b.val}` : b.val}
                     </span>
                   </div>
-                  {storageLimited ? (
-                    <span className="limit-badge" data-testid={`sb-${b.name}-maxed`}>Maxed</span>
-                  ) : (
-                    <button type="button" data-testid={`sb-${b.name}-buy`}
-                      className={`btn btn--sm${affordable ? " btn--primary" : " btn--secondary"}`}
-                      disabled={isPending || !affordable}
-                      onClick={() => mutate({ type: "BUY_SPACE_BUILDING", name: b.name })}>
-                      Build
-                    </button>
-                  )}
+                  <button type="button" data-testid={`sb-${b.name}-buy`}
+                    className={`btn btn--sm${affordable ? " btn--primary" : " btn--secondary"}${storageLimited ? " btn--limited" : ""}`}
+                    disabled={isPending || !affordable}
+                    onClick={() => mutate({ type: "BUY_SPACE_BUILDING", name: b.name })}>
+                    Build
+                  </button>
                 </li>
               );
             })}

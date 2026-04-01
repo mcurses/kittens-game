@@ -115,16 +115,12 @@ export function ReligionPanel({ state }: Props): React.ReactElement {
                   tabIndex={0}>
                   <span className="item-row-name">{u.name}</span>
                   <span className="item-row-cost">×{u.val}</span>
-                  {storageLimited ? (
-                    <span className="limit-badge" data-testid={`zu-${u.name}-maxed`}>Maxed</span>
-                  ) : (
-                    <button type="button" data-testid={`zu-${u.name}-buy`}
-                      className={`btn btn--sm${affordable ? " btn--primary" : " btn--secondary"}`}
-                      disabled={isPending || !affordable}
-                      onClick={() => mutate({ type: "BUY_ZIGGURAT_UPGRADE", name: u.name })}>
-                      Buy
-                    </button>
-                  )}
+                  <button type="button" data-testid={`zu-${u.name}-buy`}
+                    className={`btn btn--sm${affordable ? " btn--primary" : " btn--secondary"}${storageLimited ? " btn--limited" : ""}`}
+                    disabled={isPending || !affordable}
+                    onClick={() => mutate({ type: "BUY_ZIGGURAT_UPGRADE", name: u.name })}>
+                    Buy
+                  </button>
                 </li>
               );
             })}
@@ -156,13 +152,11 @@ export function ReligionPanel({ state }: Props): React.ReactElement {
                   <span className="item-row-name">{u.name}</span>
                   {isDone ? (
                     <span className="item-row-done">✓ Done</span>
-                  ) : storageLimited ? (
-                    <span className="limit-badge" data-testid={`ru-${u.name}-maxed`}>Maxed</span>
                   ) : (
                     <>
                       <span className="item-row-cost">×{u.val}</span>
                       <button type="button" data-testid={`ru-${u.name}-buy`}
-                        className={`btn btn--sm${affordable ? " btn--primary" : " btn--secondary"}`}
+                        className={`btn btn--sm${affordable ? " btn--primary" : " btn--secondary"}${storageLimited ? " btn--limited" : ""}`}
                         disabled={isPending || !affordable}
                         onClick={() => mutate({ type: "BUY_RELIGION_UPGRADE", name: u.name })}>
                         Buy
@@ -210,16 +204,12 @@ export function ReligionPanel({ state }: Props): React.ReactElement {
                   tabIndex={0}>
                   <span className="item-row-name">{u.name}</span>
                   <span className="item-row-cost">×{u.val}</span>
-                  {storageLimited ? (
-                    <span className="limit-badge" data-testid={`tu-${u.name}-maxed`}>Maxed</span>
-                  ) : (
-                    <button type="button" data-testid={`tu-${u.name}-buy`}
-                      className={`btn btn--sm${affordable ? " btn--primary" : " btn--secondary"}`}
-                      disabled={isPending || !affordable}
-                      onClick={() => mutate({ type: "BUY_TRANSCENDENCE_UPGRADE", name: u.name })}>
-                      Buy
-                    </button>
-                  )}
+                  <button type="button" data-testid={`tu-${u.name}-buy`}
+                    className={`btn btn--sm${affordable ? " btn--primary" : " btn--secondary"}${storageLimited ? " btn--limited" : ""}`}
+                    disabled={isPending || !affordable}
+                    onClick={() => mutate({ type: "BUY_TRANSCENDENCE_UPGRADE", name: u.name })}>
+                    Buy
+                  </button>
                 </li>
               );
             })}

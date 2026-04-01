@@ -756,17 +756,15 @@ body {
   letter-spacing: 0.02em;
 }
 
-.limit-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
-  font-size: var(--text-xs);
+.btn--limited {
+  border-color: #c25a2f;
+  box-shadow: inset 0 0 0 1px rgba(194, 90, 47, 0.28);
+}
+
+.inspector-price-row--limited dt,
+.inspector-price-row--limited dd {
+  color: #b24e27;
   font-weight: 700;
-  color: #8a3b20;
-  background: #f4d9c7;
-  padding: 3px 9px;
-  border-radius: var(--r-full);
-  letter-spacing: 0.02em;
 }
 
 /* ── Jobs Panel ──────────────────────────────────────────── */

@@ -132,14 +132,16 @@ describe("TimePanel", () => {
     expect(mockMutate).toHaveBeenCalledWith({ type: "BUY_VSU", name: "usedCryochambers" });
   });
 
-  it("shows Maxed state when CFU cost exceeds current storage", () => {
+  it("keeps Buy button and marks it storage-limited when CFU cost exceeds current storage", () => {
     const state = makeState(
       { heat: 1, cfus: { blastFurnace: { val: 0, on: 0, unlocked: true, heat: 0 } } },
       { timeCrystal: { value: 0, maxValue: 10 }, relic: { value: 0, maxValue: 10 } },
     );
     render(<TimePanel state={state} />);
-    expect(screen.getByTestId("cfu-blastFurnace-maxed").textContent).toMatch(/maxed/i);
-    expect(screen.queryByTestId("cfu-blastFurnace-buy")).toBeNull();
+    const btn = screen.getByTestId("cfu-blastFurnace-buy");
+    expect(btn.textContent).toBe("Buy");
+    expect(btn.className).toMatch(/btn--limited/);
+    expect(btn.hasAttribute("disabled")).toBe(true);
   });
 
   it("renders panel when state has no time key", () => {

@@ -276,14 +276,16 @@ describe("BuildingsPanel", () => {
     expect(buyButton.hasAttribute("disabled")).toBe(false);
   });
 
-  it("shows Maxed state when building cost exceeds current storage", () => {
+  it("keeps Buy button and marks it storage-limited when building cost exceeds current storage", () => {
     const state = makeState(
       { field: { val: 0, on: 0, unlocked: true } },
       { catnip: { value: 0, maxValue: 5 } },
     );
     render(<WithInspector><BuildingsPanel state={state} /></WithInspector>);
-    expect(screen.getByTestId("building-field-maxed").textContent).toMatch(/maxed/i);
-    expect(screen.queryByRole("button", { name: /buy/i })).toBeNull();
+    const btn = screen.getByTestId("building-field-buy");
+    expect(btn.textContent).toBe("Buy");
+    expect(btn.className).toMatch(/btn--limited/);
+    expect(btn.hasAttribute("disabled")).toBe(true);
   });
 
   it("shows only unlocked buildings, hides locked ones", () => {

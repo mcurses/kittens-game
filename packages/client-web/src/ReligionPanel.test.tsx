@@ -118,14 +118,16 @@ describe("ReligionPanel", () => {
     expect(mockMutate).toHaveBeenCalledWith({ type: "BUY_RELIGION_UPGRADE", name: "solarchant" });
   });
 
-  it("shows Maxed state when ziggurat upgrade cost exceeds current storage", () => {
+  it("keeps Buy button and marks it storage-limited when ziggurat upgrade cost exceeds current storage", () => {
     const state = makeState(
       { zu: { unicornTomb: { val: 0, on: 0, unlocked: true } } },
       { ivory: { value: 0, maxValue: 250 }, tears: { value: 0, maxValue: 1 } },
     );
     render(<ReligionPanel state={state} />);
-    expect(screen.getByTestId("zu-unicornTomb-maxed").textContent).toMatch(/maxed/i);
-    expect(screen.queryByTestId("zu-unicornTomb-buy")).toBeNull();
+    const btn = screen.getByTestId("zu-unicornTomb-buy");
+    expect(btn.textContent).toBe("Buy");
+    expect(btn.className).toMatch(/btn--limited/);
+    expect(btn.hasAttribute("disabled")).toBe(true);
   });
 
   it("shows transcendence tier", () => {

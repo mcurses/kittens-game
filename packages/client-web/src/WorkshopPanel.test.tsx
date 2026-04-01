@@ -129,15 +129,17 @@ describe("WorkshopPanel", () => {
     expect(btn.hasAttribute("disabled")).toBe(false);
   });
 
-  it("shows Maxed state when upgrade cost exceeds current storage", () => {
+  it("keeps Purchase button and marks it storage-limited when upgrade cost exceeds current storage", () => {
     const state = makeState(
       { mineralHoes: { unlocked: true, researched: false } },
       {},
       { minerals: { value: 0, maxValue: 200 }, science: { value: 0, maxValue: 80 } },
     );
     render(<WithInspector><WorkshopPanel state={state} /></WithInspector>);
-    expect(screen.getByTestId("upgrade-mineralHoes-maxed").textContent).toMatch(/maxed/i);
-    expect(screen.queryByRole("button", { name: /purchase/i })).toBeNull();
+    const btn = screen.getByTestId("upgrade-mineralHoes-purchase");
+    expect(btn.textContent).toBe("Purchase");
+    expect(btn.className).toMatch(/btn--limited/);
+    expect(btn.hasAttribute("disabled")).toBe(true);
   });
 
   it("renders unlocked crafts with Craft button", () => {

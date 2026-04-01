@@ -10,6 +10,7 @@ import {
   type ZigguratUpgradeEntity,
   useInspector,
 } from "./InspectorContext.js";
+import { isStorageLimited } from "./utils.js";
 
 const TICKS_PER_SECOND = 5;
 
@@ -248,7 +249,7 @@ function PricesSection({
 }: {
   prices: Array<{ name: string; val: number }>;
   label: string;
-  resources?: Record<string, { value: number; perTick?: number }>;
+  resources?: Record<string, { value: number; maxValue?: number; perTick?: number }>;
 }): React.ReactElement | null {
   if (prices.length === 0) return null;
   return (
@@ -261,21 +262,26 @@ function PricesSection({
           const need = p.val;
           const perTick = res?.perTick;
           const affordable = have >= need;
+          const storageLimited = isStorageLimited([p], resources);
           const shortfall = need - have;
           const ticksNeeded =
-            !affordable && perTick && perTick > 0
+            !affordable && !storageLimited && perTick && perTick > 0
               ? shortfall / perTick
               : null;
 
           return (
-            <div key={p.name} className="inspector-stat-row inspector-price-row">
+            <div
+              key={p.name}
+              className={`inspector-stat-row inspector-price-row${storageLimited ? " inspector-price-row--limited" : ""}`}
+              data-testid={`inspector-price-${p.name}${storageLimited ? "-limited" : ""}`}
+            >
               <dt className="inspector-price-name">{p.name}</dt>
               <dd className="inspector-price-detail">
                 <span className={affordable ? "stat-pos" : "stat-neg"}>
                   {formatValue(have)}
                 </span>
                 <span className="inspector-price-sep"> / </span>
-                <span>{formatValue(need)}</span>
+                <span>{formatValue(need)}{storageLimited ? "*" : ""}</span>
                 {ticksNeeded !== null && (
                   <span className="inspector-price-eta">
                     {" "}~{formatDuration(ticksNeeded / TICKS_PER_SECOND)}
@@ -286,6 +292,11 @@ function PricesSection({
           );
         })}
       </dl>
+      {isStorageLimited(prices, resources) && (
+        <div className="inspector-notice inspector-notice--warn">
+          * Limited by current storage
+        </div>
+      )}
     </div>
   );
 }

@@ -163,12 +163,11 @@ export function WorkshopPanel({ state }: Props): React.ReactElement {
                 <div className="item-row-actions">
                   {u.researched ? (
                     <span className="done-badge upgrade-done">✓ Done</span>
-                  ) : storageLimited ? (
-                    <span className="limit-badge" data-testid={`upgrade-${u.name}-maxed`}>Maxed</span>
                   ) : (
                     <button
                       type="button"
-                      className={`btn btn--sm${affordable ? " btn--primary" : " btn--secondary"}`}
+                      data-testid={`upgrade-${u.name}-purchase`}
+                      className={`btn btn--sm${affordable ? " btn--primary" : " btn--secondary"}${storageLimited ? " btn--limited" : ""}`}
                       disabled={isPending || !affordable}
                       onClick={() => mutate({ type: "PURCHASE_UPGRADE", name: u.name })}
                     >

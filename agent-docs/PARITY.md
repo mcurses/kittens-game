@@ -323,7 +323,7 @@ Root cause: `legacy-migration.ts:migrateTime()` used `bool(item.unlocked)` which
 | **Workshop craft effectiveness header missing** | ✅ Fixed in Epic 35-01: WorkshopPanel shows `+N% effectiveness` banner when `effectCache.craftRatio > 0`. |
 | **Hide researched toggle missing in Workshop** | ✅ Fixed in Epic 35-03: WorkshopPanel exposes `usePersistentUiState("workshop:hideResearched")` checkbox; researched upgrades filtered when enabled. |
 | **Hide researched toggle missing in Science** | ✅ Fixed in Epic 35-03: SciencePanel exposes `usePersistentUiState("science:hideResearched")` checkbox; researched techs filtered when enabled. |
-| **Maxed-out storage-limited state missing in priced UI** | ✅ Fixed in Epic 35-05: client resource extraction now preserves `maxValue`; shared `isStorageLimited()` logic marks actions as `Maxed` when a price exceeds current storage cap. Wired into Buildings, Science, Workshop, Space, Time, and Religion priced actions. |
+| **Storage-limited priced actions were not distinguished from ordinary unaffordability** | ✅ Fixed in Epic 35-05: client resource extraction now preserves `maxValue`; shared `isStorageLimited()` logic marks storage-limited controls separately from normal disabled actions. Wired into Buildings, Science, Workshop, Space, Time, and Religion, with inspector price-line highlighting for the capped resource. |
 | **Mechanization craft details missing** | Legacy mechanization UI exposes per-craft engineer allocation, progress percentage, tier bonus, and throughput/countdown. Blocked on engineer-state engine work. ❌ Deferred (Story 35-02). |
 
 ---

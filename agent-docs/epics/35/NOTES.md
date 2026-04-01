@@ -72,6 +72,6 @@ Several QoL surfaces depend on engine support that does not yet exist in the rew
 The rewrite does not yet port the full recursive craftable-resource branch from legacy `isStorageLimited()`; Story 35-05 implements the core storage-cap rule for direct priced actions:
 
 - `price.val === Infinity` is always limited
-- if `maxValue > 0` and `price.val > maxValue` and `price.val > value`, render `Maxed`
+- if `maxValue > 0` and `price.val > maxValue` and `price.val > value`, mark the control and matching price line as storage-limited
 
-That covers the core player-facing parity complaint for buildings, techs, upgrades, missions, CFUs/VSUs, and religion purchases.
+The first attempt rendered a row-level `Maxed` badge, which was too blunt. Legacy actually keeps the normal button label, leaves the button disabled, adds limited styling to that control, and marks the specific price line with an asterisk/highlight. The current implementation follows that narrower model for buildings, techs, upgrades, missions, CFUs/VSUs, and religion purchases.

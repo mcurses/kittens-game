@@ -166,18 +166,15 @@ export function BuildingsPanel({ state }: Props): React.ReactElement {
                       </button>
                     </>
                   )}
-                  {storageLimited ? (
-                    <span className="limit-badge" data-testid={`building-${b.name}-maxed`}>Maxed</span>
-                  ) : (
-                    <button
-                      type="button"
-                      className={`btn btn--sm${affordable ? " btn--primary" : " btn--secondary"}`}
-                      disabled={isPending || !affordable}
-                      onClick={() => mutate({ type: "BUY_BUILDING", name: b.name })}
-                    >
-                      Buy
-                    </button>
-                  )}
+                  <button
+                    type="button"
+                    data-testid={`building-${b.name}-buy`}
+                    className={`btn btn--sm${affordable ? " btn--primary" : " btn--secondary"}${storageLimited ? " btn--limited" : ""}`}
+                    disabled={isPending || !affordable}
+                    onClick={() => mutate({ type: "BUY_BUILDING", name: b.name })}
+                  >
+                    Buy
+                  </button>
                 </div>
               </li>
             );

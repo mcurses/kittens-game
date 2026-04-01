@@ -118,7 +118,7 @@ describe("SpacePanel", () => {
     expect(mockMutate).toHaveBeenCalledWith({ type: "BUY_SPACE_BUILDING", name: "moonBase" });
   });
 
-  it("shows Maxed state when mission cost exceeds current storage", () => {
+  it("keeps Launch button and marks it storage-limited when mission cost exceeds current storage", () => {
     const state = makeState(
       { programs: { moonMission: { val: 0, on: 0, unlocked: true } } },
       {
@@ -129,8 +129,10 @@ describe("SpacePanel", () => {
       },
     );
     render(<SpacePanel state={state} />);
-    expect(screen.getByTestId("program-moonMission-maxed").textContent).toMatch(/maxed/i);
-    expect(screen.queryByTestId("program-moonMission-launch")).toBeNull();
+    const btn = screen.getByTestId("program-moonMission-launch");
+    expect(btn.textContent).toBe("Launch");
+    expect(btn.className).toMatch(/btn--limited/);
+    expect(btn.hasAttribute("disabled")).toBe(true);
   });
 
   it("renders panel when state has no space key", () => {

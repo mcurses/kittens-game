@@ -120,12 +120,11 @@ export function SciencePanel({ state }: Props): React.ReactElement {
                 <div className="item-row-actions">
                   {t.researched ? (
                     <span className="done-badge tech-done">✓ Done</span>
-                  ) : storageLimited ? (
-                    <span className="limit-badge" data-testid={`tech-${t.name}-maxed`}>Maxed</span>
                   ) : (
                     <button
                       type="button"
-                      className={`btn btn--sm${affordable ? " btn--primary" : " btn--secondary"}`}
+                      data-testid={`tech-${t.name}-research`}
+                      className={`btn btn--sm${affordable ? " btn--primary" : " btn--secondary"}${storageLimited ? " btn--limited" : ""}`}
                       disabled={isPending || !affordable}
                       onClick={() => mutate({ type: "RESEARCH", name: t.name })}
                     >

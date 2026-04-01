@@ -630,7 +630,7 @@ Stories: 4 complete + 1 partial (deferred)
 - [ ] Story 35-02: Mechanization craft controls — deferred, requires engineer-assignment engine state not yet implemented
 - [x] Story 35-03: Hide-researched/complete toggles — Science, Workshop, and Space panels each expose persistent localStorage-backed toggles
 - [x] Story 35-04: Trade multi-send shortcuts — ×5 and ×25 buttons added to DiplomacyPanel; TRADE action extended with optional `amount`
-- [x] Story 35-05: Storage-limited maxed-out state — shared client `isStorageLimited()` check added; Buildings, Science, Workshop, Space, Time, and Religion now render explicit `Maxed` state when price exceeds current storage cap
+- [x] Story 35-05: Storage-limited action highlighting — shared client `isStorageLimited()` check added; Buildings, Science, Workshop, Space, Time, and Religion now keep normal action labels while marking storage-limited controls and inspector price lines
 
 Engine changes:
 - `packages/engine/src/actions.ts`: TRADE action gains optional `amount` field; action handler loops `applyTrade` N times
