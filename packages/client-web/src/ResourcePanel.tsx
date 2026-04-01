@@ -99,6 +99,7 @@ export function ResourcePanel({ state }: Props): React.ReactElement {
               resource={r}
               breakdown={getResourceBreakdown(effectCache, r.name)}
               showPerSecond={showPerSecond}
+              {...(r.name === "catnip" && "catnipDemandRatio" in effectCache ? { demandRatio: effectCache.catnipDemandRatio } : {})}
             />
           ))
         )}
@@ -111,10 +112,12 @@ function ResourceItem({
   resource,
   breakdown,
   showPerSecond,
+  demandRatio,
 }: {
   resource: ResourceEntry;
   breakdown: ResourceBreakdown;
   showPerSecond: boolean;
+  demandRatio?: number | undefined;
 }): React.ReactElement {
   const { setInspected, clearInspected } = useInspector();
 
@@ -166,8 +169,13 @@ function ResourceItem({
         <span className="resource-name">{resource.name}</span>
         <span className="resource-values">
           <span className="resource-value">{formatValue(resource.value)}</span>
-          {resource.maxValue !== undefined && (
+          {resource.maxValue !== undefined && resource.maxValue > 0 && (
             <span className="resource-max">/{formatValue(resource.maxValue)}</span>
+          )}
+          {demandRatio !== undefined && demandRatio < 0 && (
+            <span className="resource-demand" title="Demand reduction">
+              {Math.round(demandRatio * 100)}%
+            </span>
           )}
         </span>
       </div>

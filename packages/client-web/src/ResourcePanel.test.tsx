@@ -233,3 +233,29 @@ describe("ResourcePanel", () => {
     expect(screen.getByTestId("resource-minerals")).toBeTruthy();
   });
 });
+
+// ── Epic 32 Story 32-08: Resource maxValue display ──────────────────────────
+
+describe("Story 32-08: Resource maxValue and demand display", () => {
+  it("does not show /0 when maxValue is 0 (uncapped resource)", () => {
+    const state = makeState({ catnip: { value: 10, maxValue: 0 } });
+    render(<WithInspector><ResourcePanel state={state} /></WithInspector>);
+    expect(screen.queryByText(/\/0/)).toBeNull();
+  });
+
+  it("shows cap when maxValue is positive", () => {
+    const state = makeState({ catnip: { value: 10, maxValue: 5000 } });
+    render(<WithInspector><ResourcePanel state={state} /></WithInspector>);
+    expect(screen.getByText(/5000/)).toBeTruthy();
+  });
+
+  it("shows catnip demand reduction when catnipDemandRatio < 0", () => {
+    const state = makeState(
+      { catnip: { value: 10 } },
+      { catnipDemandRatio: -0.15 },
+    );
+    render(<WithInspector><ResourcePanel state={state} /></WithInspector>);
+    // Should show some demand reduction indicator on the catnip row
+    expect(screen.getByTestId("resource-catnip").textContent).toMatch(/-15%|-0\.15|demand/i);
+  });
+});
