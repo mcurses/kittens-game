@@ -4,6 +4,7 @@ import { PROGRAM_DEFS, SPACE_BUILDING_DEFS } from "@kittens/engine";
 import React from "react";
 import { useSlot } from "./SlotContext.js";
 import { useGameAction } from "./useGameAction.js";
+import { usePersistentUiState } from "./usePersistentUiState.js";
 import { canAfford, extractResources } from "./utils.js";
 
 interface ProgramEntry { name: string; val: number; on: number; unlocked: boolean; }
@@ -41,6 +42,10 @@ function extractSpace(state: GameStateResponse): { programs: ProgramEntry[]; spa
 export function SpacePanel({ state }: Props): React.ReactElement {
   const slot = useSlot();
   const { mutate, isPending } = useGameAction(slot);
+  const [hideComplete, setHideComplete] = usePersistentUiState<boolean>(
+    "space:hideComplete",
+    false,
+  );
 
   if (!state) {
     return <div className="loading-text" data-testid="space-panel-loading">Loading…</div>;
@@ -48,6 +53,8 @@ export function SpacePanel({ state }: Props): React.ReactElement {
 
   const { programs, spaceBuildings } = extractSpace(state);
   const resources = extractResources(state);
+
+  const visiblePrograms = hideComplete ? programs.filter((p) => p.val === 0) : programs;
 
   if (programs.length === 0 && spaceBuildings.length === 0) {
     return (
@@ -62,8 +69,17 @@ export function SpacePanel({ state }: Props): React.ReactElement {
       {programs.length > 0 && (
         <>
           <div className="panel-label">Missions</div>
+          <label className="toggle-label" data-testid="space-hide-complete-label">
+            <input
+              type="checkbox"
+              data-testid="space-hide-complete"
+              checked={hideComplete}
+              onChange={(e) => setHideComplete(e.target.checked)}
+            />
+            {" Hide complete"}
+          </label>
           <ul className="item-list">
-            {programs.map((p) => {
+            {visiblePrograms.map((p) => {
               const def = PROGRAM_DEFS.find((d) => d.name === p.name);
               const prices = def?.prices ?? [];
               const affordable = canAfford(prices, resources);

@@ -1317,3 +1317,31 @@ Factory mode visibility is now engine-owned and only appears after `carbonSeques
 - [ ] Add fixture-backed smelter tests for stock-limited runtime scaling and iron-will auto-disable behavior
 - [ ] Decide whether steamworks offline `daysOffset` parity should be modeled explicitly or documented as intentionally unsupported in the server tick model
 - [ ] Consider adding higher-branch coverage fixtures for `ui-visibility.ts` once the next parity-facing epic touches it
+
+## Epic 35 — UI QoL Parity — 2026-04-01
+
+| Dimension | Score | Notes |
+|-----------|-------|-------|
+| Test coverage (≥90% target) | 5 | engine 99.1%, client-web 96.5%, server 95.1%, api-spec 100% |
+| No skipped tests / no TODOs | 5 | Zero `any`, zero TODOs, zero skipped tests |
+| Feature parity | 4 | 35-01/35-03 complete; 35-04 partial (fixed ×5/×25 not dynamic); 35-02 deferred (engine state missing) |
+| API spec completeness | 5 | All GameAction types in schema; TRADE `amount` added |
+| Code quality (no `any`) | 5 | No `any` in non-test code |
+| Docs freshness (PROGRESS, DECISIONS, PARITY) | 5 | PARITY.md, PROGRESS.md, EPICS.md, STORIES.md all updated |
+| Commit hygiene | 4 | One batch commit at end of epic |
+| **Overall average** | **4.7** | |
+
+### What went well
+- Test-first approach caught the `getByText(/research/i)` ambiguity immediately after adding the hide-researched label
+- `usePersistentUiState` hook already existed and dropped in perfectly for all 3 toggle stories
+- Build failure from `exactOptionalPropertyTypes` caught and fixed immediately (TRADE `amount` type compatibility)
+- `computeCraftShortcuts` formula matches legacy `left.jsx.js` exactly: `[max(1,1%), max(25,5%), max(100,10%), All]`
+
+### What to improve
+- Legacy trade shortcuts are dynamic (floor(max/2) and floor(max/5)), not fixed ×5/×25 — should be a future story
+- Story 35-02 (mechanization) is a large feature gap blocked on engineer-state engine work; should be filed as a future epic prerequisite
+
+### Action items for next epic
+- File a story for dynamic trade shortcuts (tradeHalf / tradeFifth matching legacy `getMaxTradeAmt`)
+- File an engine story for per-craft engineer-assignment state (prerequisite for Story 35-02)
+- Consider adding `percentageMode` setting support to craft shortcut labels

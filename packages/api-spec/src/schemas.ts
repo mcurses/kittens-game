@@ -58,7 +58,7 @@ export const GameActionRequestSchema = z.discriminatedUnion("type", [
   z.object({ type: z.literal("LAUNCH_MISSION"), name: s }),
   z.object({ type: z.literal("BUY_SPACE_BUILDING"), name: s }),
   z.object({ type: z.literal("SEND_EMBASSY"), name: s }),
-  z.object({ type: z.literal("TRADE"), name: s }),
+  z.object({ type: z.literal("TRADE"), name: s, amount: n.optional() }),
   z.object({ type: z.literal("BUY_CFU"), name: s }),
   z.object({ type: z.literal("BUY_VSU"), name: s }),
   z.object({ type: z.literal("SHATTER_TC") }),

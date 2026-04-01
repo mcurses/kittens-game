@@ -1,11 +1,12 @@
 // WorkshopPanel — displays upgrades and craftable resources with costs
 import type { GameStateResponse } from "@kittens/api-spec";
-import { UPGRADE_DEFS } from "@kittens/engine";
+import { CRAFT_DEFS, UPGRADE_DEFS } from "@kittens/engine";
 import React from "react";
 import { useInspector } from "./InspectorContext.js";
 import { useSlot } from "./SlotContext.js";
 import { useGameAction } from "./useGameAction.js";
-import { canAfford, extractResources } from "./utils.js";
+import { usePersistentUiState } from "./usePersistentUiState.js";
+import { type ResourceMap, canAfford, extractEffectCache, extractResources } from "./utils.js";
 
 interface UpgradeEntry {
   name: string;
@@ -59,10 +60,32 @@ function extractCrafts(state: GameStateResponse): CraftEntry[] {
     .filter((e): e is CraftEntry => e !== null && e.unlocked);
 }
 
+/** Story 35-01: Compute adaptive craft shortcut amounts matching legacy left.jsx logic. */
+function computeCraftShortcuts(craftName: string, resources: ResourceMap): [number, number, number, number] {
+  const def = CRAFT_DEFS.find((d) => d.name === craftName);
+  if (!def || def.prices.length === 0) return [1, 25, 100, 0];
+  let all = Infinity;
+  for (const p of def.prices) {
+    const v = resources[p.name]?.value ?? 0;
+    all = Math.min(all, Math.floor(v / p.val));
+  }
+  const n = all === Infinity ? 0 : all;
+  return [
+    Math.max(1, Math.floor(n * 0.01)),
+    Math.max(25, Math.floor(n * 0.05)),
+    Math.max(100, Math.floor(n * 0.1)),
+    n,
+  ];
+}
+
 export function WorkshopPanel({ state }: Props): React.ReactElement {
   const slot = useSlot();
   const { mutate, isPending } = useGameAction(slot);
   const { setInspected, clearInspected } = useInspector();
+  const [hideResearched, setHideResearched] = usePersistentUiState<boolean>(
+    "workshop:hideResearched",
+    false,
+  );
 
   if (!state) {
     return <div className="loading-text" data-testid="workshop-panel-loading">Loading…</div>;
@@ -71,15 +94,28 @@ export function WorkshopPanel({ state }: Props): React.ReactElement {
   const upgrades = extractUpgrades(state);
   const crafts = extractCrafts(state);
   const resources = extractResources(state);
+  const effectCache = extractEffectCache(state);
+  const craftRatio = effectCache.craftRatio ?? 0;
+
+  const visibleUpgrades = hideResearched ? upgrades.filter((u) => !u.researched) : upgrades;
 
   return (
     <div data-testid="workshop-panel">
       <div className="panel-label">Upgrades</div>
-      {upgrades.length === 0 ? (
+      <label className="toggle-label" data-testid="workshop-hide-researched-label">
+        <input
+          type="checkbox"
+          data-testid="workshop-hide-researched"
+          checked={hideResearched}
+          onChange={(e) => setHideResearched(e.target.checked)}
+        />
+        {" Hide researched"}
+      </label>
+      {visibleUpgrades.length === 0 ? (
         <p className="panel-empty">No upgrades available.</p>
       ) : (
         <ul className="item-list">
-          {upgrades.map((u) => {
+          {visibleUpgrades.map((u) => {
             const def = UPGRADE_DEFS.find((d) => d.name === u.name);
             const prices = def?.prices ?? [];
             const affordable = canAfford(prices, resources);
@@ -145,26 +181,68 @@ export function WorkshopPanel({ state }: Props): React.ReactElement {
 
       {crafts.length > 0 && (
         <div className="panel-subsection">
-          <div className="panel-sublabel">Crafting</div>
+          <div className="panel-sublabel">
+            Crafting
+            {craftRatio > 0 && (
+              <span
+                className="craft-effectiveness"
+                data-testid="craft-effectiveness"
+              >
+                {" "}(+{Math.round(craftRatio * 100)}% effectiveness)
+              </span>
+            )}
+          </div>
           <ul className="item-list">
-            {crafts.map((c) => (
-              <li key={c.name} data-testid={`craft-${c.name}`} className="item-row">
-                <span className="item-row-name craft-name">{c.name}</span>
-                <div className="craft-amounts">
-                  {([1, 5, 25, 100] as const).map((amt) => (
+            {crafts.map((c) => {
+              const [s1, s2, s3, all] = computeCraftShortcuts(c.name, resources);
+              return (
+                <li key={c.name} data-testid={`craft-${c.name}`} className="item-row">
+                  <span className="item-row-name craft-name">{c.name}</span>
+                  <div className="craft-amounts">
                     <button
-                      key={amt}
+                      key="s1"
                       type="button"
+                      data-testid={`craft-${c.name}-s1`}
                       className="btn btn--secondary btn--xs"
                       disabled={isPending}
-                      onClick={() => mutate({ type: "CRAFT", name: c.name, amount: amt })}
+                      onClick={() => mutate({ type: "CRAFT", name: c.name, amount: s1 })}
                     >
-                      ×{amt}
+                      ×{s1}
                     </button>
-                  ))}
-                </div>
-              </li>
-            ))}
+                    <button
+                      key="s2"
+                      type="button"
+                      data-testid={`craft-${c.name}-s2`}
+                      className="btn btn--secondary btn--xs"
+                      disabled={isPending}
+                      onClick={() => mutate({ type: "CRAFT", name: c.name, amount: s2 })}
+                    >
+                      ×{s2}
+                    </button>
+                    <button
+                      key="s3"
+                      type="button"
+                      data-testid={`craft-${c.name}-s3`}
+                      className="btn btn--secondary btn--xs"
+                      disabled={isPending}
+                      onClick={() => mutate({ type: "CRAFT", name: c.name, amount: s3 })}
+                    >
+                      ×{s3}
+                    </button>
+                    <button
+                      key="all"
+                      type="button"
+                      data-testid={`craft-${c.name}-all`}
+                      className="btn btn--secondary btn--xs"
+                      disabled={isPending}
+                      onClick={() => mutate({ type: "CRAFT", name: c.name, amount: all })}
+                    >
+                      All
+                    </button>
+                  </div>
+                </li>
+              );
+            })}
           </ul>
         </div>
       )}

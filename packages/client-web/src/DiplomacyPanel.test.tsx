@@ -128,3 +128,33 @@ describe("Story 32-05: Trade economics and relationship display", () => {
     expect(sells.textContent).toMatch(/wood/i);
   });
 });
+
+// ── Story 35-04: Trade multi-send shortcuts ───────────────────────────────────
+
+describe("Story 35-04: Trade multi-send shortcuts", () => {
+  it("shows trade ×5 button for each race", () => {
+    const state = makeState({ races: { zebras: { unlocked: true, embassyLevel: 1 } } });
+    render(<DiplomacyPanel state={state} />);
+    expect(screen.getByTestId("race-zebras-trade5")).toBeTruthy();
+  });
+
+  it("shows trade ×25 button for each race", () => {
+    const state = makeState({ races: { zebras: { unlocked: true, embassyLevel: 1 } } });
+    render(<DiplomacyPanel state={state} />);
+    expect(screen.getByTestId("race-zebras-trade25")).toBeTruthy();
+  });
+
+  it("dispatches TRADE with amount:5 when ×5 is clicked", () => {
+    const state = makeState({ races: { zebras: { unlocked: true, embassyLevel: 1 } } });
+    render(<DiplomacyPanel state={state} />);
+    fireEvent.click(screen.getByTestId("race-zebras-trade5"));
+    expect(mockMutate).toHaveBeenCalledWith({ type: "TRADE", name: "zebras", amount: 5 });
+  });
+
+  it("dispatches TRADE with amount:25 when ×25 is clicked", () => {
+    const state = makeState({ races: { zebras: { unlocked: true, embassyLevel: 1 } } });
+    render(<DiplomacyPanel state={state} />);
+    fireEvent.click(screen.getByTestId("race-zebras-trade25"));
+    expect(mockMutate).toHaveBeenCalledWith({ type: "TRADE", name: "zebras", amount: 25 });
+  });
+});

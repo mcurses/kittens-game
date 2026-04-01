@@ -619,3 +619,26 @@ Current parity note:
 - Smelter toggle parity briefly regressed because legacy toggleability is split across building defs and `legacy/core.js` controller defaults. Future control-surface audits must trace both.
 - Steamworks automation now runs on legacy-faithful calendar boundaries: yearly by default, plus an autumn batch when `advancedAutomation` is researched.
 - Factory carbon-sequestration mode now defaults on when researched, persists through save/load, uses engine-owned visibility rules, and matches legacy energy/pollution switching.
+
+---
+
+## Epic 35: UI QoL Parity
+**Status:** Complete | **Started:** 2026-04-01 | **Finished:** 2026-04-01
+Stories: 2 fully complete + 2 partially complete (1 deferred)
+
+- [x] Story 35-01: Adaptive craft shortcuts — `max(1,1%)`, `max(25,5%)`, `max(100,10%)`, `All` buttons computed from live resources; global craft effectiveness `+N%` banner
+- [ ] Story 35-02: Mechanization craft controls — deferred, requires engineer-assignment engine state not yet implemented
+- [x] Story 35-03: Hide-researched/complete toggles — Science, Workshop, and Space panels each expose persistent localStorage-backed toggles
+- [x] Story 35-04: Trade multi-send shortcuts — ×5 and ×25 buttons added to DiplomacyPanel; TRADE action extended with optional `amount`
+
+Engine changes:
+- `packages/engine/src/actions.ts`: TRADE action gains optional `amount` field; action handler loops `applyTrade` N times
+- `packages/engine/src/buildings.ts`: `effectsBase` base storage caps (catnipMax:5000, woodMax:200, etc.) added to `BuildingManager.updateEffects()`
+- Fixed 4 test regressions from effectsBase: harbor goldMax baseline, 3 steamworks parity tests requiring full-capacity resources
+
+Client-web tests: 325 passing | Line coverage: 96.5%
+Total: 1376 tests across all packages
+
+Parity gaps noted:
+- Legacy trade shortcuts are dynamic (50% / 20% of max affordable), not fixed ×5/×25 — filed for future epic
+- Story 35-02 mechanization requires engineer-state engine work before UI can be implemented

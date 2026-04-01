@@ -5,6 +5,7 @@ import React from "react";
 import { useInspector } from "./InspectorContext.js";
 import { useSlot } from "./SlotContext.js";
 import { useGameAction } from "./useGameAction.js";
+import { usePersistentUiState } from "./usePersistentUiState.js";
 import { canAfford, extractResources } from "./utils.js";
 
 interface TechEntry {
@@ -41,6 +42,10 @@ export function SciencePanel({ state }: Props): React.ReactElement {
   const slot = useSlot();
   const { mutate, isPending } = useGameAction(slot);
   const { setInspected, clearInspected } = useInspector();
+  const [hideResearched, setHideResearched] = usePersistentUiState<boolean>(
+    "science:hideResearched",
+    false,
+  );
 
   if (!state) {
     return <div className="loading-text" data-testid="science-panel-loading">Loading…</div>;
@@ -49,14 +54,25 @@ export function SciencePanel({ state }: Props): React.ReactElement {
   const techs = extractTechs(state);
   const resources = extractResources(state);
 
+  const visibleTechs = hideResearched ? techs.filter((t) => !t.researched) : techs;
+
   return (
     <div data-testid="science-panel">
       <div className="panel-label">Technologies</div>
-      {techs.length === 0 ? (
+      <label className="toggle-label" data-testid="science-hide-researched-label">
+        <input
+          type="checkbox"
+          data-testid="science-hide-researched"
+          checked={hideResearched}
+          onChange={(e) => setHideResearched(e.target.checked)}
+        />
+        {" Hide researched"}
+      </label>
+      {visibleTechs.length === 0 ? (
         <p className="panel-empty">No technologies available.</p>
       ) : (
         <ul className="item-list">
-          {techs.map((t) => {
+          {visibleTechs.map((t) => {
             const def = TECH_DEFS.find((d) => d.name === t.name);
             const prices = def?.prices ?? [];
             const affordable = canAfford(prices, resources);

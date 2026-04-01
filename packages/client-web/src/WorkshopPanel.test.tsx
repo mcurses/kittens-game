@@ -142,11 +142,12 @@ describe("WorkshopPanel", () => {
     expect(mockMutate).toHaveBeenCalledWith({ type: "CRAFT", name: "beam", amount: 1 });
   });
 
-  it("dispatches CRAFT with amount:5 when Craft ×5 is clicked", () => {
-    const state = makeState({}, { beam: { unlocked: true } });
+  it("dispatches CRAFT with All-count when All is clicked", () => {
+    // beam costs 175 wood each; 350 wood → craftAll=2
+    const state = makeState({}, { beam: { unlocked: true } }, { wood: { value: 350 } });
     render(<WithInspector><WorkshopPanel state={state} /></WithInspector>);
-    fireEvent.click(screen.getByText("×5", { exact: true }));
-    expect(mockMutate).toHaveBeenCalledWith({ type: "CRAFT", name: "beam", amount: 5 });
+    fireEvent.click(screen.getByTestId("craft-beam-all"));
+    expect(mockMutate).toHaveBeenCalledWith({ type: "CRAFT", name: "beam", amount: 2 });
   });
 
   it("dispatches CRAFT with amount:25 when Craft ×25 is clicked", () => {
@@ -161,5 +162,89 @@ describe("WorkshopPanel", () => {
     render(<WithInspector><WorkshopPanel state={state} /></WithInspector>);
     fireEvent.click(screen.getByText("×100", { exact: true }));
     expect(mockMutate).toHaveBeenCalledWith({ type: "CRAFT", name: "beam", amount: 100 });
+  });
+});
+
+// ── Story 35-01: Workshop craft shortcut parity ──────────────────────────────
+
+describe("Story 35-01: Workshop craft shortcut parity", () => {
+  it("shows All button for each craft", () => {
+    const state = makeState({}, { beam: { unlocked: true } });
+    render(<WithInspector><WorkshopPanel state={state} /></WithInspector>);
+    expect(screen.getByTestId("craft-beam-all")).toBeTruthy();
+    expect(screen.getByTestId("craft-beam-all").textContent).toBe("All");
+  });
+
+  it("craft s1 adapts to available resources (beam: 1% of max batches, min 1)", () => {
+    // 175000 wood → 1000 beams; s1=max(1,10)=10
+    const state = makeState({}, { beam: { unlocked: true } }, { wood: { value: 175000 } });
+    render(<WithInspector><WorkshopPanel state={state} /></WithInspector>);
+    expect(screen.getByTestId("craft-beam-s1").textContent).toBe("×10");
+  });
+
+  it("craft s1 defaults to 1 when resources are 0", () => {
+    const state = makeState({}, { beam: { unlocked: true } });
+    render(<WithInspector><WorkshopPanel state={state} /></WithInspector>);
+    expect(screen.getByTestId("craft-beam-s1").textContent).toBe("×1");
+  });
+
+  it("All button dispatches with craftAllCount", () => {
+    // 350 wood → 2 beams
+    const state = makeState({}, { beam: { unlocked: true } }, { wood: { value: 350 } });
+    render(<WithInspector><WorkshopPanel state={state} /></WithInspector>);
+    fireEvent.click(screen.getByTestId("craft-beam-all"));
+    expect(mockMutate).toHaveBeenCalledWith({ type: "CRAFT", name: "beam", amount: 2 });
+  });
+
+  it("shows craft effectiveness when craftRatio is present in state", () => {
+    const state = {
+      ...makeState({}, { beam: { unlocked: true } }),
+      effectCache: { craftRatio: 0.3 },
+    } as unknown as import("@kittens/api-spec").GameStateResponse;
+    render(<WithInspector><WorkshopPanel state={state} /></WithInspector>);
+    expect(screen.getByTestId("craft-effectiveness")).toBeTruthy();
+    expect(screen.getByTestId("craft-effectiveness").textContent).toMatch(/30%/);
+  });
+
+  it("does not show craft effectiveness when craftRatio is 0 or absent", () => {
+    const state = makeState({}, { beam: { unlocked: true } });
+    render(<WithInspector><WorkshopPanel state={state} /></WithInspector>);
+    expect(screen.queryByTestId("craft-effectiveness")).toBeNull();
+  });
+});
+
+// ── Story 35-03: Hide-complete toggles ───────────────────────────────────────
+
+describe("Story 35-03: Workshop hide-researched toggle", () => {
+  it("shows hide-researched checkbox", () => {
+    const state = makeState({ mineralHoes: { unlocked: true, researched: false } });
+    render(<WithInspector><WorkshopPanel state={state} /></WithInspector>);
+    expect(screen.getByTestId("workshop-hide-researched")).toBeTruthy();
+  });
+
+  it("hide-researched toggle hides researched upgrades when checked", () => {
+    const state = makeState({
+      mineralHoes: { unlocked: true, researched: true },
+      ironHoes: { unlocked: true, researched: false },
+    });
+    render(<WithInspector><WorkshopPanel state={state} /></WithInspector>);
+    // Initially shows both
+    expect(screen.getByTestId("upgrade-mineralHoes")).toBeTruthy();
+    // Check the toggle
+    fireEvent.click(screen.getByTestId("workshop-hide-researched"));
+    // mineralHoes is now hidden (researched); ironHoes still visible
+    expect(screen.queryByTestId("upgrade-mineralHoes")).toBeNull();
+    expect(screen.getByTestId("upgrade-ironHoes")).toBeTruthy();
+  });
+
+  it("hide-researched toggle shows all when unchecked", () => {
+    const state = makeState({
+      mineralHoes: { unlocked: true, researched: true },
+    });
+    render(<WithInspector><WorkshopPanel state={state} /></WithInspector>);
+    const toggle = screen.getByTestId("workshop-hide-researched");
+    fireEvent.click(toggle); // hide
+    fireEvent.click(toggle); // show again
+    expect(screen.getByTestId("upgrade-mineralHoes")).toBeTruthy();
   });
 });

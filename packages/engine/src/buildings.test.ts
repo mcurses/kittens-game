@@ -179,6 +179,39 @@ describe("BuildingManager", () => {
   const manager = new BuildingManager();
 
   describe("updateEffects", () => {
+    it("includes base storage caps (effectsBase) even with no buildings built", () => {
+      const state = createInitialState();
+      const effects = manager.updateEffects(state);
+      expect(effects.catnipMax).toBe(5000);
+      expect(effects.woodMax).toBe(200);
+      expect(effects.mineralsMax).toBe(250);
+      expect(effects.coalMax).toBe(60);
+      expect(effects.ironMax).toBe(50);
+      expect(effects.titaniumMax).toBe(2);
+      expect(effects.goldMax).toBe(10);
+      expect(effects.oilMax).toBe(1500);
+      expect(effects.uraniumMax).toBe(250);
+      expect(effects.unobtainiumMax).toBe(150);
+      expect(effects.antimatterMax).toBe(100);
+      expect(effects.manpowerMax).toBe(100);
+      expect(effects.scienceMax).toBe(250);
+      expect(effects.cultureMax).toBe(100);
+      expect(effects.faithMax).toBe(100);
+    });
+
+    it("stacks base storage with building contributions", () => {
+      const state = {
+        ...createInitialState(),
+        buildings: {
+          ...createInitialBuildings(),
+          barn: { val: 1, on: 1 },
+        },
+      };
+      const effects = manager.updateEffects(state);
+      // base 5000 + barn 5000 = 10000
+      expect(effects.catnipMax).toBe(10000);
+    });
+
     it("returns catnipPerTickBase for fields (non-Max effect uses on)", () => {
       const state = {
         ...createInitialState(),
@@ -200,7 +233,8 @@ describe("BuildingManager", () => {
         },
       };
       const effects = manager.updateEffects(state);
-      expect(effects.catnipMax).toBe(5000 * 2);
+      // base 5000 + barn val:2 * 5000 = 15000
+      expect(effects.catnipMax).toBe(5000 + 5000 * 2);
     });
 
     it("returns 0 for non-Max effects when on=0", () => {
@@ -256,8 +290,8 @@ describe("BuildingManager", () => {
       const effects = manager.updateEffects(state);
       // scienceRatio: 0.1 (library) + 0.2 (academy) = 0.3
       expect(effects.scienceRatio).toBeCloseTo(0.3);
-      // scienceMax: 250 (library, val=1) + 500 (academy, val=1) = 750
-      expect(effects.scienceMax).toBe(750);
+      // scienceMax: 250 (base) + 250 (library, val=1) + 500 (academy, val=1) = 1000
+      expect(effects.scienceMax).toBe(1000);
     });
   });
 
@@ -872,7 +906,8 @@ describe("Story 31-01: chapel", () => {
     const effects = manager.updateEffects(state);
     expect(effects.culturePerTickBase).toBeCloseTo(0.05);
     expect(effects.faithPerTickBase).toBeCloseTo(0.005);
-    expect(effects.cultureMax).toBe(200);
+    // base 100 + chapel val:1 * 200 = 300
+    expect(effects.cultureMax).toBe(300);
   });
 });
 
@@ -1071,9 +1106,12 @@ describe("Story 31-06: harbor", () => {
       buildings: { ...createInitialBuildings(), harbor: { val: 1, on: 1, unlocked: true } },
     };
     const effects = manager.updateEffects(state);
-    expect(effects.catnipMax).toBe(2500);
-    expect(effects.woodMax).toBe(700);
-    expect(effects.goldMax).toBe(25);
+    // base 5000 + harbor val:1 * 2500 = 7500
+    expect(effects.catnipMax).toBe(7500);
+    // base 200 + harbor val:1 * 700 = 900
+    expect(effects.woodMax).toBe(900);
+    // base 10 + harbor val:1 * 25 = 35
+    expect(effects.goldMax).toBe(35);
   });
 });
 
@@ -1165,7 +1203,8 @@ describe("Story 31-09: oilWell", () => {
     };
     const effects = manager.updateEffects(state);
     expect(effects.oilPerTickBase).toBeCloseTo(0.02);
-    expect(effects.oilMax).toBe(1500);
+    // base 1500 + oilWell val:1 * 1500 = 3000
+    expect(effects.oilMax).toBe(3000);
   });
 });
 
@@ -1342,7 +1381,8 @@ describe("Story 31-14: reactor", () => {
     expect(effects.productionRatio).toBeCloseTo(0.05);
     expect(effects.energyProduction).toBeCloseTo(10);
     expect(effects.uraniumPerTick).toBeCloseTo(-0.001);
-    expect(effects.uraniumMax).toBe(250);
+    // base 250 + reactor val:1 * 250 = 500
+    expect(effects.uraniumMax).toBe(500);
   });
 });
 
@@ -1374,7 +1414,8 @@ describe("Story 31-15: biolab", () => {
     };
     const effects = manager.updateEffects(state);
     expect(effects.scienceRatio).toBeCloseTo(0.35);
-    expect(effects.scienceMax).toBe(1500);
+    // base 250 + biolab val:1 * 1500 = 1750
+    expect(effects.scienceMax).toBe(1750);
     expect(effects.refineRatio).toBeCloseTo(0.1);
   });
 });

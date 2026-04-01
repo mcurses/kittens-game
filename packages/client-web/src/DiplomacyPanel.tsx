@@ -85,6 +85,18 @@ export function DiplomacyPanel({ state }: Props): React.ReactElement {
                     onClick={() => mutate({ type: "TRADE", name: r.name })}>
                     Trade
                   </button>
+                  <button type="button" data-testid={`race-${r.name}-trade5`}
+                    className="btn btn--primary btn--sm"
+                    disabled={isPending}
+                    onClick={() => mutate({ type: "TRADE", name: r.name, amount: 5 })}>
+                    ×5
+                  </button>
+                  <button type="button" data-testid={`race-${r.name}-trade25`}
+                    className="btn btn--primary btn--sm"
+                    disabled={isPending}
+                    onClick={() => mutate({ type: "TRADE", name: r.name, amount: 25 })}>
+                    ×25
+                  </button>
                 </div>
               </li>
             );

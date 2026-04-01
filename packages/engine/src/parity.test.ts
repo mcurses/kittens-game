@@ -16,6 +16,7 @@ import { createInitialResources } from "./resources.js";
 import { ScienceManager } from "./science.js";
 import { SpaceManager } from "./space.js";
 import { createInitialState } from "./state.js";
+import { buildEffectCache } from "./effects.js";
 import { resetState, tick } from "./tick.js";
 import { TimeManager } from "./time.js";
 import { VillageManager } from "./village.js";
@@ -180,6 +181,8 @@ describe("Epic 21 — Feature Parity Integration Tests", () => {
       buildings: {
         ...state.buildings,
         steamworks: { val: 1, on: 1, unlocked: true },
+        // 100 harbors provide sufficient storage (woodMax+70000, mineralsMax+95000, ironMax+15000)
+        harbor: { val: 100, on: 0, unlocked: true },
       },
       workshop: {
         ...state.workshop,
@@ -189,11 +192,18 @@ describe("Epic 21 — Feature Parity Integration Tests", () => {
           pneumaticPress: { unlocked: true, researched: true },
         },
       },
+    };
+    // Rebuild effectCache with the new buildings before setting plentiful resources.
+    // Set value == maxValue so resources satisfy the 0.98×maxValue threshold.
+    const ec1 = buildEffectCache(managers, state);
+    state = {
+      ...state,
+      effectCache: ec1,
       resources: {
         ...state.resources,
-        wood: { value: 10000, maxValue: 10000 },
-        minerals: { value: 10000, maxValue: 10000 },
-        iron: { value: 10000, maxValue: 10000 },
+        wood: { value: ec1.woodMax ?? 10000, maxValue: ec1.woodMax ?? 10000 },
+        minerals: { value: ec1.mineralsMax ?? 10000, maxValue: ec1.mineralsMax ?? 10000 },
+        iron: { value: ec1.ironMax ?? 10000, maxValue: ec1.ironMax ?? 10000 },
         beam: { value: 0, maxValue: 0 },
         slab: { value: 0, maxValue: 0 },
         plate: { value: 0, maxValue: 0 },
@@ -220,6 +230,7 @@ describe("Epic 21 — Feature Parity Integration Tests", () => {
           unlocked: true,
           automationEnabled: false,
         },
+        harbor: { val: 100, on: 0, unlocked: true },
       },
       workshop: {
         ...state.workshop,
@@ -229,11 +240,16 @@ describe("Epic 21 — Feature Parity Integration Tests", () => {
           pneumaticPress: { unlocked: true, researched: true },
         },
       },
+    };
+    const ec2 = buildEffectCache(managers, state);
+    state = {
+      ...state,
+      effectCache: ec2,
       resources: {
         ...state.resources,
-        wood: { value: 10000, maxValue: 10000 },
-        minerals: { value: 10000, maxValue: 10000 },
-        iron: { value: 10000, maxValue: 10000 },
+        wood: { value: ec2.woodMax ?? 10000, maxValue: ec2.woodMax ?? 10000 },
+        minerals: { value: ec2.mineralsMax ?? 10000, maxValue: ec2.mineralsMax ?? 10000 },
+        iron: { value: ec2.ironMax ?? 10000, maxValue: ec2.ironMax ?? 10000 },
         beam: { value: 0, maxValue: 0 },
         slab: { value: 0, maxValue: 0 },
         plate: { value: 0, maxValue: 0 },
@@ -255,6 +271,7 @@ describe("Epic 21 — Feature Parity Integration Tests", () => {
       buildings: {
         ...state.buildings,
         steamworks: { val: 1, on: 1, unlocked: true },
+        harbor: { val: 100, on: 0, unlocked: true },
       },
       workshop: {
         ...state.workshop,
@@ -265,11 +282,16 @@ describe("Epic 21 — Feature Parity Integration Tests", () => {
           pneumaticPress: { unlocked: true, researched: true },
         },
       },
+    };
+    const ec3 = buildEffectCache(managers, state);
+    state = {
+      ...state,
+      effectCache: ec3,
       resources: {
         ...state.resources,
-        wood: { value: 10000, maxValue: 10000 },
-        minerals: { value: 10000, maxValue: 10000 },
-        iron: { value: 10000, maxValue: 10000 },
+        wood: { value: ec3.woodMax ?? 10000, maxValue: ec3.woodMax ?? 10000 },
+        minerals: { value: ec3.mineralsMax ?? 10000, maxValue: ec3.mineralsMax ?? 10000 },
+        iron: { value: ec3.ironMax ?? 10000, maxValue: ec3.ironMax ?? 10000 },
         beam: { value: 0, maxValue: 0 },
         slab: { value: 0, maxValue: 0 },
         plate: { value: 0, maxValue: 0 },

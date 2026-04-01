@@ -98,7 +98,7 @@ describe("SciencePanel", () => {
     const state = makeState({ calendar: { unlocked: true, researched: false } });
     render(<WithInspector><SciencePanel state={state} /></WithInspector>);
     // button label should include cost info
-    expect(screen.getByText(/research/i)).toBeTruthy();
+    expect(screen.getByRole("button", { name: /research/i })).toBeTruthy();
     expect(screen.getByText(/30/)).toBeTruthy();
   });
 
@@ -143,5 +143,40 @@ describe("SciencePanel", () => {
     expect(screen.getByTestId("tech-agriculture")).toBeTruthy();
     expect(screen.getByTestId("tech-archery")).toBeTruthy();
     expect(screen.queryByTestId("tech-calendar")).toBeNull();
+  });
+});
+
+// ── Story 35-03: Science hide-researched toggle ───────────────────────────────
+
+describe("Story 35-03: Science hide-researched toggle", () => {
+  it("shows hide-researched checkbox", () => {
+    const state = makeState({ calendar: { unlocked: true, researched: false } });
+    render(<WithInspector><SciencePanel state={state} /></WithInspector>);
+    expect(screen.getByTestId("science-hide-researched")).toBeTruthy();
+  });
+
+  it("hide-researched toggle hides researched techs when checked", () => {
+    const state = makeState({
+      calendar: { unlocked: true, researched: true },
+      archery: { unlocked: true, researched: false },
+    });
+    render(<WithInspector><SciencePanel state={state} /></WithInspector>);
+    // Initially both visible
+    expect(screen.getByTestId("tech-calendar")).toBeTruthy();
+    fireEvent.click(screen.getByTestId("science-hide-researched"));
+    // calendar is researched → hidden; archery still visible
+    expect(screen.queryByTestId("tech-calendar")).toBeNull();
+    expect(screen.getByTestId("tech-archery")).toBeTruthy();
+  });
+
+  it("hide-researched toggle shows all when unchecked", () => {
+    const state = makeState({
+      calendar: { unlocked: true, researched: true },
+    });
+    render(<WithInspector><SciencePanel state={state} /></WithInspector>);
+    const toggle = screen.getByTestId("science-hide-researched");
+    fireEvent.click(toggle); // hide
+    fireEvent.click(toggle); // show again
+    expect(screen.getByTestId("tech-calendar")).toBeTruthy();
   });
 });

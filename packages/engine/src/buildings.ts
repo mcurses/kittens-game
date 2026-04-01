@@ -936,7 +936,25 @@ export class BuildingManager implements Manager {
   }
 
   updateEffects(state: GameState): Record<string, number> {
-    const effects: Record<string, number> = {};
+    // ── Base storage (legacy buildings.js effectsBase) ─────────────────────────
+    // Legacy provides non-zero default caps even before buildings are constructed.
+    const effects: Record<string, number> = {
+      catnipMax: 5000,
+      woodMax: 200,
+      mineralsMax: 250,
+      coalMax: 60,
+      ironMax: 50,
+      titaniumMax: 2,
+      goldMax: 10,
+      oilMax: 1500,
+      uraniumMax: 250,
+      unobtainiumMax: 150,
+      antimatterMax: 100,
+      manpowerMax: 100,
+      scienceMax: 250,
+      cultureMax: 100,
+      faithMax: 100,
+    };
 
     for (const def of BUILDING_DEFS) {
       const entry = state.buildings[def.name];

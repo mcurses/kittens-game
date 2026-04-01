@@ -51,7 +51,7 @@ export type GameAction =
   | { readonly type: "LAUNCH_MISSION"; readonly name: string }
   | { readonly type: "BUY_SPACE_BUILDING"; readonly name: string }
   | { readonly type: "SEND_EMBASSY"; readonly name: string }
-  | { readonly type: "TRADE"; readonly name: string }
+  | { readonly type: "TRADE"; readonly name: string; readonly amount?: number | undefined }
   | { readonly type: "BUY_CFU"; readonly name: string }
   | { readonly type: "BUY_VSU"; readonly name: string }
   | { readonly type: "SHATTER_TC" }
@@ -239,7 +239,10 @@ export function applyAction(
       return applySendEmbassy(state, action.name);
     }
     case "TRADE": {
-      return applyTrade(state, action.name);
+      const times = action.amount ?? 1;
+      let s = state;
+      for (let i = 0; i < times; i++) s = applyTrade(s, action.name);
+      return s;
     }
     case "BUY_CFU": {
       return applyBuyCfu(state, action.name);

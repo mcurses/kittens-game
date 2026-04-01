@@ -2,7 +2,7 @@
 
 Tracks implementation coverage against legacy Kittens Game. **This is the authoritative source of truth for what is and isn't done.** Update it whenever items are added or wired. Do not mark an epic "complete" without updating this file.
 
-Last updated: 2026-04-01 (post-Epic-34 deep parity audit — zebra system gaps, ivoryTemple, wrong lizard/shark policy names filed)
+Last updated: 2026-04-01 (post-Epic-35 — adaptive craft shortcuts, hide-researched/complete toggles, trade ×5/×25 shortcuts; mechanization deferred)
 
 ---
 
@@ -117,6 +117,27 @@ All 56 resources from legacy are declared in `RESOURCE_NAMES`. However, most hav
 | iron | ✅ | ✅ | crafted + smelter ironRatio boost |
 | titanium | ✅ | ⚠️ | calciner produces ironPerTickBase/titaniumPerTickBase; no ratio yet |
 | (all others) | ✅ | ⚠️/❌ | see building gaps above |
+
+### Resource cap baseline gap
+
+Legacy starts with non-zero base storage from `buildings.js` `effectsBase`, even before any storage buildings are bought:
+- `catnipMax: 5000`
+- `woodMax: 200`
+- `mineralsMax: 250`
+- `coalMax: 60`
+- `ironMax: 50`
+- `titaniumMax: 2`
+- `goldMax: 10`
+- `oilMax: 1500`
+- `uraniumMax: 250`
+- `unobtainiumMax: 150`
+- `antimatterMax: 100`
+- `manpowerMax: 100`
+- `scienceMax: 250`
+- `cultureMax: 100`
+- `faithMax: 100`
+
+The rewrite currently initializes every resource with `maxValue: 0` in [resources.ts](/Users/max/code/kittens-mcp/packages/engine/src/resources.ts), and [buildings.ts](/Users/max/code/kittens-mcp/packages/engine/src/buildings.ts) only contributes storage when actual buildings are purchased. That means fresh-game storage is below legacy and some early-game UI/storage behavior is wrong. ❌ Not implemented.
 
 ---
 
@@ -243,7 +264,7 @@ Root cause: `legacy-migration.ts:migrateTime()` used `bool(item.unlocked)` which
 | **Buy/sell economics** | ✅ Fixed 2026-04-01 (Epic 32-05): Per-race buys (resource + cost) and sells (resource names) displayed inline. |
 | **Relationship status** | ✅ Fixed 2026-04-01 (Epic 32-05): Hostile/Neutral/Friendly badge derived from `race.standing`. |
 | **SEND_EMBASSY/TRADE field name bug** | ✅ Fixed 2026-04-01: was dispatching `race:` field, now correctly dispatches `name:` per engine `GameAction` type. |
-| **Caravan quantity buttons** | Legacy has multi-send shortcuts with dynamic `xN` / percentage labels (`20%`, `50%`, `All`) depending on `usePercentageConsumptionValues`. Rewrite only exposes single `Trade` / `Embassy` buttons in [DiplomacyPanel.tsx](/Users/max/code/kittens-mcp/packages/client-web/src/DiplomacyPanel.tsx#L75). ❌ Not implemented. |
+| **Caravan quantity buttons** | ⚠️ Fixed in Epic 35-04: Added ×5 and ×25 fixed shortcuts. Legacy uses dynamic `tradeHalf = floor(max/2)` and `tradeFifth = floor(max/5)` shortcuts, not fixed ×5/×25 — dynamic version deferred to a future epic. |
 | **Leviathan energy display** | Energy: 69/140, Time to leave: 47y 257d ❌ Not implemented. |
 
 ---
@@ -254,7 +275,7 @@ Root cause: `legacy-migration.ts:migrateTime()` used `bool(item.unlocked)` which
 |-----|--------|
 | **Mission done state** | ✅ Fixed 2026-04-01 (Epic 32-06): Programs with `val > 0` show "Reached" badge instead of "Launch" button. |
 | **Building on/off display** | ✅ Fixed 2026-04-01 (Epic 32-06): Space buildings now show `on/val` ratio when `on < val`. |
-| **Hide complete missions toggle** | Legacy Space tab exposes `hideResearched` / "hide complete missions"; rewrite renders all unlocked missions/buildings with no equivalent filter in [SpacePanel.tsx](/Users/max/code/kittens-mcp/packages/client-web/src/SpacePanel.tsx#L60). ❌ Not implemented. |
+| **Hide complete missions toggle** | ✅ Fixed in Epic 35-03: SpacePanel now exposes `usePersistentUiState("space:hideComplete")` toggle; programs with `val > 0` are filtered when enabled. |
 
 ---
 
@@ -297,12 +318,12 @@ Root cause: `legacy-migration.ts:migrateTime()` used `bool(item.unlocked)` which
 
 | Gap | Detail |
 |-----|--------|
-| **Craft shortcuts are not legacy-faithful** | Legacy craft rows use adaptive shortcuts: `max(1, 1%)`, `max(25, 5%)`, `max(100, 10%)`, plus `All`, and the labels can switch between amount and percentage modes. Rewrite hardcodes `×1/×5/×25/×100` in [WorkshopPanel.tsx](/Users/max/code/kittens-mcp/packages/client-web/src/WorkshopPanel.tsx#L146). ❌ Not implemented. |
-| **Craft bonus/source-material affordance missing** | Legacy craft controls show output after craft bonus in the button title and compute tooltip costs from the actual source-material spend for that shortcut. Rewrite craft buttons expose no dynamic output or source-cost preview. ❌ Not implemented. |
-| **Workshop craft effectiveness header missing** | Legacy Workshop tab shows the current global craft effectiveness percentage at the top of the tab. Rewrite has no equivalent summary in [WorkshopPanel.tsx](/Users/max/code/kittens-mcp/packages/client-web/src/WorkshopPanel.tsx#L75). ❌ Not implemented. |
-| **Hide researched toggle missing in Workshop** | Legacy Workshop tab persists a `hideResearched` checkbox; rewrite always lists researched upgrades and only marks them `Done` in [WorkshopPanel.tsx](/Users/max/code/kittens-mcp/packages/client-web/src/WorkshopPanel.tsx#L126). ❌ Not implemented. |
-| **Hide researched toggle missing in Science** | Legacy Science/Library tab supports `hideResearched`; rewrite always lists researched techs with a `Done` badge in [SciencePanel.tsx](/Users/max/code/kittens-mcp/packages/client-web/src/SciencePanel.tsx#L103). ❌ Not implemented. |
-| **Mechanization craft details missing** | Legacy mechanization UI exposes per-craft engineer allocation, progress percentage, tier bonus, and throughput/countdown. Rewrite Workshop panel has no craft-progress or engineer-management surface. ❌ Not implemented. |
+| **Craft shortcuts are not legacy-faithful** | ✅ Fixed in Epic 35-01: `computeCraftShortcuts` computes `[max(1,1%), max(25,5%), max(100,10%), All]` from live resources. Percentage-mode label toggle (legacy `usePercentageConsumptionValues` setting) is deferred. |
+| **Craft bonus/source-material affordance missing** | Legacy craft controls show output after craft bonus in button title and compute tooltip costs per shortcut. ❌ Not implemented. |
+| **Workshop craft effectiveness header missing** | ✅ Fixed in Epic 35-01: WorkshopPanel shows `+N% effectiveness` banner when `effectCache.craftRatio > 0`. |
+| **Hide researched toggle missing in Workshop** | ✅ Fixed in Epic 35-03: WorkshopPanel exposes `usePersistentUiState("workshop:hideResearched")` checkbox; researched upgrades filtered when enabled. |
+| **Hide researched toggle missing in Science** | ✅ Fixed in Epic 35-03: SciencePanel exposes `usePersistentUiState("science:hideResearched")` checkbox; researched techs filtered when enabled. |
+| **Mechanization craft details missing** | Legacy mechanization UI exposes per-craft engineer allocation, progress percentage, tier bonus, and throughput/countdown. Blocked on engineer-state engine work. ❌ Deferred (Story 35-02). |
 
 ---
 
