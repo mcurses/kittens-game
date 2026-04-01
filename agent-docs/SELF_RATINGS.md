@@ -1097,6 +1097,37 @@ Legacy: `mineralsPerTickCon: -1.5`, `oilPerTickCon: -0.024`. Rewrite: `mineralsP
 - Some pre-existing STORIES.md AC descriptions had inaccurate legacy values (chapel prices, tradepost effects) — should cross-check STORIES.md against legacy before writing tests in future
 
 ### Action items for next epic
-- [ ] Consider adding calciner energyConsumption: 1 to complete the def
-- [ ] Epic 32: UI Parity Pass — religion TU section, trade economics, space mission/on-off, buildings on/off + rename, village happiness/festival display, resource maxValue display
+- [x] Consider adding calciner energyConsumption: 1 to complete the def — added (legacy buildings.js:1099)
+- [x] Epic 32: UI Parity Pass — started
 - [ ] Consider adding dedicated `village.happiness.test.ts` for full happy-path formula regression
+
+---
+
+## Epic 32: UI Parity Pass — 2026-04-01
+
+| Dimension | Score | Notes |
+|-----------|-------|-------|
+| Test coverage (≥90% target) | 5 | engine 99.5%, server 95.1%, client-web 96.5% (all statements), all 1308 tests pass |
+| No skipped tests / no TODOs | 5 | Zero skipped tests, zero TODO/FIXME comments, zero explicit `any` types |
+| Feature parity | 4 | All 8 story ACs met; PARITY.md updated. Remaining gaps: caravan ×N buttons, marker fill %, building rename system, kitten census, loadouts — all explicitly deferred |
+| API spec completeness | 5 | All 32 GameAction types in engine match api-spec schemas exactly; bug found and fixed (SEND_EMBASSY/TRADE dispatching `race` instead of `name`) |
+| Code quality (no `any`) | 5 | No explicit `any`; `exactOptionalPropertyTypes` violations fixed; `as unknown` casts are purposeful duck-typing |
+| Docs freshness (PROGRESS, DECISIONS, PARITY) | 5 | PROGRESS.md updated (8/8 stories, test counts), PARITY.md updated (all 6 UI gap sections), EPICS.md marked complete |
+| Commit hygiene | 5 | Separate commits per story (32-05, 32-08) + bug-fix commit; descriptive messages |
+| **Overall average** | **4.9** | |
+
+### What went well
+- All 8 stories implemented cleanly with matching tests; 0 regressions
+- Caught a latent action-field bug (SEND_EMBASSY dispatching `race:` instead of `name:`) during spec review — would have been silent server-side since Zod would reject the action
+- Story 32-08 (resource /0 fix) was a one-line change with high UX impact
+- PARITY.md UI gap sections now accurately reflect remaining work vs fixed items
+- `exactOptionalPropertyTypes` caught the `demandRatio?: number | undefined` typing issue at dev time
+
+### What to improve
+- Session context was interrupted mid-epic, causing a second session to pick up work in progress — the test for lizards' sells was written with wrong fixture data (furs/ivory instead of actual wood/beam/scaffold), caught only at runtime
+- Some stories had implicit test correctness assumptions not verified against actual engine data (RACE_DEFS)
+
+### Action items for next epic
+- [ ] Verify SEND_EMBASSY and TRADE engine handlers use `action.name` (not `action.race`) — spot-check diplomacy.ts
+- [ ] Consider adding `village.happiness` regression test as dedicated file (carried over from Epic 31)
+- [ ] Marker fill % display (religion) is a remaining visual gap — low priority but worth tracking

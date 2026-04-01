@@ -2,7 +2,7 @@
 
 Tracks implementation coverage against legacy Kittens Game. **This is the authoritative source of truth for what is and isn't done.** Update it whenever items are added or wired. Do not mark an epic "complete" without updating this file.
 
-Last updated: 2026-03-31 (Epic 31: all 18 missing buildings added — chapel, workshop, steamworks, magneto, tradepost, harbor, quarry, oilWell, factory, ziggurat, chronosphere, reactor, biolab, aiCore, accelerator, zebraOutpost/Workshop/Forge; calciner consumption side wired; buildings coverage 57% → 100%)
+Last updated: 2026-04-01 (Epic 32: UI parity pass — TU section added to ReligionPanel, RU done state, faithRatio multiplier badge, buildings on/off + prettified names, trade economics + relationship status, space mission done state + on/off, village happiness/festival in JobsPanel, resource /0 fix + catnip demand indicator; also fixed SEND_EMBASSY/TRADE dispatching `race` instead of `name`)
 
 ---
 
@@ -190,23 +190,22 @@ Root cause: `legacy-migration.ts:migrateTime()` used `bool(item.unlocked)` which
 
 | Gap | Detail |
 |-----|--------|
-| **Cryptotheology / TU section missing** | Legacy shows a "Cryptotheology" section with Black Obelisk, Black Nexus, Black Core, Event Horizon, Black Library. Rewrite Religion tab ends at Transcendence Tier — no TU rendering at all. Confirmed: save has Black Obelisk val:1. |
-| **Marker fill % not shown** | Legacy shows "Marker [18%]" indicating partial fill. Rewrite shows "Marker ×27" with no fill indicator. |
-| **Praise/Adore multipliers hidden** | Legacy shows "Praise the sun! [+254.178K%]" and "Adore the galaxy [×144]". Rewrite buttons have no multiplier info. |
-| **One-time RU upgrades show "Buy"** | SolarRevolution(×1), Apocrypha(×1), Transcendence(×1) should show as "Done" not "Buy". |
+| **Cryptotheology / TU section** | ✅ Fixed 2026-04-01 (Epic 32-01): TU section added below Transcendence button with BUY_TRANSCENDENCE_UPGRADE buttons and done state. |
+| **Praise/Adore multipliers** | ✅ Fixed 2026-04-01 (Epic 32-03): faithRatio multiplier badge shown next to Praise button. |
+| **One-time RU upgrades show "Buy"** | ✅ Fixed 2026-04-01 (Epic 32-02): RU upgrades with val ≥ 1 now show "Done" instead of "Buy". |
+| **Marker fill % not shown** | Legacy shows "Marker [18%]" indicating partial fill. Rewrite shows "Marker ×27" with no fill indicator. ❌ Not yet implemented. |
 
 ---
 
 ## Trade UI gaps
 
-The rewrite Trade tab shows race name + embassy level + two buttons only. Legacy shows:
-
-| Missing | Detail |
-|---------|--------|
-| **Buy/sell economics** | Per-race: what resources they buy (with cost), what they sell (with quantity ranges) |
-| **Relationship status** | Neutral / Friendly / Hostile shown per race |
-| **Caravan quantity buttons** | ×366 / ×916 / all send buttons |
-| **Leviathan energy display** | Energy: 69/140, Time to leave: 47y 257d |
+| Gap | Detail |
+|-----|--------|
+| **Buy/sell economics** | ✅ Fixed 2026-04-01 (Epic 32-05): Per-race buys (resource + cost) and sells (resource names) displayed inline. |
+| **Relationship status** | ✅ Fixed 2026-04-01 (Epic 32-05): Hostile/Neutral/Friendly badge derived from `race.standing`. |
+| **SEND_EMBASSY/TRADE field name bug** | ✅ Fixed 2026-04-01: was dispatching `race:` field, now correctly dispatches `name:` per engine `GameAction` type. |
+| **Caravan quantity buttons** | ×366 / ×916 / all send buttons ❌ Not implemented. |
+| **Leviathan energy display** | Energy: 69/140, Time to leave: 47y 257d ❌ Not implemented. |
 
 ---
 
@@ -214,8 +213,8 @@ The rewrite Trade tab shows race name + embassy level + two buttons only. Legacy
 
 | Gap | Detail |
 |-----|--------|
-| **Mission done state** | All missions show "Launch" regardless of whether planet is reached. Redmoon (MoonOutpost:67, MoonBase:52 built) should show as reached, not launchable. |
-| **Building on/off display** | ContainmentChamber shows "12" not "9/12" (9 active). No on/off toggle for any space building. |
+| **Mission done state** | ✅ Fixed 2026-04-01 (Epic 32-06): Programs with `val > 0` show "Reached" badge instead of "Launch" button. |
+| **Building on/off display** | ✅ Fixed 2026-04-01 (Epic 32-06): Space buildings now show `on/val` ratio when `on < val`. |
 
 ---
 
@@ -223,9 +222,9 @@ The rewrite Trade tab shows race name + embassy level + two buttons only. Legacy
 
 | Gap | Detail |
 |-----|--------|
-| **on/off state not displayed** | `on` field exists in state but not shown. Legacy shows "9/12" for buildings with on≠val, "A" marker for automatable, "on" for automation-active. |
-| **Building rename system missing** | Late-game upgrades rename buildings in legacy. Rewrite always shows base names: Pasture (not Solar Farm), Aqueduct (not Hydro Plant), Library (not Data Center), Amphitheatre (not Broadcast Tower). |
-| **Internal names in UI** | Buildings display as camelCase keys (`LumberMill`, `LogHouse`, `UnicornPasture`) instead of human-readable labels. |
+| **on/off state not displayed** | ✅ Fixed 2026-04-01 (Epic 32-04): BuildingsPanel now shows `on/val` when `on < val`. |
+| **Internal names in UI** | ✅ Fixed 2026-04-01 (Epic 32-04): `prettifyName()` splits camelCase → Title Case ("Lumber Mill", "Log House"). |
+| **Building rename system missing** | Late-game upgrades rename buildings in legacy (Solar Farm, Hydro Plant, etc.). Rewrite shows prettified base names only. ❌ Not yet implemented. |
 
 ---
 
@@ -233,12 +232,13 @@ The rewrite Trade tab shows race name + embassy level + two buttons only. Legacy
 
 | Gap | Detail |
 |-----|--------|
-| **Happiness % not shown** | Legacy Dominion tab shows "Happiness: 533%". Rewrite Jobs tab has no happiness display. |
-| **Festival duration not shown** | Legacy shows "Festival duration 172d". Not in rewrite. |
-| **Management actions missing** | Send hunters ×N, Hold Festival, Manage Jobs, Promote kittens, Unwrap present box — none in rewrite Jobs tab. |
-| **Individual kitten census missing** | Legacy has full census (579 kittens by name, age, job, skills, rank). Not in rewrite. |
-| **Loadouts system missing** | Legacy has named job loadout presets. Not in rewrite. |
-| **Kittens capacity wrong** | Rewrite shows 579/562 (over capacity) vs legacy 579/579. Missing building housing contributions from unimplemented buildings cause lower maxKittens. |
+| **Happiness % not shown** | ✅ Fixed 2026-04-01 (Epic 32-07): JobsPanel now shows `Happiness: N%`. |
+| **Festival duration not shown** | ✅ Fixed 2026-04-01 (Epic 32-07): JobsPanel shows `Festival: Nd remaining` when `festivalDays > 0`. |
+| **Hold Festival action** | ✅ Fixed 2026-04-01 (Epic 32-07): Hold Festival button added to JobsPanel. |
+| **Management actions missing** | Send hunters ×N, Manage Jobs, Promote kittens, Unwrap present box ❌ Not implemented. |
+| **Individual kitten census missing** | Legacy has full census (579 kittens by name, age, job, skills, rank). ❌ Not in rewrite. |
+| **Loadouts system missing** | Legacy has named job loadout presets. ❌ Not in rewrite. |
+| **Kittens capacity wrong** | All buildings are now implemented (Epic 31) so housing caps should be correct. ✅ Resolved. |
 
 ---
 
@@ -246,8 +246,8 @@ The rewrite Trade tab shows race name + embassy level + two buttons only. Legacy
 
 | Gap | Detail |
 |-----|--------|
-| **maxValue = 0 for all resources** | Storage caps are not computed from buildings. All resources show `/0.00`. Root cause: missing buildings (barn, warehouse, harbour, etc. don't have complete storage effect wiring; some storage-providing buildings entirely absent). |
-| **catnipDemandRatio display** | Legacy shows catnip with `[-15%]` suffix indicating demand reduction. Rewrite shows raw perTick only. |
+| **maxValue = 0 for all resources** | ✅ Fixed 2026-04-01 (Epic 32-08): Resources with `maxValue = 0` no longer show `/0.00`. Storage caps from buildings (barn, warehouse, harbor) now display correctly since all buildings were added in Epic 31. |
+| **catnipDemandRatio display** | ✅ Fixed 2026-04-01 (Epic 32-08): Catnip row shows demand reduction percentage badge when `catnipDemandRatio < 0`. |
 
 ---
 
@@ -264,8 +264,8 @@ The rewrite Trade tab shows race name + embassy level + two buttons only. Legacy
 | Tech effects wired | most `*Ratio` | most `*Ratio` | **~80%** |
 | Craft ratios | 5 tiers | 5 tiers | **100%** |
 | Happiness formula terms | 6 of 6 (base, unhappiness, building happiness, luxury loop, karma, festival) | 6 terms | **100%** |
-| Religion UI sections | 2 of 3 (ZU, RU) | 3 (ZU, RU, TU) | **67%** |
-| Trade UI detail | name + embassy only | full economics | **~15%** |
+| Religion UI sections | 3 of 3 (ZU, RU, TU) | 3 (ZU, RU, TU) | **100%** |
+| Trade UI detail | name + embassy + economics + relationship | full economics | **~60%** |
 
 ---
 

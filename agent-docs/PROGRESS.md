@@ -1,6 +1,6 @@
 # Kittens Game Rewrite — Progress Tracker
 
-Last updated: 2026-03-30
+Last updated: 2026-04-01
 
 ---
 
@@ -8,6 +8,7 @@ Last updated: 2026-03-30
 
 - 2026-03-30: Fixed the missing Web UI trigger for the `HUNT` action by adding a hunt control to `ActionPanel`.
 - 2026-03-30: Fixed `ActionPanel` action dispatch to use the current slot context, so non-default saves no longer post actions to the default slot.
+- 2026-03-31: Fixed slot-aware action dispatch across client panels (`BuildingsPanel`, `JobsPanel`, `SciencePanel`, `WorkshopPanel`, `ReligionPanel`, `SpacePanel`, `DiplomacyPanel`, `TimePanel`) so actions in `?slot=<name>` mutate the selected save instead of the default slot.
 
 ---
 
@@ -547,3 +548,25 @@ Stories: 17 / 17 complete
 - [x] Story 31-17: Accelerator (titaniumPerTickCon: -0.015, uraniumPerTickAutoprod: 0.0025) + zebraOutpost/Workshop/Forge
 
 Engine tests: 902 passing | Line coverage: ~99.5%
+
+---
+
+## Epic 32: UI Parity Pass
+**Status:** Complete | **Started:** 2026-03-31 | **Finished:** 2026-04-01
+Stories: 8 / 8 complete
+
+- [x] Story 32-01: Religion TU (Cryptotheology) section in ReligionPanel
+- [x] Story 32-02: Religion RU one-time upgrades show "Done" state
+- [x] Story 32-03: Religion Praise/Adore multiplier display
+- [x] Story 32-04: Buildings on/off display + human-readable names + label system
+- [x] Story 32-05: Trade economics display + relationship status
+- [x] Story 32-06: Space mission done-state + building on/off display
+- [x] Story 32-07: Village happiness % + festival duration in JobsPanel
+- [x] Story 32-08: Resource maxValue and demand display verification
+
+Bug fix: SEND_EMBASSY and TRADE actions were dispatching `race:` field instead of `name:` per engine GameAction type.
+
+Engine tests: 905 passing | Line coverage: 99.5%
+Server tests: 86 passing | Line coverage: 95.12%
+Client-web tests: 293 passing | Line coverage: 96.48%
+Total: 1308 tests across all packages

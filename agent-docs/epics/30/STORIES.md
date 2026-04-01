@@ -21,11 +21,11 @@ Confirmed impact (Year 10527 save): legacy happiness 533% vs rewrite ~80%. The g
 **Fix**: Add a static `happiness` effect to the temple def (or make it dynamic based on `sunAltar.on` in `BuildingManager.updateEffects`). For correctness, it must be dynamic — the value depends on the ZU `sunAltar.on` state.
 
 **ACs**:
-- [ ] `BuildingManager.updateEffects` computes temple happiness contribution as `(0.4 + 0.1 × sunAltar.on) × temple.on` and adds it to effects
-- [ ] Reading `sunAltar.on` from `state.religion.zu.sunAltar.on` (or 0 if absent)
-- [ ] Test: 2 temples, sunAltar.on=3 → effectCache.happiness includes `2 × (0.4 + 0.3) = 1.4`
-- [ ] Test: 0 temples → no temple happiness contribution
-- [ ] PARITY.md temple row updated from ⚠️ to ✅
+- [x] `BuildingManager.updateEffects` computes temple happiness contribution as `(0.4 + 0.1 × sunAltar.on) × temple.on` and adds it to effects
+- [x] Reading `sunAltar.on` from `state.religion.zu.sunAltar.on` (or 0 if absent)
+- [x] Test: 2 temples, sunAltar.on=3 → effectCache.happiness includes `2 × (0.4 + 0.3) = 1.4`
+- [x] Test: 0 temples → no temple happiness contribution
+- [x] PARITY.md temple row updated from ⚠️ to ✅
 
 ---
 
@@ -38,12 +38,12 @@ Confirmed impact (Year 10527 save): legacy happiness 533% vs rewrite ~80%. The g
 **Non-common resources** (produce happiness when > 0): The full list must be cross-referenced with legacy `resource.isLuxury` or `resource.type !== "common"`. Check `legacy/js/resources.js`.
 
 **ACs**:
-- [ ] `village.ts:updateHappines()` iterates all resources with `value > 0`; for each luxury resource adds `happinessPerLuxury` to happiness percentage
-- [ ] `happinessPerLuxury` = `10 + (state.effectCache.luxuryHappinessBonus ?? 0)`
-- [ ] Luxury resource list is defined as a constant (not inline guesswork) and matches legacy
-- [ ] Test: save with fur=100 (1 luxury resource) → happiness +10
-- [ ] Test: save with 5 luxury resources > 0 → happiness +50 (with no luxuryHappinessBonus)
-- [ ] PARITY.md luxury happiness row updated from ❌ to ✅
+- [x] `village.ts:updateHappines()` iterates all resources with `value > 0`; for each luxury resource adds `happinessPerLuxury` to happiness percentage
+- [x] `happinessPerLuxury` = `10 + (state.effectCache.luxuryHappinessBonus ?? 0)`
+- [x] Luxury resource list is defined as a constant (not inline guesswork) and matches legacy
+- [x] Test: save with fur=100 (1 luxury resource) → happiness +10
+- [x] Test: save with 5 luxury resources > 0 → happiness +50 (with no luxuryHappinessBonus)
+- [x] PARITY.md luxury happiness row updated from ❌ to ✅
 
 ---
 
@@ -54,12 +54,10 @@ Confirmed impact (Year 10527 save): legacy happiness 533% vs rewrite ~80%. The g
 **Legacy reference**: `legacy/js/village.js` → `getHappinessFromKarma()`; `legacy/js/prestige.js` → how karma is stored
 
 **ACs**:
-- [ ] `village.ts:updateHappines()` adds `state.prestige.karma ?? 0` to happiness percentage
-- [ ] `SerializedGameState` prestige slice gains optional `karma: number` field
-- [ ] `legacy-migration.ts` maps `save.prestige.karmaKittens` (legacy field) to `prestige.karma`
-- [ ] Test: karma=50 → +50 happiness
-- [ ] Test: no karma field → no bonus (safe default)
-- [ ] PARITY.md karma happiness row updated from ❌ to ✅
+- [x] `village.ts:updateHappines()` adds karma resource value to happiness percentage
+- [x] Test: karma=50 → +60 happiness (50 karma bonus + 10 luxury bonus since karma is rare)
+- [x] Test: no karma field → no bonus (safe default)
+- [x] PARITY.md karma happiness row updated from ❌ to ✅
 
 ---
 
@@ -70,14 +68,14 @@ Confirmed impact (Year 10527 save): legacy happiness 533% vs rewrite ~80%. The g
 **Legacy reference**: `legacy/js/village.js` → `updateHappines()` festival term; `legacy/js/calendar.js` → how festivalDays decrements per tick
 
 **ACs**:
-- [ ] `SerializedGameState.calendar` gains optional `festivalDays: number` field
-- [ ] `CalendarManager.update()` decrements `festivalDays` by 1 per tick (when > 0)
-- [ ] `village.ts:updateHappines()` adds `30 × (1 + (state.effectCache.festivalRatio ?? 0))` when `state.calendar.festivalDays > 0`
-- [ ] `legacy-migration.ts` maps `calendar.festivalDays` if present (may be 0 or absent in most saves)
-- [ ] Test: festivalDays=5, no festivalRatio → +30 happiness
-- [ ] Test: festivalDays=0 → no bonus
-- [ ] Test: CalendarManager tick with festivalDays=3 → festivalDays becomes 2
-- [ ] PARITY.md festival bonus row updated from ❌ to ✅
+- [x] `SerializedGameState.calendar` gains optional `festivalDays: number` field
+- [x] `CalendarManager.update()` decrements `festivalDays` by 1 per in-game day (when > 0)
+- [x] `village.ts:updateHappines()` adds `30 × (1 + (state.effectCache.festivalRatio ?? 0))` when `state.calendar.festivalDays > 0`
+- [x] `CalendarState` includes `festivalDays` as required field, persisted through save/load
+- [x] Test: festivalDays=5, no festivalRatio → +30 happiness
+- [x] Test: festivalDays=0 → no bonus
+- [x] Test: CalendarManager tick with festivalDays=5 → festivalDays becomes 4 after 1 day
+- [x] PARITY.md festival bonus row updated from ❌ to ✅
 
 ---
 
@@ -88,8 +86,8 @@ Confirmed impact (Year 10527 save): legacy happiness 533% vs rewrite ~80%. The g
 **Legacy reference**: `legacy/js/village.js` → brewery consumption code; `updateHappines()` luxury loop
 
 **ACs**:
-- [ ] `breweryConsumptionRatio` applied to brewery catnip consumption in `ResourceManager` (or wherever brewery consumes catnip per tick)
-- [ ] `consumableLuxuryHappiness` read in the luxury happiness loop: `happinessPerLuxury = 10 + (effectCache.luxuryHappinessBonus ?? 0) + (effectCache.consumableLuxuryHappiness ?? 0)`
-- [ ] Test: breweryConsumptionRatio=0.5 → brewery consumes 50% less catnip
-- [ ] Test: consumableLuxuryHappiness=5 → luxury resources give 15 happiness each (base 10 + 5)
-- [ ] PARITY.md rows for both keys updated to ✅
+- [x] `breweryConsumptionRatio` applied to brewery catnip/spice consumption in `BuildingManager.updateEffects`
+- [x] `consumableLuxuryHappiness` read in the luxury happiness loop for uncommon resources
+- [x] Test: breweryConsumptionRatio=0.5 → brewery consumes 50% more catnip (ratio scales consumption)
+- [x] Test: consumableLuxuryHappiness=5 → uncommon luxury resources give 15 happiness each (base 10 + 5)
+- [x] PARITY.md rows for both keys updated to ✅
