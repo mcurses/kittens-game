@@ -78,7 +78,7 @@ describe("DiplomacyPanel", () => {
     });
     render(<DiplomacyPanel state={state} />);
     fireEvent.click(screen.getByTestId("race-zebras-embassy"));
-    expect(mockMutate).toHaveBeenCalledWith({ type: "SEND_EMBASSY", race: "zebras" });
+    expect(mockMutate).toHaveBeenCalledWith({ type: "SEND_EMBASSY", name: "zebras" });
   });
 
   it("dispatches TRADE when Trade button is clicked", () => {
@@ -87,7 +87,7 @@ describe("DiplomacyPanel", () => {
     });
     render(<DiplomacyPanel state={state} />);
     fireEvent.click(screen.getByTestId("race-zebras-trade"));
-    expect(mockMutate).toHaveBeenCalledWith({ type: "TRADE", race: "zebras" });
+    expect(mockMutate).toHaveBeenCalledWith({ type: "TRADE", name: "zebras" });
   });
 });
 

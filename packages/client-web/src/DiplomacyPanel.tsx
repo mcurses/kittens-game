@@ -76,13 +76,13 @@ export function DiplomacyPanel({ state }: Props): React.ReactElement {
                   <button type="button" data-testid={`race-${r.name}-embassy`}
                     className="btn btn--secondary btn--sm"
                     disabled={isPending}
-                    onClick={() => mutate({ type: "SEND_EMBASSY", race: r.name })}>
+                    onClick={() => mutate({ type: "SEND_EMBASSY", name: r.name })}>
                     Embassy
                   </button>
                   <button type="button" data-testid={`race-${r.name}-trade`}
                     className="btn btn--primary btn--sm"
                     disabled={isPending}
-                    onClick={() => mutate({ type: "TRADE", race: r.name })}>
+                    onClick={() => mutate({ type: "TRADE", name: r.name })}>
                     Trade
                   </button>
                 </div>
