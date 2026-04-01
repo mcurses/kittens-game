@@ -42,10 +42,9 @@ kittens-mcp/
 │   ├── client-web/             ← React web client
 │   └── shared/                 ← shared TypeScript types, constants, utils
 ├── .claude/
-│   └── skills/
-│       ├── self-rate/SKILL.md   ← /self-rate skill
-│       ├── epic-start/SKILL.md  ← /epic-start skill
-│       └── sync-docs/SKILL.md   ← /sync-docs skill
+│   └── skills/                  ← Claude Code slash-command skills
+├── .agents/
+│   └── skills/                  ← OpenAI Codex skill equivalents
 ├── turbo.json                  ← Turborepo config
 └── package.json                ← pnpm workspace root
 ```
@@ -167,6 +166,40 @@ Commit after every green test run. Small commits make bisecting easy.
 
 Run `/self-rate` at the end of every epic and at any natural milestone. Results go in `agent-docs/SELF_RATINGS.md`. Use the rating to adjust approach for the next epic.
 
+### Parity Verification Standard (mandatory)
+
+Do not treat "definition exists" as "feature complete". A feature reaches `✅` parity only when all of the following are true:
+
+- **Legacy source identified** — exact `legacy/js/` or `legacy/test/` references are recorded
+- **Producer wired** — the engine creates the effect / state / behavior
+- **Consumer wired** — the effect is actually consumed in runtime logic
+- **Action surface wired** — any legacy controls or actions exist in `GameAction`, API spec, server, and client
+- **UI surface wired** — the player can see and operate the feature where legacy allows it
+- **Save/load wired** — the state survives serialization, reset, and legacy import when applicable
+- **Parity-tested** — at least one test proves the feature against legacy behavior or a legacy-derived save fixture
+
+If any one of these is missing, the tracker stays `⚠️` or `❌`. Never flatten a partial port into `✅`.
+
+### Live Parity Audit Gate (mandatory)
+
+Before marking any epic complete:
+
+1. Run a live parity audit against the relevant legacy code and a representative imported or synthetic save.
+2. Check actual player-facing behavior, not just effect definitions: production, consumption, unlocks, controls, automation, and visibility.
+3. Record every deferred behavior explicitly in `agent-docs/PARITY.md` and the epic notes/stories.
+4. Block epic completion if any row still claims `✅` while significant legacy behavior is deferred.
+
+### Production / Control Audit Questions
+
+Whenever porting a building, upgrade, job, automation system, or UI control, answer these questions in notes or tests:
+
+1. What exact legacy outputs, consumption, and side effects does it have?
+2. Where is each output consumed in the rewrite?
+3. What controls does legacy expose for it (`on/off`, rename, quantity buttons, automation toggles, done states)?
+4. What fixture or regression test proves parity?
+
+If the agent cannot answer all four, the feature is partial by default.
+
 ---
 
 ## Epic Backlog
@@ -200,6 +233,14 @@ Epics are ordered by dependency. Do not start an epic until its prerequisites ar
 | 23 | **i18n** — translation system, port all 40+ locale files | 20 | P3 |
 | 24 | **Themes & Assets** — CSS themes, image assets | 20 | P3 |
 | 25 | **UI Completeness** — auto-tick, village panel, per-tick rates, costs in panels, religion/space/time/diplomacy/achievements tabs, craft-N UI | 20, 21 | P1 |
+| 26 | **UI Information Architecture** — replace hover-only legacy detail with modern inspector / progressive disclosure patterns across resources, buildings, workshop, and related panels | 20, 21, 25 | P1 |
+| 27 | **Building Completeness** — implement remaining gameplay buildings and wire all effect keys end-to-end per PARITY.md | 05, 09 | P1 |
+| 28 | **Legacy Save Import** — import legacy KG save files (LZString-compressed) into the new engine via a pure migration function, server endpoint, and web UI panel | 17, 18, 25 | P1 |
+| 29 | **Critical Bug Fixes** — fix auto-tick not starting after save import, fix VSU migration unlocked:false bug | 28 | P0 |
+| 30 | **Happiness Formula Completeness** — add luxury bonus, karma, festival, and temple happiness terms; wire breweryConsumptionRatio and consumableLuxuryHappiness | 27, 29 | P1 |
+| 31 | **Missing Buildings (Round 2)** — implement the ~15 buildings absent after epic 27 and close remaining building parity gaps | 27 | P1 |
+| 32 | **UI Parity Pass** — close all UI gaps found in live parity audit: religion TU section, trade economics, space mission/on-off, buildings on/off + rename system, village happiness/festival/management, resource maxValue display | 26, 29, 31 | P1 |
+| 33 | **UI Unlock & Visibility Parity** — replace hardcoded client visibility shortcuts with legacy-faithful unlock/visible rules for tabs, subpanels, jobs, actions, and conditional sections | 20, 21, 25, 32 | P1 |
 
 ---
 
@@ -251,6 +292,12 @@ When running `/self-rate`, evaluate against:
 
 Score each dimension 1–5 and record in `agent-docs/SELF_RATINGS.md`. If any dimension scores ≤ 2, pause and fix before moving to the next epic.
 
+Additional parity rules during self-rate:
+
+- A row marked `✅` in `agent-docs/PARITY.md` must be verified end-to-end, not inferred from defs alone.
+- Spot-check at least one production/consumption path and one action/UI control path from recently touched work.
+- Downgrade stale `✅` rows to `⚠️` immediately when deferred or missing runtime behavior is found.
+
 ---
 
 ## Legacy Reference Guide
@@ -294,26 +341,28 @@ The server holds the authoritative game state. Clients are thin:
 
 ---
 
-## Custom Claude Code Skills
+## Shared Agent Skills
 
-Three skills are defined in `.claude/skills/` to support the agent workflow:
+Claude Code skills live in `.claude/skills/`. Matching OpenAI Codex skills live in `.agents/skills/`.
+Keep the workflow semantics aligned between both directories so either agent can follow the same process.
 
-### `/self-rate`
+### `self-rate`
 Runs the full test suite, checks coverage, audits open TODOs, compares against PROGRESS.md, and produces a structured rating report. Output is appended to `agent-docs/SELF_RATINGS.md`.
 
-### `/epic-start <name>`
+### `epic-start <name>`
 Creates the epic directory scaffold (`agent-docs/epics/<name>/`), pre-fills STORIES.md with the standard template, and adds the epic to PROGRESS.md as "In Progress".
 
-### `/queue-epics <range-or-list>`
+### `queue-epics <range-or-list>`
 Runs multiple epics end-to-end in order. Accepts a range (`10-12`) or comma-separated list (`10,12,14`). For each epic: runs `/epic-start`, TDD loop, `/self-rate`, and only advances if all dimensions ≥ 3. Ends the batch with `/sanity-check`. Use this instead of writing out the full multi-epic prompt by hand.
 
-### `/sanity-check`
-Qualitative batch-level review: reads actual source code, compares against legacy to find parity gaps, spots architectural risks, and files any missing features as stories. Runs automatically at the end of each `/queue-epics` batch. Can also be run standalone. Distinct from `/self-rate` (which is mechanical — build/tests/coverage/linting).
+### `sanity-check`
+Qualitative batch-level review: reads actual source code, compares against legacy to find parity gaps, spots architectural risks, and files any missing features as stories. Runs automatically at the end of each `/queue-epics` batch. Can also be run standalone. Distinct from `/self-rate` (which is mechanical — build/tests/coverage/linting). It must treat live gameplay behavior as higher-priority evidence than tracker claims.
 
-### `/sync-docs`
+### `sync-docs`
 Reads the current git log and test results, then updates `agent-docs/PROGRESS.md` with accurate story completion status and coverage metrics. Run this before any self-rating.
 
-> Skill definitions live in `.claude/skills/<name>/SKILL.md`. Claude Code picks them up automatically as `/name` slash commands.
+Claude Code exposes these from `.claude/skills/<name>/SKILL.md` as slash commands.
+OpenAI Codex exposes matching equivalents from `.agents/skills/<name>/SKILL.md`.
 
 ---
 
@@ -331,6 +380,9 @@ Reads the current git log and test results, then updates `agent-docs/PROGRESS.md
 - **`agent-docs/EPICS.md` status must be updated when an epic completes** — mark the row ✅ Complete before closing out the epic
 - Legacy code is **read-only reference** — never modify it
 - **`agent-docs/PARITY.md` is the authoritative coverage tracker** — update it whenever a building, effect key, or resource production path is added. Do not mark an epic complete without updating PARITY.md.
+- **Never mark a PARITY row `✅` unless producer, consumer, action/control surface, and a parity test all exist.** Partial ports stay `⚠️`.
+- **Every parity-sensitive epic must include at least one live-save or legacy-derived regression test for player-visible behavior** such as production, consumption, unlocks, or controls.
+- **If a legacy feature has controls (`on/off`, rename, quantity buttons, automation toggles, done-state), parity is not complete until those controls exist or the PARITY tracker says they are missing.**
 - **Every new building or upgrade must wire both halves in the same commit**: the def that produces the effectCache key AND the manager code that consumes it. Verify with `grep -rn "effectCache\[" packages/engine/src/` before committing.
 
 ---
@@ -380,5 +432,5 @@ Read agents.md fully, then run: /queue-epics 1-3
 - [ ] Configure Biome for lint + format
 - [ ] Add CI (GitHub Actions): lint → test → build
 - [ ] Create `agent-docs/` directory with DECISIONS.md, PROGRESS.md, EPICS.md, SELF_RATINGS.md
-- [ ] Create `.claude/skills/` with the three skill definitions
+- [ ] Create `.claude/skills/` and `.agents/skills/` with matching workflow skill definitions
 - [ ] Run `/self-rate` on the foundation and record baseline

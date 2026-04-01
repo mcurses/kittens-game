@@ -58,6 +58,8 @@ Compare PARITY.md building table against:
 
 Flag any building that exists in legacy but is absent from PARITY.md entirely (not just ❌ — actually missing from the tracker).
 
+Also verify tracker claims against live runtime behavior, not just definitions. If a building is marked `✅`, confirm producer, consumer, action surface, UI surface, and at least one regression test.
+
 **4c — Item count spot-check**
 
 Verify the Summary Counts table in PARITY.md is accurate. Recount if any row looks stale.
@@ -74,6 +76,7 @@ For each epic in the batch, read the corresponding legacy file(s) from `legacy/j
 
 - Are all named items (buildings, upgrades, techs, perks, challenges) present?
 - Are formulas faithful? Spot-check 3–5 non-trivial calculations.
+- Are player-visible controls faithful? Check `on/off`, rename systems, quantity buttons, automation toggles, and done-state affordances where legacy has them.
 - What is intentionally missing vs. accidentally missing?
 - File any accidentally missing features as new stories in the epic's `agent-docs/epics/<name>/STORIES.md`.
 

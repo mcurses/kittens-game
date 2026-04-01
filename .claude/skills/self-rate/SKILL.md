@@ -39,9 +39,12 @@ List each finding with file:line.
 Read `agent-docs/PARITY.md`. This is the authoritative record of what is and isn't implemented.
 
 - Were any buildings, effect keys, or features added this epic? If yes, verify their rows in PARITY.md are updated.
-- Pick 2 rows marked ✅ and grep the codebase to confirm they are actually wired end-to-end (producer AND consumer). If a row is wrong, fix it and flag it.
+- Pick 2 rows marked ✅ and grep the codebase to confirm they are actually wired end-to-end. For recently touched parity work, verify both:
+  - one production/consumption path
+  - one action or UI control path
+- If a row is wrong, fix it and flag it immediately.
 - Check the Summary Counts table — do the numbers match reality? Run counts if uncertain.
-- Flag any row where status is ✅ but the wiring looks incomplete.
+- Flag any row where status is ✅ but producer, consumer, action surface, UI surface, save/load path, or regression test coverage looks incomplete.
 
 **Rate Parity Tracker as FAIL if PARITY.md was not updated after changes that affect it.**
 
@@ -50,10 +53,20 @@ Read `agent-docs/PARITY.md`. This is the authoritative record of what is and isn
 - Is `agent-docs/PROGRESS.md` up to date with story completion counts?
 - Are new architectural decisions recorded in `agent-docs/DECISIONS.md`?
 - Do completed stories have all ACs checked in their STORIES.md?
+- Is `agent-docs/EPICS.md` up to date? Mark the just-completed epic as ✅ Complete if it isn't already. If any epic was previously "Not Started" but work has clearly begun, update it to "In Progress".
 
 ## Step 6 — Feature parity spot-check
 
 Pick 3 recently completed stories. For each, find the corresponding legacy code and verify edge cases are handled. Note divergences.
+
+For each selected story, explicitly answer:
+- What exact legacy behavior exists?
+- Where is the producer in the rewrite?
+- Where is the consumer in the rewrite?
+- What action or UI control exists for the player?
+- What test proves parity?
+
+If any answer is missing, lower Feature parity and record it as an action item instead of assuming completeness.
 
 ## Step 7 — Score
 
@@ -73,7 +86,7 @@ Score 1–5 per dimension (5 = excellent, 1 = blocked/missing):
 **Rule: any dimension ≤ 2 → stop and fix before next epic.**
 
 The "Feature parity" score must reflect PARITY.md coverage counts, not just story AC checkboxes.
-A score of 5 requires PARITY.md to be current and all ✅ rows to be verified.
+A score of 5 requires PARITY.md to be current and the checked ✅ rows to have verified producer, consumer, control surface, and regression tests.
 
 ## Step 8 — Record
 
