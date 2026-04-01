@@ -131,6 +131,18 @@ WS   /ws                      → subscribe to state deltas
 
 ## Development Workflow
 
+### Epic-First Workflow (mandatory)
+
+Every substantive change must be tracked through the epic workflow. The only acceptable way to start non-trivial work is to run `/epic-start <epic>` for a new epic or to explicitly reopen an existing epic by updating its `STORIES.md`, `NOTES.md`, `agent-docs/EPICS.md`, and `agent-docs/PROGRESS.md` before touching production code.
+
+Rules:
+
+- Every feature, parity fix, production-value correction, UI control change, API change, migration, or gameplay bug fix must belong to an epic with story-level acceptance criteria.
+- If a bug is discovered mid-implementation and it is not already covered by the active epic stories, stop and document it under the current epic or a new epic before continuing.
+- "I just fixed a small parity issue while I was there" is not acceptable unless the issue was already documented in the active epic.
+- Retroactive filing is a process failure to correct immediately, not a normal mode of operation.
+- The only acceptable exceptions are trivial documentation-only edits or other clearly non-gameplay housekeeping explicitly requested by the user.
+
 ### TDD Loop (mandatory)
 
 ```
@@ -253,6 +265,8 @@ Before writing a single line of code for an epic:
 3. Fill in all user stories with **Given/When/Then** acceptance criteria
 4. Get story sign-off (re-read and confirm they cover legacy behavior)
 5. Only then: start TDD loop
+
+This is the only acceptable workflow for substantive repository changes. Do not bypass epic bootstrap and edit gameplay code "willy nilly" outside tracked epic stories.
 
 ### Story Template
 

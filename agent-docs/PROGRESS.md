@@ -6,6 +6,7 @@ Last updated: 2026-04-01
 
 ## Maintenance Updates
 
+- 2026-04-01: Retroactively opened Epic 34 to capture post-Epic 33 production/control parity work. Recent fixes must not live only in commits and `PARITY.md` without an epic/story trail.
 - 2026-03-30: Fixed the missing Web UI trigger for the `HUNT` action by adding a hunt control to `ActionPanel`.
 - 2026-03-30: Fixed `ActionPanel` action dispatch to use the current slot context, so non-default saves no longer post actions to the default slot.
 - 2026-03-31: Fixed slot-aware action dispatch across client panels (`BuildingsPanel`, `JobsPanel`, `SciencePanel`, `WorkshopPanel`, `ReligionPanel`, `SpacePanel`, `DiplomacyPanel`, `TimePanel`) so actions in `?slot=<name>` mutate the selected save instead of the default slot.
@@ -595,3 +596,24 @@ Highlights:
 - Added engine-owned `deriveUiVisibility()` selector contract for tabs, village sections, jobs, resources, hunt visibility, and shatter visibility
 - Removed hardcoded client visibility shortcuts from `TabContainer`, `JobsPanel`, `ResourcePanel`, `ActionPanel`, and `TimePanel`
 - Added Stats and Challenges parity-shell tabs so legacy unlock conditions are represented in navigation
+
+---
+
+## Epic 34: Production & Control Parity Audit
+**Status:** In Progress | **Started:** 2026-04-01 | **Finished:** —
+Stories: 4 / 6 complete
+
+- [x] Story 34-01: Building enable/disable action surface — engine action, API contract, and web UI controls for legacy-toggleable buildings
+- [x] Story 34-02: Resource production consumers — generic `*PerTickAutoprod` and `*PerTickProd` runtime consumers
+- [x] Story 34-03: Smelter and steamworks runtime production parity slice
+- [x] Story 34-04: Engine-owned building toggle visibility parity, including the legacy `lackResConvert` rule that re-enabled smelter controls
+- [ ] Story 34-05: Steamworks automation loop parity — batch auto-crafting, jam/delay behavior, and automation state
+- [ ] Story 34-06: Factory automation mode parity — carbon sequestration mode, pollution/energy switching, and matching UI controls
+
+Retroactively captured commits:
+- `154a5a9` docs(agent-docs): tighten parity verification workflow
+- `05cafd1` fix(engine): start production parity audit slice 1
+- `f76d835` fix(client-web): restrict building on-off controls to toggleable buildings
+
+Current parity note:
+- Smelter toggle parity briefly regressed because legacy toggleability is split across building defs and `legacy/core.js` controller defaults. Future control-surface audits must trace both.

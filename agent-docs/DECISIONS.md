@@ -209,3 +209,30 @@ The web client consumes this selector output instead of hardcoding its own heuri
 - Legacy parity fixes now land in one selector module instead of several React components
 - Stats and Challenges tabs can exist as minimal shells with correct unlock behavior before they gain richer UI
 - Fixtures and regression tests can assert visibility contracts directly without booting the full app
+
+---
+
+## ADR-011: Epic-first workflow is mandatory for substantive work
+**Date:** 2026-04-01
+**Status:** Accepted
+
+### Context
+Post-Epic 33 production/control parity fixes were implemented and committed before being registered under a dedicated epic. The code changes were valid, but the repo lost one of its core guarantees: future agents could not reconstruct intent, scope, or remaining work from the normal epic/story trail.
+
+### Decision
+All substantive work must start from the epic workflow. Agents must use `/epic-start <epic>` for new work or explicitly reopen an existing epic by updating `STORIES.md`, `NOTES.md`, `agent-docs/EPICS.md`, and `agent-docs/PROGRESS.md` before touching production code.
+
+This rule applies to:
+- gameplay features
+- parity fixes
+- production-value corrections
+- UI/control-surface changes
+- API/action changes
+- migrations and save-format work
+
+Only trivial documentation-only maintenance is exempt.
+
+### Consequences
+- Future agents can discover current work, remaining gaps, and legacy references from the standard docs instead of reconstructing them from git history
+- "Drive-by" parity fixes are treated as process failures even when the code itself is correct
+- If a new bug is found during implementation, the agent must first attach it to the active epic or open a new epic rather than quietly folding it into unrelated work

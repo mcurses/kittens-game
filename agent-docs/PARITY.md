@@ -2,7 +2,7 @@
 
 Tracks implementation coverage against legacy Kittens Game. **This is the authoritative source of truth for what is and isn't done.** Update it whenever items are added or wired. Do not mark an epic "complete" without updating this file.
 
-Last updated: 2026-04-01 (Post-Epic 33 production/control audit — added building enable/disable actions + UI controls, smelter autoproduction/consumption, and corrected overstated smelter/steamworks/factory parity claims)
+Last updated: 2026-04-01 (Epic 34 retroactive filing — documented building enable/disable actions, smelter/steamworks runtime consumers, and legacy toggle visibility rules under a tracked epic/story trail)
 
 ---
 
@@ -34,13 +34,13 @@ Legacy has 35 gameplay buildings (confirmed via live save audit). We have 20 def
 | warehouse | ✅ | — |
 | **amphitheatre** | ✅ | — |
 | **lumberMill** | ✅ | — |
-| **smelter** | ⚠️ | Base autoproduction/consumption and client on/off controls added 2026-04-01. Remaining gaps: legacy stock-limited action scaling, iron-will autoshutdown, and exact conversion-side behavior are not fully ported. |
+| **smelter** | ⚠️ | Story 34-03/34-04: base autoproduction/consumption and legacy toggle controls are wired. Remaining gaps: stock-limited action scaling, iron-will autoshutdown, and exact conversion-side behavior are not fully ported. |
 | **calciner** | ✅ | produces `ironPerTickBase`/`titaniumPerTickBase`; consumes `mineralsPerTickCon` (-1.5), `oilPerTickCon` (-0.024) — Story 31-07, 2026-03-31 |
 | **workshop** (building) | ✅ | building def added; `craftRatio: 0.06` per on — Story 31-02, 2026-03-31 |
 | **observatory** | ✅ | — |
 | **brewery** | ✅ | — |
 | **mint** | ✅ | — |
-| **steamworks** | ⚠️ | Dynamic `coalRatioGlobal`, `magnetoBoostRatio`, and `manuscriptPerTickProd` now produce real resources. Remaining gaps: factory automation / jam logic / delayed batch crafting. |
+| **steamworks** | ⚠️ | Story 34-03: dynamic `coalRatioGlobal`, `magnetoBoostRatio`, and `manuscriptPerTickProd` now produce real resources. Remaining gaps: factory automation, jam logic, and delayed batch crafting. |
 | **magneto** | ✅ | `oilPerTick: -0.05`, `energyProduction: 5`, `magnetoRatio: 0.02` — Story 31-04, 2026-03-31 |
 | **tradepost** | ✅ | `fursDemandRatio: -0.04`, `ivoryDemandRatio: -0.04`, `spiceDemandRatio: -0.04`, `tradeRatio: 0.015` — Story 31-05, 2026-03-31 |
 | **harbor** | ✅ | 7 resource storage boosts (catnipMax 2500, woodMax 700, etc.) — Story 31-06, 2026-03-31 |
@@ -54,7 +54,7 @@ Legacy has 35 gameplay buildings (confirmed via live save audit). We have 20 def
 | **biolab** | ✅ | `scienceRatio: 0.35`, `refineRatio: 0.1`, `scienceMax: 1500` — Story 31-15, 2026-03-31 |
 | **aiCore** | ✅ | `gflopsPerTickBase: 0.02`, `energyConsumption: 2` — Story 31-16, 2026-03-31 |
 | **accelerator** | ✅ | `titaniumPerTickCon: -0.015`, `uraniumPerTickAutoprod: 0.0025`, `energyConsumption: 2` — Story 31-17, 2026-03-31 |
-| **factory** | ⚠️ | Base `craftRatio` / `energyConsumption` wired. Remaining gaps: carbon-sequestration automation mode, pollution mode switching, and automation state UI/controls. |
+| **factory** | ⚠️ | Base `craftRatio` / `energyConsumption` wired. Epic 34 keeps the remaining gaps open: carbon-sequestration automation mode, pollution mode switching, and automation state UI/controls. |
 | **quarry** | ✅ | `mineralsRatio: 0.35`, `coalPerTickBase: 0.015` — Story 31-08, 2026-03-31 |
 | **oilWell** | ✅ | `oilPerTickBase: 0.02`, `oilMax: 1500` — Story 31-09, 2026-03-31 |
 | **zebraForge/Outpost/Workshop** | ✅ | `hunterRatio`, `catpowerMax`, `tMythrilCraftRatio` — Story 31-17, 2026-03-31 |
@@ -85,11 +85,11 @@ Keys that exist in effectCache from implemented defs but are not fully consumed:
 | `woodRatio` | lumberMill building | wood per-tick calc via `calcResourcePerTick` | ✅ Producer and consumer wired 2026-03-30 |
 | `scienceRatio` | library, academy, observatory buildings | science per-tick calc | ✅ Producer and consumer wired 2026-03-30 |
 | `ironRatio` | smelter building | iron per-tick calc via `calcResourcePerTick` | ✅ Producer and consumer wired 2026-03-30 |
-| `ironPerTickAutoprod` | smelter, calciner | resource per-tick calc via `calcResourcePerTick` | ✅ Consumer added 2026-04-01 |
-| `coalPerTickAutoprod` | smelter | resource per-tick calc via `calcResourcePerTick` | ✅ Consumer added 2026-04-01 |
-| `goldPerTickAutoprod` | smelter | resource per-tick calc via `calcResourcePerTick` | ✅ Consumer added 2026-04-01 |
-| `titaniumPerTickAutoprod` | smelter, calciner, accelerator | resource per-tick calc via `calcResourcePerTick` | ✅ Consumer added 2026-04-01 |
-| `manuscriptPerTickProd` | steamworks | resource per-tick calc | ✅ Consumer added 2026-04-01 |
+| `ironPerTickAutoprod` | smelter, calciner | resource per-tick calc via `calcResourcePerTick` | ✅ Story 34-02 consumer added 2026-04-01 |
+| `coalPerTickAutoprod` | smelter | resource per-tick calc via `calcResourcePerTick` | ✅ Story 34-02 consumer added 2026-04-01 |
+| `goldPerTickAutoprod` | smelter | resource per-tick calc via `calcResourcePerTick` | ✅ Story 34-02 consumer added 2026-04-01 |
+| `titaniumPerTickAutoprod` | smelter, calciner, accelerator | resource per-tick calc via `calcResourcePerTick` | ✅ Story 34-02 consumer added 2026-04-01 |
+| `manuscriptPerTickProd` | steamworks | resource per-tick calc | ✅ Story 34-02 consumer added 2026-04-01 |
 | `unicornsPerTickBase` | unicornPasture building | unicorn per-tick base production | ✅ Producer and consumer wired 2026-03-30 |
 | `catnipDemandWorkerRatioGlobal` | "assistance" upgrade | per-worker catnip demand reduction in VillageManager | ✅ Consumer wired 2026-03-30 |
 
@@ -227,7 +227,7 @@ Root cause: `legacy-migration.ts:migrateTime()` used `bool(item.unlocked)` which
 
 | Gap | Detail |
 |-----|--------|
-| **Enable/disable controls** | ✅ Fixed 2026-04-01: BuildingsPanel now exposes `On` / `Off` controls only for legacy-toggleable buildings, backed by engine + API actions. |
+| **Enable/disable controls** | ✅ Story 34-01/34-04: BuildingsPanel now exposes `On` / `Off` controls only for legacy-toggleable buildings, backed by engine + API actions. |
 | **on/off state not displayed** | ✅ Fixed 2026-04-01 (Epic 32-04): BuildingsPanel now shows `on/val` when `on < val`. |
 | **Internal names in UI** | ✅ Fixed 2026-04-01 (Epic 32-04): `prettifyName()` splits camelCase → Title Case ("Lumber Mill", "Log House"). |
 | **Building rename system missing** | Late-game upgrades rename buildings in legacy (Solar Farm, Hydro Plant, etc.). Rewrite shows prettified base names only. ❌ Not yet implemented. |
@@ -238,9 +238,9 @@ Root cause: `legacy-migration.ts:migrateTime()` used `bool(item.unlocked)` which
 
 | Gap | Detail |
 |-----|--------|
-| **Smelter runtime parity** | Base autoproduction/consumption is now wired, but legacy scales output by available wood/minerals per active smelter and has iron-will auto-disable behavior. ❌ Not fully implemented. |
-| **Steamworks automation** | Legacy `factoryAutomation` auto-crafts beam/slab/plate with jam/delay behavior. Rewrite has no equivalent action loop or automation state. ❌ Not implemented. |
-| **Factory automation mode** | Legacy `carbonSequestration` changes factory automation state, doubles energy use when enabled, and changes pollution behavior. Rewrite only has static craft/energy effects. ❌ Not implemented. |
+| **Smelter runtime parity** | Story 34-03 wired base autoproduction/consumption, but legacy still scales output by available wood/minerals per active smelter and has iron-will auto-disable behavior. ❌ Not fully implemented. |
+| **Steamworks automation** | Epic 34 Story 34-05 target. Legacy `factoryAutomation` auto-crafts beam/slab/plate with jam/delay behavior. Rewrite has no equivalent action loop or automation state. ❌ Not implemented. |
+| **Factory automation mode** | Epic 34 Story 34-06 target. Legacy `carbonSequestration` changes factory automation state, doubles energy use when enabled, and changes pollution behavior. Rewrite only has static craft/energy effects. ❌ Not implemented. |
 
 ---
 
