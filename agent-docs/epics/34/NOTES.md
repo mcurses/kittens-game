@@ -49,17 +49,16 @@ Epic 34 therefore treats these as separate questions:
 - what player controls exist?
 - what regression test proves it?
 
-### 3. Steamworks and factory remain partial
+### 3. Steamworks and factory needed separate automation treatment
 
 The first slice corrected dynamic production consumers and some runtime effects. The second slice now adds a real steamworks automation loop with persisted `jammed` / `automationEnabled` building state, annual automation, and the autumn reset/second batch path from `advancedAutomation`.
 
-Factory-specific automation behavior is still missing:
+The third slice adds factory-specific carbon-sequestration mode parity:
 
-- factory automation mode
-- carbon-sequestration mode switching
-- automation state UI
-
-These remaining factory gaps stay open inside this epic and must not be marked complete in `PARITY.md`.
+- factories now default into the legacy high-energy / low-pollution mode once `carbonSequestration` is researched
+- disabling that mode falls back to the lower-energy / capped-pollution path
+- `factoryLogistics` now upgrades factory craft bonus from `0.05` to `0.06`
+- factory automation state is preserved through save/load and exposed through the same engine-backed web controls as steamworks
 
 ## Steamworks Automation Notes
 
@@ -68,6 +67,14 @@ These remaining factory gaps stay open inside this epic and must not be marked c
 - Automation controls are now engine-backed actions, not client-only toggles.
 - The current rewrite covers live tick cadence. Offline `daysOffset` catch-up batching is still not modeled as a separate path because the server currently advances the game through real ticks.
 
+## Factory Automation Notes
+
+- Legacy factory "automation" is really the `carbonSequestration` mode switch from `legacy/js/buildings.js:1488-1511`.
+- With no upgrade, factories run at `craftRatio 0.05`, `energyConsumption 2`, and `cathPollutionPerTickProd 2`.
+- With `factoryLogistics`, the craft bonus rises to `0.06`.
+- With `carbonSequestration` researched, the mode defaults on: energy doubles to `4`, `cathPollutionPerTickProd` drops to `0`, and `cathPollutionPerTickCon` becomes `-2`.
+- Turning the mode off keeps the craft bonus but drops energy back to `2` and sets `cathPollutionPerTickProd` to `1`.
+
 ## Key Decisions
 
 - Retroactively file the post-Epic 33 production/control work under Epic 34 instead of pretending it belonged to Epic 33.
@@ -75,6 +82,7 @@ These remaining factory gaps stay open inside this epic and must not be marked c
 - Keep smelter, steamworks, and factory at `⚠️` in `PARITY.md` until stock-limited runtime scaling and automation behavior are proven by tests.
 - Model steamworks automation off calendar boundaries because legacy jam reset and automation cadence are season/year events, not free-running per-tick production.
 - Record the workflow correction in `agents.md` and ADR-011 so future agents cannot treat undocumented drive-by parity fixes as acceptable.
+- Reuse the existing building `automationEnabled` field for factory mode rather than introducing a second parallel control-state shape.
 
 ## Gotchas & Edge Cases
 
@@ -87,4 +95,4 @@ These remaining factory gaps stay open inside this epic and must not be marked c
 
 - Exact smelter stock-limited scaling and iron-will auto-disable behavior still need fixture-backed parity tests.
 - Steamworks automation timing should be verified against legacy tests or a controlled imported save rather than inferred from defs alone.
-- Factory automation mode likely needs persisted state in addition to a pure effect-cache contribution.
+- Factory mode should eventually be spot-checked against an imported late-game save, even though the core energy/pollution/control loop is now covered by unit/UI tests.

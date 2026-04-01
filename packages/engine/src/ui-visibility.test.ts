@@ -126,11 +126,12 @@ describe("deriveUiVisibility", () => {
     expect(ecologyShown.buildings.mine?.toggleVisible).toBe(true);
   });
 
-  it("only exposes automation controls for steamworks after factory automation is researched", () => {
+  it("only exposes automation controls for steamworks and factory after their legacy upgrades are researched", () => {
     const locked = deriveUiVisibility(
       makeState({
         buildings: {
           steamworks: { val: 1, on: 1, unlocked: true },
+          factory: { val: 1, on: 1, unlocked: true },
           smelter: { val: 1, on: 1, unlocked: true },
         },
       }),
@@ -139,17 +140,23 @@ describe("deriveUiVisibility", () => {
       makeState({
         buildings: {
           steamworks: { val: 1, on: 1, unlocked: true },
+          factory: { val: 1, on: 1, unlocked: true },
           smelter: { val: 1, on: 1, unlocked: true },
         },
         workshop: {
-          upgrades: { factoryAutomation: { unlocked: true, researched: true } },
+          upgrades: {
+            factoryAutomation: { unlocked: true, researched: true },
+            carbonSequestration: { unlocked: true, researched: true },
+          },
           crafts: {},
         },
       }),
     );
 
     expect(locked.buildings.steamworks?.automationVisible).toBe(false);
+    expect(locked.buildings.factory?.automationVisible).toBe(false);
     expect(unlocked.buildings.steamworks?.automationVisible).toBe(true);
+    expect(unlocked.buildings.factory?.automationVisible).toBe(true);
     expect(unlocked.buildings.smelter?.automationVisible).toBe(false);
   });
 

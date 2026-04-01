@@ -24,7 +24,7 @@ Retroactively file and continue the live-save production/control fixes discovere
 - `legacy/core.js:334-356`
 - `legacy/js/buildings.js:2354-2414`
 
-### Status: [x] Tests | [x] Impl | [ ] Rated
+### Status: [x] Tests | [x] Impl | [x] Rated
 
 ## Story: 34-02 — Runtime consumers for autoproduction and production keys
 
@@ -41,7 +41,7 @@ Retroactively file and continue the live-save production/control fixes discovere
 - `legacy/js/resources.js:211-323`
 - `legacy/core.js:1606-1999`
 
-### Status: [x] Tests | [x] Impl | [ ] Rated
+### Status: [x] Tests | [x] Impl | [x] Rated
 
 ## Story: 34-03 — Smelter and steamworks runtime production parity slice
 
@@ -58,7 +58,7 @@ Retroactively file and continue the live-save production/control fixes discovere
 - `legacy/js/buildings.js:998-1059`
 - `legacy/js/buildings.js:1208-1315`
 
-### Status: [x] Tests | [x] Impl | [ ] Rated
+### Status: [x] Tests | [x] Impl | [x] Rated
 
 ## Story: 34-04 — Legacy building-toggle visibility rules in engine selectors
 
@@ -76,7 +76,7 @@ Retroactively file and continue the live-save production/control fixes discovere
 - `legacy/core.js:334-356`
 - `legacy/js/buildings.js:998-1059`
 
-### Status: [x] Tests | [x] Impl | [ ] Rated
+### Status: [x] Tests | [x] Impl | [x] Rated
 
 ## Story: 34-05 — Steamworks automation loop parity
 
@@ -93,7 +93,7 @@ Retroactively file and continue the live-save production/control fixes discovere
 - `legacy/js/buildings.js:1208-1315`
 - `legacy/js/workshop.js:1685-1828`
 
-### Status: [x] Tests | [x] Impl | [ ] Rated
+### Status: [x] Tests | [x] Impl | [x] Rated
 
 ## Story: 34-06 — Factory automation mode parity
 
@@ -102,12 +102,12 @@ Retroactively file and continue the live-save production/control fixes discovere
 **So that** factory energy use, pollution behavior, and control state stop being static approximations
 
 ### Acceptance Criteria
-- [ ] Given factory automation mode is toggled, when the engine updates effects, then energy and pollution behavior follow legacy mode rules.
-- [ ] Given carbon sequestration is researched or activated, when factory state changes, then the correct automation mode becomes available and persists.
-- [ ] Given the client renders factories, when controls are shown, then the player can see and change the same automation mode the engine uses.
+- [x] Given factory automation mode is toggled, when the engine updates effects, then energy and pollution behavior follow legacy mode rules.
+- [x] Given carbon sequestration is researched or activated, when factory state changes, then the correct automation mode becomes available and persists.
+- [x] Given the client renders factories, when controls are shown, then the player can see and change the same automation mode the engine uses.
 
 ### Legacy Reference
 - `legacy/js/buildings.js:1316-1467`
 - `legacy/js/workshop.js:1829-1918`
 
-### Status: [ ] Tests | [ ] Impl | [ ] Rated
+### Status: [x] Tests | [x] Impl | [x] Rated

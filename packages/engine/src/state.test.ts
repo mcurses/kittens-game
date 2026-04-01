@@ -259,11 +259,18 @@ describe("serialize / deserialize", () => {
           jammed: true,
           automationEnabled: false,
         },
+        factory: {
+          val: 2,
+          on: 2,
+          unlocked: true,
+          automationEnabled: true,
+        },
       },
     };
     const restored = deserialize(serialize(state));
     expect(restored.buildings.steamworks?.jammed).toBe(true);
     expect(restored.buildings.steamworks?.automationEnabled).toBe(false);
+    expect(restored.buildings.factory?.automationEnabled).toBe(true);
   });
 
   it("deserialize falls back to initial buildings if field is missing", () => {

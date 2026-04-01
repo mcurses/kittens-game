@@ -2,7 +2,7 @@
 
 Tracks implementation coverage against legacy Kittens Game. **This is the authoritative source of truth for what is and isn't done.** Update it whenever items are added or wired. Do not mark an epic "complete" without updating this file.
 
-Last updated: 2026-04-01 (Epic 34 retroactive filing — documented building enable/disable actions, smelter/steamworks runtime consumers, and legacy toggle visibility rules under a tracked epic/story trail)
+Last updated: 2026-04-01 (Epic 34 Story 34-06 — factory carbon-sequestration mode, pollution switching, persisted automation state, and UI controls wired)
 
 ---
 
@@ -54,7 +54,7 @@ Legacy has 35 gameplay buildings (confirmed via live save audit). We have 20 def
 | **biolab** | ✅ | `scienceRatio: 0.35`, `refineRatio: 0.1`, `scienceMax: 1500` — Story 31-15, 2026-03-31 |
 | **aiCore** | ✅ | `gflopsPerTickBase: 0.02`, `energyConsumption: 2` — Story 31-16, 2026-03-31 |
 | **accelerator** | ✅ | `titaniumPerTickCon: -0.015`, `uraniumPerTickAutoprod: 0.0025`, `energyConsumption: 2` — Story 31-17, 2026-03-31 |
-| **factory** | ⚠️ | Base `craftRatio` / `energyConsumption` wired. Epic 34 keeps the remaining gaps open: carbon-sequestration automation mode, pollution mode switching, and automation state UI/controls. |
+| **factory** | ✅ | Story 34-06: legacy carbon-sequestration mode is wired end-to-end. Factory now defaults into the high-energy / low-pollution path when researched, falls back to capped-pollution mode when disabled, persists automation state, exposes engine-backed UI controls, and applies the `factoryLogistics` `craftRatio` bump. |
 | **quarry** | ✅ | `mineralsRatio: 0.35`, `coalPerTickBase: 0.015` — Story 31-08, 2026-03-31 |
 | **oilWell** | ✅ | `oilPerTickBase: 0.02`, `oilMax: 1500` — Story 31-09, 2026-03-31 |
 | **zebraForge/Outpost/Workshop** | ✅ | `hunterRatio`, `catpowerMax`, `tMythrilCraftRatio` — Story 31-17, 2026-03-31 |
@@ -240,7 +240,7 @@ Root cause: `legacy-migration.ts:migrateTime()` used `bool(item.unlocked)` which
 |-----|--------|
 | **Smelter runtime parity** | Story 34-03 wired base autoproduction/consumption, but legacy still scales output by available wood/minerals per active smelter and has iron-will auto-disable behavior. ❌ Not fully implemented. |
 | **Steamworks automation** | Story 34-05 implemented the live tick loop: yearly automation by default, autumn extra batch with `advancedAutomation`, persisted `jammed` / `automationEnabled` state, and engine-backed controls. Remaining gap: legacy offline `daysOffset` batching is not modeled separately. ⚠️ Partial. |
-| **Factory automation mode** | Epic 34 Story 34-06 target. Legacy `carbonSequestration` changes factory automation state, doubles energy use when enabled, and changes pollution behavior. Rewrite only has static craft/energy effects. ❌ Not implemented. |
+| **Factory automation mode** | ✅ Fixed in Story 34-06. `carbonSequestration` now changes factory mode, doubles energy use when enabled, shifts pollution prod/con behavior, persists state, and is controllable from the web UI through engine-backed actions. |
 
 ---
 

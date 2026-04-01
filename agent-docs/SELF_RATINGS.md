@@ -1225,3 +1225,95 @@ The Village tab label now mirrors legacy progression labels and appends the free
 - [ ] Expand `StatsPanel` and `ChallengesPanel` beyond placeholder shells once their parity scope is selected
 - [ ] Add one more dedicated regression file for imported-save visibility edge cases if Epic 28/33 interactions change again
 - [ ] Consider adding explicit tests for higher-tier village labels (`Town`, `City`, `Empire`, etc.) to raise `ui-visibility.ts` branch coverage
+
+---
+
+## Epic 34: Production & Control Parity Audit — 2026-04-01
+
+### Step 1 — Build + Tests
+
+All 5 packages build cleanly and the full test matrix passes.
+
+| Package | Tests | Lines | Branch |
+|---------|-------|-------|--------|
+| engine | 938 pass | 99.11% | 85.77% |
+| server | 86 pass | 95.12% | 83.05% |
+| client-web | 309 pass | 95.91% | 85.13% |
+| api-spec | 25 pass | 100% | 100% |
+
+Total: 1,358 tests across all packages.
+
+### Step 2 — Code Quality Audit
+
+- **`: any` / `as any`**: Zero production `any` usage introduced in this epic.
+- **TODO / FIXME / HACK**: No new TODO-style debt markers were added in code.
+- **Skipped tests**: Zero `it.skip`, `test.todo`, or `xit` added.
+- Building control/production logic now lives in engine-owned paths (`buildings.ts`, `ui-visibility.ts`) rather than client heuristics.
+
+### Step 3 — API Spec Coverage
+
+Epic 34 introduced no new HTTP routes and no new `GameAction` variants beyond the already-landed building toggle / automation actions that were added in the same implementation slice as their schema updates. Current contract check:
+
+- engine `GameAction` union and api-spec `GameActionRequestSchema` remain aligned
+- `openapi.yaml` still mirrors the action surface used by the client
+
+No API drift found.
+
+### Step 4 — Parity Tracker Freshness
+
+`agent-docs/PARITY.md` was updated during this closeout:
+
+- `factory` promoted from `⚠️` to `✅`
+- production/automation gap list updated to remove factory as an open gap
+- header refreshed to point at Story 34-06
+
+Remaining partial gaps are now explicitly limited to smelter runtime scaling and steamworks offline `daysOffset` parity.
+
+### Step 5 — Docs Freshness
+
+- `agent-docs/PROGRESS.md`: Epic 34 marked 6/6 complete
+- `agent-docs/EPICS.md`: Epic 34 marked ✅ Complete
+- `agent-docs/epics/34/STORIES.md`: Story 34-06 ACs checked
+- `agent-docs/epics/34/NOTES.md`: factory automation findings recorded
+
+### Step 6 — Feature Parity Spot-Check
+
+**1. Factory carbon-sequestration mode (`legacy/js/buildings.js:1488-1511`)**
+Rewrite now matches the three legacy states:
+- no `carbonSequestration`: `craftRatio 0.05`, `energyConsumption 2`, pollution production `2`
+- `carbonSequestration` on by default: energy `4`, pollution production `0`, pollution consumption `-2`
+- `carbonSequestration` off manually: energy `2`, pollution production `1`
+
+**2. Factory logistics upgrade (`legacy/js/buildings.js:1493-1498`)**
+`factoryLogistics` now bumps the factory craft bonus from `0.05` to `0.06` as in legacy.
+
+**3. Factory controls**
+Factory mode visibility is now engine-owned and only appears after `carbonSequestration`, with the web client dispatching engine-backed automation actions instead of client-only state.
+
+### Step 7 — Scores
+
+| Dimension | Score | Notes |
+|-----------|-------|-------|
+| Test coverage (≥90% target) | 5 | All packages remain ≥95% line coverage; 1,358 tests passing |
+| No skipped tests / no TODOs | 5 | Zero skipped tests, no new TODO/FIXME/HACK markers, no production `any` introduced |
+| Feature parity | 4 | Factory mode parity is now wired end-to-end, but Epic 34 intentionally leaves smelter stock-limited runtime behavior and steamworks offline batching as tracked partial gaps |
+| API spec completeness | 5 | No action/schema drift; previously added building automation actions remain mirrored across engine, Zod schema, and OpenAPI |
+| Code quality (no `any`) | 5 | Runtime production/control logic is centralized in the engine and backed by tests across engine, state serialization, UI visibility, and client dispatch |
+| Docs freshness (PROGRESS, DECISIONS, PARITY) | 5 | PROGRESS, EPICS, STORIES, NOTES, and PARITY updated during closeout |
+| Commit hygiene | 5 | Epic 34 work is grouped into scoped commits with story-aligned slices and a dedicated closeout pass |
+| **Overall average** | **4.9** | |
+
+### What went well
+- The factory slice was implemented test-first and exposed the exact places the earlier static approximation was wrong
+- Production/control behavior is now documented under a real epic instead of living only in commits and ad hoc notes
+- Engine-owned visibility continues to pay off: factory controls only needed selector + existing action wiring, not another client heuristic
+
+### What to improve
+- `ui-visibility.ts` branch coverage is still lower than the rest of the engine suite
+- Steamworks offline catch-up parity still needs a dedicated decision or fixture-backed audit
+- Smelter remains the most obvious production system still missing stock-limited legacy behavior
+
+### Action items for next epic
+- [ ] Add fixture-backed smelter tests for stock-limited runtime scaling and iron-will auto-disable behavior
+- [ ] Decide whether steamworks offline `daysOffset` parity should be modeled explicitly or documented as intentionally unsupported in the server tick model
+- [ ] Consider adding higher-branch coverage fixtures for `ui-visibility.ts` once the next parity-facing epic touches it

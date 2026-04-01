@@ -267,6 +267,7 @@ function getBuildingControlsVisibility(state: SerializableStateLike): Record<str
   const pumpjack = isUpgradeResearched(state, "pumpjack");
   const biofuel = isUpgradeResearched(state, "biofuel");
   const factoryAutomation = isUpgradeResearched(state, "factoryAutomation");
+  const carbonSequestration = isUpgradeResearched(state, "carbonSequestration");
 
   const result: Record<string, UiBuildingControlsVisibility> = {};
   for (const name of Object.keys(buildings)) {
@@ -283,6 +284,9 @@ function getBuildingControlsVisibility(state: SerializableStateLike): Record<str
       case "steamworks":
         toggleVisible = true;
         automationVisible = factoryAutomation;
+        break;
+      case "factory":
+        automationVisible = carbonSequestration;
         break;
       case "mine":
       case "quarry":

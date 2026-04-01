@@ -1188,7 +1188,7 @@ describe("Story 31-10: factory", () => {
     expect(def?.effects.energyConsumption).toBe(2);
   });
 
-  it("1 factory → craftRatio 0.05 in effectCache", () => {
+  it("1 factory without carbon sequestration keeps legacy base energy and pollution", () => {
     const manager = new BuildingManager();
     const state = {
       ...createInitialState(),
@@ -1197,6 +1197,52 @@ describe("Story 31-10: factory", () => {
     const effects = manager.updateEffects(state);
     expect(effects.craftRatio).toBeCloseTo(0.05);
     expect(effects.energyConsumption).toBeCloseTo(2);
+    expect(effects.cathPollutionPerTickProd).toBeCloseTo(2);
+    expect(effects.cathPollutionPerTickCon ?? 0).toBe(0);
+  });
+
+  it("carbon sequestration defaults factories into high-energy low-pollution mode", () => {
+    const manager = new BuildingManager();
+    const state = {
+      ...createInitialState(),
+      buildings: { ...createInitialBuildings(), factory: { val: 1, on: 1, unlocked: true } },
+      workshop: {
+        ...createInitialState().workshop,
+        upgrades: {
+          ...createInitialState().workshop.upgrades,
+          carbonSequestration: { unlocked: true, researched: true },
+        },
+      },
+    };
+    const effects = manager.updateEffects(state);
+    expect(effects.craftRatio).toBeCloseTo(0.05);
+    expect(effects.energyConsumption).toBeCloseTo(4);
+    expect(effects.cathPollutionPerTickProd ?? 0).toBe(0);
+    expect(effects.cathPollutionPerTickCon).toBe(-2);
+  });
+
+  it("disabled carbon sequestration mode falls back to lower-energy capped-pollution mode", () => {
+    const manager = new BuildingManager();
+    const state = {
+      ...createInitialState(),
+      buildings: {
+        ...createInitialBuildings(),
+        factory: { val: 1, on: 1, unlocked: true, automationEnabled: false },
+      },
+      workshop: {
+        ...createInitialState().workshop,
+        upgrades: {
+          ...createInitialState().workshop.upgrades,
+          carbonSequestration: { unlocked: true, researched: true },
+          factoryLogistics: { unlocked: true, researched: true },
+        },
+      },
+    };
+    const effects = manager.updateEffects(state);
+    expect(effects.craftRatio).toBeCloseTo(0.06);
+    expect(effects.energyConsumption).toBeCloseTo(2);
+    expect(effects.cathPollutionPerTickProd).toBe(1);
+    expect(effects.cathPollutionPerTickCon ?? 0).toBe(0);
   });
 });
 

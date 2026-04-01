@@ -49,6 +49,12 @@ vi.mock("@kittens/engine", () => ({
       priceRatio: 1.15,
       effects: {},
     },
+    {
+      name: "factory",
+      prices: [{ name: "titanium", val: 2000 }],
+      priceRatio: 1.15,
+      effects: {},
+    },
   ],
   // getBuildingPrice returns base prices unchanged for test simplicity
   getBuildingPrice: (def: { prices: readonly { name: string; val: number }[] }) => def.prices,
@@ -66,6 +72,10 @@ vi.mock("@kittens/engine", () => ({
       accelerator: { toggleVisible: true, automationVisible: false },
       mint: { toggleVisible: true, automationVisible: false },
       steamworks: { toggleVisible: true, automationVisible: true },
+      factory: {
+        toggleVisible: false,
+        automationVisible: state.workshop?.upgrades?.carbonSequestration?.researched === true,
+      },
       mine: { toggleVisible: state.science?.techs?.ecology?.researched === true, automationVisible: false },
       field: { toggleVisible: false, automationVisible: false },
       hut: { toggleVisible: false, automationVisible: false },
@@ -216,6 +226,28 @@ describe("BuildingsPanel", () => {
     render(<WithInspector><BuildingsPanel state={state} /></WithInspector>);
     fireEvent.click(screen.getByRole("button", { name: /auto on/i }));
     expect(mockMutate).toHaveBeenCalledWith({ type: "ENABLE_BUILDING_AUTOMATION", name: "steamworks" });
+  });
+
+  it("shows factory automation controls only after carbon sequestration and dispatches engine-backed actions", () => {
+    const hidden = makeState(
+      { factory: { val: 1, on: 1, unlocked: true, automationEnabled: true } },
+      { titanium: { value: 5000, maxValue: 0 } },
+    );
+    const shown = makeState(
+      { factory: { val: 1, on: 1, unlocked: true, automationEnabled: true } },
+      { titanium: { value: 5000, maxValue: 0 } },
+    ) as Record<string, unknown>;
+    shown.workshop = {
+      upgrades: { carbonSequestration: { unlocked: true, researched: true } },
+      crafts: {},
+    };
+
+    const { rerender } = render(<WithInspector><BuildingsPanel state={hidden} /></WithInspector>);
+    expect(screen.queryByRole("button", { name: /auto off/i })).toBeNull();
+
+    rerender(<WithInspector><BuildingsPanel state={shown as import("@kittens/api-spec").GameStateResponse} /></WithInspector>);
+    fireEvent.click(screen.getByRole("button", { name: /auto off/i }));
+    expect(mockMutate).toHaveBeenCalledWith({ type: "DISABLE_BUILDING_AUTOMATION", name: "factory" });
   });
 
   it("uses the current slot when wiring building actions", () => {

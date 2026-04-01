@@ -902,6 +902,19 @@ export class BuildingManager implements Manager {
       }
     }
 
+    const factory = buildings.factory;
+    if (factory && factory.val > 0) {
+      const hasCarbonSequestration = this.isUpgradeResearched(state, "carbonSequestration");
+      if (hasCarbonSequestration && typeof factory.automationEnabled !== "boolean") {
+        buildings.factory = { ...factory, automationEnabled: true };
+        changed = true;
+      } else if (!hasCarbonSequestration && factory.automationEnabled !== undefined) {
+        const { automationEnabled: _automationEnabled, ...rest } = factory;
+        buildings.factory = rest;
+        changed = true;
+      }
+    }
+
     return changed ? { ...state, buildings } : state;
   }
 
@@ -978,6 +991,27 @@ export class BuildingManager implements Manager {
 
       if (manuscriptPerTickProd > 0) {
         effects.manuscriptPerTickProd = (effects.manuscriptPerTickProd ?? 0) + manuscriptPerTickProd * steamworks.on;
+      }
+    }
+
+    // ── Factory automation/carbon sequestration parity ───────────────────────
+    const factory = state.buildings.factory;
+    if (factory && factory.on > 0) {
+      if (this.isUpgradeResearched(state, "factoryLogistics")) {
+        effects.craftRatio = (effects.craftRatio ?? 0) + 0.01 * factory.on;
+      }
+
+      const hasCarbonSequestration = this.isUpgradeResearched(state, "carbonSequestration");
+      const automationEnabled = hasCarbonSequestration
+        && (factory.automationEnabled ?? true);
+
+      if (automationEnabled) {
+        effects.energyConsumption = (effects.energyConsumption ?? 0) + 2 * factory.on;
+        effects.cathPollutionPerTickCon = (effects.cathPollutionPerTickCon ?? 0) - 2 * factory.on;
+      } else if (hasCarbonSequestration) {
+        effects.cathPollutionPerTickProd = (effects.cathPollutionPerTickProd ?? 0) + 1 * factory.on;
+      } else {
+        effects.cathPollutionPerTickProd = (effects.cathPollutionPerTickProd ?? 0) + 2 * factory.on;
       }
     }
 

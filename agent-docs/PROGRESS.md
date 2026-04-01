@@ -600,15 +600,15 @@ Highlights:
 ---
 
 ## Epic 34: Production & Control Parity Audit
-**Status:** In Progress | **Started:** 2026-04-01 | **Finished:** —
-Stories: 5 / 6 complete
+**Status:** Complete | **Started:** 2026-04-01 | **Finished:** 2026-04-01
+Stories: 6 / 6 complete
 
 - [x] Story 34-01: Building enable/disable action surface — engine action, API contract, and web UI controls for legacy-toggleable buildings
 - [x] Story 34-02: Resource production consumers — generic `*PerTickAutoprod` and `*PerTickProd` runtime consumers
 - [x] Story 34-03: Smelter and steamworks runtime production parity slice
 - [x] Story 34-04: Engine-owned building toggle visibility parity, including the legacy `lackResConvert` rule that re-enabled smelter controls
 - [x] Story 34-05: Steamworks automation loop parity — batch auto-crafting, jam/delay behavior, automation save/load, and engine-backed web controls
-- [ ] Story 34-06: Factory automation mode parity — carbon sequestration mode, pollution/energy switching, and matching UI controls
+- [x] Story 34-06: Factory automation mode parity — carbon sequestration mode, pollution/energy switching, persisted state, and matching UI controls
 
 Retroactively captured commits:
 - `154a5a9` docs(agent-docs): tighten parity verification workflow
@@ -618,3 +618,4 @@ Retroactively captured commits:
 Current parity note:
 - Smelter toggle parity briefly regressed because legacy toggleability is split across building defs and `legacy/core.js` controller defaults. Future control-surface audits must trace both.
 - Steamworks automation now runs on legacy-faithful calendar boundaries: yearly by default, plus an autumn batch when `advancedAutomation` is researched.
+- Factory carbon-sequestration mode now defaults on when researched, persists through save/load, uses engine-owned visibility rules, and matches legacy energy/pollution switching.
