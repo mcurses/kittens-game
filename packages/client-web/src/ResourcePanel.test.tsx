@@ -9,7 +9,7 @@ import { ResourcePanel } from "./ResourcePanel.js";
 function makeState(
   resources: Record<
     string,
-    { value: number; maxValue?: number; perTick?: number }
+    { value: number; maxValue?: number; perTick?: number; unlocked?: boolean }
   >,
   effectCache: Record<string, number> = {},
 ) {
@@ -199,37 +199,35 @@ describe("ResourcePanel", () => {
     expect(screen.getByTestId("resource-wood")).toBeTruthy();
   });
 
-  // Story 20-1: Resource filtering
-  it("hides resources with value 0", () => {
+  it("keeps zero-valued unlocked resources visible", () => {
     const state = makeState({
-      catnip: { value: 0, perTick: 0.5 },
-      wood: { value: 50 },
+      catnip: { value: 0, perTick: 0.5, unlocked: true },
+      wood: { value: 50, unlocked: true },
     });
     render(<WithInspector><ResourcePanel state={state} /></WithInspector>);
-    expect(screen.queryByTestId("resource-catnip")).toBeNull();
+    expect(screen.getByTestId("resource-catnip")).toBeTruthy();
     expect(screen.getByTestId("resource-wood")).toBeTruthy();
   });
 
-  it("shows no resources message when all resources have value 0", () => {
+  it("still shows catnip when everything else is locked at zero", () => {
     const state = makeState({
-      catnip: { value: 0 },
-      wood: { value: 0 },
-    });
-    render(<WithInspector><ResourcePanel state={state} /></WithInspector>);
-    expect(screen.getByText("No resources yet.")).toBeTruthy();
-    expect(screen.queryByTestId("resource-catnip")).toBeNull();
-    expect(screen.queryByTestId("resource-wood")).toBeNull();
-  });
-
-  it("shows resources with positive value and hides those with 0", () => {
-    const state = makeState({
-      catnip: { value: 100 },
-      wood: { value: 0 },
-      minerals: { value: 0.01 },
+      catnip: { value: 0, unlocked: false },
+      wood: { value: 0, unlocked: false },
     });
     render(<WithInspector><ResourcePanel state={state} /></WithInspector>);
     expect(screen.getByTestId("resource-catnip")).toBeTruthy();
     expect(screen.queryByTestId("resource-wood")).toBeNull();
+  });
+
+  it("hides locked hidden resources even when they have placeholder rows", () => {
+    const state = makeState({
+      catnip: { value: 100, unlocked: true },
+      temporalFlux: { value: 0, unlocked: false },
+      minerals: { value: 0.01, unlocked: true },
+    });
+    render(<WithInspector><ResourcePanel state={state} /></WithInspector>);
+    expect(screen.getByTestId("resource-catnip")).toBeTruthy();
+    expect(screen.queryByTestId("resource-temporalFlux")).toBeNull();
     expect(screen.getByTestId("resource-minerals")).toBeTruthy();
   });
 });

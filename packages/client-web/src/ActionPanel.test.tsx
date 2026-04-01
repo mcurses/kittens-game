@@ -39,11 +39,18 @@ function renderWithClient(ui: React.ReactElement, slot = "default") {
 describe("ActionPanel", () => {
   it("renders the Gather Catnip and Hunt buttons", () => {
     mockFetch.mockImplementation(() => new Promise(() => {}));
-    renderWithClient(<ActionPanel />);
+    renderWithClient(
+      <ActionPanel
+        state={{
+          resources: { catpower: { value: 250 } },
+          science: { techs: { archery: { researched: true } } },
+        } as never}
+      />,
+    );
     expect(screen.getByTestId("btn-gather-catnip")).toBeTruthy();
     expect(screen.getByText("Gather Catnip")).toBeTruthy();
     expect(screen.getByTestId("btn-hunt")).toBeTruthy();
-    expect(screen.getByText("Hunt")).toBeTruthy();
+    expect(screen.getByText(/Hunt/)).toBeTruthy();
   });
 
   it("calls mutate with GATHER_CATNIP when button clicked", async () => {
@@ -70,6 +77,7 @@ describe("ActionPanel", () => {
         state={{
           resources: { catpower: { value: 250 } },
           effectCache: {},
+          science: { techs: { archery: { researched: true } } },
         }}
       />,
     );
@@ -108,7 +116,7 @@ describe("ActionPanel", () => {
     expect(
       (screen.getByTestId("btn-gather-catnip") as HTMLButtonElement).disabled,
     ).toBe(false);
-    expect((screen.getByTestId("btn-hunt") as HTMLButtonElement).disabled).toBe(true);
+    expect(screen.queryByTestId("btn-hunt")).toBeNull();
   });
 
   it("enables Hunt and shows squad count when enough catpower is available", () => {
@@ -118,11 +126,25 @@ describe("ActionPanel", () => {
         state={{
           resources: { catpower: { value: 250 } },
           effectCache: {},
+          science: { techs: { archery: { researched: true } } },
         }}
       />,
     );
     expect(screen.getByText("Hunt (2 squads)")).toBeTruthy();
     expect((screen.getByTestId("btn-hunt") as HTMLButtonElement).disabled).toBe(false);
+  });
+
+  it("hides Hunt until archery is researched", () => {
+    mockFetch.mockImplementation(() => new Promise(() => {}));
+    renderWithClient(
+      <ActionPanel
+        state={{
+          resources: { catpower: { value: 250 } },
+          effectCache: {},
+        } as never}
+      />,
+    );
+    expect(screen.queryByTestId("btn-hunt")).toBeNull();
   });
 
   it("shows error message when mutation fails", async () => {

@@ -1,6 +1,6 @@
 // TimePanel — Chronoforge mechanics: CFUs, VSUs, heat, flux
 import type { GameStateResponse } from "@kittens/api-spec";
-import { CFU_DEFS, VSU_DEFS, getCfuPrice, getVsuPrice } from "@kittens/engine";
+import { CFU_DEFS, VSU_DEFS, deriveUiVisibility, getCfuPrice, getVsuPrice } from "@kittens/engine";
 import React from "react";
 import { useSlot } from "./SlotContext.js";
 import { useGameAction } from "./useGameAction.js";
@@ -53,6 +53,7 @@ export function TimePanel({ state }: Props): React.ReactElement {
 
   const { heat, flux, cfus, vsus, unlocked } = extractTime(state);
   const resources = extractResources(state);
+  const visibility = deriveUiVisibility(state);
 
   if (!unlocked) {
     return (
@@ -75,10 +76,12 @@ export function TimePanel({ state }: Props): React.ReactElement {
         </div>
       </div>
 
-      <button type="button" className="btn btn--secondary btn--sm"
-        disabled={isPending} onClick={() => mutate({ type: "SHATTER_TC" })}>
-        Shatter TC
-      </button>
+      {visibility.time.shatterVisible && (
+        <button type="button" className="btn btn--secondary btn--sm"
+          disabled={isPending} onClick={() => mutate({ type: "SHATTER_TC" })}>
+          Shatter TC
+        </button>
+      )}
 
       {cfus.length > 0 && (
         <div className="panel-subsection">

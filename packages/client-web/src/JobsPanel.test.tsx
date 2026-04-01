@@ -9,7 +9,7 @@ vi.mock("./useGameAction.js", () => ({
 }));
 
 function makeState(
-  jobs: Record<string, { value: number }>,
+  jobs: Record<string, { value: number; unlocked?: boolean }>,
   kittens = 5,
 ) {
   return {
@@ -41,7 +41,7 @@ describe("JobsPanel", () => {
   });
 
   it("renders job name and assigned count", () => {
-    const state = makeState({ farmer: { value: 3 } });
+    const state = makeState({ farmer: { value: 3, unlocked: true } });
     render(<JobsPanel state={state} />);
     expect(screen.getByTestId("job-farmer")).toBeTruthy();
     expect(screen.getByText(/farmer/)).toBeTruthy();
@@ -49,21 +49,21 @@ describe("JobsPanel", () => {
   });
 
   it("dispatches ASSIGN_JOB when + is clicked", () => {
-    const state = makeState({ farmer: { value: 1 } });
+    const state = makeState({ farmer: { value: 1, unlocked: true } });
     render(<JobsPanel state={state} />);
     fireEvent.click(screen.getByTestId("job-farmer-assign"));
     expect(mockMutate).toHaveBeenCalledWith({ type: "ASSIGN_JOB", job: "farmer" });
   });
 
   it("dispatches UNASSIGN_JOB when - is clicked", () => {
-    const state = makeState({ farmer: { value: 2 } });
+    const state = makeState({ farmer: { value: 2, unlocked: true } });
     render(<JobsPanel state={state} />);
     fireEvent.click(screen.getByTestId("job-farmer-unassign"));
     expect(mockMutate).toHaveBeenCalledWith({ type: "UNASSIGN_JOB", job: "farmer" });
   });
 
   it("renders multiple jobs", () => {
-    const state = makeState({ farmer: { value: 2 }, scholar: { value: 1 } });
+    const state = makeState({ farmer: { value: 2, unlocked: true }, scholar: { value: 1, unlocked: true } });
     render(<JobsPanel state={state} />);
     expect(screen.getByTestId("job-farmer")).toBeTruthy();
     expect(screen.getByTestId("job-scholar")).toBeTruthy();
@@ -73,15 +73,19 @@ describe("JobsPanel", () => {
 // ── Epic 32 Story 32-07: Village happiness/festival in JobsPanel ──────────────
 
 function makeStateWithVillage(
-  jobs: Record<string, { value: number }>,
+  jobs: Record<string, { value: number; unlocked?: boolean }>,
   village: { kittens?: number; happiness?: number } = {},
   calendar: { festivalDays?: number } = {},
+  science: { techs?: Record<string, { researched?: boolean }> } = {},
+  resources: Record<string, { value: number }> = {},
 ) {
   return {
     version: 1,
     tick: 0,
     village: { kittens: village.kittens ?? 0, happiness: village.happiness ?? 1.0, jobs },
     calendar: { festivalDays: calendar.festivalDays ?? 0, day: 0, season: 0, year: 0 },
+    science: { techs: science.techs ?? {} },
+    resources,
   } as unknown as import("@kittens/api-spec").GameStateResponse;
 }
 
@@ -107,15 +111,56 @@ describe("Story 32-07: Happiness display and festival in JobsPanel", () => {
   });
 
   it("shows Hold Festival button", () => {
-    const state = makeStateWithVillage({});
+    const state = makeStateWithVillage({}, {}, {}, { techs: { drama: { researched: true } } });
     render(<JobsPanel state={state} />);
     expect(screen.getByTestId("btn-hold-festival")).toBeTruthy();
   });
 
   it("dispatches HOLD_FESTIVAL when Hold Festival is clicked", () => {
-    const state = makeStateWithVillage({});
+    const state = makeStateWithVillage({}, {}, {}, { techs: { drama: { researched: true } } });
     render(<JobsPanel state={state} />);
     fireEvent.click(screen.getByTestId("btn-hold-festival"));
     expect(mockMutate).toHaveBeenCalledWith({ type: "HOLD_FESTIVAL" });
+  });
+
+  it("hides Hold Festival when drama is not researched", () => {
+    const state = makeStateWithVillage({});
+    render(<JobsPanel state={state} />);
+    expect(screen.queryByTestId("btn-hold-festival")).toBeNull();
+  });
+
+  it("only renders unlocked jobs", () => {
+    const state = makeStateWithVillage({
+      woodcutter: { value: 2, unlocked: true },
+      farmer: { value: 0, unlocked: false },
+    });
+    render(<JobsPanel state={state} />);
+    expect(screen.getByTestId("job-woodcutter")).toBeTruthy();
+    expect(screen.queryByTestId("job-farmer")).toBeNull();
+  });
+
+  it("shows management and census sections only when their legacy gates are met", () => {
+    const hiddenState = makeStateWithVillage(
+      { woodcutter: { value: 1, unlocked: true } },
+      { kittens: 4 },
+      {},
+      { techs: {} },
+      { zebras: { value: 0 } },
+    );
+    const visibleState = makeStateWithVillage(
+      { woodcutter: { value: 1, unlocked: true } },
+      { kittens: 6 },
+      {},
+      { techs: { civil: { researched: true } } },
+      { zebras: { value: 0 } },
+    );
+
+    const { rerender } = render(<JobsPanel state={hiddenState} />);
+    expect(screen.queryByTestId("village-management")).toBeNull();
+    expect(screen.queryByTestId("village-census")).toBeNull();
+
+    rerender(<JobsPanel state={visibleState} />);
+    expect(screen.getByTestId("village-management")).toBeTruthy();
+    expect(screen.getByTestId("village-census")).toBeTruthy();
   });
 });

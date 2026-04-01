@@ -16,6 +16,7 @@ function makeState(
     vsus?: Record<string, { val: number; on: number; unlocked: boolean }>;
   },
   resources: Record<string, { value: number }> = {},
+  workshop: { upgrades?: Record<string, { unlocked?: boolean; researched?: boolean }> } = {},
 ) {
   return {
     version: 1,
@@ -30,6 +31,7 @@ function makeState(
     resources: Object.fromEntries(
       Object.entries(resources).map(([k, v]) => [k, { value: v.value, maxValue: 0, perTick: 0 }]),
     ),
+    workshop: { upgrades: workshop.upgrades ?? {}, crafts: {} },
   } as unknown as import("@kittens/api-spec").GameStateResponse;
 }
 
@@ -64,14 +66,22 @@ describe("TimePanel", () => {
   });
 
   it("shows Shatter TC button when time is unlocked", () => {
-    const state = makeState({ heat: 1 });
+    const state = makeState(
+      { heat: 1 },
+      {},
+      { upgrades: { tachyonModerator: { unlocked: true, researched: true } } },
+    );
     render(<TimePanel state={state} />);
     const btn = screen.getByRole("button", { name: /shatter/i });
     expect(btn).toBeTruthy();
   });
 
   it("dispatches SHATTER_TC when button is clicked", () => {
-    const state = makeState({ heat: 1 });
+    const state = makeState(
+      { heat: 1 },
+      {},
+      { upgrades: { tachyonModerator: { unlocked: true, researched: true } } },
+    );
     render(<TimePanel state={state} />);
     fireEvent.click(screen.getByRole("button", { name: /shatter/i }));
     expect(mockMutate).toHaveBeenCalledWith({ type: "SHATTER_TC" });

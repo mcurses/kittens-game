@@ -1,5 +1,6 @@
 // JobsPanel — displays jobs with assign/unassign stepper controls
 import type { GameStateResponse } from "@kittens/api-spec";
+import { deriveUiVisibility } from "@kittens/engine";
 import React from "react";
 import { useSlot } from "./SlotContext.js";
 import { useGameAction } from "./useGameAction.js";
@@ -7,6 +8,7 @@ import { useGameAction } from "./useGameAction.js";
 interface JobEntry {
   name: string;
   value: number;
+  unlocked: boolean;
 }
 
 interface Props {
@@ -35,7 +37,11 @@ function extractVillageInfo(state: GameStateResponse): VillageInfo {
     .map(([name, entry]) => {
       if (typeof entry !== "object" || entry === null) return null;
       const e = entry as Record<string, unknown>;
-      return { name, value: typeof e.value === "number" ? e.value : 0 };
+      return {
+        name,
+        value: typeof e.value === "number" ? e.value : 0,
+        unlocked: e.unlocked === true,
+      };
     })
     .filter((e): e is JobEntry => e !== null);
   return { jobs: jobList, happiness, festivalDays };
@@ -50,6 +56,8 @@ export function JobsPanel({ state }: Props): React.ReactElement {
   }
 
   const { jobs, happiness, festivalDays } = extractVillageInfo(state);
+  const visibility = deriveUiVisibility(state);
+  const visibleJobs = jobs.filter((job) => job.unlocked || visibility.jobs[job.name]?.visible === true);
 
   return (
     <div data-testid="jobs-panel">
@@ -62,17 +70,34 @@ export function JobsPanel({ state }: Props): React.ReactElement {
             Festival: {Math.round(festivalDays)}d remaining
           </span>
         )}
-        <button type="button" data-testid="btn-hold-festival" className="btn btn--sm btn--secondary"
-          disabled={isPending} onClick={() => mutate({ type: "HOLD_FESTIVAL" })}>
-          Hold Festival
-        </button>
+        {visibility.village.festivalVisible && (
+          <button type="button" data-testid="btn-hold-festival" className="btn btn--sm btn--secondary"
+            disabled={isPending} onClick={() => mutate({ type: "HOLD_FESTIVAL" })}>
+            Hold Festival
+          </button>
+        )}
       </div>
+      {visibility.village.managementVisible && (
+        <div data-testid="village-management" className="panel-subsection">
+          <div className="panel-sublabel">Management</div>
+        </div>
+      )}
+      {visibility.village.censusVisible && (
+        <div data-testid="village-census" className="panel-subsection">
+          <div className="panel-sublabel">Census</div>
+        </div>
+      )}
+      {visibility.village.mapVisible && (
+        <div data-testid="village-map" className="panel-subsection">
+          <div className="panel-sublabel">Map</div>
+        </div>
+      )}
       <div className="panel-label">Job Assignments</div>
-      {jobs.length === 0 ? (
+      {!visibility.village.jobsVisible || visibleJobs.length === 0 ? (
         <p className="panel-empty">No jobs available.</p>
       ) : (
         <ul className="item-list">
-          {jobs.map((j) => (
+          {visibleJobs.map((j) => (
             <li key={j.name} data-testid={`job-${j.name}`} className="item-row">
               <span className="item-row-name job-name">{j.name}</span>
               <div className="job-stepper">

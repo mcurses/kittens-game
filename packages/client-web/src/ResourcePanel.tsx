@@ -1,5 +1,6 @@
 // ResourcePanel — resource inventory with rates and progress bars
 import type { GameStateResponse } from "@kittens/api-spec";
+import { deriveUiVisibility } from "@kittens/engine";
 import React from "react";
 import { type ResourceEntity, useInspector } from "./InspectorContext.js";
 import { usePersistentUiState } from "./usePersistentUiState.js";
@@ -11,6 +12,7 @@ type ResourceRateUnit = "perTick" | "perSecond";
 interface ResourceEntry {
   name: string;
   value: number;
+  unlocked?: boolean;
   maxValue?: number;
   perTick?: number;
 }
@@ -38,11 +40,12 @@ function extractResources(state: GameStateResponse): ResourceEntry[] {
       return {
         name,
         value: typeof e.value === "number" ? e.value : 0,
+        ...(typeof e.unlocked === "boolean" ? { unlocked: e.unlocked } : {}),
         ...(typeof e.maxValue === "number" ? { maxValue: e.maxValue } : {}),
         ...(typeof e.perTick === "number" ? { perTick: e.perTick } : {}),
       };
     })
-    .filter((e): e is ResourceEntry => e !== null && e.value > 0);
+    .filter((e): e is ResourceEntry => e !== null);
 }
 
 function extractEffectCache(state: GameStateResponse): Record<string, number> {
@@ -70,6 +73,12 @@ export function ResourcePanel({ state }: Props): React.ReactElement {
 
   const resources = extractResources(state);
   const effectCache = extractEffectCache(state);
+  const visibility = deriveUiVisibility(state);
+  const visibleResources = resources.filter(
+    (resource) =>
+      (visibility.resources[resource.name]?.visible ?? resource.unlocked === true) ||
+      resource.value > 0,
+  );
 
   return (
     <>
@@ -90,10 +99,10 @@ export function ResourcePanel({ state }: Props): React.ReactElement {
         data-testid="resource-panel"
         aria-label="Resources"
       >
-        {resources.length === 0 ? (
+        {visibleResources.length === 0 ? (
           <li className="panel-empty">No resources yet.</li>
         ) : (
-          resources.map((r) => (
+          visibleResources.map((r) => (
             <ResourceItem
               key={r.name}
               resource={r}

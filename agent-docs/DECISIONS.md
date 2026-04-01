@@ -189,3 +189,23 @@ Concretely:
 
 ### How to apply
 Before adding a new resource, building, or tab: check `legacy/res/i18n/en.json` for the canonical display name and match it internally.
+
+---
+
+## ADR-010: Engine-owned UI visibility selectors
+**Date:** 2026-04-01
+**Status:** Accepted
+
+### Context
+Epic 33 exposed a recurring problem: client panels were independently guessing unlock and visibility state from partial serialized data. `TabContainer`, `JobsPanel`, `ResourcePanel`, and `ActionPanel` each carried local shortcuts that drifted from legacy rules.
+
+### Decision
+Move UI unlock/visibility rules into `packages/engine/src/ui-visibility.ts` and export them from `@kittens/engine`. The selector derives tab visibility, village shell visibility, job visibility, resource visibility, and gated action/button visibility from serialized game state in one place.
+
+The web client consumes this selector output instead of hardcoding its own heuristics. This keeps the engine/client boundary pure while still making visibility behavior a typed contract.
+
+### Consequences
+- One source of truth for unlock/visible rules across client panels
+- Legacy parity fixes now land in one selector module instead of several React components
+- Stats and Challenges tabs can exist as minimal shells with correct unlock behavior before they gain richer UI
+- Fixtures and regression tests can assert visibility contracts directly without booting the full app

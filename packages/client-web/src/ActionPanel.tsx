@@ -1,9 +1,16 @@
 // ActionPanel — manual actions in the resource sidebar footer
+import { deriveUiVisibility } from "@kittens/engine";
 import React from "react";
 import { useSlot } from "./SlotContext.js";
 import { useGameAction } from "./useGameAction.js";
 
 interface ActionPanelState {
+  readonly science?: {
+    readonly techs?: Record<string, { readonly researched?: boolean }>;
+  };
+  readonly challenges?: {
+    readonly challenges?: Record<string, { readonly active?: boolean }>;
+  };
   readonly resources?: {
     readonly catpower?: {
       readonly value?: number;
@@ -23,6 +30,7 @@ export function ActionPanel({
   const huntCost = Math.max(1, 100 - (state?.effectCache?.huntCatpowerDiscount ?? 0));
   const huntSquads = Math.floor(catpower / huntCost);
   const huntLabel = huntSquads > 0 ? `Hunt (${huntSquads} squad${huntSquads === 1 ? "" : "s"})` : "Hunt";
+  const visibility = deriveUiVisibility(state as never);
 
   return (
     <div className="sidebar-actions" data-testid="action-panel">
@@ -40,15 +48,17 @@ export function ActionPanel({
       >
         Gather Catnip
       </button>
-      <button
-        type="button"
-        className="btn btn--secondary btn--full"
-        data-testid="btn-hunt"
-        disabled={isPending || huntSquads < 1}
-        onClick={() => mutate({ type: "HUNT" })}
-      >
-        {huntLabel}
-      </button>
+      {visibility.actions.huntVisible && (
+        <button
+          type="button"
+          className="btn btn--secondary btn--full"
+          data-testid="btn-hunt"
+          disabled={isPending || huntSquads < 1}
+          onClick={() => mutate({ type: "HUNT" })}
+        >
+          {huntLabel}
+        </button>
+      )}
     </div>
   );
 }

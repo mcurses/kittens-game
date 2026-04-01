@@ -29,7 +29,7 @@ const s = z.string().min(1);
 const n = z.number();
 
 /**
- * Discriminated union of all 26 game actions — mirrors GameAction in @kittens/engine.
+ * Discriminated union of all 32 game actions — mirrors GameAction in @kittens/engine.
  */
 export const GameActionRequestSchema = z.discriminatedUnion("type", [
   z.object({ type: z.literal("TICK") }),

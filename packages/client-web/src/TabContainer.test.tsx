@@ -31,6 +31,12 @@ vi.mock("./DiplomacyPanel.js", () => ({
 vi.mock("./AchievementsPanel.js", () => ({
   AchievementsPanel: () => <div data-testid="achievements-panel">Achievements</div>,
 }));
+vi.mock("./StatsPanel.js", () => ({
+  StatsPanel: () => <div data-testid="stats-panel">Stats</div>,
+}));
+vi.mock("./ChallengesPanel.js", () => ({
+  ChallengesPanel: () => <div data-testid="challenges-panel">Challenges</div>,
+}));
 
 // Minimal state helpers
 const withLibrary = { buildings: { library: { val: 1, on: 1 } } };
@@ -39,6 +45,10 @@ const withRocketry = { science: { techs: { rocketry: { researched: true } } } };
 const withCalendar = { science: { techs: { calendar: { researched: true } } } };
 const withTradeUnlocked = { diplomacy: { races: { lizards: { unlocked: true } } } };
 const withAchievement = { achievements: { achievements: [{ unlocked: true }] } };
+const withWorkshop = { buildings: { workshop: { val: 1, on: 1 } } };
+const withVillage = { buildings: { hut: { val: 1, on: 1 } }, village: { kittens: 3, jobs: { woodcutter: { value: 1 } } } };
+const withStats = { resources: { karma: { value: 1 } } };
+const withChallenges = { prestige: { perks: { adjustmentBureau: { researched: true } } } };
 
 beforeEach(() => {
   window.localStorage.clear();
@@ -59,14 +69,16 @@ describe("TabContainer", () => {
   it("shows only Buildings, Jobs, and Workshop with no state (locked-down start)", () => {
     render(<TabContainer state={null} />);
     expect(screen.getByRole("button", { name: /buildings/i })).toBeTruthy();
-    expect(screen.getByRole("button", { name: /jobs/i })).toBeTruthy();
-    expect(screen.getByRole("button", { name: /workshop/i })).toBeTruthy();
+    expect(screen.queryByRole("button", { name: /outpost|village|jobs/i })).toBeNull();
+    expect(screen.queryByRole("button", { name: /workshop/i })).toBeNull();
     expect(screen.queryByRole("button", { name: /science/i })).toBeNull();
     expect(screen.queryByRole("button", { name: /religion/i })).toBeNull();
     expect(screen.queryByRole("button", { name: /space/i })).toBeNull();
     expect(screen.queryByRole("button", { name: /time/i })).toBeNull();
     expect(screen.queryByRole("button", { name: /trade/i })).toBeNull();
     expect(screen.queryByRole("button", { name: /achievements/i })).toBeNull();
+    expect(screen.queryByRole("button", { name: /stats/i })).toBeNull();
+    expect(screen.queryByRole("button", { name: /challenges/i })).toBeNull();
   });
 
   it("shows Science tab when library is built", () => {
@@ -77,6 +89,11 @@ describe("TabContainer", () => {
   it("shows Religion tab when faith > 0", () => {
     render(<TabContainer state={withFaith as never} />);
     expect(screen.getByRole("button", { name: /religion/i })).toBeTruthy();
+  });
+
+  it("shows Workshop tab only when the workshop building exists", () => {
+    render(<TabContainer state={withWorkshop as never} />);
+    expect(screen.getByRole("button", { name: /workshop/i })).toBeTruthy();
   });
 
   it("shows Space tab when rocketry researched", () => {
@@ -97,6 +114,16 @@ describe("TabContainer", () => {
   it("shows Achievements tab when any achievement unlocked", () => {
     render(<TabContainer state={withAchievement as never} />);
     expect(screen.getByRole("button", { name: /achievements/i })).toBeTruthy();
+  });
+
+  it("shows Stats tab when its unlock condition is met", () => {
+    render(<TabContainer state={withStats as never} />);
+    expect(screen.getByRole("button", { name: /stats/i })).toBeTruthy();
+  });
+
+  it("shows Challenges tab when its unlock condition is met", () => {
+    render(<TabContainer state={withChallenges as never} />);
+    expect(screen.getByRole("button", { name: /challenges/i })).toBeTruthy();
   });
 
   it("switches to Religion panel when Religion tab clicked", () => {
@@ -138,9 +165,9 @@ describe("TabContainer", () => {
     expect(screen.queryByTestId("jobs-panel")).toBeNull();
   });
 
-  it("switches to Jobs panel when Jobs tab clicked", () => {
-    render(<TabContainer state={null} />);
-    fireEvent.click(screen.getByRole("button", { name: /jobs/i }));
+  it("switches to Village panel when the village tab is clicked", () => {
+    render(<TabContainer state={withVillage as never} />);
+    fireEvent.click(screen.getByRole("button", { name: /small village/i }));
     expect(screen.getByTestId("jobs-panel")).toBeTruthy();
   });
 
@@ -171,17 +198,22 @@ describe("TabContainer", () => {
   });
 
   it("switches to Workshop panel when Workshop tab clicked", () => {
-    render(<TabContainer state={null} />);
+    render(<TabContainer state={withWorkshop as never} />);
     fireEvent.click(screen.getByRole("button", { name: /workshop/i }));
     expect(screen.getByTestId("workshop-panel")).toBeTruthy();
   });
 
+  it("renders the legacy-style village label with a free-kitten warning count", () => {
+    render(<TabContainer state={withVillage as never} />);
+    expect(screen.getByRole("button", { name: /small village \(2\)/i })).toBeTruthy();
+  });
+
   it("active tab is visually distinguished", () => {
-    render(<TabContainer state={null} />);
+    render(<TabContainer state={withVillage as never} />);
     const buildingsBtn = screen.getByRole("button", { name: /buildings/i });
     expect(buildingsBtn.getAttribute("data-active")).toBe("true");
     fireEvent.click(screen.getByRole("button", { name: /buildings/i }));
     expect(buildingsBtn.getAttribute("data-active")).toBe("true");
-    expect(screen.getByRole("button", { name: /jobs/i }).getAttribute("data-active")).toBe("false");
+    expect(screen.getByRole("button", { name: /small village/i }).getAttribute("data-active")).toBe("false");
   });
 });

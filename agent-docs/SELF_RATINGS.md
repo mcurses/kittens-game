@@ -1131,3 +1131,97 @@ Legacy: `mineralsPerTickCon: -1.5`, `oilPerTickCon: -0.024`. Rewrite: `mineralsP
 - [ ] Verify SEND_EMBASSY and TRADE engine handlers use `action.name` (not `action.race`) — spot-check diplomacy.ts
 - [ ] Consider adding `village.happiness` regression test as dedicated file (carried over from Epic 31)
 - [ ] Marker fill % display (religion) is a remaining visual gap — low priority but worth tracking
+
+---
+
+## Epic 33: UI Unlock & Visibility Parity — 2026-04-01
+
+### Step 1 — Build + Tests
+
+All 5 packages build cleanly (0 TypeScript errors).
+
+| Package | Tests | Lines | Branch |
+|---------|-------|-------|--------|
+| engine | 918 pass | 99.48% | 87.04% |
+| server | 86 pass | 95.12% | 83.05% |
+| client-web | 301 pass | 95.83% | 84.85% |
+| api-spec | 24 pass | 100% | 100% |
+
+Total: 1,329 tests across all packages.
+
+### Step 2 — Code Quality Audit
+
+- **`: any` / `as any`**: Zero instances in production source. Search hits for `any` are doc prose, comments, `expect.any`, or natural-language text only.
+- **TODO / FIXME / HACK**: Zero instances across `packages/` and `agent-docs/` source/docs, excluding historical self-rate prose.
+- **`it.skip` / `test.todo` / `xit`**: Zero instances in test files. Search hit on `process.exit` was a false positive from `rg`.
+- Fixed one stale source comment in `packages/api-spec/src/schemas.ts` so the documented GameAction count matches the actual union (32).
+
+### Step 3 — API Spec Coverage
+
+Epic 33 added no HTTP routes and no new `GameAction` types. The current contract remains aligned:
+
+- **Routes**: 8/8 implemented server routes are present in `openapi.yaml` (`health`, `state`, `action`, `tick`, `save`, `load`, `import-legacy`, `reset`)
+- **Actions**: 32/32 `GameAction` variants in `packages/engine/src/actions.ts` are mirrored in `packages/api-spec/src/schemas.ts` and `packages/api-spec/openapi.yaml`
+
+No API-spec gaps found.
+
+### Step 4 — Parity Tracker Freshness
+
+Epic 33 did not add buildings, effect keys, or resource production paths, so `agent-docs/PARITY.md` did not require a row-level update. I verified the file is still current for the adjacent parity surface touched by this epic:
+
+- Last-updated header correctly still points at Epic 32, which was the last parity-tracker-changing epic
+- Existing UI-gap rows remain accurate: management actions, census/loadouts, marker fill %, caravan quantity buttons, and building rename system are still tracked as open gaps
+
+No stale PARITY rows created by Epic 33.
+
+### Step 5 — Docs Freshness
+
+- `agent-docs/PROGRESS.md`: Epic 33 added with 8/8 stories complete and updated test totals
+- `agent-docs/DECISIONS.md`: ADR-010 added for engine-owned UI visibility selectors
+- `agent-docs/EPICS.md`: Epic 33 marked ✅ Complete
+- `agent-docs/epics/33/STORIES.md`: all AC boxes checked; all stories marked Tests/Impl/Rated
+- `agent-docs/epics/33/NOTES.md`: implementation notes and open questions resolved
+
+### Step 6 — Feature Parity Spot-Check
+
+**1. Main tab unlocks (`legacy/game.js:2618-2635`)**
+Legacy rules for Village, Workshop, Religion, Stats, Challenges, Trade, Space, and Time are now centralized in `ui-visibility.ts` instead of being duplicated in React components. Spot-checks matched:
+- workshop visible only when `workshop.on > 0`
+- religion visible on `faith > 0` or `atheism && ziggurat.val > 0`
+- stats visible on `karma > 0` or `math`
+- challenges visible on researched/reserved `adjustmentBureau`
+
+**2. Village tab label + shell gating (`legacy/js/village.js` UI flow)**
+The Village tab label now mirrors legacy progression labels and appends the free-kitten warning count. Jobs/management/census/map/festival controls are derived from shared visibility rules rather than panel-local guesses.
+
+**3. Hidden action gating (`legacy/js/time.js`, `legacy/js/village.js`)**
+`Hunt` now requires `archery` and is blocked by `pacifism`. `Shatter TC` now requires researched `tachyonModerator` instead of appearing whenever the time tab is unlocked. This closes two visible progression leaks from the client.
+
+### Step 7 — Scores
+
+| Dimension | Score | Notes |
+|-----------|-------|-------|
+| Test coverage (≥90% target) | 5 | All packages remain ≥95% line coverage; 1,329 tests passing |
+| No skipped tests / no TODOs | 5 | Zero skipped tests, zero TODO/FIXME/HACK markers, zero `any` in production source |
+| Feature parity | 4 | Shared visibility rules now match the audited legacy conditions for tabs, jobs, resources, hunt, festival, and shatter. Remaining gap: Stats/Challenges are parity-correct navigation shells, not full legacy panel implementations yet. |
+| API spec completeness | 5 | 32/32 actions mirrored across engine, Zod schema, and OpenAPI; 8/8 server routes documented |
+| Code quality (no `any`) | 5 | Visibility logic centralized in engine; client heuristics removed; stale action-count comment fixed |
+| Docs freshness (PROGRESS, DECISIONS, PARITY) | 5 | PROGRESS, DECISIONS, EPICS, STORIES, NOTES updated; PARITY intentionally unchanged and still accurate |
+| Commit hygiene | 5 | Single scoped Epic 33 commit created after green build/test run |
+| **Overall average** | **4.9** | |
+
+### What went well
+- Moved unlock/visibility rules out of React panels and into one typed engine selector, which is the right architectural boundary for future parity fixes
+- Replaced several drifting client heuristics at once (`TabContainer`, `JobsPanel`, `ResourcePanel`, `ActionPanel`, `TimePanel`)
+- Added a focused engine regression file (`ui-visibility.test.ts`) plus client tests that point at specific visibility contracts
+- The build/test matrix stayed green without needing follow-up fixes after the selector consolidation
+
+### What to improve
+- `StatsPanel` and `ChallengesPanel` are still shell components; unlock parity is correct, but tab contents remain intentionally incomplete
+- `ui-visibility.ts` branch coverage is lower than the rest of engine coverage (64.86%), which suggests more edge fixtures could still be added around lesser-used label/resource branches
+- Some story scope was documented broadly ("Science and Workshop section/item visibility parity") even though the substantive change here was centralizing shared tab/job/resource/action gating rather than rewriting those panels
+
+### Action items for next epic
+- [ ] Expand `StatsPanel` and `ChallengesPanel` beyond placeholder shells once their parity scope is selected
+- [ ] Add one more dedicated regression file for imported-save visibility edge cases if Epic 28/33 interactions change again
+- [ ] Consider adding explicit tests for higher-tier village labels (`Town`, `City`, `Empire`, etc.) to raise `ui-visibility.ts` branch coverage

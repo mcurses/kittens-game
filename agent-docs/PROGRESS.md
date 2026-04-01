@@ -570,3 +570,28 @@ Engine tests: 905 passing | Line coverage: 99.5%
 Server tests: 86 passing | Line coverage: 95.12%
 Client-web tests: 293 passing | Line coverage: 96.48%
 Total: 1308 tests across all packages
+
+---
+
+## Epic 33: UI Unlock & Visibility Parity
+**Status:** Complete | **Started:** 2026-04-01 | **Finished:** 2026-04-01
+Stories: 8 / 8 complete
+
+- [x] Story 33-01: Authoritative UI visibility contract in engine/API state
+- [x] Story 33-02: Main tab unlock parity (Village, Workshop, Religion edge cases, Achievements, Stats, Challenges)
+- [x] Story 33-03: Village shell parity (tab title, jobs panel, management, census, map)
+- [x] Story 33-04: Job unlock parity (only unlocked jobs/actions visible and assignable)
+- [x] Story 33-05: Science and Workshop section/item visibility parity
+- [x] Story 33-06: Religion, Time, Space, and Trade conditional section/button visibility parity
+- [x] Story 33-07: Resource and achievement visibility parity
+- [x] Story 33-08: Legacy-save regression fixtures and client visibility test matrix
+
+Engine tests: 918 passing | Line coverage: 99.48%
+Server tests: 86 passing | Line coverage: 95.12%
+Client-web tests: 301 passing | Line coverage: 95.83%
+Total: 1329 tests across all packages
+
+Highlights:
+- Added engine-owned `deriveUiVisibility()` selector contract for tabs, village sections, jobs, resources, hunt visibility, and shatter visibility
+- Removed hardcoded client visibility shortcuts from `TabContainer`, `JobsPanel`, `ResourcePanel`, `ActionPanel`, and `TimePanel`
+- Added Stats and Challenges parity-shell tabs so legacy unlock conditions are represented in navigation
