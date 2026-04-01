@@ -6,6 +6,7 @@ Last updated: 2026-04-01
 
 ## Maintenance Updates
 
+- 2026-04-01: Reopened Epic 35 briefly for a Story 35-03 regression fix. The hide-researched / hide-complete toggles were stored to `localStorage` but did not restore on reload because the boolean panels omitted the `usePersistentUiState` validator path.
 - 2026-04-01: Retroactively opened Epic 34 to capture post-Epic 33 production/control parity work. Recent fixes must not live only in commits and `PARITY.md` without an epic/story trail.
 - 2026-03-30: Fixed the missing Web UI trigger for the `HUNT` action by adding a hunt control to `ActionPanel`.
 - 2026-03-30: Fixed `ActionPanel` action dispatch to use the current slot context, so non-default saves no longer post actions to the default slot.
@@ -639,6 +640,9 @@ Engine changes:
 
 Client-web tests: 334 passing | Line coverage: 96.4%
 Total: 1385 tests across all packages
+
+Follow-up:
+- 2026-04-01: Story 35-03 regression fix — reload persistence is now covered explicitly for Science, Workshop, and Space. `usePersistentUiState` now falls back to a default primitive validator when one is omitted, and all three boolean toggle panels pass explicit `isBoolean` validators so stored toggle values survive reloads instead of silently reverting to `false`.
 
 Parity gaps noted:
 - Legacy trade shortcuts are dynamic (50% / 20% of max affordable), not fixed ×5/×25 — filed for future epic

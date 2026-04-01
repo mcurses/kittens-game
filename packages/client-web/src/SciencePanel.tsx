@@ -45,6 +45,7 @@ export function SciencePanel({ state }: Props): React.ReactElement {
   const [hideResearched, setHideResearched] = usePersistentUiState<boolean>(
     "science:hideResearched",
     false,
+    isBoolean,
   );
 
   if (!state) {
@@ -139,4 +140,8 @@ export function SciencePanel({ state }: Props): React.ReactElement {
       )}
     </div>
   );
+}
+
+function isBoolean(value: unknown): value is boolean {
+  return typeof value === "boolean";
 }

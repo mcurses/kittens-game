@@ -37,6 +37,7 @@ function WithInspector({ children }: { children: React.ReactNode }): React.React
 afterEach(() => {
   cleanup();
   vi.clearAllMocks();
+  window.localStorage.clear();
 });
 
 describe("WorkshopPanel", () => {
@@ -261,5 +262,18 @@ describe("Story 35-03: Workshop hide-researched toggle", () => {
     fireEvent.click(toggle); // hide
     fireEvent.click(toggle); // show again
     expect(screen.getByTestId("upgrade-mineralHoes")).toBeTruthy();
+  });
+
+  it("restores hide-researched from localStorage on reload", () => {
+    window.localStorage.setItem("workshop:hideResearched", "true");
+    const state = makeState({
+      mineralHoes: { unlocked: true, researched: true },
+      ironHoes: { unlocked: true, researched: false },
+    });
+    render(<WithInspector><WorkshopPanel state={state} /></WithInspector>);
+    expect(screen.getByTestId("workshop-hide-researched")).toBeTruthy();
+    expect((screen.getByTestId("workshop-hide-researched") as HTMLInputElement).checked).toBe(true);
+    expect(screen.queryByTestId("upgrade-mineralHoes")).toBeNull();
+    expect(screen.getByTestId("upgrade-ironHoes")).toBeTruthy();
   });
 });

@@ -33,6 +33,7 @@ function makeState(
 afterEach(() => {
   cleanup();
   vi.clearAllMocks();
+  window.localStorage.clear();
 });
 
 describe("SpacePanel", () => {
@@ -196,5 +197,22 @@ describe("Story 32-06: Space mission done state and building on/off", () => {
     render(<SpacePanel state={state} />);
     const countEl = screen.getByTestId("sb-moonBase").querySelector(".item-count");
     expect(countEl?.textContent).toBe("5");
+  });
+});
+
+describe("Story 35-03: Space hide-complete toggle", () => {
+  it("restores hide-complete from localStorage on reload", () => {
+    window.localStorage.setItem("space:hideComplete", "true");
+    const state = makeState({
+      programs: {
+        moonMission: { val: 1, on: 0, unlocked: true },
+        duneMission: { val: 0, on: 0, unlocked: true },
+      },
+    });
+    render(<SpacePanel state={state} />);
+    expect(screen.getByTestId("space-hide-complete")).toBeTruthy();
+    expect((screen.getByTestId("space-hide-complete") as HTMLInputElement).checked).toBe(true);
+    expect(screen.queryByTestId("program-moonMission")).toBeNull();
+    expect(screen.getByTestId("program-duneMission")).toBeTruthy();
   });
 });

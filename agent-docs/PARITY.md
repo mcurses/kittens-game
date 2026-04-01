@@ -275,7 +275,7 @@ Root cause: `legacy-migration.ts:migrateTime()` used `bool(item.unlocked)` which
 |-----|--------|
 | **Mission done state** | ✅ Fixed 2026-04-01 (Epic 32-06): Programs with `val > 0` show "Reached" badge instead of "Launch" button. |
 | **Building on/off display** | ✅ Fixed 2026-04-01 (Epic 32-06): Space buildings now show `on/val` ratio when `on < val`. |
-| **Hide complete missions toggle** | ✅ Fixed in Epic 35-03: SpacePanel now exposes `usePersistentUiState("space:hideComplete")` toggle; programs with `val > 0` are filtered when enabled. |
+| **Hide complete missions toggle** | ✅ Fixed in Epic 35-03: SpacePanel now exposes `usePersistentUiState("space:hideComplete")` toggle; programs with `val > 0` are filtered when enabled, and reload restoration is now covered by a dedicated regression test plus explicit boolean validation. |
 
 ---
 
@@ -321,8 +321,8 @@ Root cause: `legacy-migration.ts:migrateTime()` used `bool(item.unlocked)` which
 | **Craft shortcuts are not legacy-faithful** | ✅ Fixed in Epic 35-01: `computeCraftShortcuts` computes `[max(1,1%), max(25,5%), max(100,10%), All]` from live resources. Percentage-mode label toggle (legacy `usePercentageConsumptionValues` setting) is deferred. |
 | **Craft bonus/source-material affordance missing** | Legacy craft controls show output after craft bonus in button title and compute tooltip costs per shortcut. ❌ Not implemented. |
 | **Workshop craft effectiveness header missing** | ✅ Fixed in Epic 35-01: WorkshopPanel shows `+N% effectiveness` banner when `effectCache.craftRatio > 0`. |
-| **Hide researched toggle missing in Workshop** | ✅ Fixed in Epic 35-03: WorkshopPanel exposes `usePersistentUiState("workshop:hideResearched")` checkbox; researched upgrades filtered when enabled. |
-| **Hide researched toggle missing in Science** | ✅ Fixed in Epic 35-03: SciencePanel exposes `usePersistentUiState("science:hideResearched")` checkbox; researched techs filtered when enabled. |
+| **Hide researched toggle missing in Workshop** | ✅ Fixed in Epic 35-03: WorkshopPanel exposes `usePersistentUiState("workshop:hideResearched")` checkbox; researched upgrades are filtered when enabled, and stored values now restore correctly after reload. |
+| **Hide researched toggle missing in Science** | ✅ Fixed in Epic 35-03: SciencePanel exposes `usePersistentUiState("science:hideResearched")` checkbox; researched techs are filtered when enabled, and stored values now restore correctly after reload. |
 | **Storage-limited priced actions were not distinguished from ordinary unaffordability** | ✅ Fixed in Epic 35-05: client resource extraction now preserves `maxValue`; shared `isStorageLimited()` logic marks storage-limited controls separately from normal disabled actions. Wired into Buildings, Science, Workshop, Space, Time, and Religion, with inspector price-line highlighting for the capped resource. |
 | **Mechanization craft details missing** | Legacy mechanization UI exposes per-craft engineer allocation, progress percentage, tier bonus, and throughput/countdown. Blocked on engineer-state engine work. ❌ Deferred (Story 35-02). |
 

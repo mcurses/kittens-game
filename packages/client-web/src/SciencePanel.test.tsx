@@ -36,6 +36,7 @@ function WithInspector({ children }: { children: React.ReactNode }): React.React
 afterEach(() => {
   cleanup();
   vi.clearAllMocks();
+  window.localStorage.clear();
 });
 
 describe("SciencePanel", () => {
@@ -204,5 +205,18 @@ describe("Story 35-03: Science hide-researched toggle", () => {
     fireEvent.click(toggle); // hide
     fireEvent.click(toggle); // show again
     expect(screen.getByTestId("tech-calendar")).toBeTruthy();
+  });
+
+  it("restores hide-researched from localStorage on reload", () => {
+    window.localStorage.setItem("science:hideResearched", "true");
+    const state = makeState({
+      calendar: { unlocked: true, researched: true },
+      archery: { unlocked: true, researched: false },
+    });
+    render(<WithInspector><SciencePanel state={state} /></WithInspector>);
+    expect(screen.getByTestId("science-hide-researched")).toBeTruthy();
+    expect((screen.getByTestId("science-hide-researched") as HTMLInputElement).checked).toBe(true);
+    expect(screen.queryByTestId("tech-calendar")).toBeNull();
+    expect(screen.getByTestId("tech-archery")).toBeTruthy();
   });
 });

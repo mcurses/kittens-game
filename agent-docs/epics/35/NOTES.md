@@ -75,3 +75,11 @@ The rewrite does not yet port the full recursive craftable-resource branch from 
 - if `maxValue > 0` and `price.val > maxValue` and `price.val > value`, mark the control and matching price line as storage-limited
 
 The first attempt rendered a row-level `Maxed` badge, which was too blunt. Legacy actually keeps the normal button label, leaves the button disabled, adds limited styling to that control, and marks the specific price line with an asterisk/highlight. The current implementation follows that narrower model for buildings, techs, upgrades, missions, CFUs/VSUs, and religion purchases.
+
+## Story 35-03 follow-up note
+
+The first pass on Story 35-03 overclaimed reload persistence. SciencePanel, WorkshopPanel, and SpacePanel all wrote boolean toggles to `localStorage`, but those call sites omitted the `usePersistentUiState` validator argument. Because the hook catches parse/validation errors, reloads silently fell back to `false` instead of restoring the stored value.
+
+The fix is two-part:
+- each boolean panel now passes an explicit `isBoolean` validator
+- `usePersistentUiState` now derives a default primitive validator when a call site omits one, so the failure mode is "restore valid primitive state" rather than "quietly reset to default"

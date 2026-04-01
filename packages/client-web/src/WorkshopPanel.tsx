@@ -85,6 +85,7 @@ export function WorkshopPanel({ state }: Props): React.ReactElement {
   const [hideResearched, setHideResearched] = usePersistentUiState<boolean>(
     "workshop:hideResearched",
     false,
+    isBoolean,
   );
 
   if (!state) {
@@ -250,4 +251,8 @@ export function WorkshopPanel({ state }: Props): React.ReactElement {
       )}
     </div>
   );
+}
+
+function isBoolean(value: unknown): value is boolean {
+  return typeof value === "boolean";
 }

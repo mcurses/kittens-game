@@ -45,6 +45,7 @@ export function SpacePanel({ state }: Props): React.ReactElement {
   const [hideComplete, setHideComplete] = usePersistentUiState<boolean>(
     "space:hideComplete",
     false,
+    isBoolean,
   );
 
   if (!state) {
@@ -137,4 +138,8 @@ export function SpacePanel({ state }: Props): React.ReactElement {
       )}
     </div>
   );
+}
+
+function isBoolean(value: unknown): value is boolean {
+  return typeof value === "boolean";
 }
