@@ -6,6 +6,7 @@ Last updated: 2026-04-02
 
 ## Maintenance Updates
 
+- 2026-04-02: Started Epic 38. The trade panel now computes legacy dynamic caravan shortcut quantities from current affordability instead of exposing fixed `×5` / `×25` buttons.
 - 2026-04-02: Closed Epic 37. Building controls now follow the legacy split between count-adjustable `togglable` buildings and binary `togglableOnOff` buildings, with engine-owned `controlMode` metadata and batch `amount` actions.
 - 2026-04-01: Reopened Epic 35 briefly for a Story 35-03 regression fix. The hide-researched / hide-complete toggles were stored to `localStorage` but did not restore on reload because the boolean panels omitted the `usePersistentUiState` validator path.
 - 2026-04-01: Retroactively opened Epic 34 to capture post-Epic 33 production/control parity work. Recent fixes must not live only in commits and `PARITY.md` without an epic/story trail.
@@ -669,6 +670,18 @@ Total: 1411 tests across all packages
 Carry-forward backlog filed before starting Epic 37:
 - [x] Epic 38: Trade Shortcut Quantity Parity — dynamic `tradeHalf` / `tradeFifth` backlog epic created from Epic 35 / 36 self-rate action items
 - [x] Epic 39: Workshop Engineer Assignment Engine — per-craft engineer-assignment backlog epic created as the engine prerequisite for deferred Story 35-02 mechanization work
+
+---
+
+## Epic 38: Trade Shortcut Quantity Parity
+**Status:** In Progress | **Started:** 2026-04-02
+Stories: 1 / 1 complete
+
+- [x] Story 38-01: Dynamic caravan quantity shortcuts — DiplomacyPanel now computes `maxTradeAmt` from live gold, catpower, and demanded-resource affordability, renders legacy-style dynamic half/fifth shortcuts, and hides them until the legacy `50` / `25` trade thresholds are met
+
+Focused verification:
+- `pnpm --filter @kittens/client-web test -- --run packages/client-web/src/DiplomacyPanel.test.tsx`
+- `pnpm turbo build`
 
 ---
 

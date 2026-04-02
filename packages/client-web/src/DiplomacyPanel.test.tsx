@@ -12,14 +12,16 @@ function makeState(
   diplomacy: {
     races?: Record<string, { unlocked: boolean; embassyLevel: number }>;
   },
+  resources?: Record<string, { value: number; maxValue: number }>,
 ) {
   return {
     version: 1,
     tick: 0,
+    resources: resources ?? {},
     diplomacy: {
       races: diplomacy.races ?? {},
       baseGoldCost: 15,
-      baseCatpowerCost: 100,
+      baseCatpowerCost: 50,
     },
   } as unknown as import("@kittens/api-spec").GameStateResponse;
 }
@@ -132,29 +134,71 @@ describe("Story 32-05: Trade economics and relationship display", () => {
 // ── Story 35-04: Trade multi-send shortcuts ───────────────────────────────────
 
 describe("Story 35-04: Trade multi-send shortcuts", () => {
-  it("shows trade ×5 button for each race", () => {
-    const state = makeState({ races: { zebras: { unlocked: true, embassyLevel: 1 } } });
+  it("shows dynamic half and fifth trade buttons when max affordable trades reaches legacy thresholds", () => {
+    const state = makeState(
+      { races: { lizards: { unlocked: true, embassyLevel: 1 } } },
+      {
+        gold: { value: 1500, maxValue: 1500 },
+        catpower: { value: 5000, maxValue: 5000 },
+        minerals: { value: 100000, maxValue: 100000 },
+      },
+    );
     render(<DiplomacyPanel state={state} />);
-    expect(screen.getByTestId("race-zebras-trade5")).toBeTruthy();
+    expect(screen.getByTestId("race-lizards-trade-half").textContent).toBe("×50");
+    expect(screen.getByTestId("race-lizards-trade-fifth").textContent).toBe("×20");
   });
 
-  it("shows trade ×25 button for each race", () => {
-    const state = makeState({ races: { zebras: { unlocked: true, embassyLevel: 1 } } });
+  it("hides the half shortcut until max affordable trades reaches 50", () => {
+    const state = makeState(
+      { races: { lizards: { unlocked: true, embassyLevel: 1 } } },
+      {
+        gold: { value: 600, maxValue: 600 },
+        catpower: { value: 5000, maxValue: 5000 },
+        minerals: { value: 100000, maxValue: 100000 },
+      },
+    );
     render(<DiplomacyPanel state={state} />);
-    expect(screen.getByTestId("race-zebras-trade25")).toBeTruthy();
+    expect(screen.queryByTestId("race-lizards-trade-half")).toBeNull();
   });
 
-  it("dispatches TRADE with amount:5 when ×5 is clicked", () => {
-    const state = makeState({ races: { zebras: { unlocked: true, embassyLevel: 1 } } });
+  it("hides the fifth shortcut until max affordable trades reaches 25", () => {
+    const state = makeState(
+      { races: { lizards: { unlocked: true, embassyLevel: 1 } } },
+      {
+        gold: { value: 300, maxValue: 300 },
+        catpower: { value: 5000, maxValue: 5000 },
+        minerals: { value: 100000, maxValue: 100000 },
+      },
+    );
     render(<DiplomacyPanel state={state} />);
-    fireEvent.click(screen.getByTestId("race-zebras-trade5"));
-    expect(mockMutate).toHaveBeenCalledWith({ type: "TRADE", name: "zebras", amount: 5 });
+    expect(screen.queryByTestId("race-lizards-trade-fifth")).toBeNull();
   });
 
-  it("dispatches TRADE with amount:25 when ×25 is clicked", () => {
-    const state = makeState({ races: { zebras: { unlocked: true, embassyLevel: 1 } } });
+  it("dispatches TRADE with dynamic half amount when the half shortcut is clicked", () => {
+    const state = makeState(
+      { races: { lizards: { unlocked: true, embassyLevel: 1 } } },
+      {
+        gold: { value: 1500, maxValue: 1500 },
+        catpower: { value: 5000, maxValue: 5000 },
+        minerals: { value: 100000, maxValue: 100000 },
+      },
+    );
     render(<DiplomacyPanel state={state} />);
-    fireEvent.click(screen.getByTestId("race-zebras-trade25"));
-    expect(mockMutate).toHaveBeenCalledWith({ type: "TRADE", name: "zebras", amount: 25 });
+    fireEvent.click(screen.getByTestId("race-lizards-trade-half"));
+    expect(mockMutate).toHaveBeenCalledWith({ type: "TRADE", name: "lizards", amount: 50 });
+  });
+
+  it("dispatches TRADE with dynamic fifth amount when the fifth shortcut is clicked", () => {
+    const state = makeState(
+      { races: { lizards: { unlocked: true, embassyLevel: 1 } } },
+      {
+        gold: { value: 1500, maxValue: 1500 },
+        catpower: { value: 5000, maxValue: 5000 },
+        minerals: { value: 100000, maxValue: 100000 },
+      },
+    );
+    render(<DiplomacyPanel state={state} />);
+    fireEvent.click(screen.getByTestId("race-lizards-trade-fifth"));
+    expect(mockMutate).toHaveBeenCalledWith({ type: "TRADE", name: "lizards", amount: 20 });
   });
 });
