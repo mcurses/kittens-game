@@ -1402,3 +1402,30 @@ Factory mode visibility is now engine-owned and only appears after `carbonSeques
 - [ ] Add deeper `ui-visibility.ts` fixture coverage once the next control-surface epic touches the selector again
 - [ ] Continue the separate smelter runtime parity work (stock-limited scaling and iron-will shutdown behavior)
 - [ ] Use the same `controlMode` contract if future panels expose building controls outside `BuildingsPanel`
+
+---
+
+## Epic 38 — Trade Shortcut Quantity Parity — 2026-04-02
+
+| Dimension | Score | Notes |
+|-----------|-------|-------|
+| Test coverage (≥90% target) | 5 | client-web 96.08%, engine 99.03%, server 95.12%, api-spec 100%; 1412 tests passing |
+| No skipped tests / no TODOs | 5 | No skipped tests or new TODO/FIXME/HACK markers; no production `any` added |
+| Feature parity | 4 | Dynamic `tradeHalf` / `tradeFifth` quantity math and legacy `50` / `25` visibility thresholds are now matched; remaining divergence is legacy's optional percentage-label mode, which the rewrite does not model because the global setting does not exist |
+| API spec completeness | 5 | No new actions or routes; existing `TRADE amount` contract remains accurate |
+| Code quality (no `any`) | 5 | The panel computes legacy quantity logic locally from serialized state without inventing redundant API surface |
+| Docs freshness (PROGRESS, DECISIONS, PARITY) | 5 | PROGRESS, EPICS, PARITY, STORIES, and NOTES updated during closeout |
+| Commit hygiene | 5 | One focused implementation commit for the epic with story-aligned scope |
+| **Overall average** | **4.9** | |
+
+### What went well
+- The rewrite already had enough serialized state to reproduce `getMaxTradeAmt` exactly without adding engine changes
+- The failing tests captured the non-obvious legacy thresholds: half only after `50` affordable trades, fifth only after `25`
+- This closed a real QoL/parity gap while keeping the action contract unchanged
+
+### What to improve
+- The rewrite still lacks the legacy `usePercentageConsumptionValues` presentation mode, so the buttons always render explicit counts instead of `50%` / `20%`
+
+### Action items for next epic
+- [ ] Add per-craft engineer assignment state and actions as the engine prerequisite for mechanization-era workshop parity
+- [ ] Consider whether a future settings epic should model `usePercentageConsumptionValues` and similar presentation toggles explicitly

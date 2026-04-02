@@ -21,4 +21,4 @@ Legacy references:
 ### Legacy Reference
 - `legacy/js/diplomacy.js:1150-1178`
 
-### Status: [x] Tests | [x] Impl | [ ] Rated
+### Status: [x] Tests | [x] Impl | [x] Rated

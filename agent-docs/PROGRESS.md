@@ -674,7 +674,7 @@ Carry-forward backlog filed before starting Epic 37:
 ---
 
 ## Epic 38: Trade Shortcut Quantity Parity
-**Status:** In Progress | **Started:** 2026-04-02
+**Status:** Complete | **Started:** 2026-04-02 | **Finished:** 2026-04-02
 Stories: 1 / 1 complete
 
 - [x] Story 38-01: Dynamic caravan quantity shortcuts — DiplomacyPanel now computes `maxTradeAmt` from live gold, catpower, and demanded-resource affordability, renders legacy-style dynamic half/fifth shortcuts, and hides them until the legacy `50` / `25` trade thresholds are met
@@ -682,6 +682,15 @@ Stories: 1 / 1 complete
 Focused verification:
 - `pnpm --filter @kittens/client-web test -- --run packages/client-web/src/DiplomacyPanel.test.tsx`
 - `pnpm turbo build`
+
+Full verification:
+- `pnpm turbo test`
+
+Client-web tests: 340 passing | Line coverage: 96.08%
+Engine tests: 960 passing | Line coverage: 99.03%
+Server tests: 86 passing | Line coverage: 95.12%
+API-spec tests: 26 passing | Line coverage: 100%
+Total: 1412 tests across all packages
 
 ---
 

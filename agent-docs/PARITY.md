@@ -264,7 +264,7 @@ Root cause: `legacy-migration.ts:migrateTime()` used `bool(item.unlocked)` which
 | **Buy/sell economics** | ✅ Fixed 2026-04-01 (Epic 32-05): Per-race buys (resource + cost) and sells (resource names) displayed inline. |
 | **Relationship status** | ✅ Fixed 2026-04-01 (Epic 32-05): Hostile/Neutral/Friendly badge derived from `race.standing`. |
 | **SEND_EMBASSY/TRADE field name bug** | ✅ Fixed 2026-04-01: was dispatching `race:` field, now correctly dispatches `name:` per engine `GameAction` type. |
-| **Caravan quantity buttons** | ⚠️ Fixed in Epic 35-04: Added ×5 and ×25 fixed shortcuts. Legacy uses dynamic `tradeHalf = floor(max/2)` and `tradeFifth = floor(max/5)` shortcuts, not fixed ×5/×25 — dynamic version deferred to a future epic. |
+| **Caravan quantity buttons** | ✅ Fixed in Epic 38-01: trade shortcuts now compute from live `maxTradeAmt` like legacy, render dynamic `×floor(max/2)` and `×floor(max/5)` amounts, and stay hidden until the legacy `50` / `25` affordability thresholds are met. Residual divergence: the legacy `usePercentageConsumptionValues` label mode is not modeled because that global option does not exist in the rewrite. |
 | **Leviathan energy display** | Energy: 69/140, Time to leave: 47y 257d ❌ Not implemented. |
 
 ---
