@@ -41,5 +41,8 @@ Keep the legacy distinction engine-owned. The client should receive enough metad
 
 ## Open Questions
 
-- Which exact rewrite buildings should resolve to count-adjustable controls beyond the known `lackResConvert` set (`smelter`, `calciner`, `mint`, `accelerator`)?
-- Whether the action surface should add explicit batch actions, or extend the existing enable/disable actions with an `amount`/`mode` parameter while keeping the API contract readable
+Resolved in Epic 37 implementation:
+
+- Count-adjustable controls now cover the known legacy `lackResConvert` set in the current rewrite surface: `smelter`, `calciner`, `mint`, `accelerator`, plus `brewery`, and the legacy upgrade-gated count-adjust cases `mine` / `quarry` after `ecology`.
+- Binary controls remain only on the current legacy `togglableOnOff` cases represented in the rewrite surface: `steamworks`, `oilWell` after `pumpjack`, and `biolab` after `biofuel`.
+- The action surface extends the existing `ENABLE_BUILDING` / `DISABLE_BUILDING` actions with an optional positive `amount`. `All` remains a client-side quantity derived from current `on` / `val`, while the engine owns the clamping semantics.

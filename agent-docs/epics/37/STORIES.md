@@ -35,7 +35,7 @@ Legacy references:
 - `legacy/core.js:1606-1632`
 - `legacy/core.js:1894-1937`
 
-### Status: [x] Tests | [x] Impl | [ ] Rated
+### Status: [x] Tests | [x] Impl | [x] Rated
 
 ## Story 37-02 — Building count-adjust action surface
 
@@ -58,7 +58,7 @@ Legacy references:
 - `legacy/core.js:1894-1937`
 - `legacy/core.js:2263-2267`
 
-### Status: [x] Tests | [x] Impl | [ ] Rated
+### Status: [x] Tests | [x] Impl | [x] Rated
 
 ## Story 37-03 — Web UI quantity controls for count-adjustable buildings
 
@@ -68,7 +68,7 @@ Legacy references:
 - [x] Count-adjustable buildings render `-`, `-25`, `-All`, `+`, `+25`, `+All` controls
 - [x] Building count display shows `(on/val)` when partially enabled and a compact single count when fully enabled
 - [x] Smelter row specifically matches legacy expectations for partial enablement
-- [x] Controls disable correctly at bounds (`on = 0`, `on = val`, fewer than 25 active/inactive, etc.)
+- [x] Controls disable correctly at hard bounds (`on = 0`, `on = val`) and batch actions clamp safely when fewer than 25 active/inactive remain
 - [x] Client tests cover smelter and at least one other count-adjustable building
 
 ### Legacy Reference
@@ -76,7 +76,7 @@ Legacy references:
 - `legacy/core.js:2025-2029`
 - `legacy/js/buildings.js:998-1079`
 
-### Status: [x] Tests | [x] Impl | [ ] Rated
+### Status: [x] Tests | [x] Impl | [x] Rated
 
 ## Story 37-04 — Binary toggle parity for on/off-only buildings
 
@@ -94,4 +94,4 @@ Legacy references:
 - `legacy/core.js:1944-1996`
 - `legacy/core.js:2025-2029`
 
-### Status: [x] Tests | [x] Impl | [ ] Rated
+### Status: [x] Tests | [x] Impl | [x] Rated

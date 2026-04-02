@@ -254,3 +254,27 @@ Legacy `buildings.js` keeps `unlockable` as a runtime-only flag on the meta obje
 - Saves include `unlockable` per building — slightly larger state, but negligible
 - Any legacy save import must derive `unlockable` from the researched tech list during migration (already handled by `legacyMigration.ts` which re-applies all researched techs via `applyResearch`)
 - No `requiredTech` workaround is needed — the science unlock chain owns the gate end-to-end
+
+---
+
+## ADR-016: Building control granularity is engine-owned
+**Date:** 2026-04-02
+**Status:** Accepted
+
+### Context
+Legacy bonfire controls have two distinct behaviors:
+- `togglable` buildings expose count-adjust controls and allow `on` anywhere in `0..val`
+- `togglableOnOff` buildings expose binary full-off / full-on controls
+
+The rewrite already stored `val` and `on`, but the client had flattened all visible controls into a generic `On` / `Off` pair. That hid the legacy smelter-style interaction model and made the client guess control semantics from UI code.
+
+### Decision
+Control granularity is derived in `packages/engine/src/ui-visibility.ts` via `controlMode: "none" | "count" | "binary"`. The web client renders controls from that engine-owned contract instead of inferring them locally.
+
+The existing `ENABLE_BUILDING` / `DISABLE_BUILDING` actions were extended with an optional positive `amount` rather than adding separate batch action types. Clients compute `All` from current `on` / `val`; the engine clamps results safely to `0..val`.
+
+### Consequences
+- Legacy count-adjustable buildings such as smelter now render `- / -25 / -All / + / +25 / +All`
+- True binary `On` / `Off` remains only on `togglableOnOff` buildings such as steamworks
+- API surface stays compact: no extra batch action enum members were needed
+- Future UI work can change presentation without re-encoding legacy control rules in React

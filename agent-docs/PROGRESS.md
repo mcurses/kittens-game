@@ -1,11 +1,12 @@
 # Kittens Game Rewrite — Progress Tracker
 
-Last updated: 2026-04-01
+Last updated: 2026-04-02
 
 ---
 
 ## Maintenance Updates
 
+- 2026-04-02: Closed Epic 37. Building controls now follow the legacy split between count-adjustable `togglable` buildings and binary `togglableOnOff` buildings, with engine-owned `controlMode` metadata and batch `amount` actions.
 - 2026-04-01: Reopened Epic 35 briefly for a Story 35-03 regression fix. The hide-researched / hide-complete toggles were stored to `localStorage` but did not restore on reload because the boolean panels omitted the `usePersistentUiState` validator path.
 - 2026-04-01: Retroactively opened Epic 34 to capture post-Epic 33 production/control parity work. Recent fixes must not live only in commits and `PARITY.md` without an epic/story trail.
 - 2026-03-30: Fixed the missing Web UI trigger for the `HUNT` action by adding a hunt control to `ActionPanel`.
@@ -651,13 +652,19 @@ Parity gaps noted:
 ---
 
 ## Epic 37: Building Control Granularity Parity
-**Status:** In Progress | **Started:** 2026-04-02
+**Status:** Complete | **Started:** 2026-04-02 | **Finished:** 2026-04-02
 Stories: 4 / 4 complete
 
 - [x] Story 37-01: Engine-owned building control-mode metadata — `deriveUiVisibility()` now distinguishes `controlMode: count | binary | none` while preserving automation visibility and existing toggle flags during the migration
 - [x] Story 37-02: Building count-adjust action surface — `ENABLE_BUILDING` / `DISABLE_BUILDING` now accept optional `amount` with clamped batch semantics, and the OpenAPI/Zod contract preserves that field
 - [x] Story 37-03: Web UI quantity controls for count-adjustable buildings — BuildingsPanel now renders `- / -25 / -All / + / +25 / +All` controls with batch action payloads and partial `(on/val)` display parity
 - [x] Story 37-04: Binary toggle parity for on/off-only buildings — BuildingsPanel keeps binary `On/Off` only for `controlMode: binary` buildings such as steamworks while count-adjust buildings no longer render binary controls
+
+Engine tests: 960 passing | Line coverage: 99.03%
+Server tests: 86 passing | Line coverage: 95.12%
+Client-web tests: 339 passing | Line coverage: 96.03%
+API-spec tests: 26 passing | Line coverage: 100%
+Total: 1411 tests across all packages
 
 Carry-forward backlog filed before starting Epic 37:
 - [x] Epic 38: Trade Shortcut Quantity Parity — dynamic `tradeHalf` / `tradeFifth` backlog epic created from Epic 35 / 36 self-rate action items

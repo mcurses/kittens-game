@@ -1373,3 +1373,32 @@ Factory mode visibility is now engine-owned and only appears after `carbonSeques
 - File a story for dynamic trade shortcuts (tradeHalf / tradeFifth matching legacy `getMaxTradeAmt`) [carried from epic 35]
 - File an engine story for per-craft engineer-assignment state (prerequisite for Story 35-02) [carried from epic 35]
 - Consider adding test coverage for `migrateLegacySave` unlockable derivation (tech researched but building entry absent)
+
+---
+
+## Epic 37 — Building Control Granularity Parity — 2026-04-02
+
+| Dimension | Score | Notes |
+|-----------|-------|-------|
+| Test coverage (≥90% target) | 5 | engine 99.03%, client-web 96.03%, server 95.12%, api-spec 100%; 1411 tests passing |
+| No skipped tests / no TODOs | 5 | No skipped tests or new TODO/FIXME/HACK markers; no production `any` added |
+| Feature parity | 5 | Legacy `togglable` vs `togglableOnOff` split is now explicit in the engine contract, count-adjust rows render the legacy control family, binary rows stay binary, and regression tests cover the mixed matrix |
+| API spec completeness | 5 | `ENABLE_BUILDING` and `DISABLE_BUILDING` optional `amount` field is mirrored in engine types, Zod schemas, and OpenAPI |
+| Code quality (no `any`) | 5 | Control semantics are centralized in engine-owned metadata instead of duplicated in the client |
+| Docs freshness (PROGRESS, DECISIONS, PARITY) | 5 | PROGRESS, EPICS, PARITY, STORIES, NOTES, and DECISIONS updated during closeout |
+| Commit hygiene | 5 | Story-aligned scoped commits: metadata, action surface, then client controls |
+| **Overall average** | **5.0** | |
+
+### What went well
+- The engine/client split stayed clean: legacy control rules moved into `ui-visibility.ts` instead of another React heuristic
+- Extending the existing action pair with `amount` kept the API compact while still covering `±1`, `±25`, and `All`
+- The mixed client test matrix prevents the exact regression that prompted this epic: smelter-style rows being flattened back into binary controls
+
+### What to improve
+- `ui-visibility.ts` branch coverage is still weaker than the rest of the engine suite and would benefit from more representative fixtures
+- Count-control parity is now correct, but smelter production behavior itself is still partial and remains tracked separately in `PARITY.md`
+
+### Action items for next epic
+- [ ] Add deeper `ui-visibility.ts` fixture coverage once the next control-surface epic touches the selector again
+- [ ] Continue the separate smelter runtime parity work (stock-limited scaling and iron-will shutdown behavior)
+- [ ] Use the same `controlMode` contract if future panels expose building controls outside `BuildingsPanel`

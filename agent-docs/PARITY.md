@@ -2,7 +2,7 @@
 
 Tracks implementation coverage against legacy Kittens Game. **This is the authoritative source of truth for what is and isn't done.** Update it whenever items are added or wired. Do not mark an epic "complete" without updating this file.
 
-Last updated: 2026-04-01 (post-Epic-35 — adaptive craft shortcuts, hide-researched/complete toggles, trade ×5/×25 shortcuts; mechanization deferred)
+Last updated: 2026-04-02 (post-Epic-37 — legacy count-adjust vs binary building controls restored; smelter-style controls now use `- / -25 / -All / + / +25 / +All`)
 
 ---
 
