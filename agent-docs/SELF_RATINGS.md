@@ -1429,3 +1429,31 @@ Factory mode visibility is now engine-owned and only appears after `carbonSeques
 ### Action items for next epic
 - [ ] Add per-craft engineer assignment state and actions as the engine prerequisite for mechanization-era workshop parity
 - [ ] Consider whether a future settings epic should model `usePercentageConsumptionValues` and similar presentation toggles explicitly
+
+---
+
+## Epic 39 — Workshop Engineer Assignment Engine — 2026-04-02
+
+| Dimension | Score | Notes |
+|-----------|-------|-------|
+| Test coverage (≥90% target) | 5 | engine 99.04%, client-web 96.08%, server 95.12%, api-spec 100%; 1422 tests passing |
+| No skipped tests / no TODOs | 5 | No skipped tests or new TODO/FIXME/HACK markers; no production `any` added |
+| Feature parity | 4 | The engine now has the real prerequisite state/actions for mechanization-era engineer allocation, but legacy progress %, throughput, and workshop presentation are still missing and remain tracked as partial UI parity |
+| API spec completeness | 5 | `ASSIGN_CRAFT_ENGINEER` and `UNASSIGN_CRAFT_ENGINEER` are mirrored across engine actions, Zod schemas, and OpenAPI |
+| Code quality (no `any`) | 5 | Engineer allocation is modeled in authoritative engine state, with invariants enforced in reducer logic rather than the UI |
+| Docs freshness (PROGRESS, DECISIONS, PARITY) | 5 | PROGRESS, EPICS, PARITY, STORIES, NOTES, DECISIONS, and SELF_RATINGS updated during closeout |
+| Commit hygiene | 5 | One focused engine/API commit for the feature, followed by docs closeout |
+| **Overall average** | **4.9** | |
+
+### What went well
+- The hidden dependency was resolved correctly: engineer allocation required a real `engineer` village job, not just workshop-side counters
+- The reducer guards keep state coherent by preventing engineer headcount from dropping below already-assigned craft engineers
+- The new action surface is small and composable, which keeps the later mechanization UI work straightforward
+
+### What to improve
+- Legacy engineer simulation is much richer than this slice: no craft progress, specialty, or throughput/countdown behavior is modeled yet
+- The mechanization blocker moved from engine state to workshop UI parity, and that follow-up should be filed or attached explicitly when that work starts
+
+### Action items for next epic
+- [ ] Implement mechanization-era workshop UI using the new engine-owned engineer assignment state
+- [ ] Decide whether engineer craft progress and throughput simulation belong in that UI epic or require a separate engine parity epic first

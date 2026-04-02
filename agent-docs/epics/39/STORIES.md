@@ -22,4 +22,4 @@ Legacy references:
 ### Legacy Reference
 - `legacy/js/workshop.js:2868-2920`
 
-### Status: [x] Tests | [x] Impl | [ ] Rated
+### Status: [x] Tests | [x] Impl | [x] Rated

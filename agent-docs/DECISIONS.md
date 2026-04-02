@@ -278,3 +278,26 @@ The existing `ENABLE_BUILDING` / `DISABLE_BUILDING` actions were extended with a
 - True binary `On` / `Off` remains only on `togglableOnOff` buildings such as steamworks
 - API surface stays compact: no extra batch action enum members were needed
 - Future UI work can change presentation without re-encoding legacy control rules in React
+
+---
+
+## ADR-017: Engineer assignment lives in engine state
+**Date:** 2026-04-02
+**Status:** Accepted
+
+### Context
+Mechanization-era workshop parity needs to answer two engine-owned questions:
+- how many kittens are employed as engineers
+- how many engineers are assigned to each craft
+
+Before Epic 39, the rewrite exposed engineer visibility heuristics in UI selectors but had no engineer job in engine state and no per-craft assignment model. That made "free engineers" impossible to validate.
+
+### Decision
+`engineer` is modeled as a real village job, and per-craft engineer allocation is stored directly on workshop craft entries. The action surface adds `ASSIGN_CRAFT_ENGINEER` and `UNASSIGN_CRAFT_ENGINEER`, each changing assignment by one and clamping against available engineers and zero.
+
+`UNASSIGN_JOB engineer` is guarded so engineer headcount cannot drop below the number already allocated across crafts.
+
+### Consequences
+- Workshop mechanization UI can now rely on authoritative engine state instead of inventing local assignment state
+- Save/load preserves craft engineer allocation without needing a separate UI-only persistence layer
+- The current rewrite still lacks legacy progress and throughput simulation for engineer work; Epic 39 only establishes the state/action prerequisite

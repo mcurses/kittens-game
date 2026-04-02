@@ -631,7 +631,7 @@ Current parity note:
 Stories: 4 complete + 1 partial (deferred)
 
 - [x] Story 35-01: Adaptive craft shortcuts — `max(1,1%)`, `max(25,5%)`, `max(100,10%)`, `All` buttons computed from live resources; global craft effectiveness `+N%` banner
-- [ ] Story 35-02: Mechanization craft controls — deferred, requires engineer-assignment engine state not yet implemented
+- [ ] Story 35-02: Mechanization craft controls — deferred; engine prerequisite landed in Epic 39, UI slice still outstanding
 - [x] Story 35-03: Hide-researched/complete toggles — Science, Workshop, and Space panels each expose persistent localStorage-backed toggles
 - [x] Story 35-04: Trade multi-send shortcuts — ×5 and ×25 buttons added to DiplomacyPanel; TRADE action extended with optional `amount`
 - [x] Story 35-05: Storage-limited action highlighting — shared client `isStorageLimited()` check added; Buildings, Science, Workshop, Space, Time, and Religion now keep normal action labels while marking storage-limited controls and inspector price lines
@@ -649,7 +649,7 @@ Follow-up:
 
 Parity gaps noted:
 - Legacy trade shortcuts are dynamic (50% / 20% of max affordable), not fixed ×5/×25 — filed for future epic
-- Story 35-02 mechanization requires engineer-state engine work before UI can be implemented
+- Story 35-02 mechanization now has its engine prerequisite from Epic 39; the remaining gap is workshop UI parity
 
 ---
 
@@ -696,7 +696,7 @@ Total: 1412 tests across all packages
 ---
 
 ## Epic 39: Workshop Engineer Assignment Engine
-**Status:** In Progress | **Started:** 2026-04-02
+**Status:** Complete | **Started:** 2026-04-02 | **Finished:** 2026-04-02
 Stories: 1 / 1 complete
 
 - [x] Story 39-01: Per-craft engineer assignment state and actions — added `engineer` village job state, per-craft engineer counts in workshop craft entries, `ASSIGN_CRAFT_ENGINEER` / `UNASSIGN_CRAFT_ENGINEER` actions, assignment clamping against free engineers, and persistence through state/workshop save-load paths
@@ -705,6 +705,15 @@ Focused verification:
 - `pnpm --filter @kittens/engine test -- --run packages/engine/src/state.test.ts packages/engine/src/workshop.test.ts`
 - `pnpm --filter @kittens/api-spec test -- --run packages/api-spec/src/schemas.test.ts`
 - `pnpm turbo build`
+
+Full verification:
+- `pnpm turbo test`
+
+Engine tests: 969 passing | Line coverage: 99.04%
+Client-web tests: 340 passing | Line coverage: 96.08%
+Server tests: 86 passing | Line coverage: 95.12%
+API-spec tests: 27 passing | Line coverage: 100%
+Total: 1422 tests across all packages
 
 ---
 
