@@ -659,6 +659,10 @@ Stories: 0 / 4 complete
 - [ ] Story 37-03: Web UI quantity controls for count-adjustable buildings — smelter/calciner/mint/accelerator style controls and `(on/val)` display parity
 - [ ] Story 37-04: Binary toggle parity for on/off-only buildings — keep `On/Off` controls only where legacy uses `togglableOnOff`, and cover mixed-control regression cases
 
+Carry-forward backlog filed before starting Epic 37:
+- [x] Epic 38: Trade Shortcut Quantity Parity — dynamic `tradeHalf` / `tradeFifth` backlog epic created from Epic 35 / 36 self-rate action items
+- [x] Epic 39: Workshop Engineer Assignment Engine — per-craft engineer-assignment backlog epic created as the engine prerequisite for deferred Story 35-02 mechanization work
+
 ---
 
 ## Epic 36: Building Unlock Architecture
