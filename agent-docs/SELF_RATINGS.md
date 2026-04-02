@@ -1345,3 +1345,31 @@ Factory mode visibility is now engine-owned and only appears after `carbonSeques
 - File a story for dynamic trade shortcuts (tradeHalf / tradeFifth matching legacy `getMaxTradeAmt`)
 - File an engine story for per-craft engineer-assignment state (prerequisite for Story 35-02)
 - Consider adding `percentageMode` setting support to craft shortcut labels
+
+---
+
+## Epic 36 — Building Unlock Architecture — 2026-04-02
+
+| Dimension | Score | Notes |
+|-----------|-------|-------|
+| Test coverage (≥90% target) | 5 | 99.11% stmt, 85.93% branch, 100% funcs across engine; all 1406 tests pass |
+| No skipped tests / no TODOs | 5 | Zero skipped tests, zero TODOs/FIXMEs |
+| Feature parity | 4 | Two-step model matches legacy exactly; unicornPasture/ziggurat/brewery/15+ buildings now unlock correctly; ivoryTemple enhanced mode still deferred (pre-existing, tracked in PARITY.md) |
+| API spec completeness | 5 | All 36 action types in openapi.yaml; no new actions added |
+| Code quality (no `any`) | 5 | Zero `any` usages |
+| Docs freshness (PROGRESS, DECISIONS, PARITY) | 5 | PROGRESS.md complete, STORIES.md ACs all checked, ADR-15 added, EPICS.md ✅ |
+| Commit hygiene | 5 | Clean scoped commits |
+| **Overall average** | **4.9** | |
+
+### What went well
+- Root cause cleanly identified: `applyResearch` never processed `def.unlocks?.buildings`, so every building in a tech chain was permanently hidden
+- Two-step model landed without touching the test file for science.ts — the building tests alone cover the full contract
+- Migration fix for `unlockable` derivation discovered during self-rate and fixed inline rather than deferred
+
+### What to improve
+- Legacy-migration coverage dropped slightly (94.96% stmt) with the new TECH_DEFS loop — edge cases for missing building entries in migrated state are uncovered
+
+### Action items for next epic
+- File a story for dynamic trade shortcuts (tradeHalf / tradeFifth matching legacy `getMaxTradeAmt`) [carried from epic 35]
+- File an engine story for per-craft engineer-assignment state (prerequisite for Story 35-02) [carried from epic 35]
+- Consider adding test coverage for `migrateLegacySave` unlockable derivation (tech researched but building entry absent)
