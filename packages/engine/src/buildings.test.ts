@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { applyAction } from "./actions.js";
 import {
   BUILDING_DEFS,
   BuildingManager,
@@ -311,7 +312,7 @@ describe("BuildingManager", () => {
       expect(next.buildings.field?.unlocked).toBe(true);
     });
 
-    it("does NOT unlock pasture (requiredTech:animal) when tech is not researched", () => {
+    it("does NOT unlock pasture when unlockable is not set", () => {
       const state = {
         ...createInitialState(),
         resources: {
@@ -319,13 +320,13 @@ describe("BuildingManager", () => {
           catnip: { value: 200, maxValue: 0 },
           wood: { value: 20, maxValue: 0 },
         },
-        // animal tech not researched (default)
+        // pasture.unlockable not set (default)
       };
       const next = manager.update(state);
       expect(next.buildings.pasture?.unlocked).toBeFalsy();
     });
 
-    it("unlocks pasture when animal tech is researched AND resources meet threshold", () => {
+    it("unlocks pasture when unlockable=true AND resources meet threshold", () => {
       const state = {
         ...createInitialState(),
         resources: {
@@ -333,19 +334,16 @@ describe("BuildingManager", () => {
           catnip: { value: 200, maxValue: 0 },
           wood: { value: 20, maxValue: 0 },
         },
-        science: {
-          ...createInitialState().science,
-          techs: {
-            ...createInitialState().science.techs,
-            animal: { unlocked: true, researched: true },
-          },
+        buildings: {
+          ...createInitialBuildings(),
+          pasture: { val: 0, on: 0, unlockable: true },
         },
       };
       const next = manager.update(state);
       expect(next.buildings.pasture?.unlocked).toBe(true);
     });
 
-    it("does NOT unlock pasture when animal researched but resources below threshold", () => {
+    it("does NOT unlock pasture when unlockable=true but resources below threshold", () => {
       const state = {
         ...createInitialState(),
         resources: {
@@ -353,12 +351,9 @@ describe("BuildingManager", () => {
           catnip: { value: 5, maxValue: 0 }, // below 30% of 100 = 30
           wood: { value: 1, maxValue: 0 },
         },
-        science: {
-          ...createInitialState().science,
-          techs: {
-            ...createInitialState().science.techs,
-            animal: { unlocked: true, researched: true },
-          },
+        buildings: {
+          ...createInitialBuildings(),
+          pasture: { val: 0, on: 0, unlockable: true },
         },
       };
       const next = manager.update(state);
@@ -1554,5 +1549,259 @@ describe("Story 31: all new buildings in BUILDING_DEFS and createInitialBuilding
     ]) {
       expect(buildings[name], `missing in initial state: ${name}`).toBeDefined();
     }
+  });
+});
+
+// ── Epic 36: Building Unlock Architecture ─────────────────────────────────────
+
+describe("Story 36-01: unlockable seeded from defaultUnlockable", () => {
+  it("defaultUnlockable buildings start with unlockable=true in createInitialBuildings", () => {
+    const buildings = createInitialBuildings();
+    // field, hut, library, workshop all have defaultUnlockable: true
+    expect(buildings.field?.unlockable).toBe(true);
+    expect(buildings.hut?.unlockable).toBe(true);
+    expect(buildings.library?.unlockable).toBe(true);
+    expect(buildings.workshop?.unlockable).toBe(true);
+  });
+
+  it("non-defaultUnlockable buildings start without unlockable set", () => {
+    const buildings = createInitialBuildings();
+    expect(buildings.pasture?.unlockable).toBeUndefined();
+    expect(buildings.unicornPasture?.unlockable).toBeUndefined();
+    expect(buildings.ziggurat?.unlockable).toBeUndefined();
+    expect(buildings.brewery?.unlockable).toBeUndefined();
+  });
+
+  it("ivoryTemple has defaultUnlockable: true (legacy parity)", () => {
+    const def = BUILDING_DEFS.find((b) => b.name === "ivoryTemple");
+    expect(def?.defaultUnlockable).toBe(true);
+  });
+});
+
+describe("Story 36-02: applyResearch sets building unlockable", () => {
+  const manager = new BuildingManager();
+
+  function makeResearchableState(techName: string, scienceCost: number) {
+    return {
+      ...createInitialState(),
+      resources: {
+        ...createInitialResources(),
+        science: { value: scienceCost + 10000, maxValue: 9999999 },
+        parchment: { value: 99999, maxValue: 9999999 },
+        compedium: { value: 99999, maxValue: 9999999 },
+      },
+      science: {
+        ...createInitialState().science,
+        techs: {
+          ...createInitialState().science.techs,
+          [techName]: { unlocked: true, researched: false },
+        },
+      },
+    };
+  }
+
+  it("researching animal tech sets pasture.unlockable=true and unicornPasture.unlockable=true", () => {
+    const state = makeResearchableState("animal", 500);
+    const next = applyAction(state, { type: "RESEARCH", name: "animal" });
+    expect(next.buildings.pasture?.unlockable).toBe(true);
+    expect(next.buildings.unicornPasture?.unlockable).toBe(true);
+  });
+
+  it("researching animal tech does NOT set unlocked=true (resource gate not yet met)", () => {
+    const state = makeResearchableState("animal", 500);
+    const next = applyAction(state, { type: "RESEARCH", name: "animal" });
+    // no catnip/wood in resources → threshold not met → not unlocked yet
+    expect(next.buildings.unicornPasture?.unlocked).toBeFalsy();
+  });
+
+  it("researching construction tech sets ziggurat.unlockable=true", () => {
+    const state = makeResearchableState("construction", 1300);
+    const next = applyAction(state, { type: "RESEARCH", name: "construction" });
+    expect(next.buildings.ziggurat?.unlockable).toBe(true);
+  });
+
+  it("researching drama tech sets brewery.unlockable=true", () => {
+    const state = makeResearchableState("drama", 90000);
+    const next = applyAction(state, { type: "RESEARCH", name: "drama" });
+    expect(next.buildings.brewery?.unlockable).toBe(true);
+  });
+});
+
+describe("Story 36-03: two-step reveal logic", () => {
+  const manager = new BuildingManager();
+
+  it("building with unlockable=true and sufficient resources → unlocked=true", () => {
+    const state = {
+      ...createInitialState(),
+      resources: {
+        ...createInitialResources(),
+        catnip: { value: 100, maxValue: 0 },
+        wood: { value: 10, maxValue: 0 },
+      },
+      buildings: {
+        ...createInitialBuildings(),
+        pasture: { val: 0, on: 0, unlockable: true as const },
+      },
+    };
+    const next = manager.update(state);
+    expect(next.buildings.pasture?.unlocked).toBe(true);
+  });
+
+  it("building with unlockable absent and sufficient resources → stays unlocked=false", () => {
+    const state = {
+      ...createInitialState(),
+      resources: {
+        ...createInitialResources(),
+        catnip: { value: 100, maxValue: 0 },
+        wood: { value: 10, maxValue: 0 },
+      },
+      // pasture starts without unlockable
+    };
+    const next = manager.update(state);
+    expect(next.buildings.pasture?.unlocked).toBeFalsy();
+  });
+
+  it("building with unlockable=true but insufficient resources → stays unlocked=false", () => {
+    const state = {
+      ...createInitialState(),
+      resources: {
+        ...createInitialResources(),
+        catnip: { value: 1, maxValue: 0 }, // below 30% of 100
+        wood: { value: 0, maxValue: 0 },
+      },
+      buildings: {
+        ...createInitialBuildings(),
+        pasture: { val: 0, on: 0, unlockable: true as const },
+      },
+    };
+    const next = manager.update(state);
+    expect(next.buildings.pasture?.unlocked).toBeFalsy();
+  });
+
+  it("building with defaultUnlockable=true and sufficient resources → unlocked=true (no research needed)", () => {
+    const state = {
+      ...createInitialState(),
+      resources: {
+        ...createInitialResources(),
+        catnip: { value: 5, maxValue: 0 }, // ≥ 30% of 10
+      },
+    };
+    const next = manager.update(state);
+    expect(next.buildings.field?.unlocked).toBe(true);
+  });
+});
+
+describe("Story 36-04: no requiredTech in BUILDING_DEFS", () => {
+  it("no building def has a requiredTech field", () => {
+    for (const def of BUILDING_DEFS) {
+      expect(
+        (def as unknown as Record<string, unknown>).requiredTech,
+        `${def.name} still has requiredTech`,
+      ).toBeUndefined();
+    }
+  });
+});
+
+describe("Story 36-05: regression — end-to-end unlock flow", () => {
+  const manager = new BuildingManager();
+
+  function researchAndReveal(
+    techName: string,
+    scienceCost: number,
+    buildingName: string,
+    revealResources: Record<string, number>,
+  ) {
+    const baseState = {
+      ...createInitialState(),
+      resources: {
+        ...createInitialResources(),
+        science: { value: scienceCost + 10000, maxValue: 9999999 },
+        parchment: { value: 99999, maxValue: 9999999 },
+        compedium: { value: 99999, maxValue: 9999999 },
+      },
+      science: {
+        ...createInitialState().science,
+        techs: {
+          ...createInitialState().science.techs,
+          [techName]: { unlocked: true, researched: false },
+        },
+      },
+    };
+    const afterResearch = applyAction(baseState, { type: "RESEARCH", name: techName });
+    const withResources = {
+      ...afterResearch,
+      resources: {
+        ...afterResearch.resources,
+        ...Object.fromEntries(
+          Object.entries(revealResources).map(([k, v]) => [k, { value: v, maxValue: 9999999 }]),
+        ),
+      },
+    };
+    return manager.update(withResources);
+  }
+
+  it("animal → unicornPasture appears once catnip/wood threshold met", () => {
+    // unicornPasture prices: catnip:2500, wood:... (check actual prices)
+    // unlockRatio: 0.3 → need 30% of first price component
+    const unicornDef = BUILDING_DEFS.find((b) => b.name === "unicornPasture");
+    expect(unicornDef).toBeDefined();
+    const firstPrice = unicornDef!.prices[0]!;
+    const threshold = firstPrice.val * (unicornDef!.unlockRatio ?? 0.3);
+    const result = researchAndReveal("animal", 500, "unicornPasture", {
+      [firstPrice.name]: threshold,
+    });
+    expect(result.buildings.unicornPasture?.unlocked).toBe(true);
+  });
+
+  it("construction → ziggurat appears once all price thresholds met", () => {
+    const zigDef = BUILDING_DEFS.find((b) => b.name === "ziggurat");
+    expect(zigDef).toBeDefined();
+    const ratio = zigDef!.unlockRatio ?? 0.3;
+    const revealResources = Object.fromEntries(
+      zigDef!.prices.map((p) => [p.name, p.val * ratio]),
+    );
+    const result = researchAndReveal("construction", 1300, "ziggurat", revealResources);
+    expect(result.buildings.ziggurat?.unlocked).toBe(true);
+  });
+
+  it("drama → brewery appears once all price thresholds met", () => {
+    const brewDef = BUILDING_DEFS.find((b) => b.name === "brewery");
+    expect(brewDef).toBeDefined();
+    const ratio = brewDef!.unlockRatio ?? 0.3;
+    const revealResources = Object.fromEntries(
+      brewDef!.prices.map((p) => [p.name, p.val * ratio]),
+    );
+    const result = researchAndReveal("drama", 90000, "brewery", revealResources);
+    expect(result.buildings.brewery?.unlocked).toBe(true);
+  });
+
+  it("catnipField (defaultUnlockable) visible from start once resources met, no research required", () => {
+    const state = {
+      ...createInitialState(),
+      resources: {
+        ...createInitialResources(),
+        catnip: { value: 3, maxValue: 0 }, // 30% of 10
+      },
+    };
+    const next = manager.update(state);
+    expect(next.buildings.field?.unlocked).toBe(true);
+  });
+
+  it("building not yet unlockable stays hidden even with all resources", () => {
+    // unicornPasture has no defaultUnlockable and unlockable not set
+    const state = {
+      ...createInitialState(),
+      resources: {
+        ...createInitialResources(),
+        catnip: { value: 999999, maxValue: 9999999 },
+        wood: { value: 999999, maxValue: 9999999 },
+        minerals: { value: 999999, maxValue: 9999999 },
+        iron: { value: 999999, maxValue: 9999999 },
+        gold: { value: 999999, maxValue: 9999999 },
+        faith: { value: 999999, maxValue: 9999999 },
+      },
+    };
+    const next = manager.update(state);
+    expect(next.buildings.unicornPasture?.unlocked).toBeFalsy();
   });
 });

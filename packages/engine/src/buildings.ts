@@ -35,12 +35,6 @@ export interface BuildingDef {
    * 0.3 means 30% of price required. Port of legacy `unlockRatio`.
    */
   readonly unlockRatio?: number;
-  /**
-   * Tech names that must all be researched before this building can auto-unlock.
-   * Parallel to legacy `requiredTech` on buildingsData entries.
-   * When present, the building unlocks only if all techs are researched AND unlockRatio threshold is met.
-   */
-  readonly requiredTech?: readonly string[];
 }
 
 /** Runtime state for a single building */
@@ -49,6 +43,13 @@ export interface BuildingEntry {
   readonly val: number;
   /** Buildings currently active/on */
   readonly on: number;
+  /**
+   * Research (or defaultUnlockable) has granted permission for this building to be revealed.
+   * Set by applyResearch when a tech's unlocks.buildings includes this building.
+   * Set by createInitialBuildings for buildings with defaultUnlockable: true.
+   * Port of legacy `unlockable` runtime flag on building meta objects (buildings.js:2604–2642).
+   */
+  readonly unlockable?: boolean;
   /** Whether this building has been unlocked (visible to the player). One-way: once true, stays true. */
   readonly unlocked?: boolean;
   /** Legacy automation jam flag for buildings like steamworks. */
@@ -92,7 +93,6 @@ export const BUILDING_DEFS: readonly BuildingDef[] = [
     priceRatio: 1.15,
     effects: { catnipDemandRatio: -0.005 },
     unlockRatio: 0.3,
-    requiredTech: ["animal"],
   },
   {
     name: "aqueduct",
@@ -101,7 +101,6 @@ export const BUILDING_DEFS: readonly BuildingDef[] = [
     priceRatio: 1.12,
     effects: { catnipRatio: 0.03 },
     unlockRatio: 0.3,
-    requiredTech: ["engineering"],
   },
   // ── Population ──────────────────────────────────────────────────────────────
   {
@@ -123,7 +122,6 @@ export const BUILDING_DEFS: readonly BuildingDef[] = [
     priceRatio: 1.15,
     effects: { catpowerMax: 50, maxKittens: 1 },
     unlockRatio: 0.3,
-    requiredTech: ["construction"],
   },
   {
     name: "mansion",
@@ -136,7 +134,6 @@ export const BUILDING_DEFS: readonly BuildingDef[] = [
     priceRatio: 1.15,
     effects: { catpowerMax: 50, maxKittens: 1 },
     unlockRatio: 0.3,
-    requiredTech: ["architecture"],
   },
   // ── Science ──────────────────────────────────────────────────────────────────
   {
@@ -159,7 +156,6 @@ export const BUILDING_DEFS: readonly BuildingDef[] = [
     priceRatio: 1.15,
     effects: { scienceRatio: 0.2, scienceMax: 500, cultureMax: 25 },
     unlockRatio: 0.3,
-    requiredTech: ["math"],
   },
   // ── Resource production ──────────────────────────────────────────────────────
   {
@@ -169,7 +165,6 @@ export const BUILDING_DEFS: readonly BuildingDef[] = [
     priceRatio: 1.15,
     effects: { mineralsRatio: 0.2 },
     unlockRatio: 0.3,
-    requiredTech: ["mining"],
   },
   // ── Resource storage ─────────────────────────────────────────────────────────
   {
@@ -187,7 +182,6 @@ export const BUILDING_DEFS: readonly BuildingDef[] = [
       goldMax: 10,
     },
     unlockRatio: 0.3,
-    requiredTech: ["agriculture"],
   },
   {
     name: "warehouse",
@@ -206,7 +200,6 @@ export const BUILDING_DEFS: readonly BuildingDef[] = [
       goldMax: 5,
     },
     unlockRatio: 0.3,
-    requiredTech: ["construction"],
   },
   // ── Culture / happiness ──────────────────────────────────────────────────────
   {
@@ -224,7 +217,6 @@ export const BUILDING_DEFS: readonly BuildingDef[] = [
       unhappinessRatio: -0.048,
     },
     unlockRatio: 0.3,
-    requiredTech: ["writing"],
   },
   {
     name: "brewery",
@@ -240,7 +232,6 @@ export const BUILDING_DEFS: readonly BuildingDef[] = [
       happiness: 0.01,
     },
     unlockRatio: 0.2,
-    requiredTech: ["agriculture"],
   },
   // ── Resource production multipliers ──────────────────────────────────────────
   {
@@ -256,7 +247,6 @@ export const BUILDING_DEFS: readonly BuildingDef[] = [
       woodRatio: 0.1,
     },
     unlockRatio: 0.3,
-    requiredTech: ["construction"],
   },
   {
     name: "smelter",
@@ -267,7 +257,6 @@ export const BUILDING_DEFS: readonly BuildingDef[] = [
       ironRatio: 0.5,
     },
     unlockRatio: 0.3,
-    requiredTech: ["mining"],
   },
   {
     name: "observatory",
@@ -284,7 +273,6 @@ export const BUILDING_DEFS: readonly BuildingDef[] = [
       scienceMax: 1000,
     },
     unlockRatio: 0.3,
-    requiredTech: ["astronomy"],
   },
   {
     name: "mint",
@@ -299,7 +287,6 @@ export const BUILDING_DEFS: readonly BuildingDef[] = [
       goldMax: 100,
     },
     unlockRatio: 0.3,
-    requiredTech: ["currency"],
   },
   // ── Religion ─────────────────────────────────────────────────────────────────
   {
@@ -317,7 +304,6 @@ export const BUILDING_DEFS: readonly BuildingDef[] = [
       faithMax: 100,
     },
     unlockRatio: 0.3,
-    requiredTech: ["philosophy"],
   },
   // ── Unicorns ─────────────────────────────────────────────────────────────────
   {
@@ -351,7 +337,6 @@ export const BUILDING_DEFS: readonly BuildingDef[] = [
       energyConsumption: 1,
     },
     unlockRatio: 0.3,
-    requiredTech: ["metallurgy"],
   },
 
   // ── Story 31-01: Chapel ───────────────────────────────────────────────────────
@@ -675,6 +660,7 @@ export const BUILDING_DEFS: readonly BuildingDef[] = [
     description: "Ivory temple that converts ivory into minerals (and more when whispers researched).",
     prices: [{ name: "tMythril", val: 1 }, { name: "ivory", val: 100 }],
     priceRatio: 1.15,
+    defaultUnlockable: true,
     unlockRatio: 0.1,
     effects: {
       ivoryPerTickCon: -100,
@@ -688,11 +674,14 @@ export const BUILDING_DEFS: readonly BuildingDef[] = [
 
 /**
  * Return a fresh BuildingState with all buildings at val:0, on:0.
+ * Buildings with defaultUnlockable:true start with unlockable:true (port of legacy buildings.js:2641).
  */
 export function createInitialBuildings(): BuildingState {
   const state: BuildingState = {};
   for (const def of BUILDING_DEFS) {
-    state[def.name] = { val: 0, on: 0, unlocked: false };
+    state[def.name] = def.defaultUnlockable
+      ? { val: 0, on: 0, unlocked: false, unlockable: true }
+      : { val: 0, on: 0, unlocked: false };
   }
   return state;
 }
@@ -892,15 +881,11 @@ export class BuildingManager implements Manager {
       const entry = buildings[def.name];
       if (!entry || entry.unlocked) continue; // already unlocked — skip
 
-      // Check if this building is unlockable at all:
-      // - defaultUnlockable: always unlockable once resources met
-      // - requiredTech: all listed techs must be researched
-      let isUnlockable = def.defaultUnlockable === true;
-      if (!isUnlockable && def.requiredTech?.length) {
-        isUnlockable = def.requiredTech.every(
-          (techName) => state.science.techs[techName]?.researched === true,
-        );
-      }
+      // Check if this building is unlockable at all (two-step model matching legacy):
+      // - defaultUnlockable: always unlockable once resources met (no research required)
+      // - entry.unlockable: set by applyResearch when the tech's unlocks.buildings fires
+      // Port of legacy isUnlockable() at buildings.js:2604–2606.
+      const isUnlockable = def.defaultUnlockable === true || entry.unlockable === true;
       if (!isUnlockable) continue;
 
       // Check if player has unlockRatio fraction of all price components

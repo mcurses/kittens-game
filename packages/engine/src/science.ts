@@ -1201,7 +1201,7 @@ export function applyResearch(state: GameState, techName: string): GameState {
       tech.researched = true;
     }
 
-    // Apply tech unlocks (unlock further techs and policies)
+    // Apply tech unlocks (unlock further techs, policies, and buildings)
     if (def.unlocks?.tech) {
       for (const unlockName of def.unlocks.tech) {
         const unlockEntry = draft.science.techs[unlockName];
@@ -1215,6 +1215,16 @@ export function applyResearch(state: GameState, techName: string): GameState {
         const policyEntry = draft.science.policies[policyName];
         if (policyEntry && !policyEntry.unlocked) {
           policyEntry.unlocked = true;
+        }
+      }
+    }
+    // Grant unlockable permission to buildings in the unlock chain.
+    // Port of legacy game.js:5348–5352 where research sets building.unlockable = true.
+    if (def.unlocks?.buildings) {
+      for (const buildingName of def.unlocks.buildings) {
+        const bldEntry = draft.buildings[buildingName];
+        if (bldEntry && !bldEntry.unlockable) {
+          draft.buildings[buildingName] = { ...bldEntry, unlockable: true };
         }
       }
     }
