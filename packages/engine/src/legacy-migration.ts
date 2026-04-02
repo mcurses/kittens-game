@@ -8,6 +8,7 @@
  * Port reference: legacy/js/game.js save(), load(), migrateSave()
  */
 
+import { TECH_DEFS } from "./science.js";
 import type { SerializedGameState } from "./state.js";
 
 // ── Internal helpers ──────────────────────────────────────────────────────────
@@ -358,6 +359,20 @@ export function migrateLegacySave(legacyJson: unknown): SerializedGameState {
     science: migrateScience(save.science),
     workshop: migrateWorkshop(save.workshop),
   };
+
+  // Derive unlockable for buildings from researched tech chains.
+  // Legacy saved unlockable as runtime-only; the rewrite persists it in state.
+  // Port of legacy game.js:5348–5352 (research sets building.unlockable = true).
+  for (const techDef of TECH_DEFS) {
+    const techEntry = out.science?.techs?.[techDef.name];
+    if (!techEntry?.researched) continue;
+    for (const bldName of techDef.unlocks?.buildings ?? []) {
+      const bldEntry = out.buildings[bldName];
+      if (bldEntry && !bldEntry.unlockable) {
+        out.buildings[bldName] = { ...bldEntry, unlockable: true };
+      }
+    }
+  }
 
   // Always include all optional sections so every Manager.load() receives a valid slice
   out.religion = migrateReligion(save.religion);

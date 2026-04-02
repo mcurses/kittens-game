@@ -662,11 +662,11 @@ Stories: 0 / 4 complete
 ---
 
 ## Epic 36: Building Unlock Architecture
-**Status:** In Progress | **Started:** 2026-04-01
-Stories: 0/5 complete
+**Status:** Complete | **Started:** 2026-04-02 | **Finished:** 2026-04-02
+Stories: 5/5 complete
 
-- [ ] Story 36-01: Add `unlockable` to building state and seed defaults
-- [ ] Story 36-02: Wire science.ts to set `unlockable` on research completion
-- [ ] Story 36-03: Update reveal logic to use the two-step check
-- [ ] Story 36-04: Retire duplicated `requiredTech` gates
-- [ ] Story 36-05: Regression tests for representative cases
+- [x] Story 36-01: Add `unlockable` to building state and seed defaults
+- [x] Story 36-02: Wire science.ts to set `unlockable` on research completion
+- [x] Story 36-03: Update reveal logic to use the two-step check
+- [x] Story 36-04: Retire duplicated `requiredTech` gates
+- [x] Story 36-05: Regression tests for representative cases

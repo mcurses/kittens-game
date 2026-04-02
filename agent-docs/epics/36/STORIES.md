@@ -18,11 +18,11 @@ Legacy references:
 **Why it exists**: The engine needs a stable field to record "research has granted permission." Without it, every fix is a patch on the wrong abstraction.
 
 **ACs**:
-- [ ] `BuildingState` gains `unlockable?: boolean`
-- [ ] `BuildingManager` initialises `unlockable = true` for every building def that has `defaultUnlockable: true`
-- [ ] Buildings without `defaultUnlockable` start with `unlockable` absent/false
-- [ ] Existing buildings that already have `unlocked: true` in state are unaffected (no migration needed — in-dev saves are disposable)
-- [ ] Unit tests: defaultUnlockable buildings start with `unlockable: true`; non-default buildings start without it
+- [x] `BuildingState` gains `unlockable?: boolean`
+- [x] `BuildingManager` initialises `unlockable = true` for every building def that has `defaultUnlockable: true`
+- [x] Buildings without `defaultUnlockable` start with `unlockable` absent/false
+- [x] Existing buildings that already have `unlocked: true` in state are unaffected (no migration needed — in-dev saves are disposable)
+- [x] Unit tests: defaultUnlockable buildings start with `unlockable: true`; non-default buildings start without it
 
 ---
 
@@ -31,9 +31,9 @@ Legacy references:
 **Why it exists**: When a tech is researched, legacy sets the building to unlockable (`legacy/game.js:5348`). The rewrite currently sets `unlocked = true` directly, skipping the resource-threshold gate.
 
 **ACs**:
-- [ ] `applyResearch` (and `applyResearchPolicy` where relevant) sets `building.unlockable = true` for every entry in `def.unlocks.buildings`, matching legacy
-- [ ] `applyResearch` no longer sets `building.unlocked = true` directly for any building
-- [ ] Unit tests:
+- [x] `applyResearch` (and `applyResearchPolicy` where relevant) sets `building.unlockable = true` for every entry in `def.unlocks.buildings`, matching legacy
+- [x] `applyResearch` no longer sets `building.unlocked = true` directly for any building
+- [x] Unit tests:
   - researching `animal` sets `unicornPasture.unlockable = true` (not `unlocked`)
   - researching `construction` sets `ziggurat.unlockable = true`
   - researching `brewing` sets `brewery.unlockable = true`
@@ -45,10 +45,10 @@ Legacy references:
 **Why it exists**: `BuildingManager.updateBuildings()` (buildings.ts ~line 880) must apply the unlockRatio resource-threshold rule only to buildings that are unlockable, and flip `unlocked = true` when the threshold is met — matching `legacy/js/buildings.js:2578`.
 
 **ACs**:
-- [ ] Reveal condition: `(def.defaultUnlockable || entry.unlockable) && resourceThresholdMet` → set `unlocked = true`
-- [ ] Buildings that are not unlockable are never revealed regardless of resources
-- [ ] `unlocked` is never reset to `false` once set (legacy behaviour — buildings don't hide after you spend resources)
-- [ ] Unit tests:
+- [x] Reveal condition: `(def.defaultUnlockable || entry.unlockable) && resourceThresholdMet` → set `unlocked = true`
+- [x] Buildings that are not unlockable are never revealed regardless of resources
+- [x] `unlocked` is never reset to `false` once set (legacy behaviour — buildings don't hide after you spend resources)
+- [x] Unit tests:
   - building with `defaultUnlockable: true` and sufficient resources → `unlocked = true`
   - building with `unlockable: true` (set by research) and sufficient resources → `unlocked = true`
   - building with `unlockable: false/absent` and sufficient resources → stays `unlocked: false`
@@ -61,11 +61,11 @@ Legacy references:
 **Why it exists**: Several building defs carry `requiredTech` as a workaround for the collapsed unlock model. Now that science.ts owns the unlockable step, those duplicates should be removed. Only buildings whose defs truly own their own gate (not covered by any tech's `unlocks.buildings`) should keep `requiredTech`.
 
 **ACs**:
-- [ ] Audit every `requiredTech` field in `buildings.ts` against the `unlocks.buildings` entries in `science.ts`
-- [ ] Remove `requiredTech` from any building def where a tech's `unlocks.buildings` already covers it
-- [ ] Keep `requiredTech` only for buildings with no corresponding science unlock entry
-- [ ] All previously-passing unlock tests still pass after removal
-- [ ] No regressions in building visibility for buildings that had `requiredTech` removed
+- [x] Audit every `requiredTech` field in `buildings.ts` against the `unlocks.buildings` entries in `science.ts`
+- [x] Remove `requiredTech` from any building def where a tech's `unlocks.buildings` already covers it
+- [x] Keep `requiredTech` only for buildings with no corresponding science unlock entry
+- [x] All previously-passing unlock tests still pass after removal
+- [x] No regressions in building visibility for buildings that had `requiredTech` removed
 
 ---
 
@@ -74,9 +74,9 @@ Legacy references:
 **Why it exists**: The two-step model needs end-to-end fixture tests that will catch any future regression to the collapsed single-flag approach.
 
 **ACs**:
-- [ ] Test: `animal` tech → `unicornPasture` appears once resources meet threshold
-- [ ] Test: `construction` tech → `ziggurat` appears once resources meet threshold
-- [ ] Test: `brewing` tech → `brewery` appears once resources meet threshold
-- [ ] Test: `catnipField` (defaultUnlockable) → visible from game start once resources met, no research required
-- [ ] Test: building not yet unlockable → stays hidden even with all resources
-- [ ] Tests live in `packages/engine/src/village.test.ts` or a new `buildings.test.ts` as appropriate
+- [x] Test: `animal` tech → `unicornPasture` appears once resources meet threshold
+- [x] Test: `construction` tech → `ziggurat` appears once resources meet threshold
+- [x] Test: `brewing` tech → `brewery` appears once resources meet threshold
+- [x] Test: `catnipField` (defaultUnlockable) → visible from game start once resources met, no research required
+- [x] Test: building not yet unlockable → stays hidden even with all resources
+- [x] Tests live in `packages/engine/src/buildings.test.ts`

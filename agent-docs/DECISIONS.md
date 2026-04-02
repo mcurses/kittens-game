@@ -236,3 +236,21 @@ Only trivial documentation-only maintenance is exempt.
 - Future agents can discover current work, remaining gaps, and legacy references from the standard docs instead of reconstructing them from git history
 - "Drive-by" parity fixes are treated as process failures even when the code itself is correct
 - If a new bug is found during implementation, the agent must first attach it to the active epic or open a new epic rather than quietly folding it into unrelated work
+
+---
+
+## ADR-15: Persist `unlockable` in engine state (not runtime-only like legacy)
+
+### Status
+Accepted — 2026-04-02
+
+### Context
+Legacy `buildings.js` keeps `unlockable` as a runtime-only flag on the meta object — it is set on init from `defaultUnlockable` or from research resolution, and is never saved to the save file. The rewrite uses event sourcing: state is the sole source of truth, and the engine processes actions against state diffs. There is no "meta object" to carry runtime fields.
+
+### Decision
+`unlockable` is stored in `BuildingEntry` (persisted state), not in a transient runtime object. `createInitialBuildings()` seeds `unlockable: true` for `defaultUnlockable` defs on first creation; `applyResearch` sets it when a tech's `unlocks.buildings` fires. This means a re-derived game from its action log will correctly carry the `unlockable` signal without replaying all past ticks.
+
+### Consequences
+- Saves include `unlockable` per building — slightly larger state, but negligible
+- Any legacy save import must derive `unlockable` from the researched tech list during migration (already handled by `legacyMigration.ts` which re-applies all researched techs via `applyResearch`)
+- No `requiredTech` workaround is needed — the science unlock chain owns the gate end-to-end

@@ -81,7 +81,7 @@ export interface SerializedGameState {
   resources: Record<string, { value: number; maxValue: number; perTick: number }>;
   buildings: Record<
     string,
-    { val: number; on: number; unlocked?: boolean; jammed?: boolean; automationEnabled?: boolean }
+    { val: number; on: number; unlocked?: boolean; unlockable?: boolean; jammed?: boolean; automationEnabled?: boolean }
   >;
   village: {
     kittens: number;
@@ -161,13 +161,14 @@ export function serialize(state: GameState): SerializedGameState {
 
   const buildings: Record<
     string,
-    { val: number; on: number; unlocked?: boolean; jammed?: boolean; automationEnabled?: boolean }
+    { val: number; on: number; unlocked?: boolean; unlockable?: boolean; jammed?: boolean; automationEnabled?: boolean }
   > = {};
   for (const [name, entry] of Object.entries(state.buildings)) {
     buildings[name] = {
       val: entry.val,
       on: entry.on,
       ...(entry.unlocked !== undefined ? { unlocked: entry.unlocked } : {}),
+      ...(entry.unlockable !== undefined ? { unlockable: entry.unlockable } : {}),
       ...(entry.jammed !== undefined ? { jammed: entry.jammed } : {}),
       ...(entry.automationEnabled !== undefined ? { automationEnabled: entry.automationEnabled } : {}),
     };
@@ -349,7 +350,7 @@ export function deserialize(data: SerializedGameState): GameState {
   const savedBuildings = data.buildings ?? {};
   const buildings: Record<
     string,
-    { val: number; on: number; unlocked?: boolean; jammed?: boolean; automationEnabled?: boolean }
+    { val: number; on: number; unlocked?: boolean; unlockable?: boolean; jammed?: boolean; automationEnabled?: boolean }
   > = {
     ...createInitialBuildings(),
   };
@@ -359,6 +360,7 @@ export function deserialize(data: SerializedGameState): GameState {
         val: entry.val,
         on: entry.on,
         ...(typeof entry.unlocked === "boolean" ? { unlocked: entry.unlocked } : {}),
+        ...(typeof entry.unlockable === "boolean" ? { unlockable: entry.unlockable } : {}),
         ...(typeof entry.jammed === "boolean" ? { jammed: entry.jammed } : {}),
         ...(typeof entry.automationEnabled === "boolean"
           ? { automationEnabled: entry.automationEnabled }
