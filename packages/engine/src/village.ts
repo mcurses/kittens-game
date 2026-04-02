@@ -10,8 +10,8 @@ import type { GameState } from "./state.js";
 /** Static definition for a kitten job */
 export interface JobDef {
   readonly name: string;
-  /** Effect cache key this job contributes to */
-  readonly effectKey: string;
+  /** Effect cache key this job contributes to, if the job has direct production. */
+  readonly effectKey?: string;
   /** Per-kitten-per-tick production rate */
   readonly baseProduction: number;
 }
@@ -73,6 +73,7 @@ export const JOB_DEFS: readonly JobDef[] = [
   { name: "miner", effectKey: "mineralsPerTickBase", baseProduction: 0.05 },
   { name: "geologist", effectKey: "coalPerTickBase", baseProduction: 0.015 },
   { name: "priest", effectKey: "faithPerTickBase", baseProduction: 0.0015 },
+  { name: "engineer", baseProduction: 0 },
 ];
 
 // ── Factory ───────────────────────────────────────────────────────────────────
@@ -229,7 +230,7 @@ export class VillageManager implements Manager {
     const happiness = village.happiness;
     for (const def of JOB_DEFS) {
       const job = village.jobs[def.name];
-      if (!job || job.value === 0) continue;
+      if (!job || job.value === 0 || !def.effectKey || def.baseProduction === 0) continue;
       const resourceName = def.effectKey.replace("PerTickBase", "");
       const jobRatio = state.effectCache[`${resourceName}JobRatio`] ?? 0;
       const production = def.baseProduction * job.value * happiness * (1 + jobRatio);

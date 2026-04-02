@@ -102,7 +102,7 @@ export interface SerializedGameState {
   };
   workshop: {
     upgrades: Record<string, { unlocked: boolean; researched: boolean }>;
-    crafts: Record<string, { unlocked: boolean }>;
+    crafts: Record<string, { unlocked: boolean; engineers?: number }>;
   };
   religion?: {
     worship: number;
@@ -220,7 +220,10 @@ export function serialize(state: GameState): SerializedGameState {
         ]),
       ),
       crafts: Object.fromEntries(
-        Object.entries(state.workshop.crafts).map(([n, e]) => [n, { unlocked: e.unlocked }]),
+        Object.entries(state.workshop.crafts).map(([n, e]) => [
+          n,
+          { unlocked: e.unlocked, ...(e.engineers !== undefined ? { engineers: e.engineers } : {}) },
+        ]),
       ),
     },
     religion: {
@@ -402,8 +405,31 @@ export function deserialize(data: SerializedGameState): GameState {
   // Science state is handled entirely by ScienceManager.load() — start from initial
   const science = createInitialScience();
 
-  // Workshop state is handled entirely by WorkshopManager.load() — start from initial
-  const workshop = createInitialWorkshop();
+  let workshop = createInitialWorkshop();
+  if (data.workshop && typeof data.workshop === "object") {
+    const upgrades = { ...workshop.upgrades };
+    if (data.workshop.upgrades && typeof data.workshop.upgrades === "object") {
+      for (const [name, entry] of Object.entries(data.workshop.upgrades)) {
+        if (entry && typeof entry.unlocked === "boolean" && typeof entry.researched === "boolean") {
+          upgrades[name] = { unlocked: entry.unlocked, researched: entry.researched };
+        }
+      }
+    }
+
+    const crafts = { ...workshop.crafts };
+    if (data.workshop.crafts && typeof data.workshop.crafts === "object") {
+      for (const [name, entry] of Object.entries(data.workshop.crafts)) {
+        if (entry && typeof entry.unlocked === "boolean") {
+          crafts[name] = {
+            unlocked: entry.unlocked,
+            engineers: typeof entry.engineers === "number" ? Math.max(0, entry.engineers) : (crafts[name]?.engineers ?? 0),
+          };
+        }
+      }
+    }
+
+    workshop = { upgrades, crafts };
+  }
 
   // Religion state is handled entirely by ReligionManager.load() — start from initial
   const religion = createInitialReligion();

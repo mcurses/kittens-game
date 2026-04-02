@@ -6,6 +6,7 @@ Last updated: 2026-04-02
 
 ## Maintenance Updates
 
+- 2026-04-02: Started Epic 39. The engine now has explicit `engineer` village jobs plus per-craft engineer assignment state/actions, so mechanization UI parity is no longer blocked on missing backend state.
 - 2026-04-02: Started Epic 38. The trade panel now computes legacy dynamic caravan shortcut quantities from current affordability instead of exposing fixed `×5` / `×25` buttons.
 - 2026-04-02: Closed Epic 37. Building controls now follow the legacy split between count-adjustable `togglable` buildings and binary `togglableOnOff` buildings, with engine-owned `controlMode` metadata and batch `amount` actions.
 - 2026-04-01: Reopened Epic 35 briefly for a Story 35-03 regression fix. The hide-researched / hide-complete toggles were stored to `localStorage` but did not restore on reload because the boolean panels omitted the `usePersistentUiState` validator path.
@@ -691,6 +692,19 @@ Engine tests: 960 passing | Line coverage: 99.03%
 Server tests: 86 passing | Line coverage: 95.12%
 API-spec tests: 26 passing | Line coverage: 100%
 Total: 1412 tests across all packages
+
+---
+
+## Epic 39: Workshop Engineer Assignment Engine
+**Status:** In Progress | **Started:** 2026-04-02
+Stories: 1 / 1 complete
+
+- [x] Story 39-01: Per-craft engineer assignment state and actions — added `engineer` village job state, per-craft engineer counts in workshop craft entries, `ASSIGN_CRAFT_ENGINEER` / `UNASSIGN_CRAFT_ENGINEER` actions, assignment clamping against free engineers, and persistence through state/workshop save-load paths
+
+Focused verification:
+- `pnpm --filter @kittens/engine test -- --run packages/engine/src/state.test.ts packages/engine/src/workshop.test.ts`
+- `pnpm --filter @kittens/api-spec test -- --run packages/api-spec/src/schemas.test.ts`
+- `pnpm turbo build`
 
 ---
 

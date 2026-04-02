@@ -36,6 +36,7 @@ export interface CraftDef {
 
 export interface CraftEntry {
   readonly unlocked: boolean;
+  readonly engineers?: number;
 }
 
 // ── WorkshopState ─────────────────────────────────────────────────────────────
@@ -1638,6 +1639,7 @@ export function createInitialWorkshop(): WorkshopState {
   for (const def of CRAFT_DEFS) {
     crafts[def.name] = {
       unlocked: INITIAL_UNLOCKED_CRAFTS.has(def.name),
+      engineers: 0,
     };
   }
 
@@ -1736,6 +1738,36 @@ export function applyCraft(state: GameState, craftName: string, amt: number): Ga
   });
 }
 
+export function getAssignedCraftEngineers(state: Pick<GameState, "workshop">): number {
+  return Object.values(state.workshop.crafts).reduce((total, craft) => total + (craft.engineers ?? 0), 0);
+}
+
+export function applyAssignCraftEngineer(state: GameState, craftName: string): GameState {
+  const craft = state.workshop.crafts[craftName];
+  if (!craft?.unlocked) return state;
+
+  const totalEngineers = state.village.jobs.engineer?.value ?? 0;
+  const freeEngineers = totalEngineers - getAssignedCraftEngineers(state);
+  if (freeEngineers <= 0) return state;
+
+  return produce(state, (draft) => {
+    const entry = draft.workshop.crafts[craftName];
+    if (!entry?.unlocked) return;
+    entry.engineers = (entry.engineers ?? 0) + 1;
+  });
+}
+
+export function applyUnassignCraftEngineer(state: GameState, craftName: string): GameState {
+  const craft = state.workshop.crafts[craftName];
+  if (!craft || (craft.engineers ?? 0) <= 0) return state;
+
+  return produce(state, (draft) => {
+    const entry = draft.workshop.crafts[craftName];
+    if (!entry) return;
+    entry.engineers = Math.max(0, (entry.engineers ?? 0) - 1);
+  });
+}
+
 // ── WorkshopManager ───────────────────────────────────────────────────────────
 
 type Serializable_ = Serializable;
@@ -1799,6 +1831,7 @@ export class WorkshopManager implements Manager {
           crafts[name] = {
             unlocked:
               typeof sc.unlocked === "boolean" ? sc.unlocked : (crafts[name]?.unlocked ?? false),
+            engineers: typeof sc.engineers === "number" ? Math.max(0, sc.engineers) : (crafts[name]?.engineers ?? 0),
           };
         }
       }

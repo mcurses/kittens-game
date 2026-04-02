@@ -21,7 +21,7 @@ import { applyBuySpaceBuilding, applyLaunchMission } from "./space.js";
 import { applyBuyCfu, applyBuyVsu, applyShatterTc } from "./time.js";
 import type { GameState } from "./state.js";
 import { JOB_DEFS, applyHunt, applyHoldFestival, totalAssignedKittens } from "./village.js";
-import { applyCraft, applyPurchaseUpgrade } from "./workshop.js";
+import { applyAssignCraftEngineer, applyCraft, applyPurchaseUpgrade, applyUnassignCraftEngineer, getAssignedCraftEngineers } from "./workshop.js";
 
 /** Discriminated union of all possible game actions */
 export type GameAction =
@@ -38,6 +38,8 @@ export type GameAction =
   | { readonly type: "RESEARCH_POLICY"; readonly name: string }
   | { readonly type: "PURCHASE_UPGRADE"; readonly name: string }
   | { readonly type: "CRAFT"; readonly name: string; readonly amount: number }
+  | { readonly type: "ASSIGN_CRAFT_ENGINEER"; readonly name: string }
+  | { readonly type: "UNASSIGN_CRAFT_ENGINEER"; readonly name: string }
   | { readonly type: "BUY_ZIGGURAT_UPGRADE"; readonly name: string }
   | { readonly type: "BUY_RELIGION_UPGRADE"; readonly name: string }
   | { readonly type: "BUY_TRANSCENDENCE_UPGRADE"; readonly name: string }
@@ -182,6 +184,10 @@ export function applyAction(
 
       const job = state.village.jobs[action.job] ?? { value: 0 };
       if (job.value <= 0) return state;
+      if (action.job === "engineer") {
+        const nextValue = job.value - 1;
+        if (nextValue < getAssignedCraftEngineers(state)) return state;
+      }
 
       return produce(state, (draft) => {
         const j = draft.village.jobs[action.job] ?? { value: 0 };
@@ -200,6 +206,12 @@ export function applyAction(
     }
     case "CRAFT": {
       return applyCraft(state, action.name, action.amount);
+    }
+    case "ASSIGN_CRAFT_ENGINEER": {
+      return applyAssignCraftEngineer(state, action.name);
+    }
+    case "UNASSIGN_CRAFT_ENGINEER": {
+      return applyUnassignCraftEngineer(state, action.name);
     }
     case "BUY_ZIGGURAT_UPGRADE": {
       return applyBuyZigguratUpgrade(state, action.name);

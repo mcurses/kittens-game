@@ -305,6 +305,22 @@ components:
           properties:
             type:
               type: string
+              enum: [ASSIGN_CRAFT_ENGINEER]
+            name:
+              type: string
+        - type: object
+          required: [type, name]
+          properties:
+            type:
+              type: string
+              enum: [UNASSIGN_CRAFT_ENGINEER]
+            name:
+              type: string
+        - type: object
+          required: [type, name]
+          properties:
+            type:
+              type: string
               enum: [BUY_ZIGGURAT_UPGRADE]
             name:
               type: string

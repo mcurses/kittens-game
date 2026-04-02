@@ -286,13 +286,35 @@ describe("serialize / deserialize", () => {
         ...createInitialVillage(),
         kittens: 3,
         kittenProgress: 0.7,
-        jobs: { ...createInitialVillage().jobs, woodcutter: { value: 2 } },
+        jobs: { ...createInitialVillage().jobs, woodcutter: { value: 2 }, engineer: { value: 1 } },
       },
     };
     const restored = deserialize(serialize(state));
     expect(restored.village.kittens).toBe(3);
     expect(restored.village.kittenProgress).toBe(0.7);
     expect(restored.village.jobs.woodcutter?.value).toBe(2);
+    expect(restored.village.jobs.engineer?.value).toBe(1);
+  });
+
+  it("workshop craft engineer assignments are preserved through round-trip", () => {
+    const base = createInitialState();
+    const state = {
+      ...base,
+      village: {
+        ...createInitialVillage(),
+        kittens: 3,
+        jobs: { ...createInitialVillage().jobs, engineer: { value: 2 } },
+      },
+      workshop: {
+        ...base.workshop,
+        crafts: {
+          ...base.workshop.crafts,
+          beam: { unlocked: true, engineers: 2 },
+        },
+      },
+    };
+    const restored = deserialize(serialize(state));
+    expect(restored.workshop.crafts.beam?.engineers).toBe(2);
   });
 
   it("deserialize falls back to initial village if field is missing", () => {
@@ -512,6 +534,15 @@ describe("applyAction ASSIGN_JOB", () => {
     expect(next.village.jobs.woodcutter?.value).toBe(1);
   });
 
+  it("assigns engineer jobs when idle kittens exist", () => {
+    const state = {
+      ...createInitialState(),
+      village: { ...createInitialVillage(), kittens: 2 },
+    };
+    const next = applyAction(state, { type: "ASSIGN_JOB", job: "engineer" });
+    expect(next.village.jobs.engineer?.value).toBe(1);
+  });
+
   it("does nothing when no idle kittens", () => {
     const state = {
       ...createInitialState(),
@@ -581,6 +612,107 @@ describe("applyAction UNASSIGN_JOB", () => {
     };
     const next = applyAction(state, { type: "UNASSIGN_JOB", job: "woodcutter" });
     expect(next).toBe(state);
+  });
+
+  it("does not unassign engineer jobs below allocated craft engineers", () => {
+    const base = createInitialState();
+    const state = {
+      ...base,
+      village: {
+        ...createInitialVillage(),
+        kittens: 2,
+        jobs: { ...createInitialVillage().jobs, engineer: { value: 1 } },
+      },
+      workshop: {
+        ...base.workshop,
+        crafts: {
+          ...base.workshop.crafts,
+          beam: { unlocked: true, engineers: 1 },
+        },
+      },
+    };
+    const next = applyAction(state, { type: "UNASSIGN_JOB", job: "engineer" });
+    expect(next).toBe(state);
+  });
+});
+
+describe("applyAction ASSIGN_CRAFT_ENGINEER / UNASSIGN_CRAFT_ENGINEER", () => {
+  it("assigns one engineer to an unlocked craft when a free engineer exists", () => {
+    const state = {
+      ...createInitialState(),
+      village: {
+        ...createInitialVillage(),
+        kittens: 2,
+        jobs: { ...createInitialVillage().jobs, engineer: { value: 1 } },
+      },
+    };
+    const next = applyAction(state, { type: "ASSIGN_CRAFT_ENGINEER", name: "beam" });
+    expect(next.workshop.crafts.beam?.engineers).toBe(1);
+  });
+
+  it("does nothing when no free engineers remain", () => {
+    const base = createInitialState();
+    const state = {
+      ...base,
+      village: {
+        ...createInitialVillage(),
+        kittens: 2,
+        jobs: { ...createInitialVillage().jobs, engineer: { value: 1 } },
+      },
+      workshop: {
+        ...base.workshop,
+        crafts: {
+          ...base.workshop.crafts,
+          beam: { unlocked: true, engineers: 1 },
+        },
+      },
+    };
+    const next = applyAction(state, { type: "ASSIGN_CRAFT_ENGINEER", name: "slab" });
+    expect(next).toBe(state);
+  });
+
+  it("does nothing for locked crafts", () => {
+    const base = createInitialState();
+    const state = {
+      ...base,
+      village: {
+        ...createInitialVillage(),
+        kittens: 2,
+        jobs: { ...createInitialVillage().jobs, engineer: { value: 1 } },
+      },
+      workshop: {
+        ...base.workshop,
+        crafts: {
+          ...base.workshop.crafts,
+          steel: { unlocked: false, engineers: 0 },
+        },
+      },
+    };
+    const next = applyAction(state, { type: "ASSIGN_CRAFT_ENGINEER", name: "steel" });
+    expect(next).toBe(state);
+  });
+
+  it("unassigns one engineer from a craft and clamps at zero", () => {
+    const base = createInitialState();
+    const state = {
+      ...base,
+      village: {
+        ...createInitialVillage(),
+        kittens: 2,
+        jobs: { ...createInitialVillage().jobs, engineer: { value: 1 } },
+      },
+      workshop: {
+        ...base.workshop,
+        crafts: {
+          ...base.workshop.crafts,
+          beam: { unlocked: true, engineers: 1 },
+        },
+      },
+    };
+    const next = applyAction(state, { type: "UNASSIGN_CRAFT_ENGINEER", name: "beam" });
+    expect(next.workshop.crafts.beam?.engineers).toBe(0);
+    const next2 = applyAction(next, { type: "UNASSIGN_CRAFT_ENGINEER", name: "beam" });
+    expect(next2).toBe(next);
   });
 });
 

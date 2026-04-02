@@ -95,6 +95,15 @@ describe("GameActionRequestSchema", () => {
     expect(enable.data.amount).toBe(25);
     expect(disable.data.amount).toBe(25);
   });
+
+  it("accepts craft engineer assignment actions", () => {
+    expect(
+      GameActionRequestSchema.safeParse({ type: "ASSIGN_CRAFT_ENGINEER", name: "beam" }).success,
+    ).toBe(true);
+    expect(
+      GameActionRequestSchema.safeParse({ type: "UNASSIGN_CRAFT_ENGINEER", name: "beam" }).success,
+    ).toBe(true);
+  });
 });
 
 describe("ActionResultSchema", () => {

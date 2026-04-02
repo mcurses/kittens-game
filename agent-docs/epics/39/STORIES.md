@@ -13,13 +13,13 @@ Legacy references:
 **Why it exists**: Mechanization UI parity cannot be implemented without engine-owned craft assignment state and actions.
 
 **ACs**:
-- [ ] Workshop/craft state tracks assigned engineers per craft
-- [ ] Engine actions exist to assign and unassign engineers per craft
-- [ ] Assignment respects available engineer population and craft unlock state
-- [ ] Save/load preserves per-craft assignment state
-- [ ] Engine tests cover assignment bounds, reassignment, and persistence
+- [x] Workshop/craft state tracks assigned engineers per craft
+- [x] Engine actions exist to assign and unassign engineers per craft
+- [x] Assignment respects available engineer population and craft unlock state
+- [x] Save/load preserves per-craft assignment state
+- [x] Engine tests cover assignment bounds, reassignment, and persistence
 
 ### Legacy Reference
 - `legacy/js/workshop.js:2868-2920`
 
-### Status: [ ] Tests | [ ] Impl | [ ] Rated
+### Status: [x] Tests | [x] Impl | [ ] Rated

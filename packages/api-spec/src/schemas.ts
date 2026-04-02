@@ -29,7 +29,7 @@ const s = z.string().min(1);
 const n = z.number();
 
 /**
- * Discriminated union of all 36 game actions — mirrors GameAction in @kittens/engine.
+ * Discriminated union of all 38 game actions — mirrors GameAction in @kittens/engine.
  */
 export const GameActionRequestSchema = z.discriminatedUnion("type", [
   z.object({ type: z.literal("TICK") }),
@@ -45,6 +45,8 @@ export const GameActionRequestSchema = z.discriminatedUnion("type", [
   z.object({ type: z.literal("RESEARCH_POLICY"), name: s }),
   z.object({ type: z.literal("PURCHASE_UPGRADE"), name: s }),
   z.object({ type: z.literal("CRAFT"), name: s, amount: n }),
+  z.object({ type: z.literal("ASSIGN_CRAFT_ENGINEER"), name: s }),
+  z.object({ type: z.literal("UNASSIGN_CRAFT_ENGINEER"), name: s }),
   z.object({ type: z.literal("BUY_ZIGGURAT_UPGRADE"), name: s }),
   z.object({ type: z.literal("BUY_RELIGION_UPGRADE"), name: s }),
   z.object({ type: z.literal("BUY_TRANSCENDENCE_UPGRADE"), name: s }),

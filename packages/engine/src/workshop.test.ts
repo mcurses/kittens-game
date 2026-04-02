@@ -173,6 +173,13 @@ describe("createInitialWorkshop crafts", () => {
       expect(ws.crafts[def.name]).toBeDefined();
     }
   });
+
+  it("all crafts start with zero assigned engineers", () => {
+    const ws = createInitialWorkshop();
+    for (const entry of Object.values(ws.crafts)) {
+      expect(entry.engineers).toBe(0);
+    }
+  });
 });
 
 // ── Story 3: PURCHASE_UPGRADE action ─────────────────────────────────────────
@@ -538,6 +545,24 @@ describe("WorkshopManager save/load/reset", () => {
     const saved = mgr.save(s);
     const loaded = mgr.load(saved, createInitialState());
     expect(loaded.workshop.crafts.steel?.unlocked).toBe(true);
+  });
+
+  it("save+load preserves per-craft engineer assignments", () => {
+    const ws = createInitialWorkshop();
+    const s = {
+      ...createInitialState(),
+      workshop: {
+        ...ws,
+        crafts: {
+          ...ws.crafts,
+          beam: { unlocked: true, engineers: 2 },
+        },
+      },
+    };
+    const mgr = new WorkshopManager();
+    const saved = mgr.save(s);
+    const loaded = mgr.load(saved, createInitialState());
+    expect(loaded.workshop.crafts.beam?.engineers).toBe(2);
   });
 
   it("resetState returns initial unlocked set (6 upgrades)", () => {
