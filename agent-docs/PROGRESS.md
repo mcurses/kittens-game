@@ -652,12 +652,12 @@ Parity gaps noted:
 
 ## Epic 37: Building Control Granularity Parity
 **Status:** In Progress | **Started:** 2026-04-02
-Stories: 2 / 4 complete
+Stories: 4 / 4 complete
 
 - [x] Story 37-01: Engine-owned building control-mode metadata — `deriveUiVisibility()` now distinguishes `controlMode: count | binary | none` while preserving automation visibility and existing toggle flags during the migration
 - [x] Story 37-02: Building count-adjust action surface — `ENABLE_BUILDING` / `DISABLE_BUILDING` now accept optional `amount` with clamped batch semantics, and the OpenAPI/Zod contract preserves that field
-- [ ] Story 37-03: Web UI quantity controls for count-adjustable buildings — smelter/calciner/mint/accelerator style controls and `(on/val)` display parity
-- [ ] Story 37-04: Binary toggle parity for on/off-only buildings — keep `On/Off` controls only where legacy uses `togglableOnOff`, and cover mixed-control regression cases
+- [x] Story 37-03: Web UI quantity controls for count-adjustable buildings — BuildingsPanel now renders `- / -25 / -All / + / +25 / +All` controls with batch action payloads and partial `(on/val)` display parity
+- [x] Story 37-04: Binary toggle parity for on/off-only buildings — BuildingsPanel keeps binary `On/Off` only for `controlMode: binary` buildings such as steamworks while count-adjust buildings no longer render binary controls
 
 Carry-forward backlog filed before starting Epic 37:
 - [x] Epic 38: Trade Shortcut Quantity Parity — dynamic `tradeHalf` / `tradeFifth` backlog epic created from Epic 35 / 36 self-rate action items

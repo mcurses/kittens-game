@@ -65,33 +65,33 @@ Legacy references:
 **Why it exists**: Smelter-style buildings need the legacy count-adjust interaction model in the web client, not a binary `On` / `Off` pair.
 
 **ACs**:
-- [ ] Count-adjustable buildings render `-`, `-25`, `-All`, `+`, `+25`, `+All` controls
-- [ ] Building count display shows `(on/val)` when partially enabled and a compact single count when fully enabled
-- [ ] Smelter row specifically matches legacy expectations for partial enablement
-- [ ] Controls disable correctly at bounds (`on = 0`, `on = val`, fewer than 25 active/inactive, etc.)
-- [ ] Client tests cover smelter and at least one other count-adjustable building
+- [x] Count-adjustable buildings render `-`, `-25`, `-All`, `+`, `+25`, `+All` controls
+- [x] Building count display shows `(on/val)` when partially enabled and a compact single count when fully enabled
+- [x] Smelter row specifically matches legacy expectations for partial enablement
+- [x] Controls disable correctly at bounds (`on = 0`, `on = val`, fewer than 25 active/inactive, etc.)
+- [x] Client tests cover smelter and at least one other count-adjustable building
 
 ### Legacy Reference
 - `legacy/core.js:1894-1937`
 - `legacy/core.js:2025-2029`
 - `legacy/js/buildings.js:998-1079`
 
-### Status: [ ] Tests | [ ] Impl | [ ] Rated
+### Status: [x] Tests | [x] Impl | [ ] Rated
 
 ## Story 37-04 — Binary toggle parity for on/off-only buildings
 
 **Why it exists**: Once count-adjustable controls are restored, the rewrite still needs to preserve true binary controls only for the buildings that legacy treats as `togglableOnOff`.
 
 **ACs**:
-- [ ] Binary `On/Off` controls remain only on legacy on/off buildings
-- [ ] Steamworks keeps binary on/off controls and automation controls
-- [ ] Count-adjustable buildings no longer render binary `On/Off`
-- [ ] Regression tests cover at least one count-adjustable building and one binary-toggle building in the same matrix
-- [ ] `PARITY.md` notes the distinction explicitly so future passes do not collapse the two models again
+- [x] Binary `On/Off` controls remain only on legacy on/off buildings
+- [x] Steamworks keeps binary on/off controls and automation controls
+- [x] Count-adjustable buildings no longer render binary `On/Off`
+- [x] Regression tests cover at least one count-adjustable building and one binary-toggle building in the same matrix
+- [x] `PARITY.md` notes the distinction explicitly so future passes do not collapse the two models again
 
 ### Legacy Reference
 - `legacy/core.js:1606-1632`
 - `legacy/core.js:1944-1996`
 - `legacy/core.js:2025-2029`
 
-### Status: [ ] Tests | [ ] Impl | [ ] Rated
+### Status: [x] Tests | [x] Impl | [ ] Rated

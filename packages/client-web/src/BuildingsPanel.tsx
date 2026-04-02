@@ -146,26 +146,12 @@ export function BuildingsPanel({ state }: Props): React.ReactElement {
                       </button>
                     </>
                   )}
-                  {b.val > 0 && visibility.buildings[b.name]?.toggleVisible && (
-                    <>
-                      <button
-                        type="button"
-                        className="btn btn--sm btn--secondary"
-                        disabled={isPending || b.on >= b.val}
-                        onClick={() => mutate({ type: "ENABLE_BUILDING", name: b.name })}
-                      >
-                        On
-                      </button>
-                      <button
-                        type="button"
-                        className="btn btn--sm btn--secondary"
-                        disabled={isPending || b.on <= 0}
-                        onClick={() => mutate({ type: "DISABLE_BUILDING", name: b.name })}
-                      >
-                        Off
-                      </button>
-                    </>
-                  )}
+                  {b.val > 0 &&
+                    visibility.buildings[b.name]?.controlMode === "count" &&
+                    renderCountControls(b, isPending, mutate)}
+                  {b.val > 0 &&
+                    visibility.buildings[b.name]?.controlMode === "binary" &&
+                    renderBinaryControls(b, isPending, mutate)}
                   <button
                     type="button"
                     data-testid={`building-${b.name}-buy`}
@@ -182,5 +168,101 @@ export function BuildingsPanel({ state }: Props): React.ReactElement {
         </ul>
       )}
     </div>
+  );
+}
+
+function renderCountControls(
+  building: BuildingEntry,
+  isPending: boolean,
+  mutate: ReturnType<typeof useGameAction>["mutate"],
+): React.ReactNode {
+  return (
+    <>
+      <button
+        type="button"
+        data-testid={`building-${building.name}-disable-1`}
+        className="btn btn--sm btn--secondary"
+        disabled={isPending || building.on <= 0}
+        onClick={() => mutate({ type: "DISABLE_BUILDING", name: building.name, amount: 1 })}
+      >
+        -
+      </button>
+      <button
+        type="button"
+        data-testid={`building-${building.name}-disable-25`}
+        className="btn btn--sm btn--secondary"
+        disabled={isPending || building.on <= 0}
+        onClick={() => mutate({ type: "DISABLE_BUILDING", name: building.name, amount: 25 })}
+      >
+        -25
+      </button>
+      <button
+        type="button"
+        data-testid={`building-${building.name}-disable-all`}
+        className="btn btn--sm btn--secondary"
+        disabled={isPending || building.on <= 0}
+        onClick={() => mutate({ type: "DISABLE_BUILDING", name: building.name, amount: building.on })}
+      >
+        -All
+      </button>
+      <button
+        type="button"
+        data-testid={`building-${building.name}-enable-1`}
+        className="btn btn--sm btn--secondary"
+        disabled={isPending || building.on >= building.val}
+        onClick={() => mutate({ type: "ENABLE_BUILDING", name: building.name, amount: 1 })}
+      >
+        +
+      </button>
+      <button
+        type="button"
+        data-testid={`building-${building.name}-enable-25`}
+        className="btn btn--sm btn--secondary"
+        disabled={isPending || building.on >= building.val}
+        onClick={() => mutate({ type: "ENABLE_BUILDING", name: building.name, amount: 25 })}
+      >
+        +25
+      </button>
+      <button
+        type="button"
+        data-testid={`building-${building.name}-enable-all`}
+        className="btn btn--sm btn--secondary"
+        disabled={isPending || building.on >= building.val}
+        onClick={() =>
+          mutate({ type: "ENABLE_BUILDING", name: building.name, amount: building.val - building.on })
+        }
+      >
+        +All
+      </button>
+    </>
+  );
+}
+
+function renderBinaryControls(
+  building: BuildingEntry,
+  isPending: boolean,
+  mutate: ReturnType<typeof useGameAction>["mutate"],
+): React.ReactNode {
+  return (
+    <>
+      <button
+        type="button"
+        data-testid={`building-${building.name}-enable-binary`}
+        className="btn btn--sm btn--secondary"
+        disabled={isPending || building.on >= building.val}
+        onClick={() => mutate({ type: "ENABLE_BUILDING", name: building.name, amount: building.val })}
+      >
+        On
+      </button>
+      <button
+        type="button"
+        data-testid={`building-${building.name}-disable-binary`}
+        className="btn btn--sm btn--secondary"
+        disabled={isPending || building.on <= 0}
+        onClick={() => mutate({ type: "DISABLE_BUILDING", name: building.name, amount: building.on })}
+      >
+        Off
+      </button>
+    </>
   );
 }

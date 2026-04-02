@@ -86,8 +86,14 @@ describe("GameActionRequestSchema", () => {
 
     expect(enable.success).toBe(true);
     expect(disable.success).toBe(true);
-    expect(enable.success && enable.data.amount).toBe(25);
-    expect(disable.success && disable.data.amount).toBe(25);
+    if (!enable.success || !disable.success) {
+      throw new Error("batch building toggle actions should parse");
+    }
+    if (enable.data.type !== "ENABLE_BUILDING" || disable.data.type !== "DISABLE_BUILDING") {
+      throw new Error("unexpected parsed action type");
+    }
+    expect(enable.data.amount).toBe(25);
+    expect(disable.data.amount).toBe(25);
   });
 });
 

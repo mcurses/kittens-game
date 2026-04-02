@@ -44,6 +44,18 @@ vi.mock("@kittens/engine", () => ({
       effects: {},
     },
     {
+      name: "smelter",
+      prices: [{ name: "minerals", val: 200 }],
+      priceRatio: 1.15,
+      effects: {},
+    },
+    {
+      name: "steamworks",
+      prices: [{ name: "steel", val: 100 }],
+      priceRatio: 1.2,
+      effects: {},
+    },
+    {
       name: "mine",
       prices: [{ name: "wood", val: 100 }],
       priceRatio: 1.15,
@@ -66,20 +78,21 @@ vi.mock("@kittens/engine", () => ({
     actions: {},
     time: {},
     buildings: {
-      brewery: { toggleVisible: true, automationVisible: false },
-      smelter: { toggleVisible: true, automationVisible: false },
-      calciner: { toggleVisible: true, automationVisible: false },
-      accelerator: { toggleVisible: true, automationVisible: false },
-      mint: { toggleVisible: true, automationVisible: false },
-      steamworks: { toggleVisible: true, automationVisible: true },
+      brewery: { controlMode: "count", toggleVisible: true, automationVisible: false },
+      smelter: { controlMode: "count", toggleVisible: true, automationVisible: false },
+      calciner: { controlMode: "count", toggleVisible: true, automationVisible: false },
+      accelerator: { controlMode: "count", toggleVisible: true, automationVisible: false },
+      mint: { controlMode: "count", toggleVisible: true, automationVisible: false },
+      steamworks: { controlMode: "binary", toggleVisible: true, automationVisible: true },
       factory: {
+        controlMode: "none",
         toggleVisible: false,
         automationVisible: state.workshop?.upgrades?.carbonSequestration?.researched === true,
       },
-      mine: { toggleVisible: state.science?.techs?.ecology?.researched === true, automationVisible: false },
-      field: { toggleVisible: false, automationVisible: false },
-      hut: { toggleVisible: false, automationVisible: false },
-      pasture: { toggleVisible: false, automationVisible: false },
+      mine: { controlMode: state.science?.techs?.ecology?.researched === true ? "count" : "none", toggleVisible: state.science?.techs?.ecology?.researched === true, automationVisible: false },
+      field: { controlMode: "none", toggleVisible: false, automationVisible: false },
+      hut: { controlMode: "none", toggleVisible: false, automationVisible: false },
+      pasture: { controlMode: "none", toggleVisible: false, automationVisible: false },
     },
   }),
 }));
@@ -188,24 +201,24 @@ describe("BuildingsPanel", () => {
     expect(mockMutate).toHaveBeenCalledWith({ type: "BUY_BUILDING", name: "field" });
   });
 
-  it("dispatches DISABLE_BUILDING when off button is clicked", () => {
+  it("dispatches DISABLE_BUILDING with amount 1 when count-adjust decrement is clicked", () => {
     const state = makeState(
-      { brewery: { val: 2, on: 2, unlocked: true } },
-      { wood: { value: 2000, maxValue: 0 } },
+      { smelter: { val: 2, on: 2, unlocked: true } },
+      { minerals: { value: 2000, maxValue: 0 } },
     );
     render(<WithInspector><BuildingsPanel state={state} /></WithInspector>);
-    fireEvent.click(screen.getByRole("button", { name: /off/i }));
-    expect(mockMutate).toHaveBeenCalledWith({ type: "DISABLE_BUILDING", name: "brewery" });
+    fireEvent.click(screen.getByTestId("building-smelter-disable-1"));
+    expect(mockMutate).toHaveBeenCalledWith({ type: "DISABLE_BUILDING", name: "smelter", amount: 1 });
   });
 
-  it("dispatches ENABLE_BUILDING when on button is clicked", () => {
+  it("dispatches ENABLE_BUILDING with amount 25 when count-adjust increment is clicked", () => {
     const state = makeState(
-      { brewery: { val: 3, on: 1, unlocked: true } },
-      { wood: { value: 2000, maxValue: 0 } },
+      { smelter: { val: 30, on: 1, unlocked: true } },
+      { minerals: { value: 2000, maxValue: 0 } },
     );
     render(<WithInspector><BuildingsPanel state={state} /></WithInspector>);
-    fireEvent.click(screen.getByRole("button", { name: /on/i }));
-    expect(mockMutate).toHaveBeenCalledWith({ type: "ENABLE_BUILDING", name: "brewery" });
+    fireEvent.click(screen.getByTestId("building-smelter-enable-25"));
+    expect(mockMutate).toHaveBeenCalledWith({ type: "ENABLE_BUILDING", name: "smelter", amount: 25 });
   });
 
   it("dispatches DISABLE_BUILDING_AUTOMATION when auto off is clicked", () => {
@@ -335,15 +348,32 @@ describe("Story 32-04: Buildings on/off display and labels", () => {
     expect(screen.getByText(/^Hut$/)).toBeTruthy();
   });
 
-  it("shows on/off controls only for legacy-toggleable buildings", () => {
+  it("shows count-adjust controls for count-toggle buildings instead of binary on/off", () => {
     const state = makeState({
-      brewery: { val: 5, on: 3, unlocked: true },
+      smelter: { val: 5, on: 3, unlocked: true },
       hut: { val: 5, on: 3, unlocked: true },
     });
     render(<WithInspector><BuildingsPanel state={state} /></WithInspector>);
-    expect(screen.getByRole("button", { name: /on/i })).toBeTruthy();
-    expect(screen.getByRole("button", { name: /off/i })).toBeTruthy();
+    expect(screen.getByTestId("building-smelter-disable-1")).toBeTruthy();
+    expect(screen.getByTestId("building-smelter-disable-25")).toBeTruthy();
+    expect(screen.getByTestId("building-smelter-disable-all")).toBeTruthy();
+    expect(screen.getByTestId("building-smelter-enable-1")).toBeTruthy();
+    expect(screen.getByTestId("building-smelter-enable-25")).toBeTruthy();
+    expect(screen.getByTestId("building-smelter-enable-all")).toBeTruthy();
+    expect(screen.queryByRole("button", { name: /^on$/i })).toBeNull();
+    expect(screen.queryByRole("button", { name: /^off$/i })).toBeNull();
     expect(screen.getAllByRole("button", { name: /buy/i }).length).toBe(2);
+  });
+
+  it("shows binary on/off controls only for binary-toggle buildings", () => {
+    const state = makeState({
+      steamworks: { val: 2, on: 1, unlocked: true, automationEnabled: false },
+    });
+    render(<WithInspector><BuildingsPanel state={state} /></WithInspector>);
+    expect(screen.getByTestId("building-steamworks-enable-binary")).toBeTruthy();
+    expect(screen.getByTestId("building-steamworks-disable-binary")).toBeTruthy();
+    expect(screen.queryByTestId("building-steamworks-enable-25")).toBeNull();
+    expect(screen.queryByTestId("building-steamworks-disable-25")).toBeNull();
   });
 
   it("hides on/off controls for non-toggleable buildings", () => {
@@ -362,10 +392,10 @@ describe("Story 32-04: Buildings on/off display and labels", () => {
     };
 
     const { rerender } = render(<WithInspector><BuildingsPanel state={hidden} /></WithInspector>);
-    expect(screen.queryByRole("button", { name: /on/i })).toBeNull();
+    expect(screen.queryByTestId("building-mine-enable-1")).toBeNull();
 
     rerender(<WithInspector><BuildingsPanel state={shown} /></WithInspector>);
-    expect(screen.getByRole("button", { name: /on/i })).toBeTruthy();
+    expect(screen.getByTestId("building-mine-enable-1")).toBeTruthy();
   });
 });
 

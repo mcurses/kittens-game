@@ -28,8 +28,8 @@ export type GameAction =
   | { readonly type: "TICK" }
   | { readonly type: "GATHER_CATNIP" }
   | { readonly type: "BUY_BUILDING"; readonly name: string }
-  | { readonly type: "ENABLE_BUILDING"; readonly name: string; readonly amount?: number }
-  | { readonly type: "DISABLE_BUILDING"; readonly name: string; readonly amount?: number }
+  | { readonly type: "ENABLE_BUILDING"; readonly name: string; readonly amount?: number | undefined }
+  | { readonly type: "DISABLE_BUILDING"; readonly name: string; readonly amount?: number | undefined }
   | { readonly type: "ENABLE_BUILDING_AUTOMATION"; readonly name: string }
   | { readonly type: "DISABLE_BUILDING_AUTOMATION"; readonly name: string }
   | { readonly type: "ASSIGN_JOB"; readonly job: string }

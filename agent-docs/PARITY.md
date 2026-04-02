@@ -283,7 +283,7 @@ Root cause: `legacy-migration.ts:migrateTime()` used `bool(item.unlocked)` which
 
 | Gap | Detail |
 |-----|--------|
-| **Enable/disable controls** | ✅ Story 34-01/34-04: BuildingsPanel now exposes `On` / `Off` controls only for legacy-toggleable buildings, backed by engine + API actions. |
+| **Enable/disable controls** | ✅ Story 37-01/37-04: building controls now distinguish legacy count-adjustable vs binary modes. Smelter-style buildings use `- / -25 / -All / + / +25 / +All`, while binary `On/Off` remains only on `togglableOnOff` buildings such as steamworks. |
 | **on/off state not displayed** | ✅ Fixed 2026-04-01 (Epic 32-04): BuildingsPanel now shows `on/val` when `on < val`. |
 | **Internal names in UI** | ✅ Fixed 2026-04-01 (Epic 32-04): `prettifyName()` splits camelCase → Title Case ("Lumber Mill", "Log House"). |
 | **Building rename system missing** | Late-game upgrades rename buildings in legacy (Solar Farm, Hydro Plant, etc.). Rewrite shows prettified base names only. ❌ Not yet implemented. |
