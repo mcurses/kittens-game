@@ -446,6 +446,18 @@ describe("applyAction ENABLE_BUILDING / DISABLE_BUILDING", () => {
     expect(next.buildings.smelter?.on).toBe(2);
   });
 
+  it("enables up to amount and clamps at val", () => {
+    const state = {
+      ...createInitialState(),
+      buildings: {
+        ...createInitialBuildings(),
+        smelter: { val: 10, on: 2, unlocked: true },
+      },
+    };
+    const next = applyAction(state, { type: "ENABLE_BUILDING", name: "smelter", amount: 25 });
+    expect(next.buildings.smelter?.on).toBe(10);
+  });
+
   it("disables one active building", () => {
     const state = {
       ...createInitialState(),
@@ -468,6 +480,18 @@ describe("applyAction ENABLE_BUILDING / DISABLE_BUILDING", () => {
       },
     };
     const next = applyAction(state, { type: "DISABLE_BUILDING", name: "smelter" });
+    expect(next.buildings.smelter?.on).toBe(0);
+  });
+
+  it("disables up to amount and clamps at zero", () => {
+    const state = {
+      ...createInitialState(),
+      buildings: {
+        ...createInitialBuildings(),
+        smelter: { val: 10, on: 6, unlocked: true },
+      },
+    };
+    const next = applyAction(state, { type: "DISABLE_BUILDING", name: "smelter", amount: 25 });
     expect(next.buildings.smelter?.on).toBe(0);
   });
 

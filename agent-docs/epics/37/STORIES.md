@@ -42,23 +42,23 @@ Legacy references:
 **Why it exists**: Legacy count-adjustable buildings are not merely "enable one" / "disable one"; the UI exposes batch quantity affordances and the engine/API should model that cleanly.
 
 **ACs**:
-- [ ] Engine action surface supports count-adjust semantics needed by legacy UI:
+- [x] Engine action surface supports count-adjust semantics needed by legacy UI:
   - increment by 1
   - decrement by 1
   - increment by 25
   - decrement by 25
   - enable all remaining
   - disable all active
-- [ ] `packages/api-spec/openapi.yaml` and generated schemas are updated in the same story
-- [ ] Actions clamp safely at `0..val`
-- [ ] Existing single-step enable/disable behavior remains correct for clients or tests that still use it
-- [ ] Unit tests cover clamping, partial counts, and no-op cases
+- [x] `packages/api-spec/openapi.yaml` and generated schemas are updated in the same story
+- [x] Actions clamp safely at `0..val`
+- [x] Existing single-step enable/disable behavior remains correct for clients or tests that still use it
+- [x] Unit tests cover clamping, partial counts, and no-op cases
 
 ### Legacy Reference
 - `legacy/core.js:1894-1937`
 - `legacy/core.js:2263-2267`
 
-### Status: [ ] Tests | [ ] Impl | [ ] Rated
+### Status: [x] Tests | [x] Impl | [ ] Rated
 
 ## Story 37-03 — Web UI quantity controls for count-adjustable buildings
 

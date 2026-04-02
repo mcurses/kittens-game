@@ -220,6 +220,9 @@ components:
               enum: [ENABLE_BUILDING]
             name:
               type: string
+            amount:
+              type: integer
+              minimum: 1
         - type: object
           required: [type, name]
           properties:
@@ -228,6 +231,9 @@ components:
               enum: [DISABLE_BUILDING]
             name:
               type: string
+            amount:
+              type: integer
+              minimum: 1
         - type: object
           required: [type, name]
           properties:
