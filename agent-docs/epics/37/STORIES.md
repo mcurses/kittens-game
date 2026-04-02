@@ -21,21 +21,21 @@ Legacy references:
 **Why it exists**: The client should not infer whether a building is count-adjustable or binary. Legacy semantics belong in engine-owned control metadata.
 
 **ACs**:
-- [ ] `deriveUiVisibility()` (or successor contract) distinguishes at least:
+- [x] `deriveUiVisibility()` (or successor contract) distinguishes at least:
   - count-adjustable controls for legacy `togglable`
   - binary controls for legacy `togglableOnOff`
   - automation controls where applicable
-- [ ] Smelter, calciner, mint, and accelerator resolve to count-adjustable controls
-- [ ] Steamworks resolves to binary controls plus automation controls
-- [ ] Buildings without player-facing toggles resolve to no toggle controls
-- [ ] Unit tests cover mixed examples so future UI work cannot flatten them back together
+- [x] Smelter, calciner, mint, and accelerator resolve to count-adjustable controls
+- [x] Steamworks resolves to binary controls plus automation controls
+- [x] Buildings without player-facing toggles resolve to no toggle controls
+- [x] Unit tests cover mixed examples so future UI work cannot flatten them back together
 
 ### Legacy Reference
 - `legacy/core.js:340-350`
 - `legacy/core.js:1606-1632`
 - `legacy/core.js:1894-1937`
 
-### Status: [ ] Tests | [ ] Impl | [ ] Rated
+### Status: [x] Tests | [x] Impl | [ ] Rated
 
 ## Story 37-02 — Building count-adjust action surface
 

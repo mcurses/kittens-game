@@ -126,6 +126,28 @@ describe("deriveUiVisibility", () => {
     expect(ecologyShown.buildings.mine?.toggleVisible).toBe(true);
   });
 
+  it("distinguishes count-adjustable controls from binary toggle controls", () => {
+    const visibility = deriveUiVisibility(
+      makeState({
+        buildings: {
+          field: { val: 2, on: 2, unlocked: true },
+          smelter: { val: 3, on: 2, unlocked: true },
+          calciner: { val: 2, on: 1, unlocked: true },
+          mint: { val: 2, on: 2, unlocked: true },
+          accelerator: { val: 1, on: 1, unlocked: true },
+          steamworks: { val: 1, on: 1, unlocked: true },
+        },
+      }),
+    );
+
+    expect(visibility.buildings.field?.controlMode).toBe("none");
+    expect(visibility.buildings.smelter?.controlMode).toBe("count");
+    expect(visibility.buildings.calciner?.controlMode).toBe("count");
+    expect(visibility.buildings.mint?.controlMode).toBe("count");
+    expect(visibility.buildings.accelerator?.controlMode).toBe("count");
+    expect(visibility.buildings.steamworks?.controlMode).toBe("binary");
+  });
+
   it("only exposes automation controls for steamworks and factory after their legacy upgrades are researched", () => {
     const locked = deriveUiVisibility(
       makeState({

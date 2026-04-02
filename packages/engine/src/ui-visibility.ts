@@ -28,6 +28,7 @@ export interface UiResourceVisibility {
 }
 
 export interface UiBuildingControlsVisibility {
+  readonly controlMode: "none" | "count" | "binary";
   readonly toggleVisible: boolean;
   readonly automationVisible: boolean;
 }
@@ -271,6 +272,7 @@ function getBuildingControlsVisibility(state: SerializableStateLike): Record<str
 
   const result: Record<string, UiBuildingControlsVisibility> = {};
   for (const name of Object.keys(buildings)) {
+    let controlMode: UiBuildingControlsVisibility["controlMode"] = "none";
     let toggleVisible = false;
     let automationVisible = false;
     switch (name) {
@@ -279,9 +281,11 @@ function getBuildingControlsVisibility(state: SerializableStateLike): Record<str
       case "accelerator":
       case "mint":
       case "brewery":
+        controlMode = "count";
         toggleVisible = true;
         break;
       case "steamworks":
+        controlMode = "binary";
         toggleVisible = true;
         automationVisible = factoryAutomation;
         break;
@@ -290,19 +294,23 @@ function getBuildingControlsVisibility(state: SerializableStateLike): Record<str
         break;
       case "mine":
       case "quarry":
+        controlMode = ecology ? "count" : "none";
         toggleVisible = ecology;
         break;
       case "oilWell":
+        controlMode = pumpjack ? "binary" : "none";
         toggleVisible = pumpjack;
         break;
       case "biolab":
+        controlMode = biofuel ? "binary" : "none";
         toggleVisible = biofuel;
         break;
       default:
+        controlMode = "none";
         toggleVisible = false;
         break;
     }
-    result[name] = { toggleVisible, automationVisible };
+    result[name] = { controlMode, toggleVisible, automationVisible };
   }
 
   return result;
