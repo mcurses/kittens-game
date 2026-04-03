@@ -18,6 +18,8 @@ export {
   ResourceManager,
   calcResourcePerTick,
   createInitialResources,
+  getResourceMaxValue,
+  syncResourceCaps,
 } from "./resources.js";
 export type { BuildingDef, BuildingEntry, BuildingState, PriceEntry } from "./buildings.js";
 export {

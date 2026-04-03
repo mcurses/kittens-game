@@ -123,6 +123,35 @@ export function calcResourcePerTick(effectCache: Record<string, number>, name: s
   return base * (1 + ratio) + direct + prod + autoprod + con;
 }
 
+/**
+ * Legacy resource caps are recomputed from the current effect cache each update.
+ * When no `${name}Max` effect is present, the resource is uncapped.
+ */
+export function getResourceMaxValue(effectCache: Record<string, number>, name: string): number {
+  return effectCache[`${name}Max`] ?? 0;
+}
+
+/**
+ * Recompute resource caps from the current effect cache without applying per-tick deltas.
+ * Used after save/load so stale serialized maxValue fields do not survive when their
+ * driving effect has disappeared.
+ */
+export function syncResourceCaps(
+  resources: ResourceState,
+  effectCache: Record<string, number>,
+): ResourceState {
+  const synced: ResourceState = {};
+
+  for (const name of RESOURCE_NAMES) {
+    const entry = resources[name] ?? { value: 0, maxValue: 0 };
+    const maxValue = getResourceMaxValue(effectCache, name);
+    const value = maxValue > 0 ? Math.min(entry.value, maxValue) : entry.value;
+    synced[name] = { value, maxValue };
+  }
+
+  return synced;
+}
+
 // ── ResourceManager ───────────────────────────────────────────────────────────
 
 /**
@@ -139,9 +168,7 @@ export class ResourceManager implements Manager {
 
     for (const name of RESOURCE_NAMES) {
       const entry = state.resources[name] ?? { value: 0, maxValue: 0 };
-      // maxValue comes from effectCache[nameMax] when set; otherwise use stored maxValue
-      const effectMaxValue = state.effectCache[`${name}Max`];
-      const maxValue = effectMaxValue !== undefined ? effectMaxValue : entry.maxValue;
+      const maxValue = getResourceMaxValue(state.effectCache, name);
       const perTick = calcResourcePerTick(state.effectCache, name);
 
       let newValue = entry.value + perTick;

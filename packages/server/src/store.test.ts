@@ -64,6 +64,31 @@ describe("GameStateStore", () => {
     expect(store.getSerialized().tick).toBe(2);
   });
 
+  it("init clears stale unicorn caps from saved state when no current challenge cap exists", () => {
+    const adapter = createMemoryAdapter();
+    const seeded = makeStore();
+    seeded.init();
+    const saved = seeded.getSerialized();
+    adapter.saveSlot(
+      "new",
+      JSON.stringify({
+        ...saved,
+        resources: {
+          ...saved.resources,
+          unicorns: { value: 10, maxValue: 10, perTick: 0 },
+        },
+      }),
+    );
+
+    const restored = new GameStateStore(adapter, "new");
+    restored.init();
+
+    const restoredState = restored.getSerialized();
+    expect(restoredState.challenges?.challenges["unicornTears"]?.active).toBe(false);
+    expect(restoredState.effectCache.unicornsMax).toBeUndefined();
+    expect(restoredState.resources.unicorns?.maxValue).toBe(0);
+  });
+
   it("persists state: second store initialized from same adapter has same tick", () => {
     const adapter = createMemoryAdapter();
     const s1 = new GameStateStore(adapter);

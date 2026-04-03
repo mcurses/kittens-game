@@ -119,7 +119,7 @@
 - `legacy/game.js` line 3722: `resConsumption *= 1 + this.getEffect(res.name + "DemandRatio")`
 - Applied to the raw kitten consumption from `village.getResConsumption()`
 
-### Status: [ ] Tests | [ ] Impl | [ ] Rated
+### Status: [x] Tests | [x] Impl | [x] Rated
 
 ---
 
@@ -137,3 +137,22 @@
 - `legacy/js/village.js` line 761: `( this.getKittens() - 5 ) * populationPenalty * (1 + this.game.getEffect("unhappinessRatio"))`
 
 ### Status: [ ] Tests | [ ] Impl | [ ] Rated
+
+---
+
+## Story: Resource max caps recompute from current effects
+
+**As a** player
+**I want** temporary resource caps to clear when their driving effect is gone
+**So that** unicorns are not permanently capped after Unicorn Tears or imported capped saves
+
+### Acceptance Criteria
+- [x] Given a saved resource entry with `unicorns.maxValue = 10`, when the current effect cache has no `unicornsMax` effect and `unicornTears` is inactive, then the next engine update resets unicorn storage to uncapped (`maxValue = 0`)
+- [x] Given a saved resource entry with `tears.maxValue = 1` or `alicorn.maxValue = 0.2`, when the current effect cache has no corresponding cap effect, then those caps also clear on update
+- [x] Given an active cap effect such as `unicornsMax = 10`, when the engine updates resources, then the cap is still applied and values remain clamped to that active limit
+
+### Legacy Reference
+- `legacy/js/resources.js` lines 756-777: `updateMaxValue()` recomputes `res.maxValue` from current effects each model update
+- `legacy/test/challenges.test.js` lines 663-688: unicorn resources are uncapped outside `unicornTears`, then capped only after the challenge is activated and model update runs
+
+### Status: [x] Tests | [x] Impl | [x] Rated

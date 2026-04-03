@@ -1,11 +1,13 @@
 # Kittens Game Rewrite — Progress Tracker
 
-Last updated: 2026-04-02
+Last updated: 2026-04-03
 
 ---
 
 ## Maintenance Updates
 
+- 2026-04-03: Closed the Epic 21 reopen for resource-cap parity. Temporary unicorn/tear/alicorn caps are now recomputed from the current effect cache during resource updates and immediately after save-load, so stale `maxValue` fields no longer keep unicorns capped in the live `new` save once `unicornTears` is inactive.
+- 2026-04-03: Reopened Epic 21 for a resource-cap parity regression. In the live `new` save, `resources.unicorns.maxValue` remained stuck at `10` even though `effectCache.unicornsMax` was absent and `unicornTears` was inactive, which indicates the engine is persisting a stale cap instead of recomputing it from current effects.
 - 2026-04-02: Started Epic 39. The engine now has explicit `engineer` village jobs plus per-craft engineer assignment state/actions, so mechanization UI parity is no longer blocked on missing backend state.
 - 2026-04-02: Started Epic 38. The trade panel now computes legacy dynamic caravan shortcut quantities from current affordability instead of exposing fixed `×5` / `×25` buttons.
 - 2026-04-02: Closed Epic 37. Building controls now follow the legacy split between count-adjustable `togglable` buildings and binary `togglableOnOff` buildings, with engine-owned `controlMode` metadata and batch `amount` actions.
@@ -361,14 +363,15 @@ Prerequisites: Epic 19
 ---
 
 ## Epic 21: Feature Parity Audit
-**Status:** Complete | **Started:** 2026-03-20 | **Finished:** 2026-03-20
-Stories: 5/5 complete
+**Status:** Complete | **Started:** 2026-03-20 | **Finished:** 2026-04-03
+Stories: 6/6 complete
 
 - [x] Story 21-1: kittensPerTickBase base value
 - [x] Story 21-2: Building unlock system (unlockRatio + requiredTech)
 - [x] Story 21-3: Happiness calculation updates each tick
 - [x] Story 21-4: Job production scales with happiness
 - [x] Story 21-5: Cross-manager integration test for parity
+- [x] Story 21-6: Resource max caps recompute from current effects
 
 Engine tests: 721 passing | Line coverage: 99.65% | Branch: 89.13%
 Server tests: 43 passing (LOG_MESSAGE emission + requiredTech — post-epic action items)

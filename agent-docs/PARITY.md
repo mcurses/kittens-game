@@ -139,6 +139,8 @@ Legacy starts with non-zero base storage from `buildings.js` `effectsBase`, even
 
 ✅ Fixed in Epic 35 prerequisite: `BuildingManager.updateEffects()` now seeds `effectCache` with `effectsBase` values (catnipMax:5000, woodMax:200, mineralMax:400, cultureMax:100, etc.) before building contributions, matching legacy `buildings.js` `effectsBase`. Fresh-game storage now starts at legacy-faithful baseline values.
 
+✅ Fixed in Epic 21-06: temporary challenge caps are no longer sticky saved state. `ResourceManager` now derives `maxValue` from the current effect cache instead of falling back to serialized `resource.maxValue`, and server save-load now sanitizes loaded resource caps immediately. This fixes live-save cases where unicorns stayed capped at `10` after `unicornTears` was no longer active.
+
 ---
 
 ## Upgrade effects (all in UPGRADE_DEFS)

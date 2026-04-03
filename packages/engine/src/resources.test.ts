@@ -134,7 +134,7 @@ describe("ResourceManager", () => {
           ...createInitialResources(),
           catnip: { value: 99.9, maxValue: 100 },
         },
-        effectCache: { catnipPerTickBase: 0.5 },
+        effectCache: { catnipMax: 100, catnipPerTickBase: 0.5 },
       };
       const next = manager.update(state);
       expect(next.resources.catnip?.value).toBe(100);
@@ -164,6 +164,37 @@ describe("ResourceManager", () => {
       };
       const next = manager.update(state);
       expect(next.resources.catnip?.maxValue).toBe(5000);
+    });
+
+    it("clears stale temporary caps when no current {name}Max effect exists", () => {
+      const state = {
+        ...createInitialState(),
+        resources: {
+          ...createInitialResources(),
+          unicorns: { value: 10, maxValue: 10 },
+          tears: { value: 1, maxValue: 1 },
+          alicorn: { value: 0.2, maxValue: 0.2 },
+        },
+        effectCache: {},
+      };
+      const next = manager.update(state);
+      expect(next.resources.unicorns?.maxValue).toBe(0);
+      expect(next.resources.tears?.maxValue).toBe(0);
+      expect(next.resources.alicorn?.maxValue).toBe(0);
+    });
+
+    it("keeps active temporary caps when the current effect cache still provides them", () => {
+      const state = {
+        ...createInitialState(),
+        resources: {
+          ...createInitialResources(),
+          unicorns: { value: 500, maxValue: 10 },
+        },
+        effectCache: { unicornsMax: 10 },
+      };
+      const next = manager.update(state);
+      expect(next.resources.unicorns?.maxValue).toBe(10);
+      expect(next.resources.unicorns?.value).toBe(10);
     });
 
     it("does not mutate input state", () => {

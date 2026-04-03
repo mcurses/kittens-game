@@ -14,6 +14,7 @@ import {
   ScienceManager,
   type SerializedGameState,
   SpaceManager,
+  syncResourceCaps,
   TimeManager,
   VillageManager,
   WorkshopManager,
@@ -214,7 +215,7 @@ export class GameStateStore {
     }
     // Rebuild effect cache after loading
     const effectCache = buildEffectCache(this.managers, state);
-    return { ...state, effectCache };
+    return { ...state, effectCache, resources: syncResourceCaps(state.resources, effectCache) };
   }
 
   /** Create a fresh initial state with effect cache built. */

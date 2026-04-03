@@ -1457,3 +1457,18 @@ Factory mode visibility is now engine-owned and only appears after `carbonSeques
 ### Action items for next epic
 - [ ] Implement mechanization-era workshop UI using the new engine-owned engineer assignment state
 - [ ] Decide whether engineer craft progress and throughput simulation belong in that UI epic or require a separate engine parity epic first
+
+---
+
+## Epic 21 Reopen — Resource Cap Parity — 2026-04-03
+
+| Dimension | Score | Notes |
+|-----------|-------|-------|
+| Test coverage (≥90% target) | 5 | `pnpm turbo test` passed: engine 98.9%, client-web 96.08%, server 95.12%, api-spec 100% |
+| No skipped tests / no TODOs | 5 | No skipped tests or new TODO/FIXME markers added |
+| Feature parity | 5 | Matches legacy `resources.updateMaxValue()`: temporary caps now clear when `${name}Max` effects disappear, while active caps still clamp normally |
+| API spec completeness | 5 | No API surface change was needed |
+| Code quality (no `any`) | 5 | Fix is centralized in engine resource-cap derivation and save-load sanitization instead of slot-specific logic |
+| Docs freshness (PROGRESS, EPICS, PARITY) | 5 | Reopen and closeout were documented in PROGRESS, EPICS, STORIES, NOTES, PARITY, and SELF_RATINGS |
+| Commit hygiene | 5 | One focused bugfix with red tests first, then docs closeout |
+| **Overall average** | **5.0** | |
