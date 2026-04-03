@@ -301,3 +301,28 @@ Before Epic 39, the rewrite exposed engineer visibility heuristics in UI selecto
 - Workshop mechanization UI can now rely on authoritative engine state instead of inventing local assignment state
 - Save/load preserves craft engineer allocation without needing a separate UI-only persistence layer
 - The current rewrite still lacks legacy progress and throughput simulation for engineer work; Epic 39 only establishes the state/action prerequisite
+
+---
+
+## ADR-018: Population is authoritative in `village`, not `resources`
+**Date:** 2026-04-03
+**Status:** Accepted
+
+### Context
+Legacy still declares a transient `kittens` entry in `resPool`, but `game.update()` immediately overwrites it from village population every tick. In practice it behaves as a display alias:
+- `kittens.value = village.getKittens()`
+- `kittens.maxValue = village.sim.maxKittens`
+
+The rewrite currently models `"kittens"` as a normal resource in `RESOURCE_NAMES`. That lets `ResourceManager` apply `kittensPerTickBase` to `resources.kittens`, creating a second mutable kitten count that drifts away from `state.village.kittens`. The web resource table then surfaces that phantom row.
+
+### Decision
+The rewrite will preserve gameplay semantics, not the legacy aliasing trick:
+- `state.village` is the sole authoritative owner of kitten population and growth state
+- generic resource ticking, storage, and affordability semantics do not apply to kittens
+- the resource tab should not render a `kittens` row
+- any remaining kitten count, cap, progress, or ETA displays must be derived from village state or explicit view-model helpers rather than a duplicated mutable resource entry
+
+### Consequences
+- Population-related gameplay code should read `state.village.kittens` or a dedicated population helper, not `state.resources.kittens`
+- Save/load and migration code should not treat `resources.kittens` as authoritative state
+- UI parity stays honest: we keep useful population feedback, but we do not preserve a misleading resource-table artifact just because legacy exposed one internally

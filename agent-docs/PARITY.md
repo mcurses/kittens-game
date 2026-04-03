@@ -2,7 +2,7 @@
 
 Tracks implementation coverage against legacy Kittens Game. **This is the authoritative source of truth for what is and isn't done.** Update it whenever items are added or wired. Do not mark an epic "complete" without updating this file.
 
-Last updated: 2026-04-02 (post-Epic-37 — legacy count-adjust vs binary building controls restored; smelter-style controls now use `- / -25 / -All / + / +25 / +All`)
+Last updated: 2026-04-03 (Epic 40 filed — phantom `kittens` resource row investigated; rewrite currently simulates it incorrectly instead of keeping population authoritative in `village`)
 
 ---
 
@@ -117,6 +117,18 @@ All 56 resources from legacy are declared in `RESOURCE_NAMES`. However, most hav
 | iron | ✅ | ✅ | crafted + smelter ironRatio boost |
 | titanium | ✅ | ⚠️ | calciner produces ironPerTickBase/titaniumPerTickBase; no ratio yet |
 | (all others) | ✅ | ⚠️/❌ | see building gaps above |
+
+### Population/resource modeling gap
+
+Legacy still has a transient `kittens` entry in `resPool`, but `game.update()` immediately overwrites it from village population every tick (`value = village.getKittens()`, `maxValue = village.sim.maxKittens`). It is a display alias, not an independently simulated stockpile.
+
+Our rewrite currently models `kittens` as a normal resource in `RESOURCE_NAMES`, so `ResourceManager` applies `kittensPerTickBase` to it and the web `ResourcePanel` shows a rising uncapped `kittens` row that is disconnected from actual village population. This is wrong for both gameplay and UI parity.
+
+Status: ❌ Not fixed. Epic 40 tracks the cleanup. The intended rewrite direction is:
+- `village.kittens` remains the only authoritative population state
+- `resources.kittens` stops participating in generic resource ticking/storage semantics
+- the resource tab does not render a `kittens` row
+- any remaining kitten display/ETA needs are derived from village state instead of a duplicated mutable resource
 
 ### Resource cap baseline gap
 

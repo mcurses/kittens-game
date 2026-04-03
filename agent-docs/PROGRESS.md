@@ -6,6 +6,7 @@ Last updated: 2026-04-03
 
 ## Maintenance Updates
 
+- 2026-04-03: Filed Epic 40 after investigating the live `slot=new` phantom `kittens` row. The rewrite currently simulates `resources.kittens` as a normal ticking resource, but legacy only uses that slot as a transient UI mirror of village population. The planned fix direction is to keep population authoritative in `village` and remove the resource-tab row entirely rather than porting the legacy display alias.
 - 2026-04-03: Reopened and closed Epic 26 for live inspector ETA parity. Hovered cost/time estimates now count down in real time inside the inspector instead of freezing at the value from the initial hover snapshot.
 - 2026-04-03: Closed the Epic 21 reopen for resource-cap parity. Temporary unicorn/tear/alicorn caps are now recomputed from the current effect cache during resource updates and immediately after save-load, so stale `maxValue` fields no longer keep unicorns capped in the live `new` save once `unicornTears` is inactive.
 - 2026-04-03: Reopened Epic 21 for a resource-cap parity regression. In the live `new` save, `resources.unicorns.maxValue` remained stuck at `10` even though `effectCache.unicornsMax` was absent and `unicornTears` was inactive, which indicates the engine is persisting a stale cap instead of recomputing it from current effects.
@@ -258,6 +259,7 @@ Stories: 12/12 complete
 
 - [x] Story 1: AchievementState shape and initial values
 - [x] Story 2: AchievementManager.update() — passive unlock on tick
+
 - [x] Story 3: Resource-based achievement conditions
 - [x] Story 4: Religion-based achievement conditions
 - [x] Story 5: Population-based achievement conditions
@@ -731,3 +733,14 @@ Stories: 5/5 complete
 - [x] Story 36-03: Update reveal logic to use the two-step check
 - [x] Story 36-04: Retire duplicated `requiredTech` gates
 - [x] Story 36-05: Regression tests for representative cases
+
+---
+
+## Epic 40: Population/Resource Decoupling
+**Status:** Not Started | **Filed:** 2026-04-03
+Stories: 0 / 4 complete
+
+- [ ] Story 40-01: Stop simulating `kittens` as a generic resource
+- [ ] Story 40-02: Remove the phantom kittens row from the web resource table
+- [ ] Story 40-03: Re-anchor kitten-dependent gameplay checks on village population
+- [ ] Story 40-04: Preserve only the parity-relevant kitten display/ETA affordances
