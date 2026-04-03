@@ -315,4 +315,21 @@ describe("GameStateStore", () => {
     expect(types).toContain("LOG_MESSAGE");
     expect(types).toContain("STATE_DELTA");
   });
+
+  it("loadFromSave drops stale kittens resource payloads and keeps village kittens authoritative", () => {
+    const imported = store.getSerialized();
+    imported.village = {
+      ...imported.village,
+      kittens: 12,
+      kittenProgress: 0.5,
+    };
+    imported.resources = {
+      ...imported.resources,
+      kittens: { value: 6217.28, maxValue: 0, perTick: 0.01 },
+    };
+
+    const loaded = store.loadFromSave(imported);
+    expect(loaded.village.kittens).toBe(12);
+    expect("kittens" in loaded.resources).toBe(false);
+  });
 });

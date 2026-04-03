@@ -76,8 +76,9 @@ export function ResourcePanel({ state }: Props): React.ReactElement {
   const visibility = deriveUiVisibility(state);
   const visibleResources = resources.filter(
     (resource) =>
-      (visibility.resources[resource.name]?.visible ?? resource.unlocked === true) ||
-      resource.value > 0,
+      resource.name !== "kittens" &&
+      ((visibility.resources[resource.name]?.visible ?? resource.unlocked === true) ||
+        resource.value > 0),
   );
 
   return (

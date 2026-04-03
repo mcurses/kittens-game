@@ -42,6 +42,14 @@ export interface BadgeDef {
   readonly condition?: (state: GameState) => boolean;
 }
 
+function getKittenCount(state: GameState): number {
+  return state.village.kittens;
+}
+
+function getMaxKittens(state: GameState): number {
+  return state.effectCache.maxKittens ?? 0;
+}
+
 // ── Achievement Definitions ────────────────────────────────────────────────────
 
 /**
@@ -175,9 +183,9 @@ export const ACHIEVEMENT_DEFS: readonly AchievementDef[] = [
   {
     name: "utopiaProject",
     condition: (state) =>
-      state.village.happiness >= 1.5 && (state.resources.kittens?.value ?? 0) > 35,
+      state.village.happiness >= 1.5 && getKittenCount(state) > 35,
     starCondition: (state) =>
-      state.village.happiness >= 5.0 && (state.resources.kittens?.value ?? 0) > 35,
+      state.village.happiness >= 5.0 && getKittenCount(state) > 35,
   },
   {
     name: "deathStranding",
@@ -246,14 +254,13 @@ export const BADGE_DEFS: readonly BadgeDef[] = [
     name: "deadSpace",
     difficulty: "S",
     condition: (state) =>
-      (state.resources.kittens?.value ?? 0) >= 1000 &&
-      (state.resources.kittens?.maxValue ?? 1) === 0,
+      getKittenCount(state) >= 1000 && getMaxKittens(state) === 0,
   },
   {
     name: "reginaNoctis",
     difficulty: "S",
     condition: (state) =>
-      (state.resources.kittens?.value ?? 0) >= 500 && (state.resources.alicorn?.value ?? 0) === 0,
+      getKittenCount(state) >= 500 && (state.resources.alicorn?.value ?? 0) === 0,
   },
   {
     name: "ghostInTheMachine",

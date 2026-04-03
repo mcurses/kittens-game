@@ -268,21 +268,21 @@ describe("Story 5: Population-based achievement conditions", () => {
     expect(next.achievements.achievements.serenity?.starUnlocked).toBe(true);
   });
 
-  it("utopiaProject unlocks when happiness >= 1.5 and kittens resource > 35", () => {
+  it("utopiaProject unlocks when happiness >= 1.5 and village kittens > 35", () => {
     let state = createInitialState();
     state = produce(state, (draft) => {
       draft.village.happiness = 1.5;
-      draft.resources.kittens = { value: 36, maxValue: 999999 };
+      draft.village.kittens = 36;
     });
     const next = manager.update(state);
     expect(next.achievements.achievements.utopiaProject?.unlocked).toBe(true);
   });
 
-  it("utopiaProject does NOT unlock when kittens resource <= 35", () => {
+  it("utopiaProject does NOT unlock when village kittens <= 35", () => {
     let state = createInitialState();
     state = produce(state, (draft) => {
       draft.village.happiness = 1.5;
-      draft.resources.kittens = { value: 35, maxValue: 999999 };
+      draft.village.kittens = 35;
     });
     const next = manager.update(state);
     expect(next.achievements.achievements.utopiaProject?.unlocked).toBe(false);
@@ -292,7 +292,7 @@ describe("Story 5: Population-based achievement conditions", () => {
     let state = createInitialState();
     state = produce(state, (draft) => {
       draft.village.happiness = 5.0;
-      draft.resources.kittens = { value: 36, maxValue: 999999 };
+      draft.village.kittens = 36;
     });
     const next = manager.update(state);
     expect(next.achievements.achievements.utopiaProject?.starUnlocked).toBe(true);
@@ -509,29 +509,31 @@ describe("Story 9: Time-based achievement conditions (badges)", () => {
 describe("Story 10: Kitten population badges", () => {
   const manager = new AchievementManager();
 
-  it("badge deadSpace unlocks when kittens.value >= 1000 and kittens.maxValue == 0", () => {
+  it("badge deadSpace unlocks when village kittens >= 1000 and maxKittens == 0", () => {
     let state = createInitialState();
     state = produce(state, (draft) => {
-      draft.resources.kittens = { value: 1000, maxValue: 0 };
+      draft.village.kittens = 1000;
+      draft.effectCache.maxKittens = 0;
     });
     const next = manager.update(state);
     expect(next.achievements.badges.deadSpace?.unlocked).toBe(true);
     expect(next.achievements.badgesUnlocked).toBe(true);
   });
 
-  it("badge deadSpace does NOT unlock when maxValue > 0", () => {
+  it("badge deadSpace does NOT unlock when maxKittens > 0", () => {
     let state = createInitialState();
     state = produce(state, (draft) => {
-      draft.resources.kittens = { value: 1000, maxValue: 10 };
+      draft.village.kittens = 1000;
+      draft.effectCache.maxKittens = 10;
     });
     const next = manager.update(state);
     expect(next.achievements.badges.deadSpace?.unlocked).toBe(false);
   });
 
-  it("badge reginaNoctis unlocks when kittens.value >= 500 and alicorn.value == 0", () => {
+  it("badge reginaNoctis unlocks when village kittens >= 500 and alicorn.value == 0", () => {
     let state = createInitialState();
     state = produce(state, (draft) => {
-      draft.resources.kittens = { value: 500, maxValue: 999999 };
+      draft.village.kittens = 500;
       draft.resources.alicorn = { value: 0, maxValue: 999999 };
     });
     const next = manager.update(state);
@@ -541,7 +543,7 @@ describe("Story 10: Kitten population badges", () => {
   it("badge reginaNoctis does NOT unlock when alicorn.value > 0", () => {
     let state = createInitialState();
     state = produce(state, (draft) => {
-      draft.resources.kittens = { value: 500, maxValue: 999999 };
+      draft.village.kittens = 500;
       draft.resources.alicorn = { value: 1, maxValue: 999999 };
     });
     const next = manager.update(state);

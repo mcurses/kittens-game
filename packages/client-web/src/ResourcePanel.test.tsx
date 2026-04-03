@@ -230,6 +230,17 @@ describe("ResourcePanel", () => {
     expect(screen.queryByTestId("resource-temporalFlux")).toBeNull();
     expect(screen.getByTestId("resource-minerals")).toBeTruthy();
   });
+
+  it("does not render a kittens row even if serialized data still contains one", () => {
+    const state = makeState({
+      catnip: { value: 100, unlocked: true },
+      kittens: { value: 6217.28, maxValue: 0, perTick: 0.01, unlocked: true },
+    });
+    render(<WithInspector><ResourcePanel state={state} /></WithInspector>);
+    expect(screen.getByTestId("resource-catnip")).toBeTruthy();
+    expect(screen.queryByTestId("resource-kittens")).toBeNull();
+    expect(screen.queryByText(/^kittens$/i)).toBeNull();
+  });
 });
 
 // ── Epic 32 Story 32-08: Resource maxValue display ──────────────────────────

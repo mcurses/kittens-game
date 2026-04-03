@@ -1,7 +1,7 @@
 # Epic: Population/Resource Decoupling
 
-**Status:** Not Started
-**Filed:** 2026-04-03
+**Status:** In Progress
+**Started:** 2026-04-03
 **Legacy refs:** `legacy/game.js`, `legacy/js/resources.js`, `legacy/js/village.js`, `legacy/js/achievements.js`, `legacy/js/jsx/left.jsx.js`
 
 ---
@@ -13,14 +13,14 @@
 **So that** kitten count cannot drift into a fake stockpile unrelated to actual population
 
 ### Acceptance Criteria
-- [ ] Given the engine tick loop runs, when kitten arrival rate effects are applied, then they advance village population growth without independently increasing `resources.kittens`
-- [ ] Given a saved game is loaded, when the state is reconstructed, then no stale generic `kittens` resource simulation survives alongside village population
+- [x] Given the engine tick loop runs, when kitten arrival rate effects are applied, then they advance village population growth without independently increasing `resources.kittens`
+- [x] Given a saved game is loaded, when the state is reconstructed, then no stale generic `kittens` resource simulation survives alongside village population
 
 ### Legacy Reference
 - `legacy/game.js` lines 3972-3974
 - `legacy/js/village.js` lines 319-334, 2545-2563
 
-### Status: [ ] Tests | [ ] Impl | [ ] Rated
+### Status: [x] Tests | [x] Impl | [ ] Rated
 
 ## Story: Remove the phantom kittens row from the resource tab
 
@@ -29,14 +29,14 @@
 **So that** population is not presented as a separate accumulating inventory row
 
 ### Acceptance Criteria
-- [ ] Given a save with living kittens, when the resources tab renders, then it does not show a `kittens` row
-- [ ] Given village population exists, when UI visibility is derived, then that population still unlocks the relevant village/jobs affordances without depending on a visible resource-table row
+- [x] Given a save with living kittens, when the resources tab renders, then it does not show a `kittens` row
+- [x] Given village population exists, when UI visibility is derived, then that population still unlocks the relevant village/jobs affordances without depending on a visible resource-table row
 
 ### Legacy Reference
 - `legacy/js/jsx/left.jsx.js` lines 251-262
 - `legacy/js/village.js` lines 5129-5189
 
-### Status: [ ] Tests | [ ] Impl | [ ] Rated
+### Status: [x] Tests | [x] Impl | [ ] Rated
 
 ## Story: Re-anchor kitten-dependent gameplay checks on village state
 
@@ -45,14 +45,14 @@
 **So that** achievements and other systems do not depend on a duplicated UI artifact
 
 ### Acceptance Criteria
-- [ ] Given a rule depends on kitten count, when it is evaluated, then it uses authoritative village population or a dedicated helper rather than a drifting generic resource entry
-- [ ] Given badge and achievement parity checks run, when kitten-count thresholds are evaluated, then they still match legacy outcomes after the resource alias is removed
+- [x] Given a rule depends on kitten count, when it is evaluated, then it uses authoritative village population or a dedicated helper rather than a drifting generic resource entry
+- [x] Given badge and achievement parity checks run, when kitten-count thresholds are evaluated, then they still match legacy outcomes after the resource alias is removed
 
 ### Legacy Reference
 - `legacy/js/achievements.js` lines 212-326
 - `legacy/game.js` lines 3972-3974
 
-### Status: [ ] Tests | [ ] Impl | [ ] Rated
+### Status: [x] Tests | [x] Impl | [ ] Rated
 
 ## Story: Preserve only parity-relevant kitten detail displays
 
@@ -61,11 +61,11 @@
 **So that** removing the fake resource row does not regress useful population feedback
 
 ### Acceptance Criteria
-- [ ] Given kitten growth is in progress, when the UI needs next-kitten timing or progress, then it derives that from village state and current effects rather than a mutable `resources.kittens` pool
-- [ ] Given no resource-table kitten row is shown, when population detail is displayed elsewhere, then it remains internally consistent with actual village count and cap
+- [x] Given kitten growth is in progress, when the UI needs next-kitten timing or progress, then it derives that from village state and current effects rather than a mutable `resources.kittens` pool
+- [x] Given no resource-table kitten row is shown, when population detail is displayed elsewhere, then it remains internally consistent with actual village count and cap
 
 ### Legacy Reference
 - `legacy/game.js` lines 4073-4146
 - `legacy/js/village.js` lines 2528-2563
 
-### Status: [ ] Tests | [ ] Impl | [ ] Rated
+### Status: [x] Tests | [x] Impl | [ ] Rated

@@ -84,6 +84,7 @@ describe("Epic 21 — Feature Parity Integration Tests", () => {
       state = tick(state, managers);
     }
     expect(state.village.kittens).toBeGreaterThanOrEqual(1);
+    expect("kittens" in state.resources).toBe(false);
   });
 
   it("happiness is 1.0 with 0 kittens", () => {

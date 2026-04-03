@@ -32,6 +32,14 @@ The rewrite should preserve gameplay, not the awkward internal shape:
 - the resources tab should not render a `kittens` row
 - any UI that still needs kitten progress/ETA should derive it from village state directly
 
+## Implementation Summary
+
+- Removed `"kittens"` from `packages/engine/src/resources.ts` so the generic resource manager no longer simulates kitten population as a stockpile.
+- Tightened `deserialize()` and `ResourceManager.load()` behavior so stale serialized `resources.kittens` payloads are dropped instead of surviving save-load.
+- Re-anchored achievement and badge conditions to village population / `effectCache.maxKittens` instead of `resources.kittens`.
+- Added a client-side `ResourcePanel` guard so even legacy-shaped serialized data cannot render a phantom `kittens` resource row.
+- Kept village-facing displays authoritative: `VillagePanel` continues to read `village.kittens` and `effectCache.maxKittens`.
+
 ## Gotchas & Edge Cases
 
 - Legacy achievements often read `resPool.get("kittens")`, but in legacy that value is synchronized from village each update. In the rewrite, any such checks should be re-anchored to village state or a dedicated helper.
@@ -40,5 +48,4 @@ The rewrite should preserve gameplay, not the awkward internal shape:
 
 ## Open Questions
 
-- Whether the serialized API should keep a derived non-resource kitten display field for inspector/ETA purposes, or whether those views should read `village` directly.
 - Whether zebra-related transient population mirrors should be handled with the same cleanup pattern in a follow-up.

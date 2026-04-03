@@ -71,4 +71,15 @@ describe("VillagePanel", () => {
     render(<VillagePanel state={state} />);
     expect(screen.getByText(/0% happy/)).toBeTruthy();
   });
+
+  it("uses village kittens even if resources contain a conflicting kittens entry", () => {
+    const state = {
+      ...makeState({ kittens: 12, happiness: 1.0 }, { maxKittens: 12 }),
+      resources: {
+        kittens: { value: 6217.28, maxValue: 0, perTick: 0.01 },
+      },
+    } as unknown as import("@kittens/api-spec").GameStateResponse;
+    render(<VillagePanel state={state} />);
+    expect(screen.getByText(/12 \/ 12 kittens/)).toBeTruthy();
+  });
 });

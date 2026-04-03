@@ -6,7 +6,7 @@ import { type ChallengeState, createInitialChallenges } from "./challenges.js";
 import { type DiplomacyState, createInitialDiplomacy } from "./diplomacy.js";
 import { type PrestigeState, createInitialPrestige } from "./prestige.js";
 import { type ReligionState, createInitialReligion } from "./religion.js";
-import { type ResourceState, calcResourcePerTick, createInitialResources } from "./resources.js";
+import { RESOURCE_NAMES, type ResourceState, calcResourcePerTick, createInitialResources } from "./resources.js";
 import { type ScienceState, createInitialScience } from "./science.js";
 import { type SpaceState, createInitialSpace } from "./space.js";
 import { type TimeState, createInitialTime } from "./time.js";
@@ -343,7 +343,8 @@ export function deserialize(data: SerializedGameState): GameState {
   const resources: Record<string, { value: number; maxValue: number }> = {
     ...createInitialResources(),
   };
-  for (const [name, entry] of Object.entries(savedResources)) {
+  for (const name of RESOURCE_NAMES) {
+    const entry = savedResources[name];
     if (entry && typeof entry.value === "number" && typeof entry.maxValue === "number") {
       // perTick is a computed field — not stored back into GameState
       resources[name] = { value: entry.value, maxValue: entry.maxValue };

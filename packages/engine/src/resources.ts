@@ -26,7 +26,6 @@ export const RESOURCE_NAMES = [
   "science",
   "culture",
   "faith",
-  "kittens",
   "zebras",
   "starchart",
   "temporalFlux",

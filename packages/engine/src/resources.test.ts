@@ -32,6 +32,10 @@ describe("RESOURCE_NAMES", () => {
     expect(RESOURCE_NAMES).toContain("faith");
     expect(RESOURCE_NAMES).toContain("catpower");
   });
+
+  it("does not include kittens because population is not a generic resource", () => {
+    expect(RESOURCE_NAMES).not.toContain("kittens");
+  });
 });
 
 describe("createInitialResources", () => {
@@ -236,6 +240,19 @@ describe("ResourceManager", () => {
       expect(next.resources.catnip?.value).toBe(1);
     });
 
+    it("does not accumulate a kittens stockpile from kittensPerTickBase", () => {
+      const initial = createInitialState();
+      const state = {
+        ...initial,
+        resources: createInitialResources(),
+        village: { ...initial.village, kittens: 3 },
+        effectCache: { kittensPerTickBase: 0.01, maxKittens: 10 },
+      };
+      const next = manager.update(state);
+      expect("kittens" in next.resources).toBe(false);
+      expect(next.village.kittens).toBe(3);
+    });
+
     it("does not clamp a resource already above a zero maxValue back to 0", () => {
       const state = {
         ...createInitialState(),
@@ -313,6 +330,21 @@ describe("ResourceManager", () => {
       };
       const restored = manager.load({}, state);
       expect(restored.resources.catnip?.value).toBe(0);
+    });
+
+    it("load drops stale kittens entries from saved resource data", () => {
+      const state = {
+        ...createInitialState(),
+        resources: createInitialResources(),
+        effectCache: {},
+      };
+      const saved = {
+        catnip: { value: 99, maxValue: 5000 },
+        kittens: { value: 999, maxValue: 0 },
+      };
+      const restored = manager.load(saved as Serializable, state);
+      expect(restored.resources.catnip?.value).toBe(99);
+      expect("kittens" in restored.resources).toBe(false);
     });
   });
 
