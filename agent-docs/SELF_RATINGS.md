@@ -1487,3 +1487,31 @@ Factory mode visibility is now engine-owned and only appears after `carbonSeques
 | Docs freshness (PROGRESS, EPICS, PARITY) | 4 | PROGRESS, STORIES, NOTES, and SELF_RATINGS updated; no PARITY row was needed for this inspector-only refinement |
 | Commit hygiene | 5 | One focused client change with a red regression test first |
 | **Overall average** | **4.7** | |
+
+---
+
+## Epic 40 — Population/Resource Decoupling — 2026-04-03
+
+| Dimension | Score | Notes |
+|-----------|-------|-------|
+| Test coverage (≥90% target) | 5 | `pnpm turbo test` passed: engine 98.9%, client-web 96.16%, server 95.12%, api-spec 100%; 1432 tests passing |
+| No skipped tests / no TODOs | 5 | No skipped tests or new TODO/FIXME/HACK markers were added; audit hits were only false positives like `expect.any`, prose comments, and `process.exit` |
+| Feature parity | 5 | Rewrite now matches the intended gameplay shape: kitten population is authoritative in `village`, stale `resources.kittens` payloads are dropped on load, badge/achievement kitten checks use village state, and the resource tab no longer exposes a phantom kittens row |
+| API spec completeness | 5 | No API surface change was needed |
+| Code quality (no `any`) | 5 | The fix removes duplicated mutable state instead of trying to better synchronize it, and keeps the client on a defensive filter in case old serialized payloads appear |
+| Docs freshness (PROGRESS, EPICS, PARITY) | 5 | PROGRESS, EPICS, PARITY, STORIES, NOTES, and DECISIONS all reflect the cleanup |
+| Commit hygiene | 5 | One focused implementation commit plus a docs closeout commit |
+| **Overall average** | **5.0** | |
+
+### What went well
+- The cleanup followed the clean architectural direction rather than porting legacy’s awkward `resPool.get("kittens")` alias literally
+- The store-level regression test proves old saved payloads cannot resurrect the bug after load
+- The live `slot=new` API check confirmed the exact symptom is gone: `resources` no longer contains `kittens` while `village.kittens` remains intact
+
+### What to improve
+- `legacy/js/resources.js` still contains other transient/UI-shaped values, and they should be reviewed with the same “gameplay state vs display alias” lens instead of being assumed valid resource-model entries
+- `PARITY.md` resource summary text had drifted and needed correction during closeout; future resource-model changes should update that section immediately
+
+### Action items for next epic
+- [ ] Audit whether any remaining transient legacy resource aliases should also be removed or quarantined from the generic resource model
+- [ ] Continue the mechanization-era workshop follow-up from Epic 39 when UI parity work resumes

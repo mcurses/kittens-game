@@ -6,6 +6,7 @@ Last updated: 2026-04-03
 
 ## Maintenance Updates
 
+- 2026-04-03: Closed Epic 40. Kitten population is no longer simulated as a generic resource, stale saved `resources.kittens` payloads are dropped during load, achievement/badge kitten checks now read village population, and the web resource table no longer renders a phantom `kittens` row.
 - 2026-04-03: Filed Epic 40 after investigating the live `slot=new` phantom `kittens` row. The rewrite currently simulates `resources.kittens` as a normal ticking resource, but legacy only uses that slot as a transient UI mirror of village population. The planned fix direction is to keep population authoritative in `village` and remove the resource-tab row entirely rather than porting the legacy display alias.
 - 2026-04-03: Reopened and closed Epic 26 for live inspector ETA parity. Hovered cost/time estimates now count down in real time inside the inspector instead of freezing at the value from the initial hover snapshot.
 - 2026-04-03: Closed the Epic 21 reopen for resource-cap parity. Temporary unicorn/tear/alicorn caps are now recomputed from the current effect cache during resource updates and immediately after save-load, so stale `maxValue` fields no longer keep unicorns capped in the live `new` save once `unicornTears` is inactive.
@@ -737,10 +738,26 @@ Stories: 5/5 complete
 ---
 
 ## Epic 40: Population/Resource Decoupling
-**Status:** Not Started | **Filed:** 2026-04-03
-Stories: 0 / 4 complete
+**Status:** Complete | **Started:** 2026-04-03 | **Finished:** 2026-04-03
+Stories: 4 / 4 complete
 
-- [ ] Story 40-01: Stop simulating `kittens` as a generic resource
-- [ ] Story 40-02: Remove the phantom kittens row from the web resource table
-- [ ] Story 40-03: Re-anchor kitten-dependent gameplay checks on village population
-- [ ] Story 40-04: Preserve only the parity-relevant kitten display/ETA affordances
+- [x] Story 40-01: Stop simulating `kittens` as a generic resource
+- [x] Story 40-02: Remove the phantom kittens row from the web resource table
+- [x] Story 40-03: Re-anchor kitten-dependent gameplay checks on village population
+- [x] Story 40-04: Preserve only the parity-relevant kitten display/ETA affordances
+
+Focused verification:
+- `pnpm --filter @kittens/engine test -- --run packages/engine/src/parity.test.ts packages/engine/src/resources.test.ts packages/engine/src/achievements.test.ts packages/engine/src/state.test.ts`
+- `pnpm --filter @kittens/server test -- --run packages/server/src/store.test.ts`
+- `pnpm --filter @kittens/client-web test -- --run packages/client-web/src/ResourcePanel.test.tsx packages/client-web/src/VillagePanel.test.tsx`
+- `curl -s 'http://localhost:3000/api/game/state?slot=new' | jq '{village: .village.kittens, resourcesHasKittens: (.resources | has("kittens"))}'`
+
+Full verification:
+- `pnpm turbo build`
+- `pnpm turbo test`
+
+Engine tests: 974 passing | Line coverage: 98.9%
+Client-web tests: 343 passing | Line coverage: 96.16%
+Server tests: 88 passing | Line coverage: 95.12%
+API-spec tests: 27 passing | Line coverage: 100%
+Total: 1432 tests across all packages

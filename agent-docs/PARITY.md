@@ -98,7 +98,7 @@ Keys that exist in effectCache from implemented defs but are not fully consumed:
 
 ## Resources
 
-All 56 resources from legacy are declared in `RESOURCE_NAMES`. However, most have 0 production because the buildings that generate them aren't implemented.
+The rewrite declares the gameplay resource pools it actually simulates in `RESOURCE_NAMES`. Legacy's transient `kittens` display alias is intentionally excluded and modeled through `village` instead. Many declared resources still have 0 production because the buildings that generate them are not all implemented yet.
 
 | Resource | Declared | Has production path | Notes |
 |----------|----------|---------------------|-------|

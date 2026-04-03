@@ -1,6 +1,6 @@
 # Epic: Population/Resource Decoupling
 
-**Status:** In Progress
+**Status:** Complete
 **Started:** 2026-04-03
 **Legacy refs:** `legacy/game.js`, `legacy/js/resources.js`, `legacy/js/village.js`, `legacy/js/achievements.js`, `legacy/js/jsx/left.jsx.js`
 
@@ -20,7 +20,7 @@
 - `legacy/game.js` lines 3972-3974
 - `legacy/js/village.js` lines 319-334, 2545-2563
 
-### Status: [x] Tests | [x] Impl | [ ] Rated
+### Status: [x] Tests | [x] Impl | [x] Rated
 
 ## Story: Remove the phantom kittens row from the resource tab
 
@@ -36,7 +36,7 @@
 - `legacy/js/jsx/left.jsx.js` lines 251-262
 - `legacy/js/village.js` lines 5129-5189
 
-### Status: [x] Tests | [x] Impl | [ ] Rated
+### Status: [x] Tests | [x] Impl | [x] Rated
 
 ## Story: Re-anchor kitten-dependent gameplay checks on village state
 
@@ -52,7 +52,7 @@
 - `legacy/js/achievements.js` lines 212-326
 - `legacy/game.js` lines 3972-3974
 
-### Status: [x] Tests | [x] Impl | [ ] Rated
+### Status: [x] Tests | [x] Impl | [x] Rated
 
 ## Story: Preserve only parity-relevant kitten detail displays
 
@@ -68,4 +68,4 @@
 - `legacy/game.js` lines 4073-4146
 - `legacy/js/village.js` lines 2528-2563
 
-### Status: [x] Tests | [x] Impl | [ ] Rated
+### Status: [x] Tests | [x] Impl | [x] Rated
