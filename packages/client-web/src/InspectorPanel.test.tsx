@@ -1,11 +1,15 @@
 // InspectorPanel tests
 import { act, cleanup, render, screen } from "@testing-library/react";
 import React from "react";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { InspectorProvider, useInspector } from "./InspectorContext.js";
 import { InspectorPanel } from "./InspectorPanel.js";
 
 afterEach(cleanup);
+
+beforeEach(() => {
+  vi.useRealTimers();
+});
 
 function TestWrapper({ children }: { children: React.ReactNode }): React.ReactElement {
   return <InspectorProvider>{children}</InspectorProvider>;
@@ -70,6 +74,16 @@ function SetEntityButton({ kind }: { kind: string }): React.ReactElement {
             effects: {},
             prices: [{ name: "wood", val: 5 }],
             resources: { wood: { value: 2, perTick: 0.5 } },
+          });
+        } else if (kind === "building-with-live-eta") {
+          setInspected({
+            kind: "building",
+            name: "hut",
+            description: "Houses a kitten.",
+            val: 2,
+            effects: {},
+            prices: [{ name: "wood", val: 25 }],
+            resources: { wood: { value: 0, perTick: 0.5 } },
           });
         }
       }}
@@ -186,6 +200,27 @@ describe("InspectorPanel", () => {
     expect(screen.getAllByText(/wood/).length).toBeGreaterThan(0);
     // Time to afford: shortfall=3, perTick=0.5/tick, 5ticks/sec → 3/(0.5*5)=1.2s → "~1s"
     expect(screen.getByText(/~1s/)).toBeTruthy();
+  });
+
+  it("updates price ETA in real time while the inspector stays hovered", () => {
+    vi.useFakeTimers();
+    render(
+      <TestWrapper>
+        <SetEntityButton kind="building-with-live-eta" />
+        <InspectorPanel />
+      </TestWrapper>,
+    );
+    act(() => {
+      screen.getByTestId("set-building-with-live-eta").click();
+    });
+
+    expect(screen.getByText(/~10s/)).toBeTruthy();
+
+    act(() => {
+      vi.advanceTimersByTime(3000);
+    });
+
+    expect(screen.getByText(/~7s/)).toBeTruthy();
   });
 
   it("shows zigguratUpgrade name, val, and effects", () => {

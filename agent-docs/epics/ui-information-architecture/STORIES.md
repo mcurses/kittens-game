@@ -190,3 +190,18 @@
 - [x] Asserts InspectorPanel shows the resource details
 
 ### Status: [x] Tests | [x] Impl | [ ] Rated
+
+---
+
+## Story 26-11: Live inspector ETA countdown
+
+**As a** player
+**I want** remaining-time estimates in the inspector to keep counting down while I hover
+**So that** the inspector feels live instead of showing stale values from the first hover frame
+
+### Acceptance Criteria
+- [x] Given a hovered priced entity with an affordable ETA derived from current resource income, when time passes and hover remains active, then the displayed `~Ns` countdown updates without requiring another hover event
+- [x] Given a hovered resource with `Time to zero` or `Time to cap`, when time passes and hover remains active, then that displayed duration also counts down from the same snapshot
+- [x] The timer logic lives inside the inspector surface and does not force panel-specific hover publishers to manage countdown state
+
+### Status: [x] Tests | [x] Impl | [x] Rated

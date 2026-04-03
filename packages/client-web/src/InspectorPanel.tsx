@@ -33,25 +33,33 @@ function InspectorPlaceholder(): React.ReactElement {
 }
 
 function EntityDetail({ entity }: { entity: InspectorEntity }): React.ReactElement {
+  const elapsedSeconds = useElapsedInspectorSeconds(entity);
+
   switch (entity.kind) {
     case "resource":
-      return <ResourceDetail entity={entity} />;
+      return <ResourceDetail entity={entity} elapsedSeconds={elapsedSeconds} />;
     case "building":
-      return <BuildingDetail entity={entity} />;
+      return <BuildingDetail entity={entity} elapsedSeconds={elapsedSeconds} />;
     case "upgrade":
-      return <UpgradeDetail entity={entity} />;
+      return <UpgradeDetail entity={entity} elapsedSeconds={elapsedSeconds} />;
     case "tech":
-      return <TechDetail entity={entity} />;
+      return <TechDetail entity={entity} elapsedSeconds={elapsedSeconds} />;
     case "zigguratUpgrade":
-      return <ZigguratUpgradeDetail entity={entity} />;
+      return <ZigguratUpgradeDetail entity={entity} elapsedSeconds={elapsedSeconds} />;
     case "religionUpgrade":
-      return <ReligionUpgradeDetail entity={entity} />;
+      return <ReligionUpgradeDetail entity={entity} elapsedSeconds={elapsedSeconds} />;
   }
 }
 
 // ── Resource detail ───────────────────────────────────────────────────────────
 
-function ResourceDetail({ entity }: { entity: ResourceEntity }): React.ReactElement {
+function ResourceDetail({
+  entity,
+  elapsedSeconds,
+}: {
+  entity: ResourceEntity;
+  elapsedSeconds: number;
+}): React.ReactElement {
   const { name, value, maxValue, perTick, breakdown } = entity;
   const showBreakdown =
     breakdown.base !== 0 || breakdown.ratio !== 0 || breakdown.direct !== 0 || breakdown.consumption !== 0;
@@ -115,7 +123,7 @@ function ResourceDetail({ entity }: { entity: ResourceEntity }): React.ReactElem
 
       {perTick !== undefined && perTick < 0 && value > 0 && (
         <div className="inspector-notice inspector-notice--warn">
-          Time to zero: {formatDuration(value / (-perTick * TICKS_PER_SECOND))}
+          Time to zero: {formatDuration(value / (-perTick * TICKS_PER_SECOND) - elapsedSeconds)}
         </div>
       )}
       {perTick !== undefined &&
@@ -124,7 +132,7 @@ function ResourceDetail({ entity }: { entity: ResourceEntity }): React.ReactElem
         maxValue > value && (
           <div className="inspector-notice">
             Time to cap:{" "}
-            {formatDuration((maxValue - value) / (perTick * TICKS_PER_SECOND))}
+            {formatDuration((maxValue - value) / (perTick * TICKS_PER_SECOND) - elapsedSeconds)}
           </div>
         )}
     </div>
@@ -133,7 +141,13 @@ function ResourceDetail({ entity }: { entity: ResourceEntity }): React.ReactElem
 
 // ── Building detail ───────────────────────────────────────────────────────────
 
-function BuildingDetail({ entity }: { entity: BuildingEntity }): React.ReactElement {
+function BuildingDetail({
+  entity,
+  elapsedSeconds,
+}: {
+  entity: BuildingEntity;
+  elapsedSeconds: number;
+}): React.ReactElement {
   return (
     <div className="inspector-entity">
       <div className="inspector-name">{entity.name}</div>
@@ -142,14 +156,25 @@ function BuildingDetail({ entity }: { entity: BuildingEntity }): React.ReactElem
         <p className="inspector-description">{entity.description}</p>
       )}
       <EffectsSection effects={entity.effects} />
-      <PricesSection prices={entity.prices} label="Cost (next)" resources={entity.resources} />
+      <PricesSection
+        prices={entity.prices}
+        label="Cost (next)"
+        resources={entity.resources}
+        elapsedSeconds={elapsedSeconds}
+      />
     </div>
   );
 }
 
 // ── Upgrade detail ────────────────────────────────────────────────────────────
 
-function UpgradeDetail({ entity }: { entity: UpgradeEntity }): React.ReactElement {
+function UpgradeDetail({
+  entity,
+  elapsedSeconds,
+}: {
+  entity: UpgradeEntity;
+  elapsedSeconds: number;
+}): React.ReactElement {
   return (
     <div className="inspector-entity">
       <div className="inspector-name">{entity.name}</div>
@@ -160,14 +185,27 @@ function UpgradeDetail({ entity }: { entity: UpgradeEntity }): React.ReactElemen
         <p className="inspector-description">{entity.description}</p>
       )}
       <EffectsSection effects={entity.effects} />
-      {!entity.researched && <PricesSection prices={entity.prices} label="Cost" resources={entity.resources} />}
+      {!entity.researched && (
+        <PricesSection
+          prices={entity.prices}
+          label="Cost"
+          resources={entity.resources}
+          elapsedSeconds={elapsedSeconds}
+        />
+      )}
     </div>
   );
 }
 
 // ── Tech detail ───────────────────────────────────────────────────────────────
 
-function TechDetail({ entity }: { entity: TechEntity }): React.ReactElement {
+function TechDetail({
+  entity,
+  elapsedSeconds,
+}: {
+  entity: TechEntity;
+  elapsedSeconds: number;
+}): React.ReactElement {
   return (
     <div className="inspector-entity">
       <div className="inspector-name">{entity.name}</div>
@@ -178,14 +216,27 @@ function TechDetail({ entity }: { entity: TechEntity }): React.ReactElement {
         <p className="inspector-description">{entity.description}</p>
       )}
       <EffectsSection effects={entity.effects} />
-      {!entity.researched && <PricesSection prices={entity.prices} label="Cost" resources={entity.resources} />}
+      {!entity.researched && (
+        <PricesSection
+          prices={entity.prices}
+          label="Cost"
+          resources={entity.resources}
+          elapsedSeconds={elapsedSeconds}
+        />
+      )}
     </div>
   );
 }
 
 // ── Ziggurat upgrade detail ───────────────────────────────────────────────────
 
-function ZigguratUpgradeDetail({ entity }: { entity: ZigguratUpgradeEntity }): React.ReactElement {
+function ZigguratUpgradeDetail({
+  entity,
+  elapsedSeconds,
+}: {
+  entity: ZigguratUpgradeEntity;
+  elapsedSeconds: number;
+}): React.ReactElement {
   return (
     <div className="inspector-entity">
       <div className="inspector-name">{entity.name}</div>
@@ -194,14 +245,25 @@ function ZigguratUpgradeDetail({ entity }: { entity: ZigguratUpgradeEntity }): R
         <p className="inspector-description">{entity.description}</p>
       )}
       <EffectsSection effects={entity.effects} />
-      <PricesSection prices={entity.prices} label="Cost (next)" resources={entity.resources} />
+      <PricesSection
+        prices={entity.prices}
+        label="Cost (next)"
+        resources={entity.resources}
+        elapsedSeconds={elapsedSeconds}
+      />
     </div>
   );
 }
 
 // ── Religion upgrade detail ───────────────────────────────────────────────────
 
-function ReligionUpgradeDetail({ entity }: { entity: ReligionUpgradeEntity }): React.ReactElement {
+function ReligionUpgradeDetail({
+  entity,
+  elapsedSeconds,
+}: {
+  entity: ReligionUpgradeEntity;
+  elapsedSeconds: number;
+}): React.ReactElement {
   return (
     <div className="inspector-entity">
       <div className="inspector-name">{entity.name}</div>
@@ -210,7 +272,12 @@ function ReligionUpgradeDetail({ entity }: { entity: ReligionUpgradeEntity }): R
         <p className="inspector-description">{entity.description}</p>
       )}
       <EffectsSection effects={entity.effects} />
-      <PricesSection prices={entity.prices} label="Cost (next)" resources={entity.resources} />
+      <PricesSection
+        prices={entity.prices}
+        label="Cost (next)"
+        resources={entity.resources}
+        elapsedSeconds={elapsedSeconds}
+      />
     </div>
   );
 }
@@ -246,10 +313,12 @@ function PricesSection({
   prices,
   label,
   resources = {},
+  elapsedSeconds,
 }: {
   prices: Array<{ name: string; val: number }>;
   label: string;
   resources?: Record<string, { value: number; maxValue?: number; perTick?: number }>;
+  elapsedSeconds: number;
 }): React.ReactElement | null {
   if (prices.length === 0) return null;
   return (
@@ -268,6 +337,8 @@ function PricesSection({
             !affordable && !storageLimited && perTick && perTick > 0
               ? shortfall / perTick
               : null;
+          const remainingSeconds =
+            ticksNeeded !== null ? ticksNeeded / TICKS_PER_SECOND - elapsedSeconds : null;
 
           return (
             <div
@@ -282,9 +353,9 @@ function PricesSection({
                 </span>
                 <span className="inspector-price-sep"> / </span>
                 <span>{formatValue(need)}{storageLimited ? "*" : ""}</span>
-                {ticksNeeded !== null && (
+                {remainingSeconds !== null && (
                   <span className="inspector-price-eta">
-                    {" "}~{formatDuration(ticksNeeded / TICKS_PER_SECOND)}
+                    {" "}~{formatDuration(remainingSeconds)}
                   </span>
                 )}
               </dd>
@@ -299,6 +370,53 @@ function PricesSection({
       )}
     </div>
   );
+}
+
+function useElapsedInspectorSeconds(entity: InspectorEntity): number {
+  const shouldTick = entityHasLiveDurations(entity);
+  const [elapsedSeconds, setElapsedSeconds] = React.useState(0);
+
+  React.useEffect(() => {
+    setElapsedSeconds(0);
+    if (!shouldTick) return;
+
+    const intervalId = window.setInterval(() => {
+      setElapsedSeconds((seconds) => seconds + 1);
+    }, 1000);
+
+    return () => window.clearInterval(intervalId);
+  }, [entity, shouldTick]);
+
+  return elapsedSeconds;
+}
+
+function entityHasLiveDurations(entity: InspectorEntity): boolean {
+  if (entity.kind === "resource") {
+    return (
+      (entity.perTick !== undefined && entity.perTick < 0 && entity.value > 0) ||
+      (entity.perTick !== undefined &&
+        entity.perTick > 0 &&
+        entity.maxValue !== undefined &&
+        entity.maxValue > entity.value)
+    );
+  }
+
+  if (
+    entity.kind === "building" ||
+    entity.kind === "upgrade" ||
+    entity.kind === "tech" ||
+    entity.kind === "zigguratUpgrade" ||
+    entity.kind === "religionUpgrade"
+  ) {
+    return entity.prices.some((price) => {
+      const resource = entity.resources[price.name];
+      const have = resource?.value ?? 0;
+      const perTick = resource?.perTick ?? 0;
+      return have < price.val && perTick > 0 && !isStorageLimited([price], entity.resources);
+    });
+  }
+
+  return false;
 }
 
 // ── Formatting helpers ────────────────────────────────────────────────────────

@@ -6,6 +6,7 @@ Last updated: 2026-04-03
 
 ## Maintenance Updates
 
+- 2026-04-03: Reopened and closed Epic 26 for live inspector ETA parity. Hovered cost/time estimates now count down in real time inside the inspector instead of freezing at the value from the initial hover snapshot.
 - 2026-04-03: Closed the Epic 21 reopen for resource-cap parity. Temporary unicorn/tear/alicorn caps are now recomputed from the current effect cache during resource updates and immediately after save-load, so stale `maxValue` fields no longer keep unicorns capped in the live `new` save once `unicornTears` is inactive.
 - 2026-04-03: Reopened Epic 21 for a resource-cap parity regression. In the live `new` save, `resources.unicorns.maxValue` remained stuck at `10` even though `effectCache.unicornsMax` was absent and `unicornTears` was inactive, which indicates the engine is persisting a stale cap instead of recomputing it from current effects.
 - 2026-04-02: Started Epic 39. The engine now has explicit `engineer` village jobs plus per-craft engineer assignment state/actions, so mechanization UI parity is no longer blocked on missing backend state.
@@ -422,8 +423,8 @@ Prerequisites: Epics 20, 21
 ---
 
 ## Epic 26: UI Information Architecture
-**Status:** Complete | **Started:** 2026-03-30 | **Finished:** 2026-03-30
-Stories: 10 / 10 complete
+**Status:** Complete | **Started:** 2026-03-30 | **Finished:** 2026-04-03
+Stories: 11 / 11 complete
 
 - [x] Story 26-1: SlotContext — React context for slot name propagation
 - [x] Story 26-2: description? field on engine defs (buildings, upgrades, techs, religion)
@@ -435,6 +436,7 @@ Stories: 10 / 10 complete
 - [x] Story 26-8: SciencePanel hover → inspector
 - [x] Story 26-9: Inspector + LogPanel share log-sidebar (inspector above, log below)
 - [x] Story 26-10: Inspector CSS — styles for all entity kinds
+- [x] Story 26-11: Live inspector ETA countdown — hovered shortfall/cap/zero durations update in real time without requiring a new hover event
 
 Pre-epic action items executed:
 - [x] Biome lint check in CI — already present as `pnpm run check`

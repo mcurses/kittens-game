@@ -55,6 +55,11 @@ This is not yet approved. It is only a starting hypothesis.
 - Layout churn: a new inspector surface may force changes to the existing 3-column shell.
 - Inconsistency risk: partial adoption across panels could feel worse than the current state.
 
+## Reopen Notes — 2026-04-03
+
+- Inspector ETA text had been computed only from the hover snapshot, so `~Ns`, `Time to zero`, and `Time to cap` froze until the next hover or state refresh.
+- The clean fix was an inspector-owned elapsed-time hook that counts down locally from the inspected snapshot, rather than pushing timer state into every panel that publishes `setInspected(...)`.
+
 ## Suggested Sequencing
 
 1. Audit legacy detail surfaces

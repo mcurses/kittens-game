@@ -1472,3 +1472,18 @@ Factory mode visibility is now engine-owned and only appears after `carbonSeques
 | Docs freshness (PROGRESS, EPICS, PARITY) | 5 | Reopen and closeout were documented in PROGRESS, EPICS, STORIES, NOTES, PARITY, and SELF_RATINGS |
 | Commit hygiene | 5 | One focused bugfix with red tests first, then docs closeout |
 | **Overall average** | **5.0** | |
+
+---
+
+## Epic 26 Reopen — Live Inspector ETA — 2026-04-03
+
+| Dimension | Score | Notes |
+|-----------|-------|-------|
+| Test coverage (≥90% target) | 5 | Focused client regression added for real-time ETA countdown; client-web suite and workspace build both passed |
+| No skipped tests / no TODOs | 5 | No skipped tests or new TODO/FIXME markers added |
+| Feature parity | 4 | Hovered ETA text now behaves like a live inspector instead of a frozen snapshot; broader legacy tooltip timing nuances are still intentionally abstracted into the rewrite inspector model |
+| API spec completeness | 5 | No API surface change was needed |
+| Code quality (no `any`) | 5 | Timer state is isolated inside `InspectorPanel`, keeping hover publishers unchanged and avoiding cross-panel timer duplication |
+| Docs freshness (PROGRESS, EPICS, PARITY) | 4 | PROGRESS, STORIES, NOTES, and SELF_RATINGS updated; no PARITY row was needed for this inspector-only refinement |
+| Commit hygiene | 5 | One focused client change with a red regression test first |
+| **Overall average** | **4.7** | |
