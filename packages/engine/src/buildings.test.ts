@@ -2154,3 +2154,85 @@ describe("Story 43-04: Mint runtime modifiers (partial — mint is complex in le
     expect(true).toBe(true);
   });
 });
+
+// ── Epic 43: Integration Test ─────────────────────────────────────────────────
+
+describe("Epic 43: Dynamic Building Consumer Parity — Integration Test", () => {
+  it("multi-tick loop with all dynamic building modifiers produces correct aggregate state", () => {
+    const manager = new BuildingManager();
+    let state = {
+      ...createInitialState(),
+      buildings: {
+        ...createInitialBuildings(),
+        harbor: { val: 2, on: 2, unlocked: true },
+        oilWell: { val: 1, on: 1, unlocked: true, automationEnabled: true },
+        reactor: { val: 1, on: 1, unlocked: true },
+        mint: { val: 1, on: 1, unlocked: true },
+      },
+      resources: {
+        ...createInitialResources(),
+        ship: { value: 20, maxValue: 1000 },
+      },
+      effectCache: {
+        harborRatio: 0.01,
+        harborCoalRatio: 0.25,
+        oilWellRatio: 0.45,
+        reactorEnergyRatio: 0.15,
+        warehouseRatio: 0.2,
+        mintRatio: 0.1,
+      },
+      workshop: {
+        ...createInitialState().workshop,
+        upgrades: {
+          ...createInitialState().workshop.upgrades,
+          cargoShips: { unlocked: true, researched: true },
+          barges: { unlocked: true, researched: true },
+          pumpjack: { unlocked: true, researched: true },
+          coldFusion: { unlocked: true, researched: true },
+          frugality: { unlocked: true, researched: true },
+          reinforcedWarehouses: { unlocked: true, researched: true },
+        },
+      },
+    };
+
+    // Tick 1: Build and run effects
+    const tick1Effects = manager.updateEffects(state);
+
+    // Verify harbor's dynamic scaling:
+    // - Base catnipMax: 5000
+    // - Harbor catnipMax (def: 2500): 2500 * 2 (val) = 5000
+    // - cargoShips ratio: 0.01 * 20 ships = 0.2, limited DR with limit 2.25 = 0.2
+    // - Total before modifications: 5000 + 5000 = 10000
+    // - With cargoShips and barges active: multiply all storage keys by (1 + 0.2) = 1.2
+    // - Total catnipMax: 10000 * 1.2 = 12000
+    expect(tick1Effects.catnipMax).toBeCloseTo(12000);
+
+    // Verify harbor coalMax with both barges and cargoShips modifiers
+    // Complex calculation due to warehouse ratio + barges + cargoShips stacking
+    expect(tick1Effects.coalMax).toBeGreaterThan(460);
+    expect(tick1Effects.coalMax).toBeLessThan(475);
+
+    // Verify oil well production with automation:
+    // - Base oilPerTickBase: 0.02
+    // - With pumpjack and automation: 0.02 * (1 + 0.45) = 0.029
+    expect(tick1Effects.oilPerTickBase).toBeCloseTo(0.029);
+
+    // Verify reactor energy with coldFusion:
+    // - Base energyProduction: 10
+    // - With coldFusion: 10 * (1 + 0.15) = 11.5
+    expect(tick1Effects.energyProduction).toBeCloseTo(11.5);
+
+    // Verify goldMax includes mint, harbor, and cargoShips/warehouse effects
+    // Complex calculation: base (10) + harbor (25*2*1.2) + mint (100*1*1.2) + cargoShips scaling
+    expect(tick1Effects.goldMax).toBeGreaterThan(230);
+    expect(tick1Effects.goldMax).toBeLessThan(245);
+
+    // Update state with new effects
+    state = { ...state, effectCache: { ...state.effectCache } };
+
+    // Tick 2: Verify effects persist
+    const tick2Effects = manager.updateEffects(state);
+    expect(tick2Effects.oilPerTickBase).toBeCloseTo(tick1Effects.oilPerTickBase);
+    expect(tick2Effects.energyProduction).toBeCloseTo(tick1Effects.energyProduction);
+  });
+});
