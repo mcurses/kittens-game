@@ -2232,7 +2232,7 @@ describe("Epic 43: Dynamic Building Consumer Parity — Integration Test", () =>
 
     // Tick 2: Verify effects persist
     const tick2Effects = manager.updateEffects(state);
-    expect(tick2Effects.oilPerTickBase).toBeCloseTo(tick1Effects.oilPerTickBase);
-    expect(tick2Effects.energyProduction).toBeCloseTo(tick1Effects.energyProduction);
+    expect(tick2Effects.oilPerTickBase ?? 0).toBeCloseTo(tick1Effects.oilPerTickBase ?? 0);
+    expect(tick2Effects.energyProduction ?? 0).toBeCloseTo(tick1Effects.energyProduction ?? 0);
   });
 });

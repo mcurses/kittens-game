@@ -1155,8 +1155,9 @@ export class BuildingManager implements Manager {
         } else {
           // cargoShips with barges: multiply the total effect on all applicable keys
           for (const key of storageKeys) {
-            if (effects[key as keyof typeof effects]) {
-              effects[key as keyof typeof effects] = effects[key as keyof typeof effects] * (1 + limitedCargoShipsRatio);
+            const val = effects[key as keyof typeof effects];
+            if (val !== undefined && val !== null) {
+              effects[key as keyof typeof effects] = val * (1 + limitedCargoShipsRatio);
             }
           }
         }
@@ -1194,7 +1195,7 @@ export class BuildingManager implements Manager {
 
       // Thorium reactor behavior (deferred implementation notes in epic 43)
       if (this.isUpgradeResearched(state, "thoriumReactors")) {
-        const thoriumAvailable = (state.resources.thorium?.val ?? 0) > 0;
+        const thoriumAvailable = (state.resources.thorium?.value ?? 0) > 0;
         if (thoriumAvailable) {
           const thoriumPerTickBase = state.effectCache.reactorThoriumPerTick ?? 0;
           if (thoriumPerTickBase > 0) {
