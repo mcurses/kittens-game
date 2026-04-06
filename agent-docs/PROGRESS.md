@@ -791,6 +791,26 @@ Total: 1432 tests across all packages
 
 ---
 
+## Epic 44: Session Management
+**Status:** Complete | **Started:** 2026-04-06 | **Finished:** 2026-04-06
+Stories: 6 / 6 complete
+
+- [x] Story 44-01: DB metadata layer — SlotMeta interface, listSlotMeta, deleteSlot, updateSlotStatus, getSlotMeta
+- [x] Story 44-02: SessionRegistry lifecycle actions — create, pause, resume, archive, delete, listAll, export
+- [x] Story 44-03: REST API surface — 14 endpoints for session CRUD and lifecycle operations
+- [x] Story 44-04: CLI package — `kittens sessions` commands with table output, colored status symbols, export to file
+- [x] Story 44-05: Web admin panel — SessionsPanel with table, create form, inline confirmation, TanStack Query polling
+- [x] Story 44-06: Paused session read-only enforcement — POST /api/game/action returns 409, GET /api/game/state allowed, no STATE_DELTA ticks
+
+Focused verification:
+- Server tests: 156 passing, 88.64% line coverage (paused enforcement tests included)
+- Client-web tests: 95.17% line coverage (SessionsPanel all 10 test cases pass)
+- CLI tests: verified output formatting and mock HTTP call patterns
+- OpenAPI spec: all 14 session endpoints + 37 GameAction types in discriminated union
+- No skipped tests, no TODOs, no type:any violations
+
+---
+
 ## Epic 43: Dynamic Building Consumer Parity
 **Status:** Complete | **Started:** 2026-04-06 | **Finished:** 2026-04-06
 Stories: 4 / 4 complete

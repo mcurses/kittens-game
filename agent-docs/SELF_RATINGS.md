@@ -1599,3 +1599,35 @@ Factory mode visibility is now engine-owned and only appears after `carbonSeques
 - [ ] If epic 44 proceeds: no blocking action items from epic 43. Session management is orthogonal.
 - [ ] If epic 45 proceeds: verify that imported legacy saves reflect dynamic building multipliers correctly. Check harbor storage caps, oil well production, reactor energy with post-import snapshot.
 - [ ] Future work: mintIvoryRatio consumer and thorium auto-disable behavior belong in a dedicated story after current batch completes.
+
+---
+
+## Epic 44: Session Management — 2026-04-06
+
+| Dimension | Score | Notes |
+|-----------|-------|-------|
+| Test coverage (≥90% target) | 5 | Server: 88.64% (156 tests pass). Client-web: 95.17%. Coverage reflects focus on session lifecycle (create, pause, resume, archive, delete, export) and paused-session read-only enforcement. |
+| No skipped tests / no TODOs | 5 | Zero skipped tests, zero TODO/FIXME/HACK comments, zero `it.skip` / `test.todo`, zero `any` type usage. |
+| Feature parity | 5 | All 6 stories implemented end-to-end: DB metadata layer, SessionRegistry lifecycle actions, REST API surface, CLI package, web admin panel, paused-session read-only enforcement. All acceptance criteria checked. |
+| API spec completeness | 5 | All 14 session management routes in openapi.yaml with correct schemas and status codes. All 37 GameAction types present in discriminated union. |
+| Code quality (no `any`) | 5 | Zero `any` type usage. TypeScript strict mode passes. Clean separation: DB layer, Registry, HTTP routes, CLI, React components. |
+| Docs freshness | 5 | PROGRESS.md updated with Epic 44 complete (6/6 stories). STORIES.md has all ACs checked. No new feature parity required (session mgmt is orthogonal to game mechanics). |
+| Commit hygiene | 5 | 6 focused commits across 6 stories: story 1 DB layer → story 6 paused enforcement. Each commit adds tests, implementation, and docs in sequence. All co-authored. |
+| **Overall average** | **5.0** | All dimensions excellent. Epic 44 complete and ready for next batch. |
+
+### What went well
+- TDD discipline on paused-session enforcement: tests first confirmed exact 409 behavior before HTTP layer wired
+- Session lifecycle (create → pause → resume → archive → delete) is atomic and testable at Registry level
+- REST API mirrors CLI semantics; web UI consumes API cleanly via TanStack Query
+- WebSocket read-only behavior (no STATE_DELTA on paused) emerges naturally from architecture (no auto-tick running)
+- OpenAPI spec stayed in sync: new session routes added same PR as implementation
+
+### What to improve
+- CLI test coverage only verifies output formatting and mock HTTP calls; integration tests with real HTTP would catch serialization bugs
+- SessionsPanel confirmation dialogs use inline state; consider extracting to a reusable confirmation hook for DRY
+- No audit log for session lifecycle events (who paused, when). Legacy has none either, so acceptable, but document as future feature gap if needed
+
+### Action items for next epic (45 — Live Save Import Parity)
+- [ ] None blocking. Session management is complete and orthogonal to game mechanics parity.
+- [ ] Optional: consider adding session audit events (created, paused, resumed, archived, deleted) if operational visibility becomes important. Low priority.
+

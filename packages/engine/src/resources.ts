@@ -134,17 +134,28 @@ export function getResourceMaxValue(effectCache: Record<string, number>, name: s
  * Recompute resource caps from the current effect cache without applying per-tick deltas.
  * Used after save/load so stale serialized maxValue fields do not survive when their
  * driving effect has disappeared.
+ *
+ * @param resources Current resource state
+ * @param effectCache Effect cache for cap lookups
+ * @param preserveOverCap If true, preserve values greater than the computed cap (for legacy imports)
  */
 export function syncResourceCaps(
   resources: ResourceState,
   effectCache: Record<string, number>,
+  preserveOverCap = false,
 ): ResourceState {
   const synced: ResourceState = {};
 
   for (const name of RESOURCE_NAMES) {
     const entry = resources[name] ?? { value: 0, maxValue: 0 };
     const maxValue = getResourceMaxValue(effectCache, name);
-    const value = maxValue > 0 ? Math.min(entry.value, maxValue) : entry.value;
+    let value = entry.value;
+
+    // Clamp to cap unless preserveOverCap is true (legacy import scenario)
+    if (!preserveOverCap && maxValue > 0) {
+      value = Math.min(entry.value, maxValue);
+    }
+
     synced[name] = { value, maxValue };
   }
 

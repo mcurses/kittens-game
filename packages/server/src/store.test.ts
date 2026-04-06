@@ -538,3 +538,73 @@ describe("SessionRegistry", () => {
     expect(result.ok).toBe(true);
   });
 });
+
+describe("GameStateStore — legacy import over-cap preservation", () => {
+  it("preserves over-cap resource values when importing legacy save with no cap effect", () => {
+    // Simulating a legacy import where catnip was 837,318,451.90
+    // but current storage cap would be only 4,232,100 or so
+    const adapter = createMemoryAdapter();
+    const store = new GameStateStore(adapter);
+    store.init();
+
+    const saved = store.getSerialized();
+    const importData = {
+      ...saved,
+      resources: {
+        ...saved.resources,
+        catnip: { value: 837318451.9, maxValue: 0 },
+      },
+      // effectCache is not provided in import, will be rebuilt without cap
+    };
+
+    store.loadFromSave(importData);
+    const imported = store.getSerialized();
+
+    // The over-cap value should be preserved even after effect cache rebuild
+    expect(imported.resources.catnip?.value).toBe(837318451.9);
+  });
+
+  it("preserves multiple over-cap resource values in mature imported save", () => {
+    // Simulating a run 8 mature save with many over-cap resources
+    const adapter = createMemoryAdapter();
+    const store = new GameStateStore(adapter);
+    store.init();
+
+    const saved = store.getSerialized();
+    const legacyValues = {
+      catnip: 837318451.9,
+      wood: 112353055.47,
+      minerals: 138836437.53,
+      science: 276057022.74,
+      faith: 228373.76,
+      antimatter: 2075.36,
+      unobtainium: 88289.39,
+    };
+
+    const importData = {
+      ...saved,
+      resources: {
+        ...saved.resources,
+        catnip: { value: legacyValues.catnip, maxValue: 0 },
+        wood: { value: legacyValues.wood, maxValue: 0 },
+        minerals: { value: legacyValues.minerals, maxValue: 0 },
+        science: { value: legacyValues.science, maxValue: 0 },
+        faith: { value: legacyValues.faith, maxValue: 0 },
+        antimatter: { value: legacyValues.antimatter, maxValue: 0 },
+        unobtainium: { value: legacyValues.unobtainium, maxValue: 0 },
+      },
+    };
+
+    store.loadFromSave(importData);
+    const imported = store.getSerialized();
+
+    // All legacy values should be preserved
+    expect(imported.resources.catnip?.value).toBeCloseTo(legacyValues.catnip, 0);
+    expect(imported.resources.wood?.value).toBeCloseTo(legacyValues.wood, 0);
+    expect(imported.resources.minerals?.value).toBeCloseTo(legacyValues.minerals, 0);
+    expect(imported.resources.science?.value).toBeCloseTo(legacyValues.science, 0);
+    expect(imported.resources.faith?.value).toBeCloseTo(legacyValues.faith, 0);
+    expect(imported.resources.antimatter?.value).toBeCloseTo(legacyValues.antimatter, 0);
+    expect(imported.resources.unobtainium?.value).toBeCloseTo(legacyValues.unobtainium, 0);
+  });
+});

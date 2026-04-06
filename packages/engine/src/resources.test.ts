@@ -362,4 +362,5 @@ describe("ResourceManager", () => {
       expect(reset.resources.catnip?.value).toBe(0);
     });
   });
+
 });
