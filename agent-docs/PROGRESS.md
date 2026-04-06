@@ -776,7 +776,7 @@ API-spec tests: 27 passing | Line coverage: 100%
 
 ## Epic 41: Resource Cost Highlighting
 **Status:** Complete | **Started:** 2026-04-06
-Stories: 6 / 6 complete
+Stories: 7 / 7 complete
 
 - [x] Story 41-01: Highlight required resources on action hover
 - [x] Story 41-02: Show cost target marker on resource progress bar
@@ -784,4 +784,5 @@ Stories: 6 / 6 complete
 - [x] Story 41-04: Highlight works across all action panels
 - [x] Story 41-05: No visual regression on existing resource panel behavior
 - [x] Story 41-06: Recursive ingredient highlighting for crafted cost resources
+- [x] Story 41-07: Hierarchical tree ordering for highlighted resources
 Total: 1432 tests across all packages

@@ -122,7 +122,7 @@ export function ResourcePanel({ state }: Props): React.ReactElement {
         {visibleResources.length === 0 ? (
           <li className="panel-empty">No resources yet.</li>
         ) : (
-          visibleResources.map((r) => (
+          buildRenderOrder(visibleResources, highlightMap).map((r) => (
             <ResourceItem
               key={r.name}
               resource={r}
@@ -140,6 +140,52 @@ export function ResourcePanel({ state }: Props): React.ReactElement {
 
 // ── Highlight helpers ─────────────────────────────────────
 
+/**
+ * When highlighting is active, reorder resources into a parent→child tree
+ * followed by the dimmed tail. When inactive, return original order.
+ */
+function buildRenderOrder(
+  resources: ResourceEntry[],
+  highlightMap: Map<string, IngredientNode> | null,
+): ResourceEntry[] {
+  if (!highlightMap) return resources;
+
+  const byName = new Map(resources.map((r) => [r.name, r]));
+
+  // Build a children index: parentName → ordered list of child names
+  const childrenOf = new Map<string, string[]>();
+  for (const [name, node] of highlightMap) {
+    if (node.depth > 1 && node.parentName) {
+      const siblings = childrenOf.get(node.parentName) ?? [];
+      siblings.push(name);
+      childrenOf.set(node.parentName, siblings);
+    }
+  }
+
+  const visited = new Set<string>();
+  const ordered: ResourceEntry[] = [];
+
+  function visit(name: string): void {
+    if (visited.has(name)) return;
+    visited.add(name);
+    const r = byName.get(name);
+    if (r) ordered.push(r);
+    for (const child of childrenOf.get(name) ?? []) visit(child);
+  }
+
+  // Emit depth-1 roots in their original prices order
+  for (const [name, node] of highlightMap) {
+    if (node.depth === 1) visit(name);
+  }
+
+  // Append dimmed resources in original order
+  for (const r of resources) {
+    if (!visited.has(r.name)) ordered.push(r);
+  }
+
+  return ordered;
+}
+
 function getItemClass(
   name: string,
   highlightMap: Map<string, IngredientNode> | null,
@@ -147,9 +193,10 @@ function getItemClass(
   if (highlightMap === null) return "resource-item";
   const node = highlightMap.get(name);
   if (!node) return "resource-item resource-item--dimmed";
-  if (node.depth === 1) return "resource-item resource-item--highlighted";
-  if (node.depth === 2) return "resource-item resource-item--highlighted-secondary";
-  return "resource-item resource-item--highlighted-tertiary";
+  const indent = node.depth > 1 ? ` resource-item--child-depth-${node.depth - 1}` : "";
+  if (node.depth === 1) return `resource-item resource-item--highlighted${indent}`;
+  if (node.depth === 2) return `resource-item resource-item--highlighted-secondary${indent}`;
+  return `resource-item resource-item--highlighted-tertiary${indent}`;
 }
 
 function TargetMarker({
@@ -326,10 +373,6 @@ function ResourceItem({
         <EtaLabel resource={resource} node={node} elapsedSeconds={elapsedSeconds} />
       )}
 
-      {/* Secondary/tertiary annotation */}
-      {node && node.depth > 1 && (
-        <div className="resource-item-annotation">↳ ingredient of {node.parentName}</div>
-      )}
     </li>
   );
 }

@@ -613,9 +613,9 @@ describe("Story 41-05: No visual regression on existing resource panel behavior"
 });
 
 describe("Story 41-06: Secondary ingredient highlighting", () => {
-  it("shows secondary annotation for craft ingredient of a required resource", () => {
+  it("shows craft ingredient of a required resource as secondary-highlighted and positioned after its parent", () => {
     // Require compedium (craftable: science + manuscript) but have none
-    // manuscript should appear highlighted at secondary depth with annotation
+    // manuscript should appear highlighted at secondary depth, immediately after compedium
     const state = makeState({
       compedium: { value: 0, maxValue: 100, unlocked: true },
       manuscript: { value: 0, maxValue: 100, unlocked: true },
@@ -631,9 +631,16 @@ describe("Story 41-06: Secondary ingredient highlighting", () => {
     const manuscriptItem = screen.getByTestId("resource-manuscript");
     expect(manuscriptItem.className).toContain("resource-item--highlighted-secondary");
 
+    // Hierarchy conveys parent relationship — no annotation label
     const annotation = manuscriptItem.querySelector(".resource-item-annotation");
-    expect(annotation).toBeTruthy();
-    expect(annotation?.textContent).toContain("compedium");
+    expect(annotation).toBeNull();
+
+    // manuscript rendered after compedium (its parent)
+    const list = screen.getByRole("list", { name: /resources/i });
+    const items = Array.from(list.querySelectorAll("li"));
+    const compediumIdx = items.findIndex((el) => el.dataset.testid === "resource-compedium");
+    const manuscriptIdx = items.findIndex((el) => el.dataset.testid === "resource-manuscript");
+    expect(compediumIdx).toBeLessThan(manuscriptIdx);
   });
 
   it("secondary rows show softer highlight (not primary) class", () => {
@@ -675,6 +682,115 @@ describe("Story 41-06: Secondary ingredient highlighting", () => {
     const manuscriptItem = screen.getByTestId("resource-manuscript");
     expect(manuscriptItem.className).not.toContain("resource-item--highlighted");
     expect(manuscriptItem.className).toContain("resource-item--dimmed");
+  });
+});
+
+// ── Story 41-07: Hierarchical tree ordering ──────────────────────────────────
+
+describe("Story 41-07: Hierarchical tree ordering for highlighted resources", () => {
+  it("renders primary required resources before dimmed non-required resources", () => {
+    // minerals required, iron not required
+    const state = makeState({
+      iron: { value: 0, maxValue: 100, unlocked: true },
+      minerals: { value: 0, maxValue: 500, unlocked: true },
+    });
+    render(
+      <WithInspector>
+        <HoverAction prices={[{ name: "minerals", val: 10 }]} />
+        <ResourcePanel state={state} />
+      </WithInspector>,
+    );
+
+    const list = screen.getByRole("list", { name: /resources/i });
+    const items = Array.from(list.querySelectorAll("li"));
+    const mineralIdx = items.findIndex((el) => el.dataset.testid === "resource-minerals");
+    const ironIdx = items.findIndex((el) => el.dataset.testid === "resource-iron");
+    expect(mineralIdx).toBeLessThan(ironIdx);
+  });
+
+  it("renders craft ingredients immediately after their parent resource", () => {
+    // compedium (depth 1) → manuscript (depth 2), science (depth 2)
+    const state = makeState({
+      compedium: { value: 0, maxValue: 100, unlocked: true },
+      manuscript: { value: 0, maxValue: 100, unlocked: true },
+      science: { value: 0, maxValue: 999_999, unlocked: true },
+      minerals: { value: 50, maxValue: 500, unlocked: true },
+    });
+    render(
+      <WithInspector>
+        <HoverAction prices={[{ name: "compedium", val: 3 }]} />
+        <ResourcePanel state={state} />
+      </WithInspector>,
+    );
+
+    const list = screen.getByRole("list", { name: /resources/i });
+    const items = Array.from(list.querySelectorAll("li"));
+    const getIdx = (id: string) => items.findIndex((el) => el.dataset.testid === `resource-${id}`);
+
+    const compediumIdx = getIdx("compedium");
+    const manuscriptIdx = getIdx("manuscript");
+    const scienceIdx = getIdx("science");
+    const mineralsIdx = getIdx("minerals");
+
+    // compedium is depth 1; manuscript and science are its children (depth 2)
+    expect(compediumIdx).toBeLessThan(manuscriptIdx);
+    expect(compediumIdx).toBeLessThan(scienceIdx);
+    // Dimmed minerals appears after all highlighted resources
+    expect(manuscriptIdx).toBeLessThan(mineralsIdx);
+    expect(scienceIdx).toBeLessThan(mineralsIdx);
+  });
+
+  it("applies indentation class based on depth", () => {
+    const state = makeState({
+      compedium: { value: 0, maxValue: 100, unlocked: true },
+      manuscript: { value: 0, maxValue: 100, unlocked: true },
+      science: { value: 0, maxValue: 999_999, unlocked: true },
+    });
+    render(
+      <WithInspector>
+        <HoverAction prices={[{ name: "compedium", val: 3 }]} />
+        <ResourcePanel state={state} />
+      </WithInspector>,
+    );
+
+    const compediumItem = screen.getByTestId("resource-compedium");
+    const manuscriptItem = screen.getByTestId("resource-manuscript");
+
+    // depth 1 → no indent class; depth 2 → child-depth-1
+    expect(compediumItem.className).not.toContain("child-depth");
+    expect(manuscriptItem.className).toContain("resource-item--child-depth-1");
+  });
+
+  it("removes the annotation label in favor of hierarchy", () => {
+    const state = makeState({
+      compedium: { value: 0, maxValue: 100, unlocked: true },
+      manuscript: { value: 0, maxValue: 100, unlocked: true },
+      science: { value: 0, maxValue: 999_999, unlocked: true },
+    });
+    render(
+      <WithInspector>
+        <HoverAction prices={[{ name: "compedium", val: 3 }]} />
+        <ResourcePanel state={state} />
+      </WithInspector>,
+    );
+
+    expect(document.querySelector(".resource-item-annotation")).toBeNull();
+  });
+
+  it("flat order unchanged when no highlighting is active", () => {
+    const state = makeState({
+      catnip: { value: 10, maxValue: 5000 },
+      minerals: { value: 5, maxValue: 500 },
+    });
+    render(<WithInspector><ResourcePanel state={state} /></WithInspector>);
+
+    const list = screen.getByRole("list", { name: /resources/i });
+    const items = Array.from(list.querySelectorAll("li"));
+    expect(items.length).toBe(2);
+    // No indent classes
+    for (const item of items) {
+      expect(item.className).not.toContain("child-depth");
+    }
   });
 });
 

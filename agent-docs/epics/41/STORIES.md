@@ -1,6 +1,6 @@
 # Epic 41: Resource Cost Highlighting
 
-**Status:** In Progress
+**Status:** Complete
 **Started:** 2026-04-06
 **Prerequisites:** Epic 26 (UI Information Architecture — InspectorContext exists), Epic 33 (visibility parity)
 **Legacy refs:** No direct legacy equivalent — new UX pattern
@@ -14,11 +14,11 @@
 **So that** I can see at a glance which resources are relevant without looking at the inspector on the other side of the screen
 
 ### Acceptance Criteria
-- [ ] Given a building/upgrade/tech is hovered, when its prices array is non-empty, then each required resource row receives a `resource-item--highlighted` CSS class
-- [ ] Given a building/upgrade/tech is hovered, when its prices array is non-empty, then all other resource rows receive a `resource-item--dimmed` CSS class with reduced opacity (~35%)
-- [ ] Given no item is hovered (inspected is null), then no rows are highlighted or dimmed — all rows render at full opacity
-- [ ] Given a resource row is hovered (ResourceEntity inspected), then no dimming occurs — resource hover does not trigger the highlight mode (ResourceEntity has no prices)
-- [ ] Highlighted and dimmed states transition smoothly via CSS (150ms opacity transition)
+- [x] Given a building/upgrade/tech is hovered, when its prices array is non-empty, then each required resource row receives a `resource-item--highlighted` CSS class
+- [x] Given a building/upgrade/tech is hovered, when its prices array is non-empty, then all other resource rows receive a `resource-item--dimmed` CSS class with reduced opacity (~35%)
+- [x] Given no item is hovered (inspected is null), then no rows are highlighted or dimmed — all rows render at full opacity
+- [x] Given a resource row is hovered (ResourceEntity inspected), then no dimming occurs — resource hover does not trigger the highlight mode (ResourceEntity has no prices)
+- [x] Highlighted and dimmed states transition smoothly via CSS (150ms opacity transition)
 
 ### Legacy Reference
 - No direct legacy equivalent. Affordability in legacy: `legacy/js/ui.js` — price text color change only, no resource panel interaction.
@@ -39,12 +39,12 @@
 **So that** I can see at a glance how far each resource is from the required amount
 
 ### Acceptance Criteria
-- [ ] Given a resource is highlighted (required by hovered item), when `needed <= maxValue`, then a thin vertical line (target marker) is rendered inside the progress bar at position `(needed / maxValue) * 100%`
-- [ ] Given current resource value < needed, then the marker appears ahead of the bar fill, styled in the accent color (goal not yet reached)
-- [ ] Given current resource value >= needed, then the marker appears at or behind the fill position, styled in success/green color (goal met)
-- [ ] Given `needed > maxValue` (storage limited), then the marker is pinned at 100% of bar width and styled in warning/amber color — no text label; color alone communicates the state
-- [ ] Given a resource is not highlighted (dimmed or no hover active), then no target marker is rendered
-- [ ] The marker is visually distinct: a thin (2px) vertical line spanning the full bar height, with appropriate z-index to be visible over the bar fill
+- [x] Given a resource is highlighted (required by hovered item), when `needed <= maxValue`, then a thin vertical line (target marker) is rendered inside the progress bar at position `(needed / maxValue) * 100%`
+- [x] Given current resource value < needed, then the marker appears ahead of the bar fill, styled in the accent color (goal not yet reached)
+- [x] Given current resource value >= needed, then the marker appears at or behind the fill position, styled in success/green color (goal met)
+- [x] Given `needed > maxValue` (storage limited), then the marker is pinned at 100% of bar width and styled in warning/amber color — no text label; color alone communicates the state
+- [x] Given a resource is not highlighted (dimmed or no hover active), then no target marker is rendered
+- [x] The marker is visually distinct: a thin (2px) vertical line spanning the full bar height, with appropriate z-index to be visible over the bar fill
 
 ### Legacy Reference
 - No legacy equivalent — new visual affordance.
@@ -64,12 +64,12 @@
 **So that** I know whether to wait or do something else (gather, trade, etc.)
 
 ### Acceptance Criteria
-- [ ] Given a resource is highlighted and `current < needed` and `perTick > 0`, then an ETA label is shown below the progress bar: "in Xm Ys" (using existing `formatDuration()`)
-- [ ] Given a resource is highlighted and `current >= needed`, then no ETA label is shown (requirement already met)
-- [ ] Given a resource is highlighted and `perTick <= 0`, then the label shows "—" (not accumulating)
-- [ ] Given `needed > maxValue` (storage limited), then no ETA label is shown — the warning-colored marker at 100% is the sole indicator
-- [ ] The ETA label updates live (approximately every second) while the item remains hovered, counting down as resources accumulate
-- [ ] The ETA label disappears immediately when the item is un-hovered
+- [x] Given a resource is highlighted and `current < needed` and `perTick > 0`, then an ETA label is shown below the progress bar: "in Xm Ys" (using existing `formatDuration()`)
+- [x] Given a resource is highlighted and `current >= needed`, then no ETA label is shown (requirement already met)
+- [x] Given a resource is highlighted and `perTick <= 0`, then the label shows "—" (not accumulating)
+- [x] Given `needed > maxValue` (storage limited), then no ETA label is shown — the warning-colored marker at 100% is the sole indicator
+- [x] The ETA label updates live (approximately every second) while the item remains hovered, counting down as resources accumulate
+- [x] The ETA label disappears immediately when the item is un-hovered
 
 ### Legacy Reference
 - Live ETA pattern already exists in `InspectorPanel.tsx` via `useElapsedInspectorSeconds()`. Reuse same interval approach.
@@ -92,13 +92,13 @@
 **So that** the feature works consistently everywhere I interact with purchasable items
 
 ### Acceptance Criteria
-- [ ] Given a building is hovered in BuildingsPanel, then the resource highlight activates
-- [ ] Given an upgrade is hovered in WorkshopPanel, then the resource highlight activates
-- [ ] Given a technology is hovered in SciencePanel, then the resource highlight activates
-- [ ] Given a ziggurat or religion upgrade is hovered in ReligionPanel, then the resource highlight activates
-- [ ] Given a space structure is hovered in SpacePanel, then the resource highlight activates
-- [ ] Given a chronoforge or vortex upgrade is hovered in TimePanel, then the resource highlight activates
-- [ ] All of the above: the existing `setInspected()` call is sufficient — no per-panel changes needed if InspectorContext carries prices already
+- [x] Given a building is hovered in BuildingsPanel, then the resource highlight activates
+- [x] Given an upgrade is hovered in WorkshopPanel, then the resource highlight activates
+- [x] Given a technology is hovered in SciencePanel, then the resource highlight activates
+- [x] Given a ziggurat or religion upgrade is hovered in ReligionPanel, then the resource highlight activates
+- [x] Given a space structure is hovered in SpacePanel, then the resource highlight activates
+- [x] Given a chronoforge or vortex upgrade is hovered in TimePanel, then the resource highlight activates
+- [x] All of the above: the existing `setInspected()` call is sufficient — no per-panel changes needed if InspectorContext carries prices already
 
 ### Legacy Reference
 - All panels already call `setInspected({ prices, ... })` on hover — `InspectorContext.tsx`, all panel files
@@ -118,16 +118,16 @@
 **So that** I know which raw/base resources I need to accumulate to unblock the craft chain, without having to mentally trace the recipe tree myself
 
 ### Acceptance Criteria
-- [ ] Given an item requires Compendium and I lack it, and Compendium is craftable from Science + Manuscripts, then Science and Manuscripts are also highlighted (at secondary depth) if I don't have enough of them to cover the craft
-- [ ] Given a secondary ingredient is itself craftable (e.g. Manuscripts from Parchment), and I'm short on it, then its ingredients are highlighted at tertiary depth, and so on recursively — max depth 3
-- [ ] Recursion stops at any resource where the current amount satisfies the needed ingredient quantity (no need to highlight further — requirement is already met at that node)
-- [ ] Recursion stops at base resources that have no craft recipe (catnip, wood, minerals, etc.)
-- [ ] Secondary highlighted rows (depth 2) render with a visibly softer highlight than primary (depth 1) — distinct CSS class `resource-item--highlighted-secondary`
-- [ ] Tertiary highlighted rows (depth 3) render softer still — CSS class `resource-item--highlighted-tertiary`
-- [ ] Each secondary/tertiary row shows an annotation below its bar: "↳ for [ParentResourceName]" in muted small text — so the player knows *why* that resource is highlighted
-- [ ] ETA label for secondary/tertiary rows uses the same perTick-based calculation (how long to accumulate the raw ingredient), not a "time to craft" estimate
-- [ ] If the same resource appears as an ingredient at multiple depths (diamond dependency), it is highlighted at the shallowest depth found
-- [ ] The `expandCraftCosts(prices, craftDefs, resources)` helper is a pure function, separately unit-tested with craft chain fixtures
+- [x] Given an item requires Compendium and I lack it, and Compendium is craftable from Science + Manuscripts, then Science and Manuscripts are also highlighted (at secondary depth) if I don't have enough of them to cover the craft
+- [x] Given a secondary ingredient is itself craftable (e.g. Manuscripts from Parchment), and I'm short on it, then its ingredients are highlighted at tertiary depth, and so on recursively — max depth 3
+- [x] Recursion stops at any resource where the current amount satisfies the needed ingredient quantity (no need to highlight further — requirement is already met at that node)
+- [x] Recursion stops at base resources that have no craft recipe (catnip, wood, minerals, etc.)
+- [x] Secondary highlighted rows (depth 2) render with a visibly softer highlight than primary (depth 1) — distinct CSS class `resource-item--highlighted-secondary`
+- [x] Tertiary highlighted rows (depth 3) render softer still — CSS class `resource-item--highlighted-tertiary`
+- [x] Each secondary/tertiary row shows an annotation below its bar: "↳ for [ParentResourceName]" in muted small text — so the player knows *why* that resource is highlighted
+- [x] ETA label for secondary/tertiary rows uses the same perTick-based calculation (how long to accumulate the raw ingredient), not a "time to craft" estimate
+- [x] If the same resource appears as an ingredient at multiple depths (diamond dependency), it is highlighted at the shallowest depth found
+- [x] The `expandCraftCosts(prices, craftDefs, resources)` helper is a pure function, separately unit-tested with craft chain fixtures
 
 ### Legacy Reference
 - Workshop crafting recipes: `legacy/js/workshop.js` — `craftManager.crafts` array, each with `prices: [{name, val}]` and `name`
@@ -159,10 +159,10 @@
 **So that** the new highlighting feature does not degrade the baseline experience
 
 ### Acceptance Criteria
-- [ ] Given no item is hovered, all resource rows render at full opacity with no target markers or ETA labels
-- [ ] Given a resource row itself is hovered (ResourceEntity), the existing resource inspector shows in InspectorPanel as before, and no dimming/highlighting occurs in the resource list
-- [ ] The rate badge, value display, max value display, and progress bar fill all behave identically to pre-epic behavior when no highlighting is active
-- [ ] The `pnpm turbo build` passes with no TypeScript errors
+- [x] Given no item is hovered, all resource rows render at full opacity with no target markers or ETA labels
+- [x] Given a resource row itself is hovered (ResourceEntity), the existing resource inspector shows in InspectorPanel as before, and no dimming/highlighting occurs in the resource list
+- [x] The rate badge, value display, max value display, and progress bar fill all behave identically to pre-epic behavior when no highlighting is active
+- [x] The `pnpm turbo build` passes with no TypeScript errors
 
 ### Legacy Reference
 - `packages/client-web/src/ResourcePanel.tsx` — existing behavior baseline
@@ -171,3 +171,32 @@
 - Primarily a regression guard. Covered implicitly by other tests but worth an explicit render snapshot or behavior test.
 
 ### Status: [ ] Tests | [ ] Impl | [ ] Rated
+
+---
+
+## Story 41-07: Hierarchical tree ordering for highlighted resources
+
+**As a** player hovering a purchasable item with craftable cost resources
+**I want** the resource panel to display required resources in a parent→child tree with indentation
+**So that** the ingredient chain is visually self-evident without needing "↳ ingredient of X" annotations
+
+### Acceptance Criteria
+- [ ] Given highlighting is active, when resources are rendered, then primary required resources (depth 1) appear at the top of the list in their original relative order, followed by dimmed non-required resources — not interleaved with the tree
+- [ ] Given a primary resource has craft ingredients in the highlight map, then those ingredients are rendered immediately below their parent, indented by one level (CSS class `resource-item--child-depth-1`)
+- [ ] Given a secondary ingredient has further craft ingredients in the highlight map, then those are rendered below it, indented by two levels (`resource-item--child-depth-2`), and so on up to max depth
+- [ ] Given the tree is rendered, the `resource-item-annotation` ("↳ ingredient of X") is removed — hierarchy conveys the relationship visually
+- [ ] Given a resource appears as an ingredient of multiple parents (diamond dependency), it is rendered once under the shallowest parent (consistent with how `expandCraftCosts` resolves diamonds)
+- [ ] Given no highlighting is active, the resource list renders in its original flat order with no indentation — no change to baseline behavior
+- [ ] Given a resource is only dimmed (not in the highlight map at any depth), it renders after the full tree in the standard flat order
+
+### Legacy Reference
+- No legacy equivalent — new UX pattern.
+
+### Notes
+- Rendering order when active: [root required resources in tree order] → [dimmed resources in original order]
+- Tree traversal: for each depth-1 entry (in original `prices` order), render the node, then recursively render its children (those whose `parentName === this node's name`) in the order they appear in `expandCraftCosts`
+- Indentation: `padding-left` via CSS class based on `node.depth - 1` levels (depth 1 = no indent, depth 2 = one level, depth 3 = two levels)
+- The `resource-item-annotation` div rendered in Story 41-06 is removed from `ResourceItem`
+- The flat dimmed tail must still render so the player can see non-required resources
+
+### Status: [x] Tests | [x] Impl | [ ] Rated
