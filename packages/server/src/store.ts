@@ -273,7 +273,7 @@ export class GameStateStore {
 }
 
 /** Validates a slot name: alphanumeric, dash, underscore only, 1-64 chars. */
-function isValidSlot(name: string): boolean {
+export function isValidSlot(name: string): boolean {
   return /^[a-zA-Z0-9_-]{1,64}$/.test(name);
 }
 

@@ -78,10 +78,10 @@
 **So that** I can operate the server without opening a browser
 
 ### Acceptance Criteria
-- [ ] New package `packages/cli` with `bin/kittens.ts` entry point, registered in `package.json` `bin` field
-- [ ] Runs via `bun packages/cli/bin/kittens.ts` or `bun run cli` from repo root
-- [ ] Uses `commander` (or equivalent) for subcommand parsing; `--server <url>` flag (default `http://localhost:3000`) for all commands
-- [ ] Commands and expected output:
+- [x] New package `packages/cli` with `bin/kittens.ts` entry point, registered in `package.json` `bin` field
+- [x] Runs via `bun packages/cli/bin/kittens.ts` or `bun run cli` from repo root
+- [x] Uses `commander` (or equivalent) for subcommand parsing; `--server <url>` flag (default `http://localhost:3000`) for all commands
+- [x] Commands and expected output:
   - `sessions list` — prints a table: slot | status (colored symbol) | created | updated | (active slots show ● green, paused ⏸ yellow, archived ▪ gray)
   - `sessions create <slot>` — creates session, prints confirmation or error
   - `sessions pause <slot>` — pauses, prints confirmation
@@ -89,11 +89,11 @@
   - `sessions archive <slot>` — archives with `--confirm` flag required; prints confirmation
   - `sessions delete <slot>` — deletes with `--confirm` flag required; prints confirmation
   - `sessions export <slot> [--output <file>]` — writes state JSON to file (default `<slot>.json` in cwd); prints bytes written
-- [ ] `--json` flag on `sessions list` outputs raw JSON array for scripting
-- [ ] Exits with code 1 and prints error to stderr on any server error or validation failure
-- [ ] Unit tests cover argument parsing and output formatting using a mock HTTP client
+- [x] `--json` flag on `sessions list` outputs raw JSON array for scripting
+- [x] Exits with code 1 and prints error to stderr on any server error or validation failure
+- [x] Unit tests cover argument parsing and output formatting using a mock HTTP client
 
-### Status: [ ] Tests | [ ] Impl | [ ] Rated
+### Status: [x] Tests | [x] Impl | [ ] Rated
 
 ---
 
@@ -104,20 +104,20 @@
 **So that** I can create, open, pause, archive, delete, and export sessions without leaving the browser
 
 ### Acceptance Criteria
-- [ ] New `SessionsPanel` component rendered as a top-level tab (tab label: "Sessions") visible when no slot is loaded or accessible from the header
-- [ ] Panel shows a table with columns: **Name** | **Status** | **Last Saved** | **Actions**
-- [ ] Status column uses compact inline symbols: `●` active (green), `⏸` paused (amber), `▪` archived (gray) — no text labels (feedback: prefer color/symbol over text labels)
-- [ ] **Actions** column per row:
+- [x] New `SessionsPanel` component rendered as a top-level tab (tab label: "Sessions") visible when no slot is loaded or accessible from the header
+- [x] Panel shows a table with columns: **Name** | **Status** | **Last Saved** | **Actions**
+- [x] Status column uses compact inline symbols: `●` active (green), `⏸` paused (amber), `▪` archived (gray) — no text labels (feedback: prefer color/symbol over text labels)
+- [x] **Actions** column per row:
   - Active: Open (navigates to `?slot=<name>`), Pause, Archive, Export, Delete
   - Paused: Open (read-only note), Resume, Archive, Export, Delete
   - Archived: Export, Delete (no open/pause/resume)
-- [ ] **Create New** button opens an inline input; validates slot name client-side (`^[a-zA-Z0-9_-]{1,64}$`); calls `POST /api/sessions`; refreshes list on success
-- [ ] Export action triggers a file download via `GET /api/sessions/:slot/export`
-- [ ] Delete and Archive show an inline confirmation (not a browser dialog) before proceeding
-- [ ] List auto-refreshes via TanStack Query (polling every 5s or on focus); no WebSocket needed for this panel
-- [ ] Panel is accessible from the header when `?slot` is set (e.g., a "Manage Sessions" link)
+- [x] **Create New** button opens an inline input; validates slot name client-side (`^[a-zA-Z0-9_-]{1,64}$`); calls `POST /api/sessions`; refreshes list on success
+- [x] Export action triggers a file download via `GET /api/sessions/:slot/export`
+- [x] Delete and Archive show an inline confirmation (not a browser dialog) before proceeding
+- [x] List auto-refreshes via TanStack Query (polling every 5s or on focus); no WebSocket needed for this panel
+- [x] Panel is accessible from the header when `?slot` is set (e.g., a "Manage Sessions" link)
 
-### Status: [ ] Tests | [ ] Impl | [ ] Rated
+### Status: [x] Tests | [x] Impl | [ ] Rated
 
 ---
 

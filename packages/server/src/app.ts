@@ -77,6 +77,15 @@ export function createApp(registry: SessionRegistry): Hono {
     if (result instanceof Response) return result;
     const { store } = result;
 
+    // Check if slot is paused — block all write actions on paused slots
+    const slot = getSlotParam(c);
+    if (slot !== null) {
+      const slotMeta = registry.listAll().find((m) => m.slot === slot);
+      if (slotMeta && slotMeta.status === "paused") {
+        return c.json({ error: "session is paused" }, 409) as unknown as Response;
+      }
+    }
+
     let body: unknown;
     try {
       body = await c.req.json();
@@ -113,6 +122,16 @@ export function createApp(registry: SessionRegistry): Hono {
   app.post("/api/game/tick", (c) => {
     const result = resolveStore(c, registry);
     if (result instanceof Response) return result;
+
+    // Check if slot is paused — block ticks on paused slots
+    const slot = getSlotParam(c);
+    if (slot !== null) {
+      const slotMeta = registry.listAll().find((m) => m.slot === slot);
+      if (slotMeta && slotMeta.status === "paused") {
+        return c.json({ error: "session is paused" }, 409) as unknown as Response;
+      }
+    }
+
     const newState = result.store.advanceTick();
     return c.json(newState);
   });

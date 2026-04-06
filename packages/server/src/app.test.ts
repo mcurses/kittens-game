@@ -159,6 +159,32 @@ describe("POST /api/game/action", () => {
     expect(((await defaultRes.json()) as { tick: number }).tick).toBe(0);
   });
 
+  it("returns 409 if slot is paused", async () => {
+    const { app, registry } = makeApp();
+    registry.create("paused-slot");
+    registry.pause("paused-slot");
+
+    const res = await req(app, "/api/game/action?slot=paused-slot", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ type: "TICK" }),
+    });
+    expect(res.status).toBe(409);
+    const body = (await res.json()) as { error: string };
+    expect(body.error).toContain("paused");
+  });
+
+  it("allows reads on paused slots", async () => {
+    const { app, registry } = makeApp();
+    registry.create("paused-slot");
+    registry.pause("paused-slot");
+
+    const res = await req(app, "/api/game/state?slot=paused-slot");
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as { tick: number };
+    expect(body.tick).toBe(0);
+  });
+
   it("returns 400 for invalid slot", async () => {
     const { app } = makeApp();
     const res = await req(app, "/api/game/action?slot=..%2Fbad", {
@@ -196,6 +222,35 @@ describe("POST /api/game/tick", () => {
     // default slot unaffected
     const defaultRes = await req(app, "/api/game/state");
     expect(((await defaultRes.json()) as { tick: number }).tick).toBe(0);
+  });
+
+  it("returns 409 if slot is paused", async () => {
+    const { app, registry } = makeApp();
+    registry.create("paused-slot");
+    registry.pause("paused-slot");
+
+    const res = await req(app, "/api/game/tick?slot=paused-slot", { method: "POST" });
+    expect(res.status).toBe(409);
+    const body = (await res.json()) as { error: string };
+    expect(body.error).toContain("paused");
+  });
+
+  it("restarts ticks after resuming paused slot", async () => {
+    const { app, registry } = makeApp();
+    registry.create("test-slot");
+    // Pause the slot
+    registry.pause("test-slot");
+    // Try to tick — should fail
+    let res = await req(app, "/api/game/tick?slot=test-slot", { method: "POST" });
+    expect(res.status).toBe(409);
+
+    // Resume the slot
+    registry.resume("test-slot");
+    // Now tick should work
+    res = await req(app, "/api/game/tick?slot=test-slot", { method: "POST" });
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as { tick: number };
+    expect(body.tick).toBe(1);
   });
 });
 
