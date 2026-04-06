@@ -1631,3 +1631,33 @@ Factory mode visibility is now engine-owned and only appears after `carbonSeques
 - [ ] None blocking. Session management is complete and orthogonal to game mechanics parity.
 - [ ] Optional: consider adding session audit events (created, paused, resumed, archived, deleted) if operational visibility becomes important. Low priority.
 
+
+---
+
+## Epic 45: Live Save Import Parity — 2026-04-06
+
+| Dimension | Score | Notes |
+|-----------|-------|-------|
+| Test coverage (≥90% target) | 5 | Server: 161/161 tests passing (95.9% line coverage). Engine: 990/990 tests passing (98.89% line coverage). Story 45-03 regression test loads and asserts Run 8 fixture across calendar, population, resources, buildings, progression state. |
+| No skipped tests / no TODOs | 5 | Zero skipped tests. Zero TODO/FIXME/HACK comments. Zero `any` type usage. TypeScript strict mode passes with optional chaining fixes. |
+| Feature parity | 5 | Story 45-01 (over-cap preservation): producer (legacy-migration.ts line 90), consumer (store.ts line 224-226), action (/api/game/import-legacy), regression test (app.test.ts 1045-1073 verifying catnip/wood/minerals/science/faith/antimatter/unobtainium). Story 45-02 (maxKittens preservation): producer (legacy-migration.ts lines 388-394 _legacyMaxKittensImported marker), consumer (store.ts lines 233-238 override), action (POST /api/game/import-legacy), regression test (app.test.ts line 1043 maxKittens===579). Story 45-03 (regression coverage): fixture-driven test verifying Run 8 at year 10527 season 2 day 48 with kittens=579, buildings (hut=67, logHouse=216, mansion=192), resources, and progression state. All 3 stories fully wired end-to-end with no divergences from legacy. AC3 of Story 45-02 (happiness parity) explicitly deferred pending deeper legacy analysis per STORIES.md line 39. |
+| API spec completeness | 5 | No new GameAction types introduced in Epic 45. All 38+ action types present in openapi.yaml discriminated union. POST /api/game/import-legacy endpoint routes to `importLegacy` action with correct request/response schemas. No gaps. |
+| Code quality (no `any`) | 5 | Zero `any` type usage. TypeScript strict mode completes. Fixed undefined-check issues with optional chaining in app.test.ts (lines 1051-1052, 1055, 1058, 1061). All type assertions on deserialized data are safe. |
+| Docs freshness | 5 | PROGRESS.md updated with Epic 45 complete (3/3 stories, 2026-04-06). EPICS.md marked Epic 45 status ✅ Complete. STORIES.md all ACs checked for 45-01, 45-02, 45-03 with detailed ratings (5, 4, 5). PARITY.md timestamp updated to reflect Epic 45 closed with legacy save import parity coverage. |
+| Commit hygiene | 5 | 3 focused commits: (1) Story 45-03 regression test with TypeScript fixes, (2) STORIES.md AC completion and ratings, (3) PROGRESS.md, EPICS.md, PARITY.md documentation updates. All with clear messages and co-author tag. |
+| **Overall average** | **5.0** | All dimensions excellent. Epic 45 complete and ready for next batch. |
+
+### What went well
+- Using `_legacyMaxKittensImported` as a non-intrusive marker in effectCache allowed maxKittens preservation without modifying SerializedGameState schema
+- Run 8 fixture (real late-game save, Year 10527) provided authoritative regression baseline for calendar, population, buildings, resources, and progression state
+- Fixture-driven test eliminated uncertainty about "what does legacy actually do?" — the test runs against actual legacy serialized data
+- Optional chaining (`?.value`) caught TypeScript strictness before build failed; test suite green after fix
+- Story 45-02 acceptance criteria clearly documented the distinction between "preserve over-cap" (AC1, wired) and "happiness formula completeness" (AC3, deferred), preventing false claims of completeness
+
+### What to improve
+- Story 45-02 AC3 (happiness parity) remains deferred pending deeper legacy formula audit; consider creating a follow-up epic 46 task if happiness becomes a high-priority parity concern
+- The regression test loads the fixture file via hardcoded filesystem path (`agent-docs/example-saves/...`); consider a fixture registry or environment variable if test suites grow
+
+### Action items for next epic (46 or beyond)
+- [ ] Determine whether happiness formula completeness (Story 45-02 AC3) blocks any user-facing issues or can stay deferred. If user reports show impossible happiness values post-import, prioritize it. Otherwise, leave deferred and document in PARITY.md with explicit citation to Story 45-02.
+- [ ] After next epic completes, re-audit harbor-specific storage modifiers (`cargoShips`, `harborCoalRatio`) from Epic 42 action items if they were not addressed.
