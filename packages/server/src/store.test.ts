@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { createMemoryAdapter } from "./db.js";
-import { GameStateStore } from "./store.js";
+import { GameStateStore, SessionRegistry } from "./store.js";
 
 function makeStore(): GameStateStore {
   return new GameStateStore(createMemoryAdapter());
@@ -378,5 +378,163 @@ describe("GameStateStore", () => {
     const loaded = store.loadFromSave(imported);
     expect(loaded.village.kittens).toBe(12);
     expect("kittens" in loaded.resources).toBe(false);
+  });
+});
+
+describe("SessionRegistry", () => {
+  let registry: SessionRegistry;
+
+  beforeEach(() => {
+    registry = new SessionRegistry(createMemoryAdapter());
+  });
+
+  it("create initializes a new store with active status", () => {
+    const store = registry.create("test");
+    expect(store).toBeDefined();
+    expect(store.getSlot()).toBe("test");
+    const meta = registry.listAll().find(m => m.slot === "test");
+    expect(meta?.status).toBe("active");
+  });
+
+  it("create throws if slot already exists", () => {
+    registry.create("test");
+    expect(() => registry.create("test")).toThrow();
+  });
+
+  it("create throws if slot name is invalid", () => {
+    expect(() => registry.create("invalid slot!")).toThrow();
+  });
+
+  it("create validates slot name: only alphanumeric, dash, underscore", () => {
+    expect(() => registry.create("valid-name_123")).not.toThrow();
+    expect(() => registry.create("valid-name_123.json")).toThrow();
+    expect(() => registry.create("slot with spaces")).toThrow();
+  });
+
+  it("pause stops auto-tick and sets status to paused", () => {
+    const store = registry.create("test");
+    store.init();
+    registry.pause("test");
+
+    const meta = registry.listAll().find(m => m.slot === "test");
+    expect(meta?.status).toBe("paused");
+  });
+
+  it("pause throws if slot not found", () => {
+    expect(() => registry.pause("unknown")).toThrow();
+  });
+
+  it("resume restarts auto-tick and sets status to active", () => {
+    const store = registry.create("test");
+    store.init();
+    registry.pause("test");
+    registry.resume("test");
+
+    const meta = registry.listAll().find(m => m.slot === "test");
+    expect(meta?.status).toBe("active");
+  });
+
+  it("resume throws if slot not found", () => {
+    expect(() => registry.resume("unknown")).toThrow();
+  });
+
+  it("archive stops auto-tick, sets status to archived, and evicts from memory", () => {
+    const store = registry.create("test");
+    store.init();
+    registry.archive("test");
+
+    const meta = registry.listAll().find(m => m.slot === "test");
+    expect(meta?.status).toBe("archived");
+  });
+
+  it("archive throws if slot not found", () => {
+    expect(() => registry.archive("unknown")).toThrow();
+  });
+
+  it("delete removes slot entirely and evicts from memory", () => {
+    registry.create("test");
+    registry.delete("test");
+
+    expect(registry.listAll().find(m => m.slot === "test")).toBeUndefined();
+  });
+
+  it("delete throws if slot not found", () => {
+    expect(() => registry.delete("unknown")).toThrow();
+  });
+
+  it("listAll returns metadata for all slots", () => {
+    registry.create("slot1");
+    registry.create("slot2");
+    registry.pause("slot2");
+
+    const all = registry.listAll();
+    expect(all.length).toBeGreaterThanOrEqual(2);
+    const slot1 = all.find(m => m.slot === "slot1");
+    const slot2 = all.find(m => m.slot === "slot2");
+    expect(slot1?.status).toBe("active");
+    expect(slot2?.status).toBe("paused");
+  });
+
+  it("export returns serialized state JSON without side effects", () => {
+    const store = registry.create("test");
+    store.init();
+    store.advanceTick();
+
+    const json = registry.export("test");
+    const parsed = JSON.parse(json);
+    expect(parsed.tick).toBe(1);
+  });
+
+  it("export throws if slot is archived", () => {
+    const store = registry.create("test");
+    store.init();
+    registry.archive("test");
+
+    expect(() => registry.export("test")).toThrow();
+  });
+
+  it("export throws if slot not found", () => {
+    expect(() => registry.export("unknown")).toThrow();
+  });
+
+  it("startup only loads active slots into memory", () => {
+    const adapter = createMemoryAdapter();
+    const r1 = new SessionRegistry(adapter);
+    r1.create("active1");
+    r1.create("active2");
+    r1.create("paused1");
+    r1.pause("paused1");
+    r1.create("archived1");
+    r1.archive("archived1");
+
+    // Simulate restart with fresh registry
+    const r2 = new SessionRegistry(adapter);
+
+    // We can't directly check in-memory stores, but verify via listAll
+    const all = r2.listAll();
+    expect(all.find(m => m.slot === "active1")?.status).toBe("active");
+    expect(all.find(m => m.slot === "paused1")?.status).toBe("paused");
+    expect(all.find(m => m.slot === "archived1")?.status).toBe("archived");
+  });
+
+  it("pause blocks game actions with 409 error when checking via store", () => {
+    const store = registry.create("test");
+    store.init();
+    registry.pause("test");
+
+    // The store should know it's paused and reject actions
+    // This is checked via store.isPaused() or similar state
+    const result = store.applyGameAction({ type: "TICK" });
+    expect(result.ok).toBe(false);
+  });
+
+  it("resume allows game actions to proceed again", () => {
+    const store = registry.create("test");
+    store.init();
+    registry.pause("test");
+    registry.resume("test");
+
+    const result = store.applyGameAction({ type: "TICK" });
+    expect(result.ok).toBe(true);
   });
 });

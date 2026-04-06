@@ -22,9 +22,9 @@
 - [ ] `createBunAdapter` migrates (via `ALTER TABLE IF NOT EXISTS` pattern or `CREATE TABLE` update) the `saves` table to include `status TEXT NOT NULL DEFAULT 'active'` and `created_at INTEGER NOT NULL DEFAULT 0`; existing rows get `created_at = updated_at` on first access
 - [ ] `createMemoryAdapter` implements all four new methods correctly
 - [ ] `saveSlot` sets `created_at` on first insert, leaves it unchanged on upsert
-- [ ] Unit tests cover: listSlotMeta returns all rows, deleteSlot removes row, updateSlotStatus changes only status, getSlotMeta returns null for unknown slot
+- [x] Unit tests cover: listSlotMeta returns all rows, deleteSlot removes row, updateSlotStatus changes only status, getSlotMeta returns null for unknown slot
 
-### Status: [ ] Tests | [ ] Impl | [ ] Rated
+### Status: [x] Tests | [x] Impl | [ ] Rated
 
 ---
 
