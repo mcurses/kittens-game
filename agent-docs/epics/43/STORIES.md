@@ -23,7 +23,7 @@
 - `legacy/js/workshop.js` lines 548-563
 - `legacy/js/science.js` line 1706
 
-### Status: [ ] Tests | [ ] Impl | [ ] Rated
+### Status: [x] Tests | [x] Impl | [ ] Rated
 
 ## Story: Oil well runtime modifiers consume workshop effects
 
@@ -41,7 +41,7 @@
 - `legacy/js/buildings.js` lines 1386-1432
 - `legacy/js/workshop.js` lines 1556, 1890, 1905
 
-### Status: [ ] Tests | [ ] Impl | [ ] Rated
+### Status: [x] Tests | [x] Impl | [ ] Rated
 
 ## Story: Reactor runtime modifiers consume workshop effects
 
@@ -60,7 +60,7 @@
 - `legacy/js/workshop.js` lines 1719-1734
 - `legacy/js/science.js` line 1706
 
-### Status: [ ] Tests | [ ] Impl | [ ] Rated
+### Status: [x] Tests | [x] Impl | [ ] Rated
 
 ## Story: Mint runtime modifiers consume policy effects
 
@@ -78,4 +78,4 @@
 - `legacy/js/buildings.js` lines 1658-1703
 - `legacy/js/science.js` lines 1852, 2020-2024
 
-### Status: [ ] Tests | [ ] Impl | [ ] Rated
+### Status: [x] Tests | [x] Impl | [ ] Rated
