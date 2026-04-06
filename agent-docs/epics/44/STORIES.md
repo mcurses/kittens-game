@@ -14,14 +14,14 @@
 **So that** the server can track lifecycle state and surface it to management tools without loading full game state
 
 ### Acceptance Criteria
-- [ ] `SqliteAdapter` interface gains four new methods:
+- [x] `SqliteAdapter` interface gains four new methods:
   - `listSlotMeta()` → `SlotMeta[]` where `SlotMeta = { slot: string; status: 'active' | 'paused' | 'archived'; createdAt: number; updatedAt: number }`
   - `deleteSlot(slot)` — removes the row entirely
   - `updateSlotStatus(slot, status)` — sets status column without touching state_json
   - `getSlotMeta(slot)` → `SlotMeta | null`
-- [ ] `createBunAdapter` migrates (via `ALTER TABLE IF NOT EXISTS` pattern or `CREATE TABLE` update) the `saves` table to include `status TEXT NOT NULL DEFAULT 'active'` and `created_at INTEGER NOT NULL DEFAULT 0`; existing rows get `created_at = updated_at` on first access
-- [ ] `createMemoryAdapter` implements all four new methods correctly
-- [ ] `saveSlot` sets `created_at` on first insert, leaves it unchanged on upsert
+- [x] `createBunAdapter` migrates (via `ALTER TABLE IF NOT EXISTS` pattern or `CREATE TABLE` update) the `saves` table to include `status TEXT NOT NULL DEFAULT 'active'` and `created_at INTEGER NOT NULL DEFAULT 0`; existing rows get `created_at = updated_at` on first access
+- [x] `createMemoryAdapter` implements all four new methods correctly
+- [x] `saveSlot` sets `created_at` on first insert, leaves it unchanged on upsert
 - [x] Unit tests cover: listSlotMeta returns all rows, deleteSlot removes row, updateSlotStatus changes only status, getSlotMeta returns null for unknown slot
 
 ### Status: [x] Tests | [x] Impl | [ ] Rated
@@ -35,14 +35,14 @@
 **So that** all lifecycle transitions go through one authoritative place and auto-tick is always consistent with stored status
 
 ### Acceptance Criteria
-- [ ] `SessionRegistry.create(slot)` — validates slot name via `isValidSlot`, throws if slot already exists in DB, initializes a new store, starts auto-tick, persists with status `active`; returns the store
-- [ ] `SessionRegistry.pause(slot)` — throws if slot not found; stops auto-tick on the store, calls `db.updateSlotStatus(slot, 'paused')`; store remains in-memory for reads
-- [ ] `SessionRegistry.resume(slot)` — loads slot if not in memory, sets status `active`, restarts auto-tick
-- [ ] `SessionRegistry.archive(slot)` — stops auto-tick, calls `db.updateSlotStatus(slot, 'archived')`; evicts store from in-memory map; archived slots cannot be opened via `getOrCreate`
-- [ ] `SessionRegistry.delete(slot)` — stops auto-tick if running, calls `db.deleteSlot(slot)`, evicts from in-memory map
-- [ ] `SessionRegistry.listAll()` → `SlotMeta[]` — delegates to `db.listSlotMeta()`, returns all slots regardless of in-memory state
-- [ ] `SessionRegistry.export(slot)` → serialized state JSON string — loads slot (throws if archived or not found), calls `store.getSerialized()`, returns JSON without side effects
-- [ ] Server startup: only loads `active` slots into memory (skip `paused` and `archived`)
+- [x] `SessionRegistry.create(slot)` — validates slot name via `isValidSlot`, throws if slot already exists in DB, initializes a new store, starts auto-tick, persists with status `active`; returns the store
+- [x] `SessionRegistry.pause(slot)` — throws if slot not found; stops auto-tick on the store, calls `db.updateSlotStatus(slot, 'paused')`; store remains in-memory for reads
+- [x] `SessionRegistry.resume(slot)` — loads slot if not in memory, sets status `active`, restarts auto-tick
+- [x] `SessionRegistry.archive(slot)` — stops auto-tick, calls `db.updateSlotStatus(slot, 'archived')`; evicts store from in-memory map; archived slots cannot be opened via `getOrCreate`
+- [x] `SessionRegistry.delete(slot)` — stops auto-tick if running, calls `db.deleteSlot(slot)`, evicts from in-memory map
+- [x] `SessionRegistry.listAll()` → `SlotMeta[]` — delegates to `db.listSlotMeta()`, returns all slots regardless of in-memory state
+- [x] `SessionRegistry.export(slot)` → serialized state JSON string — loads slot (throws if archived or not found), calls `store.getSerialized()`, returns JSON without side effects
+- [x] Server startup: only loads `active` slots into memory (skip `paused` and `archived`)
 - [x] Unit tests cover all lifecycle transitions and error cases
 
 ### Status: [x] Tests | [x] Impl | [ ] Rated
@@ -64,7 +64,7 @@
 - [x] `POST /api/sessions/:slot/resume` — resumes slot; 404 if unknown; 409 if already active; 200 on success
 - [x] `POST /api/sessions/:slot/archive` — archives slot; 404 if unknown; 409 if already archived; 200 on success
 - [x] `GET /api/sessions/:slot/export` — streams state JSON as `Content-Disposition: attachment; filename="<slot>.json"`; 404 if not found; 409 if archived
-- [ ] All new routes are added to `packages/api-spec/openapi.yaml` with correct schemas, status codes, and descriptions
+- [x] All new routes are added to `packages/api-spec/openapi.yaml` with correct schemas, status codes, and descriptions
 - [x] Integration tests (using `createMemoryAdapter`) cover happy path and each error case for every endpoint
 
 ### Status: [x] Tests | [x] Impl | [ ] Rated
