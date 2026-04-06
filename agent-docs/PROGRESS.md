@@ -825,3 +825,22 @@ Focused verification:
 - All stories have passing test suites with integration test covering all 4 dynamic builders in a multi-tick scenario
 - PARITY.md updated with effect key wiring status for harborRatio, harborCoalRatio, oilWellRatio, reactorEnergyRatio, mintRatio, mintIvoryRatio
 - No skipped tests, no TODOs, no type:any violations
+
+---
+
+## Epic 45: Legacy Import Parity
+**Status:** Complete | **Started:** 2026-04-06 | **Finished:** 2026-04-06
+Stories: 3 / 3 complete
+
+- [x] Story 45-01: Preserve imported over-cap resource stocks
+- [x] Story 45-02: Recompute imported derived caps and population stats faithfully
+- [x] Story 45-03: Add imported snapshot parity regression coverage
+
+Focused verification:
+- Server tests: 161 passing (up from 159), 89.88% line coverage in app.ts
+- Engine tests: 990 passing, parity test includes legacy-migration.ts coverage (92.16%)
+- All stories have passing test suites; comprehensive regression test on Run 8 fixture verifies calendar state, population, resources, buildings, and progression state match legacy after import
+- legacy-migration.ts: Over-cap resource preservation + _legacyMaxKittensImported marker to prevent impossible kitten displays (579 / 562 → 579 / 579)
+- PARITY.md updated with import parity completion note
+- No skipped tests, no TODOs, no type:any violations
+- Commit message (194f97d): test(server): 45-03 comprehensive regression test for imported save parity

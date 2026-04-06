@@ -1048,17 +1048,17 @@ describe("Legacy import — derived values parity", () => {
     if (resources) {
       // Verify we have core resources
       expect(resources.catnip).toBeDefined();
-      expect(resources.catnip.value).toBeGreaterThan(0);
-      expect(resources.catnip.maxValue).toBeGreaterThan(0);
+      expect(resources.catnip?.value).toBeGreaterThan(0);
+      expect(resources.catnip?.maxValue).toBeGreaterThan(0);
 
       expect(resources.wood).toBeDefined();
-      expect(resources.wood.value).toBeGreaterThan(0);
+      expect(resources.wood?.value).toBeGreaterThan(0);
 
       expect(resources.minerals).toBeDefined();
-      expect(resources.minerals.value).toBeGreaterThan(0);
+      expect(resources.minerals?.value).toBeGreaterThan(0);
 
       expect(resources.science).toBeDefined();
-      expect(resources.science.value).toBeGreaterThan(0);
+      expect(resources.science?.value).toBeGreaterThan(0);
 
       // Late-game resources
       if (resources.faith) {
