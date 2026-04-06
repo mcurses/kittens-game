@@ -320,7 +320,8 @@ body {
   height: 3px;
   background: var(--border-subtle);
   border-radius: var(--r-full);
-  overflow: hidden;
+  overflow: visible;
+  position: relative;
   min-width: 0;
 }
 
@@ -334,6 +335,22 @@ body {
 
 .resource-bar-fill--capped { background: var(--green); }
 .resource-bar-fill--low    { background: var(--red); }
+
+/* Cost target marker — thin vertical line inside the bar */
+.resource-bar-target {
+  position: absolute;
+  top: -3px;
+  bottom: -3px;
+  width: 2px;
+  transform: translateX(-50%);
+  border-radius: 1px;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.resource-bar-target--unmet   { background: var(--accent); }
+.resource-bar-target--met     { background: var(--green); }
+.resource-bar-target--limited { background: var(--red); }
 
 /* Rate */
 .rate-badge {
@@ -349,6 +366,50 @@ body {
 
 .rate-badge--pos { color: var(--green); }
 .rate-badge--neg { color: var(--red); }
+
+/* ── Epic 41: Resource Cost Highlighting ─────────────────── */
+
+/* Highlighted row (direct price, depth 1) */
+.resource-item--highlighted {
+  border-left: 2px solid var(--accent);
+  padding-left: calc(var(--sp-2) - 2px);
+}
+
+/* Secondary (depth 2) — softer accent */
+.resource-item--highlighted-secondary {
+  border-left: 2px solid color-mix(in srgb, var(--accent) 55%, transparent);
+  padding-left: calc(var(--sp-2) - 2px);
+}
+
+/* Tertiary (depth 3) — softest */
+.resource-item--highlighted-tertiary {
+  border-left: 2px solid color-mix(in srgb, var(--accent) 30%, transparent);
+  padding-left: calc(var(--sp-2) - 2px);
+}
+
+/* Dimmed row — all non-required resources fade out */
+.resource-item--dimmed {
+  opacity: 0.35;
+  transition: opacity 150ms ease;
+}
+
+/* ETA label below the progress bar */
+.resource-item-eta {
+  font-family: var(--ff-mono);
+  font-size: 0.70rem;
+  color: var(--t3);
+  letter-spacing: -0.02em;
+  margin-top: 2px;
+  padding-left: 0;
+}
+
+/* Secondary/tertiary annotation */
+.resource-item-annotation {
+  font-size: 0.68rem;
+  color: var(--t3);
+  margin-top: 1px;
+  font-style: italic;
+}
 
 /* Tooltip */
 .resource-tooltip {
