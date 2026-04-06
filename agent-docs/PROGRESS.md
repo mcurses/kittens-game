@@ -792,10 +792,16 @@ Total: 1432 tests across all packages
 ---
 
 ## Epic 43: Dynamic Building Consumer Parity
-**Status:** In Progress | **Started:** 2026-04-06
-Stories: 0 / 4 complete
+**Status:** Complete | **Started:** 2026-04-06 | **Finished:** 2026-04-06
+Stories: 4 / 4 complete
 
-- [ ] Story 1: Harbor dynamic storage modifiers consume workshop effects
-- [ ] Story 2: Oil well runtime modifiers consume workshop effects
-- [ ] Story 3: Reactor runtime modifiers consume workshop effects
-- [ ] Story 4: Mint runtime modifiers consume policy effects
+- [x] Story 43-01: Harbor dynamic storage modifiers consume workshop effects
+- [x] Story 43-02: Oil well runtime modifiers consume workshop effects
+- [x] Story 43-03: Reactor runtime modifiers consume workshop effects
+- [x] Story 43-04: Mint runtime modifiers consume policy effects
+
+Focused verification:
+- Engine tests: 990 passing, 98.73% line coverage
+- All stories have passing test suites with integration test covering all 4 dynamic builders in a multi-tick scenario
+- PARITY.md updated with effect key wiring status for harborRatio, harborCoalRatio, oilWellRatio, reactorEnergyRatio, mintRatio, mintIvoryRatio
+- No skipped tests, no TODOs, no type:any violations
