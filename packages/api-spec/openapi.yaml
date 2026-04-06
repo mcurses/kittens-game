@@ -164,8 +164,197 @@ paths:
               schema:
                 $ref: "#/components/schemas/GameStateResponse"
 
+  /api/sessions:
+    get:
+      operationId: getSessions
+      summary: List all sessions
+      description: Returns metadata for all save slots, including status and timestamps.
+      responses:
+        "200":
+          description: List of all sessions
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [sessions]
+                properties:
+                  sessions:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/SlotMeta"
+    post:
+      operationId: postSessions
+      summary: Create a new session
+      description: Creates a new save slot with the specified name.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [slot]
+              properties:
+                slot:
+                  type: string
+                  description: Session name (alphanumeric, dash, underscore; 1-64 chars)
+      responses:
+        "201":
+          description: Session created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SlotMeta"
+        "400":
+          description: Invalid slot name
+        "409":
+          description: Slot already exists
+
+  /api/sessions/{slot}:
+    get:
+      operationId: getSession
+      summary: Get session metadata
+      description: Returns metadata for a specific save slot.
+      parameters:
+        - name: slot
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Session metadata
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SlotMeta"
+        "404":
+          description: Slot not found
+    delete:
+      operationId: deleteSession
+      summary: Delete a session
+      description: Permanently removes a save slot and its data.
+      parameters:
+        - name: slot
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Session deleted successfully
+        "404":
+          description: Slot not found
+
+  /api/sessions/{slot}/pause:
+    post:
+      operationId: postSessionPause
+      summary: Pause a session
+      description: Pauses a running session, freezing its state and stopping auto-tick.
+      parameters:
+        - name: slot
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Session paused
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SlotMeta"
+        "404":
+          description: Slot not found
+        "409":
+          description: Session cannot be paused (already paused or archived)
+
+  /api/sessions/{slot}/resume:
+    post:
+      operationId: postSessionResume
+      summary: Resume a session
+      description: Resumes a paused session, restarting auto-tick.
+      parameters:
+        - name: slot
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Session resumed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SlotMeta"
+        "404":
+          description: Slot not found
+        "409":
+          description: Session cannot be resumed (not paused)
+
+  /api/sessions/{slot}/archive:
+    post:
+      operationId: postSessionArchive
+      summary: Archive a session
+      description: Archives a session, making it read-only and not loadable via getOrCreate.
+      parameters:
+        - name: slot
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Session archived
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SlotMeta"
+        "404":
+          description: Slot not found
+        "409":
+          description: Session is already archived
+
+  /api/sessions/{slot}/export:
+    get:
+      operationId: getSessionExport
+      summary: Export session state
+      description: Exports the full game state of a session as JSON.
+      parameters:
+        - name: slot
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Session state JSON
+          content:
+            application/json: {}
+        "404":
+          description: Slot not found
+        "409":
+          description: Session cannot be exported (archived)
+
 components:
   schemas:
+    SlotMeta:
+      type: object
+      required: [slot, status, createdAt, updatedAt]
+      properties:
+        slot:
+          type: string
+          description: Session name
+        status:
+          type: string
+          enum: [active, paused, archived]
+          description: Current lifecycle status
+        createdAt:
+          type: integer
+          description: Unix timestamp when slot was created
+        updatedAt:
+          type: integer
+          description: Unix timestamp when slot status was last changed
+
     HealthResponse:
       type: object
       required: [status, version]

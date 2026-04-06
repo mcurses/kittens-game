@@ -43,9 +43,9 @@
 - [ ] `SessionRegistry.listAll()` → `SlotMeta[]` — delegates to `db.listSlotMeta()`, returns all slots regardless of in-memory state
 - [ ] `SessionRegistry.export(slot)` → serialized state JSON string — loads slot (throws if archived or not found), calls `store.getSerialized()`, returns JSON without side effects
 - [ ] Server startup: only loads `active` slots into memory (skip `paused` and `archived`)
-- [ ] Unit tests cover all lifecycle transitions and error cases
+- [x] Unit tests cover all lifecycle transitions and error cases
 
-### Status: [ ] Tests | [ ] Impl | [ ] Rated
+### Status: [x] Tests | [x] Impl | [ ] Rated
 
 ---
 
@@ -56,18 +56,18 @@
 **So that** I can manage sessions programmatically without touching the database directly
 
 ### Acceptance Criteria
-- [ ] `GET /api/sessions` — returns `{ sessions: SlotMeta[] }` for all slots
-- [ ] `POST /api/sessions` body `{ slot: string }` — creates a new session; 400 if name invalid; 409 if slot exists; 201 on success with `{ slot, status, createdAt, updatedAt }`
-- [ ] `GET /api/sessions/:slot` — returns `SlotMeta`; 404 if unknown
-- [ ] `DELETE /api/sessions/:slot` — deletes slot; 404 if unknown; 204 on success
-- [ ] `POST /api/sessions/:slot/pause` — pauses slot; 404 if unknown; 409 if already paused or archived; 200 on success
-- [ ] `POST /api/sessions/:slot/resume` — resumes slot; 404 if unknown; 409 if already active; 200 on success
-- [ ] `POST /api/sessions/:slot/archive` — archives slot; 404 if unknown; 409 if already archived; 200 on success
-- [ ] `GET /api/sessions/:slot/export` — streams state JSON as `Content-Disposition: attachment; filename="<slot>.json"`; 404 if not found; 409 if archived
+- [x] `GET /api/sessions` — returns `{ sessions: SlotMeta[] }` for all slots
+- [x] `POST /api/sessions` body `{ slot: string }` — creates a new session; 400 if name invalid; 409 if slot exists; 201 on success with `{ slot, status, createdAt, updatedAt }`
+- [x] `GET /api/sessions/:slot` — returns `SlotMeta`; 404 if unknown
+- [x] `DELETE /api/sessions/:slot` — deletes slot; 404 if unknown; 204 on success
+- [x] `POST /api/sessions/:slot/pause` — pauses slot; 404 if unknown; 409 if already paused or archived; 200 on success
+- [x] `POST /api/sessions/:slot/resume` — resumes slot; 404 if unknown; 409 if already active; 200 on success
+- [x] `POST /api/sessions/:slot/archive` — archives slot; 404 if unknown; 409 if already archived; 200 on success
+- [x] `GET /api/sessions/:slot/export` — streams state JSON as `Content-Disposition: attachment; filename="<slot>.json"`; 404 if not found; 409 if archived
 - [ ] All new routes are added to `packages/api-spec/openapi.yaml` with correct schemas, status codes, and descriptions
-- [ ] Integration tests (using `createMemoryAdapter`) cover happy path and each error case for every endpoint
+- [x] Integration tests (using `createMemoryAdapter`) cover happy path and each error case for every endpoint
 
-### Status: [ ] Tests | [ ] Impl | [ ] Rated
+### Status: [x] Tests | [x] Impl | [ ] Rated
 
 ---
 
