@@ -13,17 +13,17 @@
 **So that** the imported game state matches legacy instead of silently discarding stockpiled resources
 
 ### Acceptance Criteria
-- [ ] Given a legacy save with over-cap resources, when it is imported into the rewrite, then imported `resources[*].value` is preserved even when it exceeds current `maxValue`
-- [ ] Given the same imported save, when the first serialized state is returned from `/api/game/import-legacy`, then resource values match legacy runtime state rather than being clamped to rewrite storage caps
-- [ ] Given a subsequent normal tick or spend event, when the rewrite updates resource state, then post-import over-cap values behave like legacy instead of being truncated during load
-- [ ] Given a live-save regression fixture derived from `Run 8 / Year 10527 / Autumn day 48`, when parity tests run, then catnip, wood, minerals, science, faith, antimatter, and unobtainium prove this preservation behavior explicitly
+- [x] Given a legacy save with over-cap resources, when it is imported into the rewrite, then imported `resources[*].value` is preserved even when it exceeds current `maxValue`
+- [x] Given the same imported save, when the first serialized state is returned from `/api/game/import-legacy`, then resource values match legacy runtime state rather than being clamped to rewrite storage caps
+- [x] Given a subsequent normal tick or spend event, when the rewrite updates resource state, then post-import over-cap values behave like legacy instead of being truncated during load
+- [x] Given a live-save regression fixture derived from `Run 8 / Year 10527 / Autumn day 48`, when parity tests run, then catnip, wood, minerals, science, faith, antimatter, and unobtainium prove this preservation behavior explicitly
 
 ### Legacy Reference
 - `legacy/game.js` save import/load flow
 - `legacy/js/resources.js` load/max-resource behavior
 - Live audit against `https://kittensgame.com/web/`
 
-### Status: [ ] Tests | [ ] Impl | [ ] Rated
+### Status: [x] Tests | [x] Impl | [ ] Rated
 
 ## Story: Recompute imported derived caps and population stats faithfully
 

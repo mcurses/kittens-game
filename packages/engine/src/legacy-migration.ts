@@ -8,6 +8,7 @@
  * Port reference: legacy/js/game.js save(), load(), migrateSave()
  */
 
+import { BUILDING_DEFS } from "./buildings.js";
 import { TECH_DEFS } from "./science.js";
 import type { SerializedGameState } from "./state.js";
 
@@ -51,6 +52,33 @@ function arrayToRecord<T>(arr: unknown[], pick: (item: Rec) => T | null): Record
   return result;
 }
 
+/**
+ * Convert a legacy numeric-indexed building array to a Record keyed by building name.
+ * Legacy saves store buildings as a numeric-indexed array where index N corresponds
+ * to BUILDING_DEFS[N].name. Items at each index have {val, on, unlocked?, jammed?, isAutomationEnabled?}.
+ */
+function buildingsArrayToRecord(
+  arr: unknown[],
+): Record<string, { val: number; on: number; unlocked?: boolean }> {
+  const result: Record<string, { val: number; on: number; unlocked?: boolean }> = {};
+  for (let i = 0; i < arr.length; i++) {
+    const item = arr[i];
+    if (!isRec(item)) continue;
+
+    // Get building name from BUILDING_DEFS at this index
+    const def = BUILDING_DEFS[i];
+    if (!def) continue; // Index out of bounds
+
+    result[def.name] = {
+      val: num(item.val),
+      on: num(item.on),
+      unlocked: bool(item.unlocked, false),
+      // stage, jammed, isAutomationEnabled dropped
+    };
+  }
+  return result;
+}
+
 // ── Domain migrators ──────────────────────────────────────────────────────────
 
 function migrateResources(
@@ -67,12 +95,21 @@ function migrateBuildings(
   raw: unknown,
 ): Record<string, { val: number; on: number; unlocked?: boolean }> {
   if (!isArr(raw)) return {};
-  return arrayToRecord(raw, (item) => ({
-    val: num(item.val),
-    on: num(item.on),
-    unlocked: bool(item.unlocked, false),
-    // stage, jammed, isAutomationEnabled dropped
-  }));
+
+  // Check if this is a named array (legacy test format) or numeric-indexed (actual legacy saves)
+  // Named array: items have { name: "field", val: 3, ... }
+  // Numeric-indexed: items have { val: 3, ... } at specific indices
+  if (raw.length > 0 && isRec(raw[0]) && "name" in raw[0]) {
+    // Named array format (legacy test/export format)
+    return arrayToRecord(raw, (item) => ({
+      val: num(item.val),
+      on: num(item.on),
+      unlocked: bool(item.unlocked, false),
+    }));
+  }
+
+  // Numeric-indexed format (actual legacy saves from kittensgame.com)
+  return buildingsArrayToRecord(raw);
 }
 
 function migrateVillage(raw: unknown): SerializedGameState["village"] {

@@ -787,3 +787,95 @@ describe("Full round-trip integration", () => {
     expect(((await reset.json()) as { tick: number }).tick).toBe(0);
   });
 });
+
+describe("Legacy import — derived values parity", () => {
+  it("housing buildings contribute correctly to maxKittens during import", async () => {
+    const { app } = makeApp();
+
+    // Minimal legacy save with housing buildings that should give maxKittens
+    // hut (2), logHouse (1), mansion (1) = 4 total
+    const minimalHousingLegacySave = JSON.stringify({
+      saveVersion: 15,
+      resources: [{ name: "catnip", value: 100, maxValue: 5000 }],
+      buildings: [
+        { name: "field", val: 1, on: 1, unlocked: true },
+        { name: "hut", val: 10, on: 10, unlocked: true },
+        { name: "logHouse", val: 5, on: 5, unlocked: true },
+        { name: "mansion", val: 3, on: 3, unlocked: true },
+      ],
+      village: {
+        kittens: 50,
+        nextKittenProgress: 0,
+        jobs: [{ name: "farmer", value: 0 }],
+      },
+      calendar: { day: 0, season: 0, year: 1 },
+      science: { techs: [], policies: [] },
+      workshop: { upgrades: [], crafts: [] },
+    });
+
+    const res = await req(app, "/api/game/import-legacy", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ data: minimalHousingLegacySave }),
+    });
+
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as {
+      village: { kittens: number };
+      effectCache: { maxKittens: number };
+    };
+
+    // hut: 10 * 2 = 20
+    // logHouse: 5 * 1 = 5
+    // mansion: 3 * 1 = 3
+    // Total: 28
+    expect(body.effectCache.maxKittens).toBe(28);
+  });
+
+  it("Run 8 fixture: recomputes maxKittens from housing effects after import", async () => {
+    const { app } = makeApp();
+
+    // Load the Run 8 fixture (LZ-string compressed)
+    // This is a real late-game save: Year 10527, Season 2, Day 48
+    // Legacy maxKittens: 579 kittens alive
+    // Housing: hut (67) * 2 + logHouse (216) * 1 + mansion (192) * 1 = 542 (base housing capacity)
+    const fs = await import("fs");
+    const path = await import("path");
+    const __dirname = path.dirname(new URL(import.meta.url).pathname);
+    const run8FilePath = path.join(__dirname, "../../../agent-docs/example-saves/Kittens Game - Run 8 - Year 10527 - Autumn, day 48.txt");
+    const run8Compressed = fs.readFileSync(run8FilePath, "utf8");
+    const run8Json = LZString.decompressFromBase64(run8Compressed);
+    const run8Data = JSON.parse(run8Json) as unknown;
+
+    const res = await req(app, "/api/game/import-legacy", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ data: run8Json }),
+    });
+
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as {
+      calendar: { year: number; season: number; day: number };
+      village: { kittens: number };
+      buildings?: Record<string, unknown>;
+      effectCache: { maxKittens: number };
+    };
+
+    // Verify calendar matches
+    expect(body.calendar.year).toBe(10527);
+    expect(body.calendar.season).toBe(2);
+    expect(body.calendar.day).toBe(48);
+
+    // Verify that buildings were loaded correctly
+    expect(body.buildings).toBeDefined();
+    expect(body.buildings?.hut?.val).toBe(67);
+    expect(body.buildings?.logHouse?.val).toBe(216);
+    expect(body.buildings?.mansion?.val).toBe(192);
+
+    // Verify that recomputed maxKittens matches the housing capacity of 542 (67*2 + 216 + 192)
+    // plus any additional effects from policies, space buildings, etc.
+    // The rewrite now correctly imports buildings from legacy saves using numeric-indexed arrays.
+    // Expected: 542 from housing, plus bonuses from space buildings and policies if present.
+    expect(body.effectCache.maxKittens).toBeGreaterThanOrEqual(542);
+  });
+});
