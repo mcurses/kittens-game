@@ -2,7 +2,7 @@
 
 Tracks implementation coverage against legacy Kittens Game. **This is the authoritative source of truth for what is and isn't done.** Update it whenever items are added or wired. Do not mark an epic "complete" without updating this file.
 
-Last updated: 2026-04-06 (Epic 42 closed — legacy barn/warehouse storage ratios now affect barn, warehouse, and harbor caps again, and action responses resync serialized resource caps immediately)
+Last updated: 2026-04-06 (Epic 43 closed — harbor cargoShips/barges, oil well pumpjack, reactor coldFusion, and mint frugality modifiers now consume workshop effects to scale runtime behavior dynamically)
 
 ---
 
@@ -39,24 +39,24 @@ Legacy has 35+ gameplay buildings (confirmed via live save audit). We have 39 de
 | **workshop** (building) | ✅ | building def added; `craftRatio: 0.06` per on — Story 31-02, 2026-03-31 |
 | **observatory** | ✅ | — |
 | **brewery** | ✅ | — |
-| **mint** | ✅ | — |
+| **mint** | ✅ | dynamic `mintRatio` now consumes `frugality` upgrade, `mintIvoryRatio` producer wired but consumer deferred — Story 43-04, 2026-04-06 |
 | **steamworks** | ⚠️ | Story 34-03/34-05: dynamic `coalRatioGlobal`, `magnetoBoostRatio`, `manuscriptPerTickProd`, persisted automation state, yearly automation batching, autumn `advancedAutomation` cadence, jam state, and web controls are now wired. Remaining gaps: offline catch-up `daysOffset` parity and any factory-coupled automation nuances still deferred under Epic 34. |
 | **magneto** | ✅ | `oilPerTick: -0.05`, `energyProduction: 5`, `magnetoRatio: 0.02` — Story 31-04, 2026-03-31 |
 | **tradepost** | ✅ | `fursDemandRatio: -0.04`, `ivoryDemandRatio: -0.04`, `spiceDemandRatio: -0.04`, `tradeRatio: 0.015` — Story 31-05, 2026-03-31 |
-| **harbor** | ✅ | 7 resource storage boosts (catnipMax 2500, woodMax 700, etc.) — Story 31-06, 2026-03-31 |
+| **harbor** | ✅ | 7 resource storage boosts (catnipMax 2500, woodMax 700, etc.) wired statically (Story 31-06), plus dynamic `cargoShips` and `barges` multipliers now consuming `harborRatio` and `harborCoalRatio` workshop effects with limited DR support (Story 43-01, 2026-04-06) |
 | **chapel** | ✅ | `culturePerTickBase: 0.05`, `faithPerTickBase: 0.005`, `cultureMax: 200` — Story 31-01, 2026-03-31 |
 | **temple** | ✅ | dynamic happiness wired: `happiness = 0.4 + 0.1 × sunAltar.on` per temple.on (Story 30-01, 2026-03-31) |
 | **spaceport** (bonfire) | ❌ | Stage 1 of warehouse building in legacy — complex staged upgrade, deferred |
 | **ziggurat** (building) | ✅ | `cultureMaxRatio: 0.08` per on — Story 31-11, 2026-03-31 |
 | **unicornPasture** | ✅ | — |
 | **chronosphere** | ✅ | `temporalParadoxChance: 0.01`, `resStasisRatio: 0.015`, `energyConsumption: 20` — Story 31-13, 2026-03-31 |
-| **reactor** | ✅ | `uraniumPerTick: -0.001`, `productionRatio: 0.05`, `uraniumMax: 250`, `energyProduction: 10` — Story 31-14, 2026-03-31 |
+| **reactor** | ✅ | base effects: `uraniumPerTick: -0.001`, `productionRatio: 0.05`, `uraniumMax: 250`, `energyProduction: 10` (Story 31-14, 2026-03-31), plus dynamic `coldFusion` energy multiplier consuming `reactorEnergyRatio` workshop effect, and partial `thoriumReactors` behavior (Story 43-03, 2026-04-06) |
 | **biolab** | ✅ | `scienceRatio: 0.35`, `refineRatio: 0.1`, `scienceMax: 1500` — Story 31-15, 2026-03-31 |
 | **aiCore** | ✅ | `gflopsPerTickBase: 0.02`, `energyConsumption: 2` — Story 31-16, 2026-03-31 |
 | **accelerator** | ✅ | `titaniumPerTickCon: -0.015`, `uraniumPerTickAutoprod: 0.0025`, `energyConsumption: 2` — Story 31-17, 2026-03-31 |
 | **factory** | ✅ | Story 34-06: legacy carbon-sequestration mode is wired end-to-end. Factory now defaults into the high-energy / low-pollution path when researched, falls back to capped-pollution mode when disabled, persists automation state, exposes engine-backed UI controls, and applies the `factoryLogistics` `craftRatio` bump. |
 | **quarry** | ✅ | `mineralsRatio: 0.35`, `coalPerTickBase: 0.015` — Story 31-08, 2026-03-31 |
-| **oilWell** | ✅ | `oilPerTickBase: 0.02`, `oilMax: 1500` — Story 31-09, 2026-03-31 |
+| **oilWell** | ✅ | base production: `oilPerTickBase: 0.02`, `oilMax: 1500` (Story 31-09, 2026-03-31), plus dynamic `pumpjack` production multiplier and automation state consuming `oilWellRatio` workshop effect (Story 43-02, 2026-04-06) |
 | **zebraForge/Outpost/Workshop** | ⚠️ | Effects correct but unlock chain broken: legacy requires zebraUpgrade prerequisites (`darkRevolution`→zebraOutpost, `bloodstoneInstitute`→zebraWorkshop, `whispers`→ivoryTemple); our rewrite uses `unlockRatio: 0.01` only. Also missing `zebraPreparations` effect key and `bloodstoneRatio` dynamic effect on zebraWorkshop. |
 | **ivoryTemple** | ⚠️ | Building added 2026-04-01 with base-mode effects (ivoryPerTickCon: -100, mineralsPerTickProd: 1, manpowerMax: 10). Dynamic `whispers`-enhanced mode (double rates + titaniumPerTickCon + alicornPerTickCon + tMythrilPerTick) not yet implemented — deferred as it requires zebraUpgrade subsystem. |
 
@@ -84,6 +84,15 @@ Keys that exist in effectCache from implemented defs but are not fully consumed:
 | `catpowerJobRatio` | workshop upgrades | VillageManager job production | ✅ Fixed 2026-03-30 |
 | `barnRatio` | workshop upgrades | storage-building `catnipMax` / `woodMax` / `mineralsMax` / `ironMax` calculation in BuildingManager | ✅ Fixed 2026-04-06 |
 | `warehouseRatio` | workshop upgrades | storage-building `woodMax` / `mineralsMax` / `ironMax` / `coalMax` / `titaniumMax` / `goldMax` calculation in BuildingManager | ✅ Fixed 2026-04-06 |
+| `harborRatio` | workshop upgrade `cargoShips` | harbor storage cap scaling with limited DR in BuildingManager | ✅ Wired 2026-04-06 (Story 43-01) |
+| `harborCoalRatio` | workshop upgrade `barges` | harbor `coalMax` additional multiplier in BuildingManager | ✅ Wired 2026-04-06 (Story 43-01) |
+| `harborLimitRatioPolicy` | science tech (policy) | ship-count DR limit calculation for `harborRatio` scaling | ✅ Wired 2026-04-06 (Story 43-01) |
+| `shipLimit` | science tech | ship-count DR limit base effect | ✅ Wired 2026-04-06 (Story 43-01) |
+| `oilWellRatio` | workshop upgrade `pumpjack` | oil well production scaling via `oilPerTickBase` in BuildingManager | ✅ Wired 2026-04-06 (Story 43-02) |
+| `reactorEnergyRatio` | workshop upgrade `coldFusion` | reactor energy production scaling via `energyProduction` in BuildingManager | ✅ Wired 2026-04-06 (Story 43-03) |
+| `reactorThoriumPerTick` | workshop upgrade `thoriumReactors` | thorium consumption rate in reactor behavior (deferred: manpower scaling not yet implemented) | ⚠️ Producer wired 2026-04-06, consumer partial (Story 43-03) |
+| `mintRatio` | science tech `frugality` | mint output scaling via `goldMax` production multiplier in BuildingManager | ✅ Wired 2026-04-06 (Story 43-04) |
+| `mintIvoryRatio` | science tech (spider ivory bonus) | ivory output scaling in mint behavior (deferred: consumer not yet implemented) | ⚠️ Producer exists, consumer missing (Story 43-04) |
 | `unhappinessRatio` | amphitheatre building | village happiness penalty | ✅ Producer and consumer wired 2026-03-30 |
 | `woodRatio` | lumberMill building | wood per-tick calc via `calcResourcePerTick` | ✅ Producer and consumer wired 2026-03-30 |
 | `scienceRatio` | library, academy, observatory buildings | science per-tick calc | ✅ Producer and consumer wired 2026-03-30 |
