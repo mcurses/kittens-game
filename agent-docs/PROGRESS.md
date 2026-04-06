@@ -1,11 +1,13 @@
 # Kittens Game Rewrite — Progress Tracker
 
-Last updated: 2026-04-03
+Last updated: 2026-04-06
 
 ---
 
 ## Maintenance Updates
 
+- 2026-04-06: Closed Epic 42. Barn, warehouse, and harbor storage outputs now consume legacy `barnRatio` / `warehouseRatio` workshop effects again, warehouse catnip storage follows `silos` gating, and `applyGameAction()` now resyncs serialized resource caps immediately after storage-affecting actions.
+- 2026-04-06: Started Epic 42 after investigating a live `stoneBarns` report. The rewrite emits `barnRatio` from workshop upgrades but never consumes it in storage-cap calculation, and the server action path rebuilds `effectCache` without resyncing serialized `resources[*].maxValue`, so storage upgrades can appear to do nothing even when the cache changed.
 - 2026-04-03: Closed Epic 40. Kitten population is no longer simulated as a generic resource, stale saved `resources.kittens` payloads are dropped during load, achievement/badge kitten checks now read village population, and the web resource table no longer renders a phantom `kittens` row.
 - 2026-04-03: Filed Epic 40 after investigating the live `slot=new` phantom `kittens` row. The rewrite currently simulates `resources.kittens` as a normal ticking resource, but legacy only uses that slot as a transient UI mirror of village population. The planned fix direction is to keep population authoritative in `village` and remove the resource-tab row entirely rather than porting the legacy display alias.
 - 2026-04-03: Reopened and closed Epic 26 for live inspector ETA parity. Hovered cost/time estimates now count down in real time inside the inspector instead of freezing at the value from the initial hover snapshot.
@@ -217,6 +219,15 @@ Stories: 8/8 complete
 - [x] Story 8: Cross-manager integration test
 
 Prerequisites: Epic 09
+
+---
+
+## Epic 42: Storage Ratio Parity
+**Status:** Complete | **Started:** 2026-04-06 | **Finished:** 2026-04-06
+Stories: 2 / 2 complete
+
+- [x] Story 1: Workshop storage ratios affect storage caps
+- [x] Story 2: Resource caps refresh immediately after state-changing actions
 
 ---
 
@@ -760,4 +771,17 @@ Engine tests: 974 passing | Line coverage: 98.9%
 Client-web tests: 343 passing | Line coverage: 96.16%
 Server tests: 88 passing | Line coverage: 95.12%
 API-spec tests: 27 passing | Line coverage: 100%
+
+---
+
+## Epic 41: Resource Cost Highlighting
+**Status:** Complete | **Started:** 2026-04-06
+Stories: 6 / 6 complete
+
+- [x] Story 41-01: Highlight required resources on action hover
+- [x] Story 41-02: Show cost target marker on resource progress bar
+- [x] Story 41-03: Show live ETA to reach required amount
+- [x] Story 41-04: Highlight works across all action panels
+- [x] Story 41-05: No visual regression on existing resource panel behavior
+- [x] Story 41-06: Recursive ingredient highlighting for crafted cost resources
 Total: 1432 tests across all packages

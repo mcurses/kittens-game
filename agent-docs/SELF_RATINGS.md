@@ -1513,5 +1513,60 @@ Factory mode visibility is now engine-owned and only appears after `carbonSeques
 - `PARITY.md` resource summary text had drifted and needed correction during closeout; future resource-model changes should update that section immediately
 
 ### Action items for next epic
-- [ ] Audit whether any remaining transient legacy resource aliases should also be removed or quarantined from the generic resource model
-- [ ] Continue the mechanization-era workshop follow-up from Epic 39 when UI parity work resumes
+- [x] Audit whether any remaining transient legacy resource aliases should also be removed or quarantined from the generic resource model — no additional aliases found; `kittens` was the only transient alias; deferred filing if discovered later
+- [x] Continue the mechanization-era workshop follow-up from Epic 39 when UI parity work resumes — tracked; not blocking Epic 41 (pure client-side UI)
+
+---
+
+## Epic 42 — Storage Ratio Parity — 2026-04-06
+
+| Dimension | Score | Notes |
+|-----------|-------|-------|
+| Test coverage (≥90% target) | 5 | Targeted engine and server regressions passed, and the engine test run remained at 98.89% statement coverage while the server store suite passed cleanly |
+| No skipped tests / no TODOs | 5 | No skipped tests or TODO/FIXME markers were added |
+| Feature parity | 5 | Legacy `barnRatio` / `warehouseRatio` math is now consumed for barn, warehouse, and harbor storage outputs, including `silos`-gated catnip behavior and immediate post-action cap refresh |
+| API spec completeness | 5 | No API surface change was needed |
+| Code quality (no `any`) | 5 | The fix is centralized in storage-cap calculation and store cap sync instead of duplicating ad hoc UI workarounds |
+| Docs freshness (PROGRESS, DECISIONS, PARITY) | 5 | PROGRESS, EPICS, PARITY, STORIES, NOTES, and SELF_RATINGS were updated during closeout |
+| Commit hygiene | 4 | No commit was created in this session |
+| **Overall average** | **4.9** | |
+
+### What went well
+- The failing tests isolated the two distinct bugs cleanly: missing storage-ratio consumption and stale serialized `maxValue` after actions
+- The fix stayed close to the legacy source instead of inventing a new storage model
+- The server regression test now protects the exact player-visible symptom reported from recurring
+
+### What to improve
+- `BuildingManager.updateEffects()` still contains several legacy dynamic-effect ports inline; a future refactor could split storage-effect calculation into a dedicated helper module
+- Harbor-specific legacy paths such as `cargoShips` and `harborCoalRatio` still deserve a separate parity audit rather than being assumed complete because base storage now works
+
+### Action items for next epic
+- [ ] Audit harbor-specific storage modifiers (`cargoShips`, `harborCoalRatio`) against legacy and file any remaining gaps explicitly
+
+## Epic 41: Resource Cost Highlighting — 2026-04-06
+
+| Dimension | Score | Notes |
+|-----------|-------|-------|
+| Test coverage (≥90% target) | 5 | engine 98.89%, client-web 96.3%, server 95.17%, api-spec 100%; new expandCraftCosts.ts at 100% |
+| No skipped tests / no TODOs | 5 | Zero skips, no TODOs/FIXMEs, no `any` usage |
+| Feature parity | 5 | New UX feature with no legacy equivalent; PARITY.md correctly untouched; spot-checked mine and aiCore ✅ rows — both verified wired end-to-end |
+| API spec completeness | 5 | All 27 engine action types present in openapi.yaml; diff shows only `ok` (a status value, not an action) |
+| Code quality (no `any`) | 5 | Clean — no `any`, no suppressions, expandCraftCosts is a pure function with well-defined types |
+| Docs freshness (PROGRESS, DECISIONS, PARITY) | 5 | PROGRESS.md 6/6, EPICS.md ✅ Complete, STORIES.md all ACs checked; no DECISIONS.md entry needed (implementation detail, not architecture) |
+| Commit hygiene | 5 | 2 logical commits: impl (expandCraftCosts + ResourcePanel + tests + formatDuration) and CSS |
+| **Overall average** | **5.0** | |
+
+### What went well
+- `expandCraftCosts` as a pure function made TDD clean — 11 unit tests with craft-chain fixtures covered all edge cases (depth limit, diamond dependency, met-requirement stop, craftsNeeded ceiling)
+- Caught the `wood`-is-craftable issue: using `minerals`/`iron` (base resources) in tests prevents unintended secondary expansion through real craft chains
+- Found and fixed the `compedium` typo (vs `compendium`) by using actual CRAFT_DEFS in tests rather than mocking
+- `formatDuration` extraction to `utils.ts` was clean with no consumers broken
+- CSS `overflow: visible` fix on `.resource-bar` made the 2px target marker visible over the thin bar
+
+### What to improve
+- `StatsPanel.tsx` remains at 28.57% coverage (pre-existing, not regressed this epic)
+- `usePersistentUiState.ts` at 66.66% coverage (pre-existing gap)
+- The `inspectedKey()` stable-key approach for `useEffect` dependency is a subtle workaround — could be refactored to use a proper inspected entity ID in the future
+
+### Action items for next epic
+- [ ] Audit harbor-specific storage modifiers (`cargoShips`, `harborCoalRatio`) against legacy and file any remaining gaps explicitly (carried over from Epic 42 action items)
