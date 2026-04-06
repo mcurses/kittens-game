@@ -1,0 +1,4 @@
+interface:
+  display_name: "Sync Docs"
+  short_description: "Refresh progress tracking from the actual repo state"
+  default_prompt: "Sync agent-docs with the current kittens-mcp repo state by reading recent commits, test results, story checklists, and TODO counts, then update PROGRESS.md and report blockers."

@@ -111,7 +111,11 @@ export class GameStateStore {
       }
       // Rebuild effect cache after action
       const effectCache = buildEffectCache(this.managers, newState);
-      this.state = { ...newState, effectCache };
+      this.state = {
+        ...newState,
+        effectCache,
+        resources: syncResourceCaps(newState.resources, effectCache),
+      };
       // Emit LOG_MESSAGE for building purchases
       if (action.type === "BUY_BUILDING") {
         const prevVal = prevState.buildings[action.name]?.val ?? 0;

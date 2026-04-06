@@ -332,9 +332,11 @@ function ResourceItem({
         <span className="resource-name">{resource.name}</span>
         <span className="resource-values">
           <span className="resource-value">{formatValue(resource.value)}</span>
-          {resource.maxValue !== undefined && resource.maxValue > 0 && (
+          {resource.maxValue !== undefined && resource.maxValue > 0 ? (
             <span className="resource-max">/{formatValue(resource.maxValue)}</span>
-          )}
+          ) : node ? (
+            <span className="resource-max resource-max--target">/{formatValue(node.amount)}</span>
+          ) : null}
           {demandRatio !== undefined && demandRatio < 0 && (
             <span className="resource-demand" title="Demand reduction">
               {Math.round(demandRatio * 100)}%

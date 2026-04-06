@@ -1,0 +1,4 @@
+interface:
+  display_name: "Epic Start"
+  short_description: "Scaffold an epic and begin the repo's TDD workflow"
+  default_prompt: "Start a kittens-mcp epic by checking prerequisites, scaffolding docs, reading the relevant legacy code and tests, writing stories, and then beginning the mandatory TDD loop."

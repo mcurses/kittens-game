@@ -89,6 +89,53 @@ describe("GameStateStore", () => {
     expect(restoredState.resources.unicorns?.maxValue).toBe(0);
   });
 
+  it("applyGameAction refreshes resource maxValue immediately after purchasing stoneBarns", () => {
+    const prevState = store.getState();
+    store["state"] = {
+      ...prevState,
+      resources: {
+        ...prevState.resources,
+        wood: { value: 1000, maxValue: 2000 },
+        minerals: { value: 750, maxValue: 2000 },
+        iron: { value: 50, maxValue: 500 },
+        science: { value: 500, maxValue: 1000 },
+      },
+      buildings: {
+        ...prevState.buildings,
+        barn: { val: 1, on: 1, unlocked: true },
+      },
+    };
+
+    const result = store.applyGameAction({ type: "PURCHASE_UPGRADE", name: "stoneBarns" });
+    expect(result.ok).toBe(true);
+    expect(result.state.effectCache.barnRatio).toBeCloseTo(0.75);
+    expect(result.state.resources.wood?.maxValue).toBeCloseTo(550);
+    expect(result.state.resources.minerals?.maxValue).toBeCloseTo(687.5);
+    expect(result.state.resources.iron?.maxValue).toBeCloseTo(137.5);
+  });
+
+  it("applyGameAction refreshes resource maxValue immediately after buying a barn", () => {
+    const prevState = store.getState();
+    store["state"] = {
+      ...prevState,
+      resources: {
+        ...prevState.resources,
+        wood: { value: 50, maxValue: 200 },
+      },
+      buildings: {
+        ...prevState.buildings,
+        barn: { val: 0, on: 0, unlocked: true },
+      },
+    };
+
+    const result = store.applyGameAction({ type: "BUY_BUILDING", name: "barn" });
+    expect(result.ok).toBe(true);
+    expect(result.state.resources.catnip?.maxValue).toBeCloseTo(10000);
+    expect(result.state.resources.wood?.maxValue).toBeCloseTo(400);
+    expect(result.state.resources.minerals?.maxValue).toBeCloseTo(500);
+    expect(result.state.resources.iron?.maxValue).toBeCloseTo(100);
+  });
+
   it("persists state: second store initialized from same adapter has same tick", () => {
     const adapter = createMemoryAdapter();
     const s1 = new GameStateStore(adapter);

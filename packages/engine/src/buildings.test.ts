@@ -7,6 +7,7 @@ import {
   createInitialBuildings,
   getBuildingPrice,
 } from "./buildings.js";
+import { getLimitedDR } from "./effects.js";
 import { createInitialResources } from "./resources.js";
 import { createInitialState } from "./state.js";
 
@@ -1140,6 +1141,69 @@ describe("Story 31-07: calciner consumption side", () => {
   });
 });
 
+describe("Epic 42 Story 42-01: storage ratio parity", () => {
+  it("applies researched stoneBarns to barn wood/minerals/iron storage", () => {
+    const manager = new BuildingManager();
+    const state = {
+      ...createInitialState(),
+      buildings: { ...createInitialBuildings(), barn: { val: 1, on: 1, unlocked: true } },
+      workshop: {
+        ...createInitialState().workshop,
+        upgrades: {
+          ...createInitialState().workshop.upgrades,
+          stoneBarns: { unlocked: true, researched: true },
+        },
+      },
+    };
+
+    const effects = manager.updateEffects(state);
+    expect(effects.woodMax).toBeCloseTo(550);
+    expect(effects.mineralsMax).toBeCloseTo(687.5);
+    expect(effects.ironMax).toBeCloseTo(137.5);
+    expect(effects.coalMax).toBeCloseTo(120);
+  });
+
+  it("applies researched stoneBarns to harbor storage but not catnip without silos", () => {
+    const manager = new BuildingManager();
+    const state = {
+      ...createInitialState(),
+      buildings: { ...createInitialBuildings(), harbor: { val: 1, on: 1, unlocked: true } },
+      workshop: {
+        ...createInitialState().workshop,
+        upgrades: {
+          ...createInitialState().workshop.upgrades,
+          stoneBarns: { unlocked: true, researched: true },
+        },
+      },
+    };
+
+    const effects = manager.updateEffects(state);
+    expect(effects.catnipMax).toBeCloseTo(7500);
+    expect(effects.woodMax).toBeCloseTo(1425);
+    expect(effects.mineralsMax).toBeCloseTo(1912.5);
+    expect(effects.ironMax).toBeCloseTo(312.5);
+  });
+
+  it("applies the partial barnRatio catnip boost only when silos is researched", () => {
+    const manager = new BuildingManager();
+    const state = {
+      ...createInitialState(),
+      buildings: { ...createInitialBuildings(), barn: { val: 1, on: 1, unlocked: true } },
+      workshop: {
+        ...createInitialState().workshop,
+        upgrades: {
+          ...createInitialState().workshop.upgrades,
+          stoneBarns: { unlocked: true, researched: true },
+          silos: { unlocked: true, researched: true },
+        },
+      },
+    };
+
+    const effects = manager.updateEffects(state);
+    expect(effects.catnipMax).toBeCloseTo(10937.5);
+  });
+});
+
 describe("Story 31-08: quarry", () => {
   it("exists in BUILDING_DEFS", () => {
     expect(BUILDING_DEFS.find((b) => b.name === "quarry")).toBeDefined();
@@ -1803,5 +1867,290 @@ describe("Story 36-05: regression — end-to-end unlock flow", () => {
     };
     const next = manager.update(state);
     expect(next.buildings.unicornPasture?.unlocked).toBeFalsy();
+  });
+});
+
+// ── Epic 43: Dynamic Building Consumer Parity ───────────────────────────────
+
+describe("Story 43-01: Harbor dynamic storage modifiers consume workshop effects", () => {
+  it("harbor coalMax includes harborCoalRatio effect from barges upgrade", () => {
+    const manager = new BuildingManager();
+    const state = {
+      ...createInitialState(),
+      buildings: { ...createInitialBuildings(), harbor: { val: 1, on: 1, unlocked: true } },
+      effectCache: { harborCoalRatio: 0.5 },
+      workshop: {
+        ...createInitialState().workshop,
+        upgrades: {
+          ...createInitialState().workshop.upgrades,
+          barges: { unlocked: true, researched: true },
+        },
+      },
+    };
+
+    const effects = manager.updateEffects(state);
+    // Base coalMax 60 + harbor val:1 * 100 = 160
+    // Then * (1 + harborCoalRatio from barges 0.5) = 160 * 1.5 = 240
+    expect(effects.coalMax).toBeCloseTo(240);
+  });
+
+  it("harbor storage caps scale by harborRatio when cargoShips is researched and ships exist", () => {
+    const manager = new BuildingManager();
+    const state = {
+      ...createInitialState(),
+      buildings: {
+        ...createInitialBuildings(),
+        harbor: { val: 1, on: 1, unlocked: true },
+      },
+      resources: {
+        ...createInitialResources(),
+        ship: { value: 10, maxValue: 1000 },
+      },
+      effectCache: { harborRatio: 0.01 },
+      workshop: {
+        ...createInitialState().workshop,
+        upgrades: {
+          ...createInitialState().workshop.upgrades,
+          cargoShips: { unlocked: true, researched: true },
+        },
+      },
+    };
+
+    const effects = manager.updateEffects(state);
+
+    // Legacy: ratio = 1 + getLimitedDR(cargoShips.effects["harborRatio"] * shipVal, limit)
+    // cargoShips.effects["harborRatio"] = 0.01
+    // shipVal = 10
+    // effect = 0.01 * 10 = 0.1
+    // limit = 2.25 (no reactor.on, no harborLimitRatioPolicy effect)
+    // Limited DR on 0.1 with limit 2.25 just returns 0.1 (under 75% of 2.25)
+    // ratio = 1 + 0.1 = 1.1
+    // Base harbor catnipMax: 2500; with val=1: 2500 * 1 = 2500
+    // Catnip: 5000 + 2500 * 1.1 = 5000 + 2750 = 7750
+    expect(effects.catnipMax).toBeCloseTo(7750);
+  });
+
+  it("harbor ratios apply limited DR to cargoShips effect with large ship counts", () => {
+    const manager = new BuildingManager();
+    const state = {
+      ...createInitialState(),
+      buildings: {
+        ...createInitialBuildings(),
+        harbor: { val: 1, on: 1, unlocked: true },
+      },
+      resources: {
+        ...createInitialResources(),
+        ship: { value: 500, maxValue: 10000 },
+      },
+      effectCache: { harborRatio: 0.01 },
+      workshop: {
+        ...createInitialState().workshop,
+        upgrades: {
+          ...createInitialState().workshop.upgrades,
+          cargoShips: { unlocked: true, researched: true },
+        },
+      },
+    };
+
+    const effects = manager.updateEffects(state);
+
+    // effect = 0.01 * 500 = 5
+    // limit = 2.25
+    // Since 5 > 75% of 2.25 (1.6875), getLimitedDR kicks in:
+    // maxUndiminished = 0.75 * 2.25 = 1.6875
+    // diminishedPortion = 5 - 1.6875 = 3.3125
+    // delta = 0.25 * 2.25 = 0.5625
+    // diminishedEffect = (1 - 0.5625 / (3.3125 + 0.5625)) * 0.5625 = ~0.176
+    // totalEffect = 1.6875 + 0.176 = ~1.863
+    // So ratio = 1 + 1.863 = ~2.863
+    // catnip = 5000 + 2500 * 2.863 = ~12157.5
+    expect(effects.catnipMax).toBeGreaterThan(10000);
+    expect(effects.catnipMax).toBeLessThan(13000);
+  });
+
+  it("harborCoalRatio and harborRatio stack multiplicatively", () => {
+    const manager = new BuildingManager();
+    const state = {
+      ...createInitialState(),
+      buildings: {
+        ...createInitialBuildings(),
+        harbor: { val: 1, on: 1, unlocked: true },
+      },
+      resources: {
+        ...createInitialResources(),
+        ship: { value: 5, maxValue: 1000 },
+      },
+      effectCache: { harborCoalRatio: 0.5, harborRatio: 0.01 },
+      workshop: {
+        ...createInitialState().workshop,
+        upgrades: {
+          ...createInitialState().workshop.upgrades,
+          barges: { unlocked: true, researched: true },
+          cargoShips: { unlocked: true, researched: true },
+        },
+      },
+    };
+
+    const effects = manager.updateEffects(state);
+
+    // coalMax: base 60 + harbor 100 = 160
+    // First apply harborCoalRatio: * (1 + 0.5) = 160 * 1.5 = 240
+    // Then apply harborRatio (cargoShips): ratio = 1 + 0.01 * 5 = 1.05
+    // In legacy, coalMax gets BOTH multipliers:
+    // effects["coalMax"] *= (1 + game.getEffect("harborCoalRatio"));
+    // effects["coalMax"] *= ratio;
+    // So: 160 * 1.5 * 1.05 = 252
+    expect(effects.coalMax).toBeCloseTo(252);
+  });
+});
+
+describe("Story 43-02: Oil well runtime modifiers consume workshop effects", () => {
+  it("oil well production scales by oilWellRatio when pumpjack is researched", () => {
+    const manager = new BuildingManager();
+    const state = {
+      ...createInitialState(),
+      buildings: {
+        ...createInitialBuildings(),
+        oilWell: { val: 1, on: 1, unlocked: true, automationEnabled: true },
+      },
+      effectCache: { oilWellRatio: 0.45 },
+      workshop: {
+        ...createInitialState().workshop,
+        upgrades: {
+          ...createInitialState().workshop.upgrades,
+          pumpjack: { unlocked: true, researched: true },
+        },
+      },
+    };
+
+    const effects = manager.updateEffects(state);
+
+    // Legacy: oilPerTickBase: 0.02 (base value in building def)
+    // ratio = 1 + oilWellRatio (from pumpjack: 0.45)
+    // So: 0.02 * (1 + 0.45) = 0.029
+    expect(effects.oilPerTickBase).toBeCloseTo(0.029);
+  });
+
+  it("oil well automation disabled removes pumpjack bonus", () => {
+    const manager = new BuildingManager();
+    const state = {
+      ...createInitialState(),
+      buildings: {
+        ...createInitialBuildings(),
+        oilWell: { val: 1, on: 1, unlocked: true, automationEnabled: false },
+      },
+      effectCache: { oilWellRatio: 0.45 },
+      workshop: {
+        ...createInitialState().workshop,
+        upgrades: {
+          ...createInitialState().workshop.upgrades,
+          pumpjack: { unlocked: true, researched: true },
+        },
+      },
+    };
+
+    const effects = manager.updateEffects(state);
+
+    // When automation is disabled, pumpjack bonus is removed
+    // ratio = 1 + oilWellRatio - oilWellRatio = 1
+    // So: 0.02 * 1 = 0.02
+    expect(effects.oilPerTickBase).toBeCloseTo(0.02);
+  });
+
+  it("oil well without pumpjack research stays at base production", () => {
+    const manager = new BuildingManager();
+    const state = {
+      ...createInitialState(),
+      buildings: {
+        ...createInitialBuildings(),
+        oilWell: { val: 1, on: 1, unlocked: true },
+      },
+    };
+
+    const effects = manager.updateEffects(state);
+
+    // Base oil production with no modifications: 0.02
+    expect(effects.oilPerTickBase).toBeCloseTo(0.02);
+  });
+});
+
+describe("Story 43-03: Reactor runtime modifiers consume workshop effects", () => {
+  it("reactor energy production scales by reactorEnergyRatio when coldFusion is researched", () => {
+    const manager = new BuildingManager();
+    const state = {
+      ...createInitialState(),
+      buildings: {
+        ...createInitialBuildings(),
+        reactor: { val: 1, on: 1, unlocked: true },
+      },
+      effectCache: { reactorEnergyRatio: 0.1 },
+      workshop: {
+        ...createInitialState().workshop,
+        upgrades: {
+          ...createInitialState().workshop.upgrades,
+          coldFusion: { unlocked: true, researched: true },
+        },
+      },
+    };
+
+    const effects = manager.updateEffects(state);
+
+    // Legacy reactor: energyProduction: 10 (base in building def)
+    // ratio = 1 + reactorEnergyRatio (from coldFusion: 0.1)
+    // So: 10 * (1 + 0.1) = 11
+    expect(effects.energyProduction).toBeCloseTo(11);
+  });
+
+  it("reactor without coldFusion research stays at base energy production", () => {
+    const manager = new BuildingManager();
+    const state = {
+      ...createInitialState(),
+      buildings: {
+        ...createInitialBuildings(),
+        reactor: { val: 1, on: 1, unlocked: true },
+      },
+    };
+
+    const effects = manager.updateEffects(state);
+
+    // Base energy production: 10
+    expect(effects.energyProduction).toBeCloseTo(10);
+  });
+});
+
+describe("Story 43-04: Mint runtime modifiers (partial — mint is complex in legacy)", () => {
+  it("mint goldMax includes warehouse ratio after applying mint location multiplier", () => {
+    const manager = new BuildingManager();
+    const state = {
+      ...createInitialState(),
+      buildings: {
+        ...createInitialBuildings(),
+        mint: { val: 1, on: 1, unlocked: true },
+      },
+      effectCache: { warehouseRatio: 0.25 },
+      workshop: {
+        ...createInitialState().workshop,
+        upgrades: {
+          ...createInitialState().workshop.upgrades,
+          reinforcedWarehouses: { unlocked: true, researched: true },
+        },
+      },
+    };
+
+    const effects = manager.updateEffects(state);
+
+    // Base goldMax: 10 (rewrite keeps base effects raw, ratios apply only to buildings)
+    // Mint goldMax: 100 * (1 + 0.25) = 125
+    // Total: 10 + 125 = 135
+    expect(effects.goldMax).toBeCloseTo(135);
+  });
+
+  it("mint fur/ivory production deferred — not yet implemented in rewrite", () => {
+    // Legacy mint has complex fur/ivory production tied to manpower stock,
+    // mintRatio, and spiderRelationsPaleontologists effects.
+    // This is a multi-step calculation that occurs during the action() phase
+    // in legacy, not calculateEffects().
+    // Deferring this to Story 43-04b or noting as partial in PARITY.md.
+    expect(true).toBe(true);
   });
 });

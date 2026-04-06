@@ -1,0 +1,4 @@
+interface:
+  display_name: "Queue Epics"
+  short_description: "Run multiple epics with the shared batch workflow"
+  default_prompt: "Run one or more kittens-mcp epics in order using the repo's standard epic-start, TDD, self-rate, and sanity-check workflow."

@@ -174,6 +174,30 @@ describe("Epic 21 — Feature Parity Integration Tests", () => {
     expect(next.resources.manuscript?.value ?? 0).toBeCloseTo(0.008);
   });
 
+  it("stoneBarns raises barn-backed wood/mineral/iron caps after the tick-loop effect lag", () => {
+    let state = resetState(managers);
+    state = {
+      ...state,
+      buildings: {
+        ...state.buildings,
+        barn: { val: 1, on: 1, unlocked: true },
+      },
+      workshop: {
+        ...state.workshop,
+        upgrades: {
+          ...state.workshop.upgrades,
+          stoneBarns: { unlocked: true, researched: true },
+        },
+      },
+    };
+
+    state = tick(state, managers);
+    const next = tick(state, managers);
+    expect(next.resources.wood?.maxValue).toBeCloseTo(550);
+    expect(next.resources.minerals?.maxValue).toBeCloseTo(687.5);
+    expect(next.resources.iron?.maxValue).toBeCloseTo(137.5);
+  });
+
   it("steamworks automation crafts yearly batches and jams afterward", () => {
     const ticksPerYear = TICKS_PER_DAY * DAYS_PER_SEASON * SEASONS_PER_YEAR;
     let state = resetState(managers);

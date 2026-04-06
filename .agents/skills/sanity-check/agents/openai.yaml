@@ -1,0 +1,4 @@
+interface:
+  display_name: "Sanity Check"
+  short_description: "Qualitative review and parity audit for completed epics"
+  default_prompt: "Review the most recently completed kittens-mcp epic batch, inspect the code and tests, audit PARITY.md against implementation and legacy behavior, and report concrete gaps and risks."

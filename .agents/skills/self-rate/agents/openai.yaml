@@ -1,0 +1,4 @@
+interface:
+  display_name: "Self Rate"
+  short_description: "Run the repo's structured milestone audit"
+  default_prompt: "Run the kittens-mcp self-rating workflow: build, test, collect coverage, audit code quality, API-spec completeness, parity tracking, and docs freshness, then append the score report to agent-docs/SELF_RATINGS.md."

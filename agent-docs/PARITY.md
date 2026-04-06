@@ -2,7 +2,7 @@
 
 Tracks implementation coverage against legacy Kittens Game. **This is the authoritative source of truth for what is and isn't done.** Update it whenever items are added or wired. Do not mark an epic "complete" without updating this file.
 
-Last updated: 2026-04-03 (Epic 40 in progress — kitten population decoupled from generic resources; stale `resources.kittens` payloads are dropped and the resource tab no longer renders a kittens row)
+Last updated: 2026-04-06 (Epic 42 closed — legacy barn/warehouse storage ratios now affect barn, warehouse, and harbor caps again, and action responses resync serialized resource caps immediately)
 
 ---
 
@@ -82,6 +82,8 @@ Keys that exist in effectCache from implemented defs but are not fully consumed:
 | `woodJobRatio` | workshop upgrades | VillageManager job production | ✅ Fixed 2026-03-30 |
 | `catnipJobRatio` | workshop upgrades | VillageManager job production | ✅ Fixed 2026-03-30 |
 | `catpowerJobRatio` | workshop upgrades | VillageManager job production | ✅ Fixed 2026-03-30 |
+| `barnRatio` | workshop upgrades | storage-building `catnipMax` / `woodMax` / `mineralsMax` / `ironMax` calculation in BuildingManager | ✅ Fixed 2026-04-06 |
+| `warehouseRatio` | workshop upgrades | storage-building `woodMax` / `mineralsMax` / `ironMax` / `coalMax` / `titaniumMax` / `goldMax` calculation in BuildingManager | ✅ Fixed 2026-04-06 |
 | `unhappinessRatio` | amphitheatre building | village happiness penalty | ✅ Producer and consumer wired 2026-03-30 |
 | `woodRatio` | lumberMill building | wood per-tick calc via `calcResourcePerTick` | ✅ Producer and consumer wired 2026-03-30 |
 | `scienceRatio` | library, academy, observatory buildings | science per-tick calc | ✅ Producer and consumer wired 2026-03-30 |
@@ -146,6 +148,8 @@ Legacy starts with non-zero base storage from `buildings.js` `effectsBase`, even
 ✅ Fixed in Epic 35 prerequisite: `BuildingManager.updateEffects()` now seeds `effectCache` with `effectsBase` values (catnipMax:5000, woodMax:200, mineralMax:400, cultureMax:100, etc.) before building contributions, matching legacy `buildings.js` `effectsBase`. Fresh-game storage now starts at legacy-faithful baseline values.
 
 ✅ Fixed in Epic 21-06: temporary challenge caps are no longer sticky saved state. `ResourceManager` now derives `maxValue` from the current effect cache instead of falling back to serialized `resource.maxValue`, and server save-load now sanitizes loaded resource caps immediately. This fixes live-save cases where unicorns stayed capped at `10` after `unicornTears` was no longer active.
+
+✅ Fixed in Epic 42: action responses now sanitize loaded resource caps immediately too. After `BUY_BUILDING` and `PURCHASE_UPGRADE`, the store rebuilds `effectCache` and then resyncs `resources[*].maxValue`, so storage-cap changes are visible without waiting for a separate load path.
 
 ---
 

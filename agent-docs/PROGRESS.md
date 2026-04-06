@@ -6,6 +6,8 @@ Last updated: 2026-04-06
 
 ## Maintenance Updates
 
+- 2026-04-06: Started Epic 45 after a live-save audit of `agent-docs/example-saves/Kittens Game - Run 8 - Year 10527 - Autumn, day 48.txt`. The rewrite imports building/progression structure plausibly, but it does not match legacy runtime state for over-cap resources, `maxKittens`, or happiness. The strongest current suspect is import/load-time clamping of resource values against rebuilt storage caps.
+- 2026-04-06: Started Epic 43 from a follow-up parity investigation. The next unresolved producer-without-consumer candidates are harbor (`cargoShips`, `barges`), oil well (`pumpjack`, `oilWellRatio`), reactor (`coldFusion`, `thoriumReactors`), and mint policy bonuses (`mintRatio`, `mintIvoryRatio`).
 - 2026-04-06: Closed Epic 42. Barn, warehouse, and harbor storage outputs now consume legacy `barnRatio` / `warehouseRatio` workshop effects again, warehouse catnip storage follows `silos` gating, and `applyGameAction()` now resyncs serialized resource caps immediately after storage-affecting actions.
 - 2026-04-06: Started Epic 42 after investigating a live `stoneBarns` report. The rewrite emits `barnRatio` from workshop upgrades but never consumes it in storage-cap calculation, and the server action path rebuilds `effectCache` without resyncing serialized `resources[*].maxValue`, so storage upgrades can appear to do nothing even when the cache changed.
 - 2026-04-03: Closed Epic 40. Kitten population is no longer simulated as a generic resource, stale saved `resources.kittens` payloads are dropped during load, achievement/badge kitten checks now read village population, and the web resource table no longer renders a phantom `kittens` row.
@@ -786,3 +788,14 @@ Stories: 7 / 7 complete
 - [x] Story 41-06: Recursive ingredient highlighting for crafted cost resources
 - [x] Story 41-07: Hierarchical tree ordering for highlighted resources
 Total: 1432 tests across all packages
+
+---
+
+## Epic 43: Dynamic Building Consumer Parity
+**Status:** In Progress | **Started:** 2026-04-06
+Stories: 0 / 4 complete
+
+- [ ] Story 1: Harbor dynamic storage modifiers consume workshop effects
+- [ ] Story 2: Oil well runtime modifiers consume workshop effects
+- [ ] Story 3: Reactor runtime modifiers consume workshop effects
+- [ ] Story 4: Mint runtime modifiers consume policy effects
