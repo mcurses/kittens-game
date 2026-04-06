@@ -2,6 +2,13 @@
 // Production: uses bun:sqlite via drizzle-orm/bun-sqlite
 // Tests: injected via SqliteAdapter interface using createMemoryAdapter()
 
+export interface SlotMeta {
+  slot: string;
+  status: "active" | "paused" | "archived";
+  createdAt: number;
+  updatedAt: number;
+}
+
 export interface SqliteAdapter {
   /** Execute a DDL statement (CREATE TABLE IF NOT EXISTS, etc.) */
   exec(sql: string): void;
@@ -11,6 +18,14 @@ export interface SqliteAdapter {
   loadSlot(slot: string): string | null;
   /** Upsert state_json for a slot. */
   saveSlot(slot: string, json: string): void;
+  /** Return metadata for all slots. */
+  listSlotMeta(): SlotMeta[];
+  /** Return metadata for a single slot, or null if absent. */
+  getSlotMeta(slot: string): SlotMeta | null;
+  /** Update only the status for a slot without touching state_json. */
+  updateSlotStatus(slot: string, status: "active" | "paused" | "archived"): void;
+  /** Remove a slot and its state entirely. */
+  deleteSlot(slot: string): void;
 }
 
 /* v8 ignore start */
@@ -22,7 +37,8 @@ export async function createBunAdapter(path: string): Promise<SqliteAdapter> {
   const { Database } = await import("bun:sqlite");
   const { drizzle } = await import("drizzle-orm/bun-sqlite");
   const { integer, sqliteTable, text } = await import("drizzle-orm/sqlite-core");
-  const { eq } = await import("drizzle-orm");
+  const drizzleCore = await import("drizzle-orm");
+  const { eq } = drizzleCore;
 
   const sqlite = new Database(path);
   const db = drizzle({ client: sqlite });
@@ -31,6 +47,10 @@ export async function createBunAdapter(path: string): Promise<SqliteAdapter> {
     id: integer("id").primaryKey({ autoIncrement: true }),
     slot: text("slot").notNull().unique(),
     stateJson: text("state_json").notNull(),
+    status: text("status", { enum: ["active", "paused", "archived"] })
+      .notNull()
+      .default("active"),
+    createdAt: integer("created_at").notNull(),
     updatedAt: integer("updated_at").notNull(),
   });
 
@@ -39,6 +59,8 @@ export async function createBunAdapter(path: string): Promise<SqliteAdapter> {
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       slot TEXT NOT NULL UNIQUE,
       state_json TEXT NOT NULL,
+      status TEXT NOT NULL DEFAULT 'active',
+      created_at INTEGER NOT NULL DEFAULT 0,
       updated_at INTEGER NOT NULL
     )
   `);
@@ -67,14 +89,87 @@ export async function createBunAdapter(path: string): Promise<SqliteAdapter> {
     },
 
     saveSlot(slot: string, json: string): void {
-      const updatedAt = Date.now();
-      db.insert(savesTable)
-        .values({ slot, stateJson: json, updatedAt })
-        .onConflictDoUpdate({
-          target: savesTable.slot,
-          set: { stateJson: json, updatedAt },
+      const now = Date.now();
+      // Check if slot exists to set createdAt appropriately
+      const existing = db
+        .select({ createdAt: savesTable.createdAt })
+        .from(savesTable)
+        .where(eq(savesTable.slot, slot))
+        .limit(1)
+        .all();
+
+      if (existing.length === 0) {
+        // New slot: set both createdAt and updatedAt
+        db.insert(savesTable)
+          .values({
+            slot,
+            stateJson: json,
+            status: "active",
+            createdAt: now,
+            updatedAt: now,
+          })
+          .execute();
+      } else {
+        // Existing slot: keep createdAt, update updatedAt
+        db.update(savesTable)
+          .set({ stateJson: json, updatedAt: now })
+          .where(eq(savesTable.slot, slot))
+          .execute();
+      }
+    },
+
+    listSlotMeta(): SlotMeta[] {
+      const rows = db
+        .select({
+          slot: savesTable.slot,
+          status: savesTable.status,
+          createdAt: savesTable.createdAt,
+          updatedAt: savesTable.updatedAt,
         })
-        .run();
+        .from(savesTable)
+        .all();
+      return rows.map((row) => ({
+        slot: row.slot,
+        status: row.status as "active" | "paused" | "archived",
+        createdAt: row.createdAt,
+        updatedAt: row.updatedAt,
+      }));
+    },
+
+    getSlotMeta(slot: string): SlotMeta | null {
+      const rows = db
+        .select({
+          slot: savesTable.slot,
+          status: savesTable.status,
+          createdAt: savesTable.createdAt,
+          updatedAt: savesTable.updatedAt,
+        })
+        .from(savesTable)
+        .where(eq(savesTable.slot, slot))
+        .limit(1)
+        .all();
+      if (rows.length === 0) return null;
+      const row = rows[0]!;
+      return {
+        slot: row.slot,
+        status: row.status as "active" | "paused" | "archived",
+        createdAt: row.createdAt,
+        updatedAt: row.updatedAt,
+      };
+    },
+
+    updateSlotStatus(
+      slot: string,
+      status: "active" | "paused" | "archived"
+    ): void {
+      db.update(savesTable)
+        .set({ status, updatedAt: Date.now() })
+        .where(eq(savesTable.slot, slot))
+        .execute();
+    },
+
+    deleteSlot(slot: string): void {
+      db.delete(savesTable).where(eq(savesTable.slot, slot)).execute();
     },
   };
 }
@@ -86,6 +181,8 @@ export async function createBunAdapter(path: string): Promise<SqliteAdapter> {
  */
 export function createMemoryAdapter(): SqliteAdapter {
   const slots = new Map<string, string>();
+  const metadata = new Map<string, SlotMeta>();
+
   return {
     exec(_sql: string) {
       // No-op for in-memory
@@ -97,7 +194,41 @@ export function createMemoryAdapter(): SqliteAdapter {
       return slots.get(slot) ?? null;
     },
     saveSlot(slot: string, json: string): void {
+      const now = Date.now();
+      if (!slots.has(slot)) {
+        // First save: set createdAt
+        metadata.set(slot, {
+          slot,
+          status: "active",
+          createdAt: now,
+          updatedAt: now,
+        });
+      } else {
+        // Update: keep createdAt, update updatedAt
+        const meta = metadata.get(slot)!;
+        meta.updatedAt = now;
+      }
       slots.set(slot, json);
+    },
+    listSlotMeta(): SlotMeta[] {
+      return [...metadata.values()];
+    },
+    getSlotMeta(slot: string): SlotMeta | null {
+      return metadata.get(slot) ?? null;
+    },
+    updateSlotStatus(
+      slot: string,
+      status: "active" | "paused" | "archived"
+    ): void {
+      const meta = metadata.get(slot);
+      if (meta) {
+        meta.status = status;
+        meta.updatedAt = Date.now();
+      }
+    },
+    deleteSlot(slot: string): void {
+      slots.delete(slot);
+      metadata.delete(slot);
     },
   };
 }
