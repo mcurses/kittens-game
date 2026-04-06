@@ -1185,6 +1185,297 @@ body {
   line-height: 1.6;
 }
 
+/* ── SessionsPanel ──────────────────────────────────────── */
+.sessions-panel {
+  padding: 1rem;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  border-radius: 4px;
+}
+
+.sessions-panel h2 {
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
+  color: var(--t1);
+  margin-bottom: 1rem;
+  border-bottom: 2px solid var(--accent);
+  padding-bottom: 0.5rem;
+}
+
+.sessions-panel.error {
+  background: var(--red-soft);
+  color: var(--red);
+  border-color: var(--red);
+}
+
+/* Create session form */
+.sessions-create {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.sessions-create input {
+  flex: 1;
+  padding: 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+}
+
+.sessions-create input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent-soft);
+}
+
+.sessions-create button {
+  padding: 0.5rem 1rem;
+  background: var(--accent);
+  color: var(--accent-fg);
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  transition: background 0.2s;
+}
+
+.sessions-create button:hover:not(:disabled) {
+  background: var(--accent-hover);
+}
+
+.sessions-create button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.sessions-create .error-msg {
+  position: absolute;
+  color: var(--red);
+  font-size: var(--text-xs);
+  margin-top: 0.25rem;
+}
+
+/* Sessions table */
+.sessions-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 1rem;
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+}
+
+.sessions-table thead {
+  background: var(--surface-active);
+  border-bottom: 2px solid var(--border-strong);
+}
+
+.sessions-table th {
+  padding: 0.75rem;
+  text-align: left;
+  color: var(--t1);
+  font-weight: 600;
+}
+
+.sessions-table td {
+  padding: 0.75rem;
+  border-bottom: 1px solid var(--border-subtle);
+  color: var(--t2);
+}
+
+.sessions-table tbody tr:hover {
+  background: var(--surface-hover);
+}
+
+.sessions-table .slot-name {
+  font-weight: 600;
+  color: var(--t1);
+  font-family: var(--font-mono);
+}
+
+.sessions-table .status-cell {
+  text-align: center;
+}
+
+.sessions-table .status-symbol {
+  font-size: 1.2em;
+  display: inline-block;
+  width: 1.2em;
+  text-align: center;
+}
+
+.sessions-table .status-active .status-symbol {
+  color: var(--green);
+}
+
+.sessions-table .status-paused .status-symbol {
+  color: #ffa500; /* amber */
+}
+
+.sessions-table .status-archived .status-symbol {
+  color: var(--t3);
+}
+
+.sessions-table .last-saved {
+  color: var(--t3);
+  font-size: var(--text-xs);
+}
+
+/* Actions */
+.sessions-table .actions-cell {
+  display: flex;
+  gap: 0.25rem;
+  flex-wrap: wrap;
+}
+
+.action-btn {
+  padding: 0.35rem 0.6rem;
+  font-size: var(--text-xs);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  background: var(--surface);
+  color: var(--t2);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.action-btn:hover {
+  background: var(--surface-active);
+  border-color: var(--border-strong);
+}
+
+.action-btn.open-btn {
+  color: var(--green);
+  border-color: var(--green);
+}
+
+.action-btn.open-btn:hover {
+  background: var(--green-soft);
+}
+
+.action-btn.pause-btn {
+  color: #ffa500;
+  border-color: #ffa500;
+}
+
+.action-btn.pause-btn:hover {
+  background: #fff3e0;
+}
+
+.action-btn.resume-btn {
+  color: var(--green);
+  border-color: var(--green);
+}
+
+.action-btn.resume-btn:hover {
+  background: var(--green-soft);
+}
+
+.action-btn.archive-btn {
+  color: var(--t3);
+  border-color: var(--t3);
+}
+
+.action-btn.archive-btn:hover {
+  background: var(--surface-active);
+}
+
+.action-btn.export-btn {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+.action-btn.export-btn:hover {
+  background: var(--accent-soft);
+}
+
+.action-btn.delete-btn {
+  color: var(--red);
+  border-color: var(--red);
+}
+
+.action-btn.delete-btn:hover {
+  background: var(--red-soft);
+}
+
+/* No sessions message */
+.sessions-panel .no-sessions {
+  text-align: center;
+  color: var(--t3);
+  padding: 2rem 1rem;
+  font-style: italic;
+}
+
+/* Confirmation dialog */
+.confirm-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.confirm-dialog {
+  background: var(--surface);
+  border: 2px solid var(--border-strong);
+  border-radius: 8px;
+  padding: 2rem;
+  max-width: 400px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+}
+
+.confirm-dialog p {
+  color: var(--t1);
+  font-size: var(--text-base);
+  margin-bottom: 1.5rem;
+  line-height: 1.5;
+}
+
+.confirm-buttons {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+}
+
+.confirm-btn {
+  padding: 0.5rem 1.5rem;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.confirm-btn.confirm {
+  background: var(--red);
+  color: white;
+  border-color: var(--red);
+}
+
+.confirm-btn.confirm:hover {
+  background: var(--accent-active);
+}
+
+.confirm-btn.cancel {
+  background: var(--surface);
+  color: var(--t2);
+  border-color: var(--border);
+}
+
+.confirm-btn.cancel:hover {
+  background: var(--surface-active);
+}
+
 /* ── Utility ─────────────────────────────────────────────── */
 .sr-only {
   position: absolute;
