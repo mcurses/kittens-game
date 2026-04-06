@@ -128,10 +128,10 @@
 **So that** a paused game is frozen in time while still being inspectable
 
 ### Acceptance Criteria
-- [ ] `POST /api/game/action` with a paused slot returns 409 `{ error: 'session is paused' }`
-- [ ] `GET /api/game/state` with a paused slot returns 200 with current state (reads allowed)
-- [ ] WebSocket clients connecting to a paused slot receive an initial `CONNECTED` message but no `STATE_DELTA` ticks
-- [ ] Resuming via `POST /api/sessions/:slot/resume` restarts auto-tick; subsequent ticks broadcast normally
-- [ ] Tests cover: action rejected when paused, state readable when paused, tick restarts after resume
+- [x] `POST /api/game/action` with a paused slot returns 409 `{ error: 'session is paused' }`
+- [x] `GET /api/game/state` with a paused slot returns 200 with current state (reads allowed)
+- [x] WebSocket clients connecting to a paused slot receive an initial `CONNECTED` message but no `STATE_DELTA` ticks
+- [x] Resuming via `POST /api/sessions/:slot/resume` restarts auto-tick; subsequent ticks broadcast normally
+- [x] Tests cover: action rejected when paused, state readable when paused, tick restarts after resume
 
-### Status: [ ] Tests | [ ] Impl | [ ] Rated
+### Status: [x] Tests | [x] Impl | [ ] Rated
