@@ -57,6 +57,22 @@ export function canAfford(
 }
 
 /**
+ * Format a duration in seconds to a human-readable string.
+ */
+export function formatDuration(seconds: number): string {
+  if (!Number.isFinite(seconds) || seconds <= 0) return "0s";
+  if (seconds < 60) return `${Math.round(seconds)}s`;
+  if (seconds < 3600) {
+    const m = Math.floor(seconds / 60);
+    const s = Math.round(seconds % 60);
+    return s > 0 ? `${m}m ${s}s` : `${m}m`;
+  }
+  const h = Math.floor(seconds / 3600);
+  const m = Math.round((seconds % 3600) / 60);
+  return m > 0 ? `${h}h ${m}m` : `${h}h`;
+}
+
+/**
  * Match legacy resPool.isStorageLimited() for the common priced-action case:
  * if the player does not already have enough and the price exceeds current cap,
  * the action is "maxed out" rather than merely unaffordable.

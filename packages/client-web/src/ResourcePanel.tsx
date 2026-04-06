@@ -1,9 +1,11 @@
 // ResourcePanel — resource inventory with rates and progress bars
 import type { GameStateResponse } from "@kittens/api-spec";
-import { deriveUiVisibility } from "@kittens/engine";
+import { CRAFT_DEFS, deriveUiVisibility } from "@kittens/engine";
 import React from "react";
 import { type ResourceEntity, useInspector } from "./InspectorContext.js";
+import { type IngredientNode, expandCraftCosts } from "./expandCraftCosts.js";
 import { usePersistentUiState } from "./usePersistentUiState.js";
+import { formatDuration } from "./utils.js";
 
 const TICKS_PER_SECOND = 5;
 const RESOURCE_RATE_UNIT_KEY = "kittens.ui.resourceRateUnit";
@@ -65,6 +67,7 @@ export function ResourcePanel({ state }: Props): React.ReactElement {
     "perTick",
     isResourceRateUnit,
   );
+  const { inspected } = useInspector();
   const showPerSecond = rateUnit === "perSecond";
 
   if (!state) {
@@ -80,6 +83,22 @@ export function ResourcePanel({ state }: Props): React.ReactElement {
       ((visibility.resources[resource.name]?.visible ?? resource.unlocked === true) ||
         resource.value > 0),
   );
+
+  // Build highlight map only when an action item (with prices) is inspected.
+  // ResourceEntity has no prices field — hovering a resource must NOT trigger highlighting.
+  const highlightMap: Map<string, IngredientNode> | null =
+    inspected !== null && "prices" in inspected && inspected.prices.length > 0
+      ? expandCraftCosts(
+          inspected.prices,
+          CRAFT_DEFS,
+          Object.fromEntries(
+            resources.map((r) => [
+              r.name,
+              { value: r.value, maxValue: r.maxValue, perTick: r.perTick },
+            ]),
+          ),
+        )
+      : null;
 
   return (
     <>
@@ -109,6 +128,7 @@ export function ResourcePanel({ state }: Props): React.ReactElement {
               resource={r}
               breakdown={getResourceBreakdown(effectCache, r.name)}
               showPerSecond={showPerSecond}
+              highlightMap={highlightMap}
               {...(r.name === "catnip" && "catnipDemandRatio" in effectCache ? { demandRatio: effectCache.catnipDemandRatio } : {})}
             />
           ))
@@ -118,18 +138,102 @@ export function ResourcePanel({ state }: Props): React.ReactElement {
   );
 }
 
+// ── Highlight helpers ─────────────────────────────────────
+
+function getItemClass(
+  name: string,
+  highlightMap: Map<string, IngredientNode> | null,
+): string {
+  if (highlightMap === null) return "resource-item";
+  const node = highlightMap.get(name);
+  if (!node) return "resource-item resource-item--dimmed";
+  if (node.depth === 1) return "resource-item resource-item--highlighted";
+  if (node.depth === 2) return "resource-item resource-item--highlighted-secondary";
+  return "resource-item resource-item--highlighted-tertiary";
+}
+
+function TargetMarker({
+  resource,
+  node,
+}: {
+  resource: ResourceEntry;
+  node: IngredientNode;
+}): React.ReactElement | null {
+  const { value, maxValue } = resource;
+  if (!maxValue || maxValue <= 0) return null;
+
+  const storeLimited = node.amount > maxValue;
+  const met = value >= node.amount;
+  const pctLeft = storeLimited ? 1 : Math.min(node.amount / maxValue, 1);
+  const markerClass = storeLimited
+    ? "resource-bar-target resource-bar-target--limited"
+    : met
+    ? "resource-bar-target resource-bar-target--met"
+    : "resource-bar-target resource-bar-target--unmet";
+
+  return (
+    <div
+      className={markerClass}
+      style={{ left: `${pctLeft * 100}%` }}
+      aria-hidden="true"
+    />
+  );
+}
+
+function EtaLabel({
+  resource,
+  node,
+  elapsedSeconds,
+}: {
+  resource: ResourceEntry;
+  node: IngredientNode;
+  elapsedSeconds: number;
+}): React.ReactElement | null {
+  const { value, maxValue, perTick } = resource;
+  const storeLimited = maxValue !== undefined && maxValue > 0 && node.amount > maxValue;
+  if (storeLimited) return null;
+  if (value >= node.amount) return null;
+
+  const perSec = (perTick ?? 0) * TICKS_PER_SECOND;
+  if (perSec <= 0) {
+    return <div className="resource-item-eta">—</div>;
+  }
+
+  const baseSeconds = (node.amount - value) / perSec;
+  const remaining = Math.max(0, baseSeconds - elapsedSeconds);
+  return <div className="resource-item-eta">in {formatDuration(remaining)}</div>;
+}
+
+// ── ResourceItem ──────────────────────────────────────────
+
 function ResourceItem({
   resource,
   breakdown,
   showPerSecond,
   demandRatio,
+  highlightMap,
 }: {
   resource: ResourceEntry;
   breakdown: ResourceBreakdown;
   showPerSecond: boolean;
   demandRatio?: number | undefined;
+  highlightMap: Map<string, IngredientNode> | null;
 }): React.ReactElement {
   const { setInspected, clearInspected } = useInspector();
+  const [elapsedSeconds, setElapsedSeconds] = React.useState(0);
+
+  // Live ETA countdown — only active when this resource is highlighted
+  const node = highlightMap?.get(resource.name) ?? null;
+  const isHighlighted = node !== null;
+  React.useEffect(() => {
+    if (!isHighlighted) {
+      setElapsedSeconds(0);
+      return;
+    }
+    setElapsedSeconds(0);
+    const id = setInterval(() => setElapsedSeconds((s) => s + 1), 1000);
+    return () => clearInterval(id);
+  }, [isHighlighted, inspectedKey(highlightMap)]);
 
   const pct =
     resource.maxValue && resource.maxValue > 0
@@ -164,10 +268,12 @@ function ResourceItem({
     setInspected(entity);
   };
 
+  const itemClass = getItemClass(resource.name, highlightMap);
+
   return (
     <li
       data-testid={`resource-${resource.name}`}
-      className="resource-item"
+      className={itemClass}
       onMouseEnter={handleInspect}
       onMouseLeave={clearInspected}
       onFocus={handleInspect}
@@ -198,6 +304,9 @@ function ResourceItem({
               className={`resource-bar-fill ${fillClass}`}
               style={{ width: `${pct * 100}%` }}
             />
+            {node && (
+              <TargetMarker resource={resource} node={node} />
+            )}
           </div>
         ) : (
           <div style={{ flex: 1 }} />
@@ -211,8 +320,24 @@ function ResourceItem({
           <span className="rate-badge" />
         )}
       </div>
+
+      {/* ETA label (only when highlighted and deficit exists) */}
+      {node && (
+        <EtaLabel resource={resource} node={node} elapsedSeconds={elapsedSeconds} />
+      )}
+
+      {/* Secondary/tertiary annotation */}
+      {node && node.depth > 1 && (
+        <div className="resource-item-annotation">↳ ingredient of {node.parentName}</div>
+      )}
     </li>
   );
+}
+
+/** Stable key so useEffect resets elapsed when the inspected action changes. */
+function inspectedKey(map: Map<string, IngredientNode> | null): string {
+  if (!map) return "";
+  return Array.from(map.keys()).sort().join(",");
 }
 
 // ── Formatting helpers ─────────────────────────────────────

@@ -10,7 +10,7 @@ import {
   type ZigguratUpgradeEntity,
   useInspector,
 } from "./InspectorContext.js";
-import { isStorageLimited } from "./utils.js";
+import { formatDuration, isStorageLimited } from "./utils.js";
 
 const TICKS_PER_SECOND = 5;
 
@@ -437,15 +437,3 @@ function formatPct(value: number): string {
   return `${value > 0 ? "+" : ""}${(value * 100).toFixed(1)}%`;
 }
 
-function formatDuration(seconds: number): string {
-  if (!Number.isFinite(seconds) || seconds <= 0) return "0s";
-  if (seconds < 60) return `${Math.round(seconds)}s`;
-  if (seconds < 3600) {
-    const m = Math.floor(seconds / 60);
-    const s = Math.round(seconds % 60);
-    return s > 0 ? `${m}m ${s}s` : `${m}m`;
-  }
-  const h = Math.floor(seconds / 3600);
-  const m = Math.round((seconds % 3600) / 60);
-  return m > 0 ? `${h}h ${m}m` : `${h}h`;
-}
