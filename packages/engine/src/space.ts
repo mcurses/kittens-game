@@ -768,6 +768,36 @@ export function applyBuySpaceBuilding(state: GameState, name: string): GameState
   });
 }
 
+// ── Terraforming Effect Calculation ───────────────────────────────────────────
+
+/**
+ * Unlimited Diminishing Returns function from legacy game.js.
+ * Port of legacy getUnlimitedDR(value, stripe):
+ * (Math.sqrt(1 + (value/stripe) * 8) - 1) / 2
+ */
+function getUnlimitedDR(value: number, stripe: number): number {
+  if (stripe === 0) return 0;
+  const ratio = (Math.sqrt(1 + (value / stripe) * 8) - 1) / 2;
+  return ratio === Infinity ? (Math.sqrt(value) / Math.sqrt(stripe)) * Math.SQRT2 : ratio;
+}
+
+/**
+ * Calculate terraformingMaxKittensRatio based on hydroponics.on count.
+ * Port of legacy space.js hydroponics.updateEffects():
+ * terraformingMaxKittensRatio = getUnlimitedDR(hydroponics.on, 100) / hydroponics.on
+ *
+ * Examples (with correct formula):
+ * - 0 HP = 0 (prevents division by zero)
+ * - 100 HP ≈ 1.0 (+100%)
+ * - 300 HP ≈ 0.67 (+67%)
+ */
+function getTerraformingMaxKittensRatio(hydroponica: number): number {
+  if (hydroponica <= 0) return 0;
+
+  const unlimitedDr = getUnlimitedDR(hydroponica, 100);
+  return unlimitedDr / hydroponica;
+}
+
 // ── SpaceManager ──────────────────────────────────────────────────────────────
 
 export class SpaceManager implements Manager {
@@ -842,10 +872,26 @@ export class SpaceManager implements Manager {
   updateEffects(state: GameState): Record<string, number> {
     const effects: Record<string, number> = {};
 
+    // Compute terraformingMaxKittensRatio from hydroponics.on count
+    const hydroponics = state.space.spaceBuildings["hydroponics"];
+    const hydroponicsOn = hydroponics?.on ?? 0;
+    if (hydroponicsOn > 0) {
+      effects["terraformingMaxKittensRatio"] = getTerraformingMaxKittensRatio(hydroponicsOn);
+    }
+
     for (const def of SPACE_BUILDING_DEFS) {
       const bld = state.space.spaceBuildings[def.name];
       if (!bld || bld.on === 0) continue;
 
+      // terraformingStation uses dynamic ratio from hydroponics
+      if (def.name === "terraformingStation") {
+        // maxKittens = 1 + terraformingMaxKittensRatio (static 1 + dynamic ratio)
+        const dynamicRatio = effects["terraformingMaxKittensRatio"] ?? 0;
+        effects["maxKittens"] = (effects["maxKittens"] ?? 0) + (1 + dynamicRatio) * bld.on;
+        continue;
+      }
+
+      // All other effects apply normally
       for (const [key, baseVal] of Object.entries(def.effects)) {
         effects[key] = (effects[key] ?? 0) + baseVal * bld.on;
       }

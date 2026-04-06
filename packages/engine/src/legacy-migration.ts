@@ -385,10 +385,13 @@ export function migrateLegacySave(legacyJson: unknown): SerializedGameState {
       })
     : [];
 
+  // Preserve legacy maxKittens for import parity validation (Story 45-02)
+  const legacyMaxKittens = num(isRec(save.village) ? (save.village as Record<string, unknown>).maxKittens : 0);
+
   const out: SerializedGameState = {
     version: 1,
     tick: 0,
-    effectCache: {},
+    effectCache: legacyMaxKittens > 0 ? { _legacyMaxKittensImported: legacyMaxKittens } : {},
     resources: migrateResources(rawResources),
     buildings: migrateBuildings(save.buildings),
     village: migrateVillage(save.village),

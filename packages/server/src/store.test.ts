@@ -552,7 +552,7 @@ describe("GameStateStore — legacy import over-cap preservation", () => {
       ...saved,
       resources: {
         ...saved.resources,
-        catnip: { value: 837318451.9, maxValue: 0 },
+        catnip: { value: 837318451.9, maxValue: 0, perTick: 0 },
       },
       // effectCache is not provided in import, will be rebuilt without cap
     };
@@ -585,13 +585,13 @@ describe("GameStateStore — legacy import over-cap preservation", () => {
       ...saved,
       resources: {
         ...saved.resources,
-        catnip: { value: legacyValues.catnip, maxValue: 0 },
-        wood: { value: legacyValues.wood, maxValue: 0 },
-        minerals: { value: legacyValues.minerals, maxValue: 0 },
-        science: { value: legacyValues.science, maxValue: 0 },
-        faith: { value: legacyValues.faith, maxValue: 0 },
-        antimatter: { value: legacyValues.antimatter, maxValue: 0 },
-        unobtainium: { value: legacyValues.unobtainium, maxValue: 0 },
+        catnip: { value: legacyValues.catnip, maxValue: 0, perTick: 0 },
+        wood: { value: legacyValues.wood, maxValue: 0, perTick: 0 },
+        minerals: { value: legacyValues.minerals, maxValue: 0, perTick: 0 },
+        science: { value: legacyValues.science, maxValue: 0, perTick: 0 },
+        faith: { value: legacyValues.faith, maxValue: 0, perTick: 0 },
+        antimatter: { value: legacyValues.antimatter, maxValue: 0, perTick: 0 },
+        unobtainium: { value: legacyValues.unobtainium, maxValue: 0, perTick: 0 },
       },
     };
 
