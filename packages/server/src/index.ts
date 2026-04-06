@@ -4,7 +4,7 @@
 import { createApp } from "./app.js";
 import { createBunAdapter } from "./db.js";
 import { getServerDbPath, getStartupSlots } from "./runtime.js";
-import { SessionRegistry } from "./session.js";
+import { SessionRegistry } from "./store.js";
 import { attachWebSocket, websocket } from "./ws.js";
 
 const PORT = 3000;
@@ -13,9 +13,8 @@ async function main(): Promise<void> {
   const adapter = await createBunAdapter(getServerDbPath(import.meta.url));
   const registry = new SessionRegistry(adapter);
 
-  for (const slot of getStartupSlots(adapter.listSlots())) {
-    registry.getOrCreate(slot); // init + startAutoTick handled by getOrCreate
-  }
+  // Load all active slots at startup
+  registry.loadActiveSlots();
 
   const app = createApp(registry);
   attachWebSocket(app, registry);
@@ -28,11 +27,8 @@ async function main(): Promise<void> {
 
   console.log(`Kittens server running on http://localhost:${PORT}`);
 
-  // Graceful shutdown — stop all active stores' auto-tick
+  // Graceful shutdown
   function shutdown(): void {
-    for (const slot of registry.listSlots()) {
-      registry.getOrCreate(slot).stopAutoTick();
-    }
     server.stop();
     process.exit(0);
   }

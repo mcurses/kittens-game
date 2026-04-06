@@ -1,7 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { GameStateStore } from "./store.js";
+import { GameStateStore, SessionRegistry, isValidSlot } from "./store.js";
 import { createMemoryAdapter } from "./db.js";
-import { SessionRegistry, isValidSlot } from "./session.js";
 
 // ── Story 22-6: Slot name validation ─────────────────────────────────────────
 describe("isValidSlot", () => {
@@ -50,57 +49,74 @@ describe("SessionRegistry", () => {
   });
 
   it("getOrCreate returns a store for a new slot", () => {
+    registry.create("slot1");
     const store = registry.getOrCreate("slot1");
-    expect(store).toBeDefined();
+    expect(store).not.toBeNull();
   });
 
   it("getOrCreate returns the same instance for the same slot", () => {
+    registry.create("slot1");
     const a = registry.getOrCreate("slot1");
     const b = registry.getOrCreate("slot1");
     expect(a).toBe(b);
   });
 
   it("getOrCreate returns distinct instances for different slots", () => {
+    registry.create("slot1");
+    registry.create("slot2");
     const a = registry.getOrCreate("slot1");
     const b = registry.getOrCreate("slot2");
     expect(a).not.toBe(b);
   });
 
-  it("listSlots returns all created slot names", () => {
-    registry.getOrCreate("alpha");
-    registry.getOrCreate("beta");
-    const slots = registry.listSlots();
-    expect(slots).toContain("alpha");
-    expect(slots).toContain("beta");
+  it("listAll returns all created slot metadata", () => {
+    registry.create("alpha");
+    registry.create("beta");
+    const slots = registry.listAll();
+    expect(slots.map((s) => s.slot)).toContain("alpha");
+    expect(slots.map((s) => s.slot)).toContain("beta");
     expect(slots).toHaveLength(2);
   });
 
-  it("listSlots returns empty array when no slots created", () => {
-    expect(registry.listSlots()).toEqual([]);
+  it("listAll returns empty array when no slots created", () => {
+    expect(registry.listAll()).toEqual([]);
   });
 
   it("getOrCreate initializes new store (tick starts at 0)", () => {
+    registry.create("fresh");
     const store = registry.getOrCreate("fresh");
+    expect(store).not.toBeNull();
+    if (store === null) return;
     expect(store.getSerialized().tick).toBe(0);
   });
 
   it("stores for different slots have independent state", () => {
+    registry.create("s1");
+    registry.create("s2");
     const s1 = registry.getOrCreate("s1");
     const s2 = registry.getOrCreate("s2");
+    expect(s1).not.toBeNull();
+    expect(s2).not.toBeNull();
+    if (s1 === null || s2 === null) return;
     s1.advanceTick();
     expect(s1.getSerialized().tick).toBe(1);
     expect(s2.getSerialized().tick).toBe(0);
   });
 
   it("getOrCreate with default slot matches DEFAULT_SLOT constant", () => {
+    registry.create("default");
     const store = registry.getOrCreate("default");
-    expect(store).toBeDefined();
+    expect(store).not.toBeNull();
   });
 
   it("persists to named slot in DB", () => {
     const db = createMemoryAdapter();
     const reg = new SessionRegistry(db);
-    reg.getOrCreate("myslot").advanceTick();
+    reg.create("myslot");
+    const store = reg.getOrCreate("myslot");
+    expect(store).not.toBeNull();
+    if (store === null) return;
+    store.advanceTick();
     // The DB should have saved to "myslot"
     const saved = db.loadSlot("myslot");
     expect(saved).not.toBeNull();
@@ -109,7 +125,13 @@ describe("SessionRegistry", () => {
   it("getOrCreate starts auto-tick for new slots created at runtime", () => {
     vi.useFakeTimers();
     const reg = new SessionRegistry(createMemoryAdapter());
+    reg.create("runtime-slot");
     const store = reg.getOrCreate("runtime-slot");
+    expect(store).not.toBeNull();
+    if (store === null) {
+      vi.useRealTimers();
+      return;
+    }
     expect(store.getSerialized().tick).toBe(0);
     vi.advanceTimersByTime(250);
     expect(store.getSerialized().tick).toBeGreaterThan(0);
@@ -120,7 +142,13 @@ describe("SessionRegistry", () => {
   it("loadFromSave on an already-ticking store keeps ticking", () => {
     vi.useFakeTimers();
     const reg = new SessionRegistry(createMemoryAdapter());
+    reg.create("import-slot");
     const store = reg.getOrCreate("import-slot");
+    expect(store).not.toBeNull();
+    if (store === null) {
+      vi.useRealTimers();
+      return;
+    }
     // Simulate a legacy import by calling loadFromSave
     const serialized = store.getSerialized();
     store.loadFromSave(serialized);
@@ -141,6 +169,11 @@ describe("SessionRegistry", () => {
 
     const reg = new SessionRegistry(db);
     const restored = reg.getOrCreate("save-a"); // starts auto-tick at 200ms
+    expect(restored).not.toBeNull();
+    if (restored === null) {
+      vi.useRealTimers();
+      return;
+    }
 
     expect(restored.getSerialized().tick).toBe(1);
     vi.advanceTimersByTime(500); // 2+ ticks at 200ms interval
@@ -151,14 +184,19 @@ describe("SessionRegistry", () => {
   });
 });
 
-// ── Cross-manager multi-slot integration test ─────────────────────────────────
+// ── Cross-manager multi-slot isolation (integration) ─────────────────────────────────
 describe("SessionRegistry multi-slot isolation (integration)", () => {
   it("runs two slots independently through 100 ticks each with correct state", () => {
     const db = createMemoryAdapter();
     const registry = new SessionRegistry(db);
 
+    registry.create("player-a");
+    registry.create("player-b");
     const storeA = registry.getOrCreate("player-a");
     const storeB = registry.getOrCreate("player-b");
+    expect(storeA).not.toBeNull();
+    expect(storeB).not.toBeNull();
+    if (storeA === null || storeB === null) return;
 
     // Advance slot A 100 ticks, slot B only 30
     for (let i = 0; i < 100; i++) storeA.advanceTick();

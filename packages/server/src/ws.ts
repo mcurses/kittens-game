@@ -3,9 +3,9 @@ import type { Hono } from "hono";
 // Attaches the /ws route to the app using Hono's bun WS helper.
 import { upgradeWebSocket, websocket } from "hono/bun";
 import type { WSContext } from "hono/ws";
-import { DEFAULT_SLOT } from "./store.js";
+import { DEFAULT_SLOT, isValidSlot } from "./store.js";
 import type { WsClient } from "./store.js";
-import { SessionRegistry, isValidSlot } from "./session.js";
+import { SessionRegistry } from "./store.js";
 import { GameActionRequestSchema } from "@kittens/api-spec";
 
 export { websocket };
@@ -27,6 +27,10 @@ export function attachWebSocket(app: Hono, registry: SessionRegistry): void {
         onOpen(_event: Event, ws: WSContext) {
           const sessionId = crypto.randomUUID();
           const store = registry.getOrCreate(slot);
+          if (store === null) {
+            ws.close(1008, "Slot not found or archived");
+            return;
+          }
           wsClient = {
             send: (data: string) => ws.send(data),
           };
@@ -49,6 +53,7 @@ export function attachWebSocket(app: Hono, registry: SessionRegistry): void {
         onMessage(event: MessageEvent, _ws: WSContext) {
           if (wsClient === null) return;
           const store = registry.getOrCreate(slot);
+          if (store === null) return;
 
           let msg: unknown;
           try {
@@ -90,7 +95,9 @@ export function attachWebSocket(app: Hono, registry: SessionRegistry): void {
         onClose(_event: Event) {
           if (wsClient !== null) {
             const store = registry.getOrCreate(slot);
-            store.removeClient(wsClient);
+            if (store !== null) {
+              store.removeClient(wsClient);
+            }
             wsClient = null;
           }
         },
@@ -98,7 +105,9 @@ export function attachWebSocket(app: Hono, registry: SessionRegistry): void {
         onError(_event: Event) {
           if (wsClient !== null) {
             const store = registry.getOrCreate(slot);
-            store.removeClient(wsClient);
+            if (store !== null) {
+              store.removeClient(wsClient);
+            }
             wsClient = null;
           }
         },

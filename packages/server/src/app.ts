@@ -16,8 +16,8 @@ import LZString from "lz-string";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import type { Context } from "hono";
-import { DEFAULT_SLOT, type GameStateStore } from "./store.js";
-import { SessionRegistry, isValidSlot } from "./session.js";
+import { DEFAULT_SLOT, isValidSlot, type GameStateStore, SessionRegistry } from "./store.js";
+import type { SlotMeta } from "./db.js";
 
 const VERSION = "0.1.0";
 
@@ -44,7 +44,11 @@ function resolveStore(
   if (slot === null) {
     return c.json({ ok: false, error: "Invalid slot name" }, 400) as unknown as Response;
   }
-  return { store: registry.getOrCreate(slot) };
+  const store = registry.getOrCreate(slot);
+  if (store === null) {
+    return c.json({ ok: false, error: "Slot not found or archived" }, 404) as unknown as Response;
+  }
+  return { store };
 }
 
 export function createApp(registry: SessionRegistry): Hono {
@@ -222,6 +226,175 @@ export function createApp(registry: SessionRegistry): Hono {
     }
     const newState = store.reset(hard);
     return c.json(newState);
+  });
+
+  // ── Sessions ─────────────────────────────────────────────────────────────────────
+
+  // GET /api/sessions — list all slots
+  app.get("/api/sessions", (c) => {
+    const all = registry.listAll();
+    return c.json({ sessions: all });
+  });
+
+  // POST /api/sessions — create new session
+  app.post("/api/sessions", async (c) => {
+    let body: unknown;
+    try {
+      body = await c.req.json();
+    } catch {
+      return c.json({ ok: false, error: "Invalid JSON body" }, 400);
+    }
+
+    if (typeof body !== "object" || body === null || !("slot" in body)) {
+      return c.json({ ok: false, error: "Missing slot field" }, 400);
+    }
+    const slot = (body as Record<string, unknown>).slot;
+    if (typeof slot !== "string") {
+      return c.json({ ok: false, error: "Slot must be a string" }, 400);
+    }
+    if (!isValidSlot(slot)) {
+      return c.json({ ok: false, error: "Invalid slot name" }, 400);
+    }
+
+    try {
+      registry.create(slot);
+      const meta = registry.listAll().find((m) => m.slot === slot);
+      if (!meta) {
+        throw new Error("Failed to retrieve created slot metadata");
+      }
+      return c.json(meta, 201);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      if (message.includes("Slot already exists")) {
+        return c.json({ ok: false, error: message }, 409);
+      }
+      return c.json({ ok: false, error: message }, 400);
+    }
+  });
+
+  // GET /api/sessions/:slot — get slot metadata
+  app.get("/api/sessions/:slot", (c) => {
+    const slot = c.req.param("slot");
+    if (!isValidSlot(slot)) {
+      return c.json({ ok: false, error: "Invalid slot name" }, 400);
+    }
+    const meta = registry.listAll().find((m) => m.slot === slot);
+    if (!meta) {
+      return c.json({ ok: false, error: "Slot not found" }, 404);
+    }
+    return c.json(meta);
+  });
+
+  // DELETE /api/sessions/:slot — delete slot
+  app.delete("/api/sessions/:slot", (c) => {
+    const slot = c.req.param("slot");
+    if (!isValidSlot(slot)) {
+      return c.json({ ok: false, error: "Invalid slot name" }, 400);
+    }
+    try {
+      registry.delete(slot);
+      return new Response(null, { status: 204 });
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      if (message.includes("not found")) {
+        return c.json({ ok: false, error: message }, 404);
+      }
+      return c.json({ ok: false, error: message }, 400);
+    }
+  });
+
+  // POST /api/sessions/:slot/pause — pause slot
+  app.post("/api/sessions/:slot/pause", (c) => {
+    const slot = c.req.param("slot");
+    if (!isValidSlot(slot)) {
+      return c.json({ ok: false, error: "Invalid slot name" }, 400);
+    }
+    try {
+      const meta = registry.listAll().find((m) => m.slot === slot);
+      if (!meta) {
+        return c.json({ ok: false, error: "Slot not found" }, 404);
+      }
+      if (meta.status === "paused" || meta.status === "archived") {
+        return c.json({ ok: false, error: `Cannot pause ${meta.status} slot` }, 409);
+      }
+      registry.pause(slot);
+      const updated = registry.listAll().find((m) => m.slot === slot);
+      return c.json(updated);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      return c.json({ ok: false, error: message }, 400);
+    }
+  });
+
+  // POST /api/sessions/:slot/resume — resume slot
+  app.post("/api/sessions/:slot/resume", (c) => {
+    const slot = c.req.param("slot");
+    if (!isValidSlot(slot)) {
+      return c.json({ ok: false, error: "Invalid slot name" }, 400);
+    }
+    try {
+      const meta = registry.listAll().find((m) => m.slot === slot);
+      if (!meta) {
+        return c.json({ ok: false, error: "Slot not found" }, 404);
+      }
+      if (meta.status !== "paused") {
+        return c.json({ ok: false, error: `Cannot resume ${meta.status} slot` }, 409);
+      }
+      registry.resume(slot);
+      const updated = registry.listAll().find((m) => m.slot === slot);
+      return c.json(updated);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      return c.json({ ok: false, error: message }, 400);
+    }
+  });
+
+  // POST /api/sessions/:slot/archive — archive slot
+  app.post("/api/sessions/:slot/archive", (c) => {
+    const slot = c.req.param("slot");
+    if (!isValidSlot(slot)) {
+      return c.json({ ok: false, error: "Invalid slot name" }, 400);
+    }
+    try {
+      const meta = registry.listAll().find((m) => m.slot === slot);
+      if (!meta) {
+        return c.json({ ok: false, error: "Slot not found" }, 404);
+      }
+      if (meta.status === "archived") {
+        return c.json({ ok: false, error: "Cannot archive archived slot" }, 409);
+      }
+      registry.archive(slot);
+      const updated = registry.listAll().find((m) => m.slot === slot);
+      return c.json(updated);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      return c.json({ ok: false, error: message }, 400);
+    }
+  });
+
+  // GET /api/sessions/:slot/export — export slot state
+  app.get("/api/sessions/:slot/export", (c) => {
+    const slot = c.req.param("slot");
+    if (!isValidSlot(slot)) {
+      return c.json({ ok: false, error: "Invalid slot name" }, 400);
+    }
+    try {
+      const meta = registry.listAll().find((m) => m.slot === slot);
+      if (!meta) {
+        return c.json({ ok: false, error: "Slot not found" }, 404);
+      }
+      if (meta.status === "archived") {
+        return c.json({ ok: false, error: "Archived slot cannot be exported" }, 409);
+      }
+      const json = registry.export(slot);
+      return c.text(json, 200, {
+        "Content-Disposition": `attachment; filename="${slot}.json"`,
+        "Content-Type": "application/json",
+      });
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      return c.json({ ok: false, error: message }, 400);
+    }
   });
 
   return app;

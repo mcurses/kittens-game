@@ -4,15 +4,15 @@ import LZString from "lz-string";
 import { describe, expect, it } from "vitest";
 import { createApp } from "./app.js";
 import { createMemoryAdapter } from "./db.js";
-import { SessionRegistry } from "./session.js";
 import type { GameStateStore } from "./store.js";
+import { SessionRegistry } from "./store.js";
 
 function makeApp(): { app: Hono; registry: SessionRegistry; store: GameStateStore } {
   const db = createMemoryAdapter();
   const registry = new SessionRegistry(db);
   const app = createApp(registry);
-  // Eagerly init the default store so tests that call store.advanceTick() work
-  const store = registry.getOrCreate("default");
+  // Eagerly create the default store so tests that call store.advanceTick() work
+  const store = registry.create("default");
   return { app, registry, store };
 }
 
@@ -56,7 +56,7 @@ describe("GET /api/game/state", () => {
 
   it("returns state for a specific slot", async () => {
     const { app, registry } = makeApp();
-    registry.getOrCreate("myslot").advanceTick();
+    registry.create("myslot").advanceTick();
     const res = await req(app, "/api/game/state?slot=myslot");
     const body = (await res.json()) as { tick: number };
     expect(body.tick).toBe(1);
@@ -64,7 +64,8 @@ describe("GET /api/game/state", () => {
 
   it("different slots have independent state", async () => {
     const { app, registry } = makeApp();
-    registry.getOrCreate("slot-a").advanceTick();
+    registry.create("slot-a").advanceTick();
+    registry.create("slot-b");
     const resA = await req(app, "/api/game/state?slot=slot-a");
     const resB = await req(app, "/api/game/state?slot=slot-b");
     expect(((await resA.json()) as { tick: number }).tick).toBe(1);
@@ -144,7 +145,7 @@ describe("POST /api/game/action", () => {
 
   it("routes action to specific slot", async () => {
     const { app, registry } = makeApp();
-    registry.getOrCreate("test-slot");
+    registry.create("test-slot");
     await req(app, "/api/game/action?slot=test-slot", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -188,7 +189,7 @@ describe("POST /api/game/tick", () => {
 
   it("routes tick to specific slot", async () => {
     const { app, registry } = makeApp();
-    registry.getOrCreate("tick-slot");
+    registry.create("tick-slot");
     await req(app, "/api/game/tick?slot=tick-slot", { method: "POST" });
     const res = await req(app, "/api/game/state?slot=tick-slot");
     expect(((await res.json()) as { tick: number }).tick).toBe(1);
@@ -376,12 +377,13 @@ describe("POST /api/game/reset", () => {
 
   it("resets only the specified slot", async () => {
     const { app, registry } = makeApp();
-    const s = registry.getOrCreate("rs");
+    const s = registry.create("rs");
     s.advanceTick();
     await req(app, "/api/game/reset?slot=rs", { method: "POST" });
     expect(s.getSerialized().tick).toBe(0);
     // default slot unaffected
-    registry.getOrCreate("default").advanceTick();
+    const store = registry.getOrCreate("default");
+    if (store) store.advanceTick();
     const defaultRes = await req(app, "/api/game/state");
     expect(((await defaultRes.json()) as { tick: number }).tick).toBe(1);
   });
@@ -406,6 +408,287 @@ describe("CORS headers", () => {
       headers: { Origin: "http://localhost:5173" },
     });
     expect(res.headers.get("Access-Control-Allow-Origin")).toBeTruthy();
+  });
+});
+
+describe("GET /api/sessions", () => {
+  it("returns empty sessions list on fresh registry", async () => {
+    const { app } = makeApp();
+    const res = await req(app, "/api/sessions");
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as { sessions: Array<{ slot: string; status: string }> };
+    expect(Array.isArray(body.sessions)).toBe(true);
+  });
+
+  it("returns all created slots with metadata", async () => {
+    const { app, registry } = makeApp();
+    registry.create("slot1");
+    registry.create("slot2");
+
+    const res = await req(app, "/api/sessions");
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as { sessions: Array<{ slot: string; status: string }> };
+    const slotNames = body.sessions.map((s) => s.slot).sort();
+    expect(slotNames).toContain("slot1");
+    expect(slotNames).toContain("slot2");
+  });
+
+  it("includes status and timestamps in metadata", async () => {
+    const { app, registry } = makeApp();
+    registry.create("myslot");
+
+    const res = await req(app, "/api/sessions");
+    const body = (await res.json()) as {
+      sessions: Array<{ slot: string; status: string; createdAt: number; updatedAt: number }>;
+    };
+    const slot = body.sessions.find((s) => s.slot === "myslot");
+    expect(slot).toBeDefined();
+    expect(slot!.status).toBe("active");
+    expect(typeof slot!.createdAt).toBe("number");
+    expect(typeof slot!.updatedAt).toBe("number");
+  });
+});
+
+describe("POST /api/sessions", () => {
+  it("creates a new session and returns metadata with 201", async () => {
+    const { app } = makeApp();
+    const res = await req(app, "/api/sessions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ slot: "newsession" }),
+    });
+    expect(res.status).toBe(201);
+    const body = (await res.json()) as { slot: string; status: string };
+    expect(body.slot).toBe("newsession");
+    expect(body.status).toBe("active");
+  });
+
+  it("returns 400 for invalid slot name", async () => {
+    const { app } = makeApp();
+    const res = await req(app, "/api/sessions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ slot: "../../../etc/passwd" }),
+    });
+    expect(res.status).toBe(400);
+  });
+
+  it("returns 409 if slot already exists", async () => {
+    const { app, registry } = makeApp();
+    registry.create("existing");
+
+    const res = await req(app, "/api/sessions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ slot: "existing" }),
+    });
+    expect(res.status).toBe(409);
+  });
+
+  it("returns 400 for missing slot field", async () => {
+    const { app } = makeApp();
+    const res = await req(app, "/api/sessions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ notslot: "value" }),
+    });
+    expect(res.status).toBe(400);
+  });
+
+  it("returns 400 for invalid JSON body", async () => {
+    const { app } = makeApp();
+    const res = await req(app, "/api/sessions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: "not-json",
+    });
+    expect(res.status).toBe(400);
+  });
+});
+
+describe("GET /api/sessions/:slot", () => {
+  it("returns metadata for an existing slot", async () => {
+    const { app, registry } = makeApp();
+    registry.create("getslot");
+
+    const res = await req(app, "/api/sessions/getslot");
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as { slot: string; status: string };
+    expect(body.slot).toBe("getslot");
+    expect(body.status).toBe("active");
+  });
+
+  it("returns 404 for unknown slot", async () => {
+    const { app } = makeApp();
+    const res = await req(app, "/api/sessions/nonexistent");
+    expect(res.status).toBe(404);
+  });
+
+  it("returns 400 for invalid slot name", async () => {
+    const { app } = makeApp();
+    const res = await req(app, "/api/sessions/..%2Fbad");
+    expect(res.status).toBe(400);
+  });
+});
+
+describe("DELETE /api/sessions/:slot", () => {
+  it("deletes a slot and returns 204", async () => {
+    const { app, registry } = makeApp();
+    registry.create("delslot");
+
+    const res = await req(app, "/api/sessions/delslot", { method: "DELETE" });
+    expect(res.status).toBe(204);
+
+    // Verify it's gone
+    const getRes = await req(app, "/api/sessions/delslot");
+    expect(getRes.status).toBe(404);
+  });
+
+  it("returns 404 for unknown slot", async () => {
+    const { app } = makeApp();
+    const res = await req(app, "/api/sessions/notreal", { method: "DELETE" });
+    expect(res.status).toBe(404);
+  });
+
+  it("returns 400 for invalid slot name", async () => {
+    const { app } = makeApp();
+    const res = await req(app, "/api/sessions/..%2Fbad", { method: "DELETE" });
+    expect(res.status).toBe(400);
+  });
+});
+
+describe("POST /api/sessions/:slot/pause", () => {
+  it("pauses an active slot and returns metadata", async () => {
+    const { app, registry } = makeApp();
+    registry.create("pauseslot");
+
+    const res = await req(app, "/api/sessions/pauseslot/pause", { method: "POST" });
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as { status: string };
+    expect(body.status).toBe("paused");
+  });
+
+  it("returns 404 for unknown slot", async () => {
+    const { app } = makeApp();
+    const res = await req(app, "/api/sessions/unknown/pause", { method: "POST" });
+    expect(res.status).toBe(404);
+  });
+
+  it("returns 409 if already paused", async () => {
+    const { app, registry } = makeApp();
+    registry.create("pausedslot");
+    registry.pause("pausedslot");
+
+    const res = await req(app, "/api/sessions/pausedslot/pause", { method: "POST" });
+    expect(res.status).toBe(409);
+  });
+
+  it("returns 400 for invalid slot name", async () => {
+    const { app } = makeApp();
+    const res = await req(app, "/api/sessions/..%2Fbad/pause", { method: "POST" });
+    expect(res.status).toBe(400);
+  });
+});
+
+describe("POST /api/sessions/:slot/resume", () => {
+  it("resumes a paused slot and returns metadata", async () => {
+    const { app, registry } = makeApp();
+    registry.create("resumeslot");
+    registry.pause("resumeslot");
+
+    const res = await req(app, "/api/sessions/resumeslot/resume", { method: "POST" });
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as { status: string };
+    expect(body.status).toBe("active");
+  });
+
+  it("returns 404 for unknown slot", async () => {
+    const { app } = makeApp();
+    const res = await req(app, "/api/sessions/unknown/resume", { method: "POST" });
+    expect(res.status).toBe(404);
+  });
+
+  it("returns 409 if already active", async () => {
+    const { app, registry } = makeApp();
+    registry.create("activeslot");
+
+    const res = await req(app, "/api/sessions/activeslot/resume", { method: "POST" });
+    expect(res.status).toBe(409);
+  });
+
+  it("returns 400 for invalid slot name", async () => {
+    const { app } = makeApp();
+    const res = await req(app, "/api/sessions/..%2Fbad/resume", { method: "POST" });
+    expect(res.status).toBe(400);
+  });
+});
+
+describe("POST /api/sessions/:slot/archive", () => {
+  it("archives an active slot and returns metadata", async () => {
+    const { app, registry } = makeApp();
+    registry.create("archiveslot");
+
+    const res = await req(app, "/api/sessions/archiveslot/archive", { method: "POST" });
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as { status: string };
+    expect(body.status).toBe("archived");
+  });
+
+  it("returns 404 for unknown slot", async () => {
+    const { app } = makeApp();
+    const res = await req(app, "/api/sessions/unknown/archive", { method: "POST" });
+    expect(res.status).toBe(404);
+  });
+
+  it("returns 409 if already archived", async () => {
+    const { app, registry } = makeApp();
+    registry.create("archivedslot");
+    registry.archive("archivedslot");
+
+    const res = await req(app, "/api/sessions/archivedslot/archive", { method: "POST" });
+    expect(res.status).toBe(409);
+  });
+
+  it("returns 400 for invalid slot name", async () => {
+    const { app } = makeApp();
+    const res = await req(app, "/api/sessions/..%2Fbad/archive", { method: "POST" });
+    expect(res.status).toBe(400);
+  });
+});
+
+describe("GET /api/sessions/:slot/export", () => {
+  it("exports state JSON with attachment header", async () => {
+    const { app, registry } = makeApp();
+    const store = registry.create("exportslot");
+    store.advanceTick();
+
+    const res = await req(app, "/api/sessions/exportslot/export");
+    expect(res.status).toBe(200);
+    expect(res.headers.get("Content-Disposition")).toContain("exportslot.json");
+    expect(res.headers.get("Content-Type")).toBe("application/json");
+    const body = (await res.json()) as { tick: number };
+    expect(body.tick).toBe(1);
+  });
+
+  it("returns 404 for unknown slot", async () => {
+    const { app } = makeApp();
+    const res = await req(app, "/api/sessions/unknown/export");
+    expect(res.status).toBe(404);
+  });
+
+  it("returns 409 for archived slot", async () => {
+    const { app, registry } = makeApp();
+    registry.create("archslot");
+    registry.archive("archslot");
+
+    const res = await req(app, "/api/sessions/archslot/export");
+    expect(res.status).toBe(409);
+  });
+
+  it("returns 400 for invalid slot name", async () => {
+    const { app } = makeApp();
+    const res = await req(app, "/api/sessions/..%2Fbad/export");
+    expect(res.status).toBe(400);
   });
 });
 
