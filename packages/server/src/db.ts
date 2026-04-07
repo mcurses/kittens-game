@@ -28,6 +28,24 @@ export interface SqliteAdapter {
   deleteSlot(slot: string): void;
 }
 
+export interface MigrationPlan {
+  addStatus: boolean;
+  addCreatedAt: boolean;
+  backfillCreatedAt: boolean;
+}
+
+export function planSavesTableMigration(columns: string[]): MigrationPlan {
+  const columnSet = new Set(columns);
+  const addStatus = !columnSet.has("status");
+  const addCreatedAt = !columnSet.has("created_at");
+
+  return {
+    addStatus,
+    addCreatedAt,
+    backfillCreatedAt: addCreatedAt || columnSet.has("created_at"),
+  };
+}
+
 /* v8 ignore start */
 /**
  * Create a production SqliteAdapter backed by bun:sqlite + Drizzle.
@@ -64,6 +82,25 @@ export async function createBunAdapter(path: string): Promise<SqliteAdapter> {
       updated_at INTEGER NOT NULL
     )
   `);
+
+  const tableInfo = sqlite
+    .query("PRAGMA table_info(saves)")
+    .all() as Array<{ name?: unknown }>;
+  const migration = planSavesTableMigration(
+    tableInfo
+      .map((row) => row.name)
+      .filter((name): name is string => typeof name === "string"),
+  );
+
+  if (migration.addStatus) {
+    sqlite.run("ALTER TABLE saves ADD COLUMN status TEXT NOT NULL DEFAULT 'active'");
+  }
+  if (migration.addCreatedAt) {
+    sqlite.run("ALTER TABLE saves ADD COLUMN created_at INTEGER NOT NULL DEFAULT 0");
+  }
+  if (migration.backfillCreatedAt) {
+    sqlite.run("UPDATE saves SET created_at = updated_at WHERE created_at = 0");
+  }
 
   return {
     exec(sql: string) {

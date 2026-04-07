@@ -1,5 +1,34 @@
 import { describe, expect, it } from "vitest";
-import { createMemoryAdapter } from "./db.js";
+import { createMemoryAdapter, planSavesTableMigration } from "./db.js";
+
+describe("planSavesTableMigration", () => {
+  it("adds both missing Epic 44 columns for legacy saves tables", () => {
+    expect(
+      planSavesTableMigration(["id", "slot", "state_json", "updated_at"]),
+    ).toEqual({
+      addStatus: true,
+      addCreatedAt: true,
+      backfillCreatedAt: true,
+    });
+  });
+
+  it("does nothing when the saves table is already migrated", () => {
+    expect(
+      planSavesTableMigration([
+        "id",
+        "slot",
+        "state_json",
+        "status",
+        "created_at",
+        "updated_at",
+      ]),
+    ).toEqual({
+      addStatus: false,
+      addCreatedAt: false,
+      backfillCreatedAt: true,
+    });
+  });
+});
 
 describe("createMemoryAdapter", () => {
   it("loadSlot returns null when no save exists", () => {
