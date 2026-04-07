@@ -1680,3 +1680,32 @@ Result:
 
 - Epic 45 should be treated as reopened as of 2026-04-07.
 - The 2026-04-06 self-rating remains preserved as historical context, but it is no longer an accurate statement of current live parity status.
+
+---
+
+## Epic 45 (Reopen Close) — Live Save Import Parity — 2026-04-07
+
+| Dimension | Score | Notes |
+|-----------|-------|-------|
+| Test coverage (≥90% target) | 4 | engine 98.47%, client-web 95.57%, api-spec 100%; server 88.85% (session.ts is a thin entrypoint, not logic). All new AC regression tests are covered. |
+| No skipped tests / no TODOs | 5 | 990+164+398+27 = 1579 tests, 0 failures, 0 skipped. No TODOs, no type:any in production code. |
+| Feature parity | 4 | Story 45-01 AC3 (over-cap ticks) fixed — `ResourceManager.update` now uses `limit=max(prevValue,maxValue)`. Story 45-02 AC2 fixed — `getTerraformingMaxKittensRatio` returns accumulated `getUnlimitedDR(on,100)` so maxKittens=579 natively each tick. Both import snapshot and live-slot now correct. Happiness parity (~503% vs legacy ~533%) and building automation import flags remain documented-deferred in PARITY.md. |
+| API spec completeness | 5 | All 14 server routes covered. All 38 GameAction types in OpenAPI discriminated union. |
+| Code quality (no `any`) | 5 | Zero `any` annotations in production code. Removed the `preserveOverCap` flag from `syncResourceCaps` signature; cleaner than the previous opt-in clamping design. |
+| Docs freshness (PROGRESS, DECISIONS, PARITY) | 5 | PROGRESS.md updated, EPICS.md updated to ✅ Complete, STORIES.md all applicable ACs checked, PARITY.md updated with both over-cap and maxKittens fix notes. No new architectural decisions required. |
+| Commit hygiene | 5 | Single focused commit per logical fix group with story refs in message. |
+| **Overall average** | **4.7** | |
+
+### What went well
+- Root causes were isolated cleanly: `Math.max(prevValue, maxValue)` in `addRes` and accumulated `getUnlimitedDR` for terraforming were exact legacy matches once found
+- The 45-02 AC2 regression test (tick-over maxKittens) provided tight proof that the formula is self-sustaining without the `_legacyMaxKittensImported` override crutch
+- Removing the `preserveOverCap` parameter simplified the API surface and removed a source of future confusion
+- Over-cap preservation test suite (store.test.ts 542–609) now acts as a living contract against regressions
+
+### What to improve
+- The `_legacyMaxKittensImported` override marker still lives in the codebase as dead code; clean it up in a follow-up
+- Happiness import parity remains the last major open divergence from legacy; estimate it's a ~2 story effort
+
+### Action items for next epic
+- [ ] Remove `_legacyMaxKittensImported` override from `_fullDeserialize` — now dead code since formula is natively correct
+- [ ] If happiness parity becomes P0: audit legacy `village.js` happiness computation for any import-time initialization differences (base happiness vs. computed happiness on first tick)

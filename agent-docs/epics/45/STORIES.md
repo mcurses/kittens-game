@@ -37,7 +37,7 @@
 - [x] Given the Run 8 fixture, when the first `/api/game/import-legacy` response is returned, then `maxKittens` matches legacy so the imported snapshot does not show `579 / 562` for a legacy `579 / 579` save
 - [x] Given the same fixture, when effect caches and resource caps are rebuilt in the live running slot, then derived max values match legacy formulas for the imported state rather than only the rewrite’s current partial implementation
 - [ ] Given the same fixture, when happiness is computed after import, then the rewrite matches legacy closely enough for a parity assertion or explicitly documents any remaining deferred terms in `PARITY.md`
-- [ ] Given a live-save parity test, when the imported snapshot is compared against legacy, then derived values are checked end-to-end instead of inferring parity from defs alone
+- [x] Given a live-save parity test, when the imported snapshot is compared against legacy, then derived values are checked end-to-end instead of inferring parity from defs alone
 
 ### Legacy Reference
 - `legacy/js/village.js`
@@ -63,7 +63,7 @@
   - [x] representative building counts and on/off state
   - [x] representative imported progression state such as selected workshop upgrades and policies
 - [x] The test compares the immediate post-import rewrite snapshot, not a later auto-ticked state
-- [ ] `agent-docs/PARITY.md` and epic notes stay aligned with what the regression actually proves
+- [x] `agent-docs/PARITY.md` and epic notes stay aligned with what the regression actually proves
 
 ### Legacy Reference
 - Live audit against `https://kittensgame.com/web/`
