@@ -11,6 +11,11 @@ interface SlotMeta {
 }
 
 const SLOT_PATTERN = /^[a-zA-Z0-9_-]{1,64}$/;
+const STATUS_PRIORITY: Record<SlotMeta["status"], number> = {
+  active: 0,
+  paused: 1,
+  archived: 2,
+};
 
 function getStatusSymbol(status: string): string {
   switch (status) {
@@ -38,6 +43,17 @@ function getStatusClass(status: string): string {
   }
 }
 
+function getStatusLabel(status: SlotMeta["status"]): string {
+  switch (status) {
+    case "active":
+      return "Active";
+    case "paused":
+      return "Paused";
+    case "archived":
+      return "Archived";
+  }
+}
+
 function formatDate(timestamp: number): string {
   return new Date(timestamp).toISOString().split("T")[0];
 }
@@ -51,6 +67,16 @@ async function fetchSessions(): Promise<SlotMeta[]> {
   return data.sessions;
 }
 
+function sortSessions(sessions: SlotMeta[]): SlotMeta[] {
+  return [...sessions].sort((a, b) => {
+    const statusDelta = STATUS_PRIORITY[a.status] - STATUS_PRIORITY[b.status];
+    if (statusDelta !== 0) {
+      return statusDelta;
+    }
+    return b.updatedAt - a.updatedAt;
+  });
+}
+
 export function SessionsPanel(): React.ReactElement {
   const slot = useSlot();
   const queryClient = useQueryClient();
@@ -62,10 +88,17 @@ export function SessionsPanel(): React.ReactElement {
 
   const [newSlotName, setNewSlotName] = React.useState("");
   const [newSlotError, setNewSlotError] = React.useState("");
+  const [showArchived, setShowArchived] = React.useState(false);
   const [confirmAction, setConfirmAction] = React.useState<{
     action: "archive" | "delete";
     slot: string;
   } | null>(null);
+  const visibleSessions = React.useMemo(() => {
+    const filtered = showArchived
+      ? sessions
+      : sessions.filter((session) => session.status !== "archived");
+    return sortSessions(filtered);
+  }, [sessions, showArchived]);
 
   const handleCreateSession = async () => {
     if (!SLOT_PATTERN.test(newSlotName)) {
@@ -186,7 +219,7 @@ export function SessionsPanel(): React.ReactElement {
   };
 
   const handleOpenSession = (slotName: string) => {
-    window.location.search = `slot=${encodeURIComponent(slotName)}`;
+    window.location.assign(`/?slot=${encodeURIComponent(slotName)}`);
   };
 
   if (isLoading) {
@@ -232,6 +265,15 @@ export function SessionsPanel(): React.ReactElement {
         {newSlotError && <div className="error-msg">{newSlotError}</div>}
       </div>
 
+      <label className="sessions-filter">
+        <input
+          type="checkbox"
+          checked={showArchived}
+          onChange={(e) => setShowArchived(e.target.checked)}
+        />
+        <span>Show archived</span>
+      </label>
+
       {/* Sessions table */}
       <table className="sessions-table">
         <thead>
@@ -243,11 +285,12 @@ export function SessionsPanel(): React.ReactElement {
           </tr>
         </thead>
         <tbody>
-          {sessions.map((session) => (
+          {visibleSessions.map((session) => (
             <tr key={session.slot} data-slot={session.slot}>
               <td className="slot-name">{session.slot}</td>
               <td className={`status-cell ${getStatusClass(session.status)}`}>
                 <span className="status-symbol">{getStatusSymbol(session.status)}</span>
+                <span className="status-label">{getStatusLabel(session.status)}</span>
               </td>
               <td className="last-saved">{formatDate(session.updatedAt)}</td>
               <td className="actions-cell">
@@ -329,7 +372,7 @@ export function SessionsPanel(): React.ReactElement {
         </tbody>
       </table>
 
-      {sessions.length === 0 && (
+      {visibleSessions.length === 0 && (
         <p className="no-sessions">No sessions yet. Create one to get started.</p>
       )}
 
@@ -342,6 +385,12 @@ export function SessionsPanel(): React.ReactElement {
               {confirmAction.action === "archive" ? "archive" : "delete"}{" "}
               "{confirmAction.slot}"?
             </p>
+            {confirmAction.action === "archive" && (
+              <div className="confirm-detail">
+                <p>Archived sessions are frozen and removed from the openable session list.</p>
+                <p>You can still delete them later.</p>
+              </div>
+            )}
             <div className="confirm-buttons">
               <button
                 type="button"

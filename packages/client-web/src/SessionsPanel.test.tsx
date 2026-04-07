@@ -105,6 +105,110 @@ describe("SessionsPanel", () => {
     // Check for status indicators (symbols)
     const rows = screen.getAllByRole("row");
     expect(rows.length).toBeGreaterThanOrEqual(3); // header + 3 sessions
+    expect(screen.getByText("Active")).toBeDefined();
+    expect(screen.getByText("Paused")).toBeDefined();
+    fireEvent.click(screen.getByLabelText(/show archived/i));
+    expect(screen.getByText("Archived")).toBeDefined();
+  });
+
+  it("sorts sessions by status priority then most recent last saved", async () => {
+    mockFetch.mockResolvedValueOnce(
+      makeResponse({
+        sessions: [
+          {
+            slot: "archived-newer",
+            status: "archived",
+            createdAt: 1609459200000,
+            updatedAt: 1609718400000,
+          },
+          {
+            slot: "paused-newer",
+            status: "paused",
+            createdAt: 1609459200000,
+            updatedAt: 1609804800000,
+          },
+          {
+            slot: "active-older",
+            status: "active",
+            createdAt: 1609459200000,
+            updatedAt: 1609545600000,
+          },
+          {
+            slot: "active-newer",
+            status: "active",
+            createdAt: 1609459200000,
+            updatedAt: 1609632000000,
+          },
+          {
+            slot: "paused-older",
+            status: "paused",
+            createdAt: 1609459200000,
+            updatedAt: 1609459200000,
+          },
+        ],
+      }),
+    );
+
+    render(
+      <QueryClientProvider client={queryClient}>
+        <SlotProvider slot="default">
+          <SessionsPanel />
+        </SlotProvider>
+      </QueryClientProvider>,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText("active-newer")).toBeDefined();
+    });
+
+    const rows = screen.getAllByRole("row").slice(1);
+    const order = rows.map((row) => row.getAttribute("data-slot"));
+    expect(order).toEqual([
+      "active-newer",
+      "active-older",
+      "paused-newer",
+      "paused-older",
+    ]);
+  });
+
+  it("hides archived sessions by default and reveals them when show archived is checked", async () => {
+    mockFetch.mockResolvedValueOnce(
+      makeResponse({
+        sessions: [
+          {
+            slot: "active-game",
+            status: "active",
+            createdAt: 1609459200000,
+            updatedAt: 1609459200000,
+          },
+          {
+            slot: "archived-game",
+            status: "archived",
+            createdAt: 1609459200000,
+            updatedAt: 1609545600000,
+          },
+        ],
+      }),
+    );
+
+    render(
+      <QueryClientProvider client={queryClient}>
+        <SlotProvider slot="default">
+          <SessionsPanel />
+        </SlotProvider>
+      </QueryClientProvider>,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText("active-game")).toBeDefined();
+    });
+
+    expect(screen.queryByText("archived-game")).toBeNull();
+
+    const checkbox = screen.getByLabelText(/show archived/i);
+    fireEvent.click(checkbox);
+
+    expect(screen.getByText("archived-game")).toBeDefined();
   });
 
   it("creates a new session", async () => {
@@ -370,6 +474,8 @@ describe("SessionsPanel", () => {
       const confirmText = screen.getByText(/are you sure/i);
       expect(confirmText).toBeDefined();
     });
+    expect(screen.getByText(/frozen and removed from the openable session list/i)).toBeDefined();
+    expect(screen.getByText("You can still delete them later.")).toBeDefined();
 
     const confirmBtn = screen.getByText("Confirm");
     fireEvent.click(confirmBtn);
@@ -479,5 +585,41 @@ describe("SessionsPanel", () => {
         expect.stringContaining("/api/sessions/game1/export"),
       );
     });
+  });
+
+  it("opens a session by navigating to the game root with the slot query", async () => {
+    window.history.replaceState({}, "", "/sessions");
+    const assignSpy = vi
+      .spyOn(window.location, "assign")
+      .mockImplementation(() => undefined);
+
+    mockFetch.mockResolvedValueOnce(
+      makeResponse({
+        sessions: [
+          {
+            slot: "game1",
+            status: "active",
+            createdAt: 1609459200000,
+            updatedAt: 1609459200000,
+          },
+        ],
+      }),
+    );
+
+    render(
+      <QueryClientProvider client={queryClient}>
+        <SlotProvider slot="default">
+          <SessionsPanel />
+        </SlotProvider>
+      </QueryClientProvider>,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText("game1")).toBeDefined();
+    });
+
+    fireEvent.click(screen.getByTitle(/open session/i));
+
+    expect(assignSpy).toHaveBeenCalledWith("/?slot=game1");
   });
 });

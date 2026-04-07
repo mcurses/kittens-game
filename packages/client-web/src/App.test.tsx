@@ -2,7 +2,7 @@ import { QueryClient } from "@tanstack/react-query";
 import { cleanup, render, screen } from "@testing-library/react";
 import React from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { App, getSlot, getWsUrl } from "./App.js";
+import { App, getRoute, getSlot, getWsUrl } from "./App.js";
 
 // Mock fetch (for useGameState initial query)
 const mockFetch = vi.fn();
@@ -146,6 +146,45 @@ describe("App", () => {
         true,
       ),
     ).toBe("ws://localhost:3000/ws");
+  });
+
+  it("renders the sessions panel at /sessions without loading game state", async () => {
+    window.history.replaceState({}, "", "/sessions");
+
+    mockFetch.mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: () =>
+        Promise.resolve({
+          sessions: [],
+        }),
+    } as unknown as Response);
+
+    render(<App queryClient={makeClient()} />);
+
+    await vi.waitFor(() => {
+      expect(screen.getByText("Sessions")).toBeTruthy();
+      expect(screen.getByText(/no sessions yet/i)).toBeTruthy();
+    });
+
+    expect(mockFetch).toHaveBeenCalledTimes(1);
+    expect(mockFetch).toHaveBeenCalledWith("/api/sessions");
+    expect(MockWebSocket.instances).toHaveLength(0);
+    expect(screen.queryByText("Kittens Game")).toBeNull();
+  });
+});
+
+describe("getRoute", () => {
+  it("returns sessions for the sessions pathname", () => {
+    expect(getRoute("/sessions")).toBe("sessions");
+  });
+
+  it("returns game for the root pathname", () => {
+    expect(getRoute("/")).toBe("game");
+  });
+
+  it("returns game for unknown pathnames", () => {
+    expect(getRoute("/nope")).toBe("game");
   });
 });
 

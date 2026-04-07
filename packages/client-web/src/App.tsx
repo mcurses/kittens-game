@@ -8,6 +8,7 @@ import { InspectorPanel } from "./InspectorPanel.js";
 import { InspectorProvider } from "./InspectorContext.js";
 import { LogPanel } from "./LogPanel.js";
 import { ResourcePanel } from "./ResourcePanel.js";
+import { SessionsPanel } from "./SessionsPanel.js";
 import { SlotProvider } from "./SlotContext.js";
 import { TabContainer } from "./TabContainer.js";
 import { VillagePanel } from "./VillagePanel.js";
@@ -22,6 +23,7 @@ interface LocationLike {
 }
 
 const SLOT_PATTERN = /^[a-zA-Z0-9_-]{1,64}$/;
+type AppRoute = "game" | "sessions";
 
 /**
  * Extract the slot name from a URL search string.
@@ -31,6 +33,11 @@ export function getSlot(search: string): string {
   const params = new URLSearchParams(search);
   const slot = params.get("slot") ?? "default";
   return SLOT_PATTERN.test(slot) ? slot : "default";
+}
+
+/** Map the current pathname to a top-level client view. */
+export function getRoute(pathname: string): AppRoute {
+  return pathname === "/sessions" ? "sessions" : "game";
 }
 
 /** Derive the WebSocket URL from the current browser location. */
@@ -126,6 +133,16 @@ function GameView(): React.ReactElement {
   );
 }
 
+function SessionsView(): React.ReactElement {
+  const slot = getSlot(window.location.search);
+
+  return (
+    <SlotProvider slot={slot}>
+      <SessionsPanel />
+    </SlotProvider>
+  );
+}
+
 export function App({
   queryClient,
 }: {
@@ -144,7 +161,7 @@ export function App({
 
   return (
     <QueryClientProvider client={client}>
-      <GameView />
+      {getRoute(window.location.pathname) === "sessions" ? <SessionsView /> : <GameView />}
     </QueryClientProvider>
   );
 }
