@@ -1040,7 +1040,7 @@ describe("Legacy import — derived values parity", () => {
     // AC: kitten count and max kittens
     expect(imported.village.kittens).toBe(579);
     const maxKittens = (imported.effectCache as Record<string, unknown>).maxKittens as number | undefined;
-    expect(maxKittens).toBe(579); // Should match legacy maxKittens
+    expect(Math.floor(maxKittens ?? 0)).toBe(579); // effectCache stores raw float; floor matches legacy village.maxKittens
 
     // AC: representative resource values
     // Run 8 has: catnip, wood, minerals, science, faith, antimatter, unobtainium preserved

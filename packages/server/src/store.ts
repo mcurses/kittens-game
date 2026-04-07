@@ -229,15 +229,6 @@ export class GameStateStore {
     // Rebuild effect cache after loading
     let effectCache = buildEffectCache(this.managers, state);
 
-    // Story 45-02: Preserve legacy maxKittens at import time for parity
-    // If this is a legacy import (indicated by _legacyMaxKittensImported marker),
-    // use the legacy maxKittens value instead of recomputed to maintain import parity
-    const legacyMaxKittensImported = (data.effectCache as Record<string, unknown>)?._legacyMaxKittensImported as number | undefined;
-    if (legacyMaxKittensImported !== undefined && legacyMaxKittensImported > 0) {
-      // Override maxKittens with legacy value to match legacy state at import time
-      effectCache = { ...effectCache, maxKittens: legacyMaxKittensImported, _legacyMaxKittensImported: legacyMaxKittensImported };
-    }
-
     return { ...state, effectCache, resources: syncResourceCaps(state.resources, effectCache) };
   }
 
