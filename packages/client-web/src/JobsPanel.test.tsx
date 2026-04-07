@@ -1,6 +1,8 @@
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import React from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { InspectorProvider } from "./InspectorContext.js";
+import { InspectorPanel } from "./InspectorPanel.js";
 import { JobsPanel } from "./JobsPanel.js";
 
 const mockMutate = vi.fn();
@@ -23,6 +25,15 @@ afterEach(() => {
   cleanup();
   vi.clearAllMocks();
 });
+
+function WithInspector({ children }: { children: React.ReactNode }): React.ReactElement {
+  return (
+    <InspectorProvider>
+      {children}
+      <InspectorPanel />
+    </InspectorProvider>
+  );
+}
 
 describe("JobsPanel", () => {
   it("shows loading placeholder when state is null", () => {
@@ -95,6 +106,37 @@ describe("Story 32-07: Happiness display and festival in JobsPanel", () => {
     render(<JobsPanel state={state} />);
     expect(screen.getByTestId("jobs-happiness")).toBeTruthy();
     expect(screen.getByTestId("jobs-happiness").textContent).toMatch(/533%/);
+  });
+
+  it("shows happiness breakdown in inspector on focus and clears on blur", () => {
+    const state = makeStateWithVillage(
+      {},
+      { kittens: 12, happiness: 1.76 },
+      { festivalDays: 10 },
+      {},
+      {
+        furs: { value: 1 },
+        karma: { value: 20 },
+      },
+    );
+    (state as unknown as { effectCache: Record<string, number> }).effectCache = {
+      maxKittens: 20,
+      happiness: 5,
+      luxuryHappinessBonus: 2,
+      consumableLuxuryHappiness: 1,
+      unhappinessRatio: -0.5,
+      festivalRatio: 0.5,
+    };
+
+    render(<WithInspector><JobsPanel state={state} /></WithInspector>);
+
+    fireEvent.focus(screen.getByTestId("jobs-happiness"));
+    expect(screen.getByText("Happiness")).toBeTruthy();
+    expect(screen.getByText("Luxury bonus")).toBeTruthy();
+    expect(screen.getByText("Penalty mitigation")).toBeTruthy();
+
+    fireEvent.blur(screen.getByTestId("jobs-happiness"));
+    expect(screen.getByText("Hover an item to inspect it")).toBeTruthy();
   });
 
   it("shows festival duration when festivalDays > 0", () => {

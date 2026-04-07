@@ -1,6 +1,8 @@
 // VillagePanel — read-only village summary as a header status pill
 import type { GameStateResponse } from "@kittens/api-spec";
 import React from "react";
+import { useInspector } from "./InspectorContext.js";
+import { buildHappinessEntity } from "./happinessInspector.js";
 
 interface Props {
   state: GameStateResponse | null | undefined;
@@ -27,6 +29,8 @@ function extractVillageInfo(state: GameStateResponse): VillageInfo {
 }
 
 export function VillagePanel({ state }: Props): React.ReactElement {
+  const { setInspected, clearInspected } = useInspector();
+
   if (!state) {
     return (
       <div className="status-pill" data-testid="village-panel-loading">
@@ -37,12 +41,23 @@ export function VillagePanel({ state }: Props): React.ReactElement {
 
   const { kittens, maxKittens, happiness } = extractVillageInfo(state);
   const happinessPct = Math.round(happiness * 100);
+  const happinessEntity = buildHappinessEntity(state);
 
   return (
     <div className="status-pill" data-testid="village-panel">
       <span className="village-population">{kittens} / {maxKittens} kittens</span>
       <span className="status-pill-label"> — </span>
-      <span className="village-happiness">{happinessPct}% happy</span>
+      <span
+        data-testid="village-happiness"
+        className="village-happiness"
+        onMouseEnter={() => setInspected(happinessEntity)}
+        onMouseLeave={clearInspected}
+        onFocus={() => setInspected(happinessEntity)}
+        onBlur={clearInspected}
+        tabIndex={0}
+      >
+        {happinessPct}% happy
+      </span>
     </div>
   );
 }

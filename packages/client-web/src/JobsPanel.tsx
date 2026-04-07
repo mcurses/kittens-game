@@ -2,7 +2,9 @@
 import type { GameStateResponse } from "@kittens/api-spec";
 import { deriveUiVisibility } from "@kittens/engine";
 import React from "react";
+import { useInspector } from "./InspectorContext.js";
 import { useSlot } from "./SlotContext.js";
+import { buildHappinessEntity } from "./happinessInspector.js";
 import { useGameAction } from "./useGameAction.js";
 
 interface JobEntry {
@@ -50,19 +52,29 @@ function extractVillageInfo(state: GameStateResponse): VillageInfo {
 export function JobsPanel({ state }: Props): React.ReactElement {
   const slot = useSlot();
   const { mutate, isPending } = useGameAction(slot);
+  const { setInspected, clearInspected } = useInspector();
 
   if (!state) {
     return <div className="loading-text" data-testid="jobs-panel-loading">Loading…</div>;
   }
 
   const { jobs, happiness, festivalDays } = extractVillageInfo(state);
+  const happinessEntity = buildHappinessEntity(state);
   const visibility = deriveUiVisibility(state);
   const visibleJobs = jobs.filter((job) => job.unlocked || visibility.jobs[job.name]?.visible === true);
 
   return (
     <div data-testid="jobs-panel">
       <div className="village-info">
-        <span data-testid="jobs-happiness" className="happiness-display">
+        <span
+          data-testid="jobs-happiness"
+          className="happiness-display"
+          onMouseEnter={() => setInspected(happinessEntity)}
+          onMouseLeave={clearInspected}
+          onFocus={() => setInspected(happinessEntity)}
+          onBlur={clearInspected}
+          tabIndex={0}
+        >
           Happiness: {Math.round(happiness * 100)}%
         </span>
         {festivalDays > 0 && (

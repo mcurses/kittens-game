@@ -2,6 +2,7 @@
 import React from "react";
 import {
   type BuildingEntity,
+  type HappinessEntity,
   type InspectorEntity,
   type ReligionUpgradeEntity,
   type ResourceEntity,
@@ -36,6 +37,8 @@ function EntityDetail({ entity }: { entity: InspectorEntity }): React.ReactEleme
   const elapsedSeconds = useElapsedInspectorSeconds(entity);
 
   switch (entity.kind) {
+    case "happiness":
+      return <HappinessDetail entity={entity} />;
     case "resource":
       return <ResourceDetail entity={entity} elapsedSeconds={elapsedSeconds} />;
     case "building":
@@ -49,6 +52,76 @@ function EntityDetail({ entity }: { entity: InspectorEntity }): React.ReactEleme
     case "religionUpgrade":
       return <ReligionUpgradeDetail entity={entity} elapsedSeconds={elapsedSeconds} />;
   }
+}
+
+function HappinessDetail({ entity }: { entity: HappinessEntity }): React.ReactElement {
+  const { totalPct, breakdown } = entity;
+
+  return (
+    <div className="inspector-entity">
+      <div className="inspector-name">Happiness</div>
+      <div className="inspector-kind">Village metric</div>
+
+      <dl className="inspector-stats">
+        <div className="inspector-stat-row">
+          <dt>Current total</dt>
+          <dd>{formatSignedPct(totalPct, false)}</dd>
+        </div>
+      </dl>
+
+      <div className="inspector-section">
+        <div className="inspector-section-label">Breakdown</div>
+        <dl className="inspector-stats">
+          <div className="inspector-stat-row">
+            <dt>Base happiness</dt>
+            <dd>{formatSignedPct(breakdown.base)}</dd>
+          </div>
+          {breakdown.buildings !== 0 && (
+            <div className="inspector-stat-row">
+              <dt>Building bonus</dt>
+              <dd>{formatSignedPct(breakdown.buildings)}</dd>
+            </div>
+          )}
+          {breakdown.luxuries !== 0 && (
+            <div className="inspector-stat-row">
+              <dt>Luxury bonus</dt>
+              <dd>{formatSignedPct(breakdown.luxuries)}</dd>
+            </div>
+          )}
+          {breakdown.karma !== 0 && (
+            <div className="inspector-stat-row">
+              <dt>Karma bonus</dt>
+              <dd>{formatSignedPct(breakdown.karma)}</dd>
+            </div>
+          )}
+          {breakdown.festival !== 0 && (
+            <div className="inspector-stat-row">
+              <dt>Festival bonus</dt>
+              <dd>{formatSignedPct(breakdown.festival)}</dd>
+            </div>
+          )}
+          {breakdown.penalty !== 0 && (
+            <div className="inspector-stat-row">
+              <dt>Unhappiness penalty</dt>
+              <dd className="stat-neg">{formatSignedPct(-breakdown.penalty)}</dd>
+            </div>
+          )}
+          {breakdown.penaltyBase !== 0 && (
+            <div className="inspector-stat-row">
+              <dt>Base penalty</dt>
+              <dd className="stat-neg">{formatSignedPct(-breakdown.penaltyBase)}</dd>
+            </div>
+          )}
+          {breakdown.penaltyMitigation !== 0 && (
+            <div className="inspector-stat-row">
+              <dt>Penalty mitigation</dt>
+              <dd>{formatSignedPct(breakdown.penaltyMitigation)}</dd>
+            </div>
+          )}
+        </dl>
+      </div>
+    </div>
+  );
 }
 
 // ── Resource detail ───────────────────────────────────────────────────────────
@@ -391,6 +464,7 @@ function useElapsedInspectorSeconds(entity: InspectorEntity): number {
 }
 
 function entityHasLiveDurations(entity: InspectorEntity): boolean {
+  if (entity.kind === "happiness") return false;
   if (entity.kind === "resource") {
     return (
       (entity.perTick !== undefined && entity.perTick < 0 && entity.value > 0) ||
@@ -419,8 +493,6 @@ function entityHasLiveDurations(entity: InspectorEntity): boolean {
   return false;
 }
 
-// ── Formatting helpers ────────────────────────────────────────────────────────
-
 function formatValue(n: number): string {
   if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(2)}M`;
   if (n >= 10_000) return `${(n / 1_000).toFixed(1)}k`;
@@ -437,3 +509,8 @@ function formatPct(value: number): string {
   return `${value > 0 ? "+" : ""}${(value * 100).toFixed(1)}%`;
 }
 
+function formatSignedPct(value: number, withPlus = true): string {
+  const rounded = Math.round(value);
+  if (!withPlus) return `${rounded}%`;
+  return `${rounded > 0 ? "+" : ""}${rounded}%`;
+}

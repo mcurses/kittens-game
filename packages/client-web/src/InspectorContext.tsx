@@ -23,6 +23,21 @@ export interface ResourceSnapshot {
   perTick?: number;
 }
 
+export interface HappinessEntity {
+  kind: "happiness";
+  totalPct: number;
+  breakdown: {
+    base: number;
+    buildings: number;
+    luxuries: number;
+    karma: number;
+    festival: number;
+    penalty: number;
+    penaltyBase: number;
+    penaltyMitigation: number;
+  };
+}
+
 export interface BuildingEntity {
   kind: "building";
   name: string;
@@ -74,6 +89,7 @@ export interface ReligionUpgradeEntity {
 }
 
 export type InspectorEntity =
+  | HappinessEntity
   | ResourceEntity
   | BuildingEntity
   | UpgradeEntity
