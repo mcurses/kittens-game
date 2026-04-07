@@ -2,7 +2,7 @@
 
 Tracks implementation coverage against legacy Kittens Game. **This is the authoritative source of truth for what is and isn't done.** Update it whenever items are added or wired. Do not mark an epic "complete" without updating this file.
 
-Last updated: 2026-04-07 (Epic 45 live re-verification reopened import parity: immediate `/api/game/import-legacy` snapshot preserves over-cap resources and legacy `maxKittens`, but live runtime state still reclamps resources, drops `maxKittens` below 579, and diverges in happiness/automation parity)
+Last updated: 2026-04-07 (Epic 45: fixed `getTerraformingMaxKittensRatio` bug — was returning per-unit ratio instead of accumulated total, causing live slot maxKittens to compute as ~562 instead of 579 after import. Now natively produces maxKittens=579 after every tick. Immediate import snapshot also correct. Happiness parity and building automation import flags remain deferred.)
 
 ---
 

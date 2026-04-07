@@ -137,26 +137,20 @@ export function getResourceMaxValue(effectCache: Record<string, number>, name: s
  *
  * @param resources Current resource state
  * @param effectCache Effect cache for cap lookups
- * @param preserveOverCap If true, preserve values greater than the computed cap (for legacy imports)
+ * Legacy parity: over-cap values are always preserved. The cap is only enforced during
+ * per-tick production (ResourceManager.update), not when rebuilding maxValue after actions.
  */
 export function syncResourceCaps(
   resources: ResourceState,
   effectCache: Record<string, number>,
-  preserveOverCap = false,
 ): ResourceState {
   const synced: ResourceState = {};
 
   for (const name of RESOURCE_NAMES) {
     const entry = resources[name] ?? { value: 0, maxValue: 0 };
     const maxValue = getResourceMaxValue(effectCache, name);
-    let value = entry.value;
-
-    // Clamp to cap unless preserveOverCap is true (legacy import scenario)
-    if (!preserveOverCap && maxValue > 0) {
-      value = Math.min(entry.value, maxValue);
-    }
-
-    synced[name] = { value, maxValue };
+    // Never clamp existing value — legacy only prevents growth beyond cap, not shrinkage.
+    synced[name] = { value: entry.value, maxValue };
   }
 
   return synced;
@@ -184,8 +178,12 @@ export class ResourceManager implements Manager {
       let newValue = entry.value + perTick;
       if (newValue < 0) newValue = 0;
 
-      // Match legacy addRes: maxValue === 0 means uncapped; otherwise clamp to maxValue.
-      if (maxValue > 0 && newValue > maxValue) newValue = maxValue;
+      // Match legacy addRes: if already over-cap, allow to remain but don't grow further.
+      // limit = max(prevValue, maxValue) ensures over-cap stocks can only decrease, not grow.
+      if (maxValue > 0) {
+        const limit = Math.max(entry.value, maxValue);
+        if (newValue > limit) newValue = limit;
+      }
 
       newResources[name] = { value: newValue, maxValue };
     }

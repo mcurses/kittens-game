@@ -1129,4 +1129,33 @@ describe("Legacy import — derived values parity", () => {
     // No time has advanced in the rewrite; this is the fresh import
     expect(imported.calendar.year).toBe(10527); // Still the exact import timestamp
   });
+
+  it("Story 45-02 AC2: maxKittens stays 579 in live slot after one tick post-import", async () => {
+    const { app, store } = makeApp();
+
+    const fs = await import("fs");
+    const path = await import("path");
+    const __dirname = path.dirname(new URL(import.meta.url).pathname);
+    const run8FilePath = path.join(__dirname, "../../../agent-docs/example-saves/Kittens Game - Run 8 - Year 10527 - Autumn, day 48.txt");
+    const run8Compressed = fs.readFileSync(run8FilePath, "utf8");
+    const run8Json = LZString.decompressFromBase64(run8Compressed);
+
+    const importRes = await req(app, "/api/game/import-legacy", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ data: run8Json }),
+    });
+    expect(importRes.status).toBe(200);
+
+    // Advance one tick in the live slot — this triggers a full effect cache rebuild
+    // from scratch (no _legacyMaxKittensImported override), so maxKittens must be
+    // derived natively from the building effects.
+    const afterTick = store.advanceTick();
+
+    // With the getTerraformingMaxKittensRatio fix, the effect system natively produces:
+    //   housing: hut(67)*2 + logHouse(216) + mansion(192) = 542
+    //   terraformingStation(20): (1 + getUnlimitedDR(84,100)) * 20 ≈ 37.79
+    //   total floor: 579 (effectCache stores raw float, floor matches legacy village.maxKittens)
+    expect(Math.floor(afterTick.effectCache.maxKittens ?? 0)).toBe(579);
+  });
 });

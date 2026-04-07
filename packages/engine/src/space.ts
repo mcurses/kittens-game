@@ -782,20 +782,23 @@ function getUnlimitedDR(value: number, stripe: number): number {
 }
 
 /**
- * Calculate terraformingMaxKittensRatio based on hydroponics.on count.
- * Port of legacy space.js hydroponics.updateEffects():
- * terraformingMaxKittensRatio = getUnlimitedDR(hydroponics.on, 100) / hydroponics.on
+ * Calculate the accumulated terraformingMaxKittensRatio effect from hydroponics.
  *
- * Examples (with correct formula):
- * - 0 HP = 0 (prevents division by zero)
+ * Legacy stores a per-unit ratio on each hydroponics building:
+ *   hydroponics.effects["terraformingMaxKittensRatio"] = getUnlimitedDR(on, 100) / on
+ * Then legacy's registerMeta multiplies by building.on when accumulating effects:
+ *   total = (getUnlimitedDR(on, 100) / on) * on = getUnlimitedDR(on, 100)
+ *
+ * So getEffect("terraformingMaxKittensRatio") returns getUnlimitedDR(hydroponics.on, 100).
+ *
+ * Examples:
+ * - 0 HP = 0
+ * - 84 HP ≈ 0.889 (+89%)
  * - 100 HP ≈ 1.0 (+100%)
- * - 300 HP ≈ 0.67 (+67%)
  */
-function getTerraformingMaxKittensRatio(hydroponica: number): number {
-  if (hydroponica <= 0) return 0;
-
-  const unlimitedDr = getUnlimitedDR(hydroponica, 100);
-  return unlimitedDr / hydroponica;
+function getTerraformingMaxKittensRatio(hydroponicsOn: number): number {
+  if (hydroponicsOn <= 0) return 0;
+  return getUnlimitedDR(hydroponicsOn, 100);
 }
 
 // ── SpaceManager ──────────────────────────────────────────────────────────────

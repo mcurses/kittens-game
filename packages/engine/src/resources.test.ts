@@ -188,6 +188,9 @@ describe("ResourceManager", () => {
     });
 
     it("keeps active temporary caps when the current effect cache still provides them", () => {
+      // Legacy over-cap preservation: if value already exceeds cap, it is preserved
+      // (only growth is blocked, not the existing stock). Legacy addRes uses
+      // limit = Math.max(prevValue, maxValue), so 500 with cap 10 stays 500.
       const state = {
         ...createInitialState(),
         resources: {
@@ -198,7 +201,7 @@ describe("ResourceManager", () => {
       };
       const next = manager.update(state);
       expect(next.resources.unicorns?.maxValue).toBe(10);
-      expect(next.resources.unicorns?.value).toBe(10);
+      expect(next.resources.unicorns?.value).toBe(500); // over-cap stock preserved
     });
 
     it("does not mutate input state", () => {

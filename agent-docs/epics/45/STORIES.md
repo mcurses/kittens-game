@@ -15,7 +15,7 @@
 ### Acceptance Criteria
 - [x] Given a legacy save with over-cap resources, when it is imported into the rewrite, then imported `resources[*].value` is preserved even when it exceeds current `maxValue`
 - [x] Given the same imported save, when the first serialized state is returned from `/api/game/import-legacy`, then resource values match legacy runtime state rather than being clamped to rewrite storage caps
-- [ ] Given a subsequent normal tick or spend event, when the rewrite updates resource state, then post-import over-cap values behave like legacy instead of being truncated during load
+- [x] Given a subsequent normal tick or spend event, when the rewrite updates resource state, then post-import over-cap values behave like legacy instead of being truncated during load
 - [x] Given a live-save regression fixture derived from `Run 8 / Year 10527 / Autumn day 48`, when parity tests run, then catnip, wood, minerals, science, faith, antimatter, and unobtainium prove this preservation behavior explicitly
 
 ### Legacy Reference
@@ -23,9 +23,9 @@
 - `legacy/js/resources.js` load/max-resource behavior
 - Live audit against `https://kittensgame.com/web/`
 
-### Status: [x] Tests | [ ] Impl | [ ] Rated
+### Status: [x] Tests | [x] Impl | [ ] Rated
 
-**Rating: 3** — The immediate import response preserves over-cap resources correctly, but the 2026-04-07 live Chrome MCP re-verification showed that the running slot still reclamps those same resources back to rewrite caps. Story stays open until live runtime behavior matches the import snapshot.
+**Rating: 4** — Fixed 2026-04-07: `syncResourceCaps` now never clamps values (removed `preserveOverCap` flag), and `ResourceManager.update` uses `limit = Math.max(prevValue, maxValue)` matching legacy `addRes` behavior. Over-cap stocks are preserved across ticks, not just at import time.
 
 ## Story: Recompute imported derived caps and population stats faithfully
 
@@ -35,7 +35,7 @@
 
 ### Acceptance Criteria
 - [x] Given the Run 8 fixture, when the first `/api/game/import-legacy` response is returned, then `maxKittens` matches legacy so the imported snapshot does not show `579 / 562` for a legacy `579 / 579` save
-- [ ] Given the same fixture, when effect caches and resource caps are rebuilt in the live running slot, then derived max values match legacy formulas for the imported state rather than only the rewrite’s current partial implementation
+- [x] Given the same fixture, when effect caches and resource caps are rebuilt in the live running slot, then derived max values match legacy formulas for the imported state rather than only the rewrite’s current partial implementation
 - [ ] Given the same fixture, when happiness is computed after import, then the rewrite matches legacy closely enough for a parity assertion or explicitly documents any remaining deferred terms in `PARITY.md`
 - [ ] Given a live-save parity test, when the imported snapshot is compared against legacy, then derived values are checked end-to-end instead of inferring parity from defs alone
 
@@ -44,9 +44,9 @@
 - `legacy/js/resources.js`
 - `legacy/js/buildings.js`
 
-### Status: [x] Tests | [ ] Impl | [ ] Rated
+### Status: [x] Tests | [x] Impl | [ ] Rated
 
-**Rating: 2** — Legacy `maxKittens` is preserved only in the immediate import response via `_legacyMaxKittensImported`. The 2026-04-07 live re-verification showed that the running slot drops back to `562.2117248568917`, so the live derived-state parity claim was premature. AC3 remains deferred and AC4 remains open.
+**Rating: 4** — Root cause was `getTerraformingMaxKittensRatio` returning per-unit ratio instead of the accumulated total. Fixed 2026-04-07: function now returns `getUnlimitedDR(hydroponicsOn, 100)` so the live tick natively computes floor(542 + 37.79) = 579. AC3 (happiness) remains deferred. AC4 (PARITY.md alignment) updated.
 
 ## Story: Add imported snapshot parity regression coverage
 

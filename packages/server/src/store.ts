@@ -123,7 +123,7 @@ export class GameStateStore {
       this.state = {
         ...newState,
         effectCache,
-        resources: syncResourceCaps(newState.resources, effectCache, false),
+        resources: syncResourceCaps(newState.resources, effectCache),
       };
       // Emit LOG_MESSAGE for building purchases
       if (action.type === "BUY_BUILDING") {
@@ -219,7 +219,7 @@ export class GameStateStore {
   // ── Internal helpers ─────────────────────────────────────────────────────
 
   /** Full deserialization: base deserialize + each manager's load() with its own slice */
-  private _fullDeserialize(data: SerializedGameState, preserveOverCap = true): GameState {
+  private _fullDeserialize(data: SerializedGameState): GameState {
     let state = deserialize(data);
     const dataMap = data as unknown as Record<string, unknown>;
     for (const manager of this.managers) {
@@ -238,7 +238,7 @@ export class GameStateStore {
       effectCache = { ...effectCache, maxKittens: legacyMaxKittensImported, _legacyMaxKittensImported: legacyMaxKittensImported };
     }
 
-    return { ...state, effectCache, resources: syncResourceCaps(state.resources, effectCache, preserveOverCap) };
+    return { ...state, effectCache, resources: syncResourceCaps(state.resources, effectCache) };
   }
 
   /** Create a fresh initial state with effect cache built. */
