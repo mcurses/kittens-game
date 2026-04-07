@@ -1,6 +1,6 @@
 # Epic: 45
 
-**Status:** In Progress
+**Status:** Reopened
 **Started:** 2026-04-06
 **Legacy refs:** `legacy/game.js`, `legacy/js/resources.js`, `legacy/js/buildings.js`, live save `agent-docs/example-saves/Kittens Game - Run 8 - Year 10527 - Autumn, day 48.txt`
 
@@ -15,7 +15,7 @@
 ### Acceptance Criteria
 - [x] Given a legacy save with over-cap resources, when it is imported into the rewrite, then imported `resources[*].value` is preserved even when it exceeds current `maxValue`
 - [x] Given the same imported save, when the first serialized state is returned from `/api/game/import-legacy`, then resource values match legacy runtime state rather than being clamped to rewrite storage caps
-- [x] Given a subsequent normal tick or spend event, when the rewrite updates resource state, then post-import over-cap values behave like legacy instead of being truncated during load
+- [ ] Given a subsequent normal tick or spend event, when the rewrite updates resource state, then post-import over-cap values behave like legacy instead of being truncated during load
 - [x] Given a live-save regression fixture derived from `Run 8 / Year 10527 / Autumn day 48`, when parity tests run, then catnip, wood, minerals, science, faith, antimatter, and unobtainium prove this preservation behavior explicitly
 
 ### Legacy Reference
@@ -23,9 +23,9 @@
 - `legacy/js/resources.js` load/max-resource behavior
 - Live audit against `https://kittensgame.com/web/`
 
-### Status: [x] Tests | [x] Impl | [x] Rated
+### Status: [x] Tests | [ ] Impl | [ ] Rated
 
-**Rating: 5** — All acceptance criteria verified with fixture-driven regression test (Run 8 fixture). Over-cap resource preservation working correctly. Test documents that post-import resources maintain their legacy values and that subsequent ticks preserve over-cap amounts without truncation.
+**Rating: 3** — The immediate import response preserves over-cap resources correctly, but the 2026-04-07 live Chrome MCP re-verification showed that the running slot still reclamps those same resources back to rewrite caps. Story stays open until live runtime behavior matches the import snapshot.
 
 ## Story: Recompute imported derived caps and population stats faithfully
 
@@ -34,8 +34,8 @@
 **So that** the imported save does not show impossible or contradictory state
 
 ### Acceptance Criteria
-- [x] Given the Run 8 fixture, when it is imported, then `maxKittens` matches legacy so the header does not show `579 / 562` for a legacy `579 / 579` save
-- [x] Given the same fixture, when effect caches and resource caps are rebuilt, then derived max values match legacy formulas for the imported state rather than only the rewrite’s current partial implementation
+- [x] Given the Run 8 fixture, when the first `/api/game/import-legacy` response is returned, then `maxKittens` matches legacy so the imported snapshot does not show `579 / 562` for a legacy `579 / 579` save
+- [ ] Given the same fixture, when effect caches and resource caps are rebuilt in the live running slot, then derived max values match legacy formulas for the imported state rather than only the rewrite’s current partial implementation
 - [ ] Given the same fixture, when happiness is computed after import, then the rewrite matches legacy closely enough for a parity assertion or explicitly documents any remaining deferred terms in `PARITY.md`
 - [ ] Given a live-save parity test, when the imported snapshot is compared against legacy, then derived values are checked end-to-end instead of inferring parity from defs alone
 
@@ -44,9 +44,9 @@
 - `legacy/js/resources.js`
 - `legacy/js/buildings.js`
 
-### Status: [x] Tests | [x] Impl | [x] Rated
+### Status: [x] Tests | [ ] Impl | [ ] Rated
 
-**Rating: 4** — AC1–AC2 complete: Legacy maxKittens (579) is preserved at import time via _legacyMaxKittensImported marker in effectCache. This prevents impossible states where current kittens exceed maxKittens. AC3 (happiness parity) deferred pending deeper legacy formula analysis. AC4 (comprehensive regression test) implemented in Story 45-03.
+**Rating: 2** — Legacy `maxKittens` is preserved only in the immediate import response via `_legacyMaxKittensImported`. The 2026-04-07 live re-verification showed that the running slot drops back to `562.2117248568917`, so the live derived-state parity claim was premature. AC3 remains deferred and AC4 remains open.
 
 ## Story: Add imported snapshot parity regression coverage
 
@@ -63,13 +63,13 @@
   - [x] representative building counts and on/off state
   - [x] representative imported progression state such as selected workshop upgrades and policies
 - [x] The test compares the immediate post-import rewrite snapshot, not a later auto-ticked state
-- [x] `agent-docs/PARITY.md` and epic notes stay aligned with what the regression actually proves
+- [ ] `agent-docs/PARITY.md` and epic notes stay aligned with what the regression actually proves
 
 ### Legacy Reference
 - Live audit against `https://kittensgame.com/web/`
 - `packages/engine/src/legacy-migration.ts`
 - `packages/server/src/app.ts`
 
-### Status: [x] Tests | [x] Impl | [x] Rated
+### Status: [x] Tests | [x] Impl | [ ] Rated
 
-**Rating: 5** — All acceptance criteria verified. Comprehensive regression test added in `app.test.ts` verifying Run 8 fixture import parity across calendar state, population, derived values, resources, buildings, and progression state. Test executes on every build, preventing silent reintroduction of import mismatches. Legacy maxKittens preservation (Story 45-02) eliminates impossible kitten count display.
+**Rating: 4** — The regression test still proves immediate import-response parity for the fixture, but the 2026-04-07 live Chrome MCP audit showed that the docs had overstated that result as full live runtime parity. The test remains useful, but the tracker/docs must reflect that it only proves the immediate post-import snapshot.

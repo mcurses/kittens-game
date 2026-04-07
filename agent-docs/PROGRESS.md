@@ -1,11 +1,14 @@
 # Kittens Game Rewrite — Progress Tracker
 
-Last updated: 2026-04-06
+Last updated: 2026-04-07
 
 ---
 
 ## Maintenance Updates
 
+- 2026-04-07: Reopened Epic 45 after a Chrome MCP live re-verification against `https://kittensgame.com/web/` and the Run 8 save. The rewrite's immediate `POST /api/game/import-legacy` response now preserves over-cap resources and `maxKittens=579`, but the live slot state still diverges immediately afterward: over-cap resources are reclamped to local caps, `maxKittens` falls back to `562.2117248568917`, happiness lands at `~503%` instead of legacy `~533%`, and sampled building automation flags still do not match legacy.
+- 2026-04-07: Closed the Epic 26 reopen for happiness inspector parity. Hovering or focusing the happiness summary in the village header or jobs tab now opens an inspector breakdown with legacy-style base/bonus/penalty terms.
+- 2026-04-07: Reopened Epic 26 for happiness inspector parity. Legacy `toolbar.js` exposes a term-by-term happiness hover breakdown, but the rewrite only shows the aggregate percentage with no inspector path.
 - 2026-04-06: Started Epic 45 after a live-save audit of `agent-docs/example-saves/Kittens Game - Run 8 - Year 10527 - Autumn, day 48.txt`. The rewrite imports building/progression structure plausibly, but it does not match legacy runtime state for over-cap resources, `maxKittens`, or happiness. The strongest current suspect is import/load-time clamping of resource values against rebuilt storage caps.
 - 2026-04-06: Started Epic 43 from a follow-up parity investigation. The next unresolved producer-without-consumer candidates are harbor (`cargoShips`, `barges`), oil well (`pumpjack`, `oilWellRatio`), reactor (`coldFusion`, `thoriumReactors`), and mint policy bonuses (`mintRatio`, `mintIvoryRatio`).
 - 2026-04-06: Closed Epic 42. Barn, warehouse, and harbor storage outputs now consume legacy `barnRatio` / `warehouseRatio` workshop effects again, warehouse catnip storage follows `silos` gating, and `applyGameAction()` now resyncs serialized resource caps immediately after storage-affecting actions.
@@ -439,8 +442,8 @@ Prerequisites: Epics 20, 21
 ---
 
 ## Epic 26: UI Information Architecture
-**Status:** Complete | **Started:** 2026-03-30 | **Finished:** 2026-04-03
-Stories: 11 / 11 complete
+**Status:** Complete | **Started:** 2026-03-30 | **Finished:** 2026-04-07
+Stories: 12 / 12 complete
 
 - [x] Story 26-1: SlotContext — React context for slot name propagation
 - [x] Story 26-2: description? field on engine defs (buildings, upgrades, techs, religion)
@@ -453,6 +456,7 @@ Stories: 11 / 11 complete
 - [x] Story 26-9: Inspector + LogPanel share log-sidebar (inspector above, log below)
 - [x] Story 26-10: Inspector CSS — styles for all entity kinds
 - [x] Story 26-11: Live inspector ETA countdown — hovered shortfall/cap/zero durations update in real time without requiring a new hover event
+- [x] Story 26-12: Happiness inspector breakdown — hovering the happiness display shows legacy-derived base/bonuses/penalty terms in the inspector
 
 Pre-epic action items executed:
 - [x] Biome lint check in CI — already present as `pnpm run check`
@@ -792,8 +796,8 @@ Total: 1432 tests across all packages
 ---
 
 ## Epic 44: Session Management
-**Status:** Complete | **Started:** 2026-04-06 | **Finished:** 2026-04-06
-Stories: 6 / 6 complete
+**Status:** Complete | **Started:** 2026-04-06 | **Finished:** 2026-04-07
+Stories: 10 / 10 complete
 
 - [x] Story 44-01: DB metadata layer — SlotMeta interface, listSlotMeta, deleteSlot, updateSlotStatus, getSlotMeta
 - [x] Story 44-02: SessionRegistry lifecycle actions — create, pause, resume, archive, delete, listAll, export
@@ -801,6 +805,10 @@ Stories: 6 / 6 complete
 - [x] Story 44-04: CLI package — `kittens sessions` commands with table output, colored status symbols, export to file
 - [x] Story 44-05: Web admin panel — SessionsPanel with table, create form, inline confirmation, TanStack Query polling
 - [x] Story 44-06: Paused session read-only enforcement — POST /api/game/action returns 409, GET /api/game/state allowed, no STATE_DELTA ticks
+- [x] Story 44-07: Sessions route wiring — mount SessionsPanel at `/sessions` and make Open navigate to `/?slot=<name>`
+- [x] Story 44-08: Sessions panel clarity pass — explicit status labels and archive behavior copy
+- [x] Story 44-09: Bun SQLite migration fix — backfill legacy saves table with `status` and `created_at` columns on startup
+- [x] Story 44-10: Sessions table behavior — sort by status then last saved, hide archived by default behind a checkbox
 
 Focused verification:
 - Server tests: 156 passing, 88.64% line coverage (paused enforcement tests included)
@@ -808,6 +816,9 @@ Focused verification:
 - CLI tests: verified output formatting and mock HTTP call patterns
 - OpenAPI spec: all 14 session endpoints + 37 GameAction types in discriminated union
 - No skipped tests, no TODOs, no type:any violations
+- Follow-up 2026-04-07: `/sessions` now renders the sessions panel as a standalone client route, skips game-state/WS startup on that route, and the panel Open action navigates to `/?slot=<name>`
+- Follow-up 2026-04-07: fixed Bun SQLite startup migration so pre-Epic-44 databases get `status` and `created_at`; Chrome verification confirmed `/sessions` now receives and renders real statuses
+- Follow-up 2026-04-07: sessions table now defaults to active-first sorting with archived hidden behind a `Show archived` checkbox
 
 ---
 
@@ -829,18 +840,16 @@ Focused verification:
 ---
 
 ## Epic 45: Legacy Import Parity
-**Status:** Complete | **Started:** 2026-04-06 | **Finished:** 2026-04-06
-Stories: 3 / 3 complete
+**Status:** Reopened | **Started:** 2026-04-06 | **Finished:** 2026-04-06 | **Reopened:** 2026-04-07
+Stories: live parity claim reopened after Chrome MCP verification
 
 - [x] Story 45-01: Preserve imported over-cap resource stocks
 - [x] Story 45-02: Recompute imported derived caps and population stats faithfully
 - [x] Story 45-03: Add imported snapshot parity regression coverage
 
 Focused verification:
-- Server tests: 161 passing (up from 159), 89.88% line coverage in app.ts
-- Engine tests: 990 passing, parity test includes legacy-migration.ts coverage (92.16%)
-- All stories have passing test suites; comprehensive regression test on Run 8 fixture verifies calendar state, population, resources, buildings, and progression state match legacy after import
-- legacy-migration.ts: Over-cap resource preservation + _legacyMaxKittensImported marker to prevent impossible kitten displays (579 / 562 → 579 / 579)
-- PARITY.md updated with import parity completion note
-- No skipped tests, no TODOs, no type:any violations
-- Commit message (194f97d): test(server): 45-03 comprehensive regression test for imported save parity
+- Automated tests for the immediate import snapshot still pass
+- 2026-04-07 live Chrome MCP re-verification invalidated the "complete" claim
+- Immediate `POST /api/game/import-legacy` response preserves Run 8 over-cap resources and returns `maxKittens=579`
+- Live slot state still diverges immediately after import: resources reclamp to rewrite caps, `maxKittens` drops to `562.2117248568917`, happiness settles near `503%` vs legacy `533%`, and sampled automation flags do not match legacy
+- Epic 45 docs and trackers were downgraded from complete to reopened on 2026-04-07

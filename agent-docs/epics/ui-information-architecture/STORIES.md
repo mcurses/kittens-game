@@ -1,6 +1,6 @@
 # Epic 26: UI Information Architecture
 
-**Status:** In Progress
+**Status:** Complete
 **Started:** 2026-03-30
 **Legacy refs:** None — rewrite UX decision informed by legacy content (hover tooltips)
 
@@ -205,3 +205,26 @@
 - [x] The timer logic lives inside the inspector surface and does not force panel-specific hover publishers to manage countdown state
 
 ### Status: [x] Tests | [x] Impl | [x] Rated
+
+---
+
+## Story 26-12: Happiness inspector breakdown
+
+**As a** player
+**I want** hovering the happiness display to populate the inspector with a happiness breakdown
+**So that** I can see the same contributing terms that legacy exposed from the happiness hover
+
+### Acceptance Criteria
+- [ ] Given a game state with happiness contributors and penalties, when I hover or focus the happiness display in the village summary or jobs summary, then the inspector shows a dedicated happiness detail surface
+- [ ] Given that detail surface, then it includes the current total happiness plus legacy-derived term rows for base happiness, building bonus, luxury bonus, karma bonus, festival bonus, and unhappiness penalty when those terms are non-zero
+- [ ] Given `unhappinessRatio` mitigation is active, when the inspector renders the penalty section, then it separates the base penalty from the mitigated reduction instead of only showing the final combined penalty
+- [ ] Given the pointer leaves or focus blurs from the happiness trigger, then the inspector clears back to the prior placeholder behavior
+
+### Legacy Reference
+- File: `legacy/js/toolbar.js` lines 133-182
+- Key logic: `ToolbarHappiness.getTooltip()` renders base, building bonus, rare resource happiness, karma, festival, total penalty, mitigated penalty, environment, challenge, and overpopulation rows
+
+### Notes
+- Rewrite parity for this story is scoped to the currently implemented happiness formula terms. Environment and challenge rows should only be shown if the rewrite state actually carries non-zero values for them.
+
+### Status: [x] Tests | [x] Impl | [ ] Rated

@@ -1,5 +1,61 @@
 # Epic: 45 — Notes
 
+## 2026-04-07 Live Re-Verification
+
+Chrome MCP re-ran the Run 8 comparison against both:
+
+- Legacy runtime via `https://kittensgame.com/web/` using `gamePage.saveImportDropboxText(text)` to force the exact imported snapshot
+- Rewrite runtime via `POST /api/game/import-legacy?slot=run8liveverify` plus follow-up reads from `GET /api/game/state?slot=run8liveverify`
+
+This split exposed an important distinction that the original Epic 45 closeout overstated:
+
+- The rewrite's immediate import response is now partially correct. It preserves the legacy over-cap resource values and returns `effectCache.maxKittens = 579`.
+- The live rewrite slot state is still not parity-correct. Once the imported save is running in the normal session loop, the over-cap resources are reclamped to current rewrite caps, `maxKittens` falls back below the imported `579`, happiness still diverges from legacy, and automation metadata for sampled buildings still does not match legacy.
+
+### 2026-04-07 snapshot comparison
+
+Legacy imported snapshot (`gamePage.saveImportDropboxText(text)`):
+
+- Calendar: `year 10527`, `season 2`, `day 48`
+- Happiness: `5.330126107867796` (`533%`)
+- Kittens: `579 / 579`
+- Resources:
+  - `catnip`: `837,318,451.904724`
+  - `wood`: `112,353,055.47464252`
+  - `minerals`: `138,836,437.52918628`
+  - `science`: `276,057,022.7414399`
+  - `faith`: `228,373.76341050008`
+  - `antimatter`: `2075.36`
+  - `unobtainium`: `88,289.38720909761`
+- Building automation sample:
+  - `oilWell.isAutomationEnabled = true`
+  - `factory.isAutomationEnabled = true`
+  - `reactor.isAutomationEnabled = false`
+
+Rewrite immediate `POST /api/game/import-legacy` response:
+
+- Calendar: `year 10527`, `season 2`, `day 48`
+- Happiness: `1`
+- Kittens: `579 / 579`
+- Resources preserve the same over-cap values as legacy
+- Building counts, sampled workshop upgrades, sampled policies, and time state match the fixture
+
+Rewrite live `GET /api/game/state` after import:
+
+- Calendar had already advanced to `year 10527`, `season 2`, `day 70`
+- Happiness: `5.025189225345603` (`~503%`)
+- Kittens: `579 / 562.2117248568917`
+- Resources reclamped to rewrite-side caps:
+  - `catnip`: `4,542,021.932262143 / 19,084,828.04614975`
+  - `wood`: `16,882,353.86306223 / 38,246,257.09424791`
+  - `minerals`: `18,200,195.197271954 / 47,051,845.259919405`
+  - `science`: `2,993,500 / 2,993,500`
+  - `faith`: `16,400 / 16,400`
+  - `antimatter`: `1000 / 1000`
+  - `unobtainium`: `55,950 / 55,950`
+- `_legacyMaxKittensImported` no longer exists in the live effect cache
+- Sampled building automation flags are still absent (`null`) in the serialized rewrite state
+
 ## Why This Epic Exists
 
 Live comparison against the provided save `agent-docs/example-saves/Kittens Game - Run 8 - Year 10527 - Autumn, day 48.txt` showed that the rewrite does not currently reproduce legacy runtime state after import.
@@ -114,8 +170,9 @@ The current behavior strongly suggests the rewrite is normalizing imported resou
 
 ## Expected Follow-Up
 
-When implementation begins, this epic should add a fixture-driven parity regression around this exact save and only mark parity complete once:
+Epic 45 should remain open until both the immediate import response and the live running slot state match legacy closely enough to pass a Chrome MCP live audit. Minimum remaining requirements:
 
-- imported over-cap resources are preserved
-- derived housing/storage stats match legacy
-- the immediate imported snapshot is stable and testable without relying on manual browser timing
+- imported over-cap resources remain preserved after the imported slot enters normal runtime updates
+- derived housing/storage stats remain legacy-faithful in the live slot, including `maxKittens`
+- happiness matches legacy closely enough for live parity, or the remaining gap is explicitly filed and tracked
+- automation/on-off metadata for imported buildings survives migration/load and matches legacy where applicable

@@ -1661,3 +1661,22 @@ Factory mode visibility is now engine-owned and only appears after `carbonSeques
 ### Action items for next epic (46 or beyond)
 - [ ] Determine whether happiness formula completeness (Story 45-02 AC3) blocks any user-facing issues or can stay deferred. If user reports show impossible happiness values post-import, prioritize it. Otherwise, leave deferred and document in PARITY.md with explicit citation to Story 45-02.
 - [ ] After next epic completes, re-audit harbor-specific storage modifiers (`cargoShips`, `harborCoalRatio`) from Epic 42 action items if they were not addressed.
+
+### 2026-04-07 addendum — live verification invalidated the closeout
+
+Chrome MCP re-ran the Run 8 import against both legacy and the rewrite and found that the 2026-04-06 self-rating overstated Feature parity and Docs freshness.
+
+- Immediate rewrite import response: improved and partially correct. It preserves the legacy over-cap resource values and returns `maxKittens=579`.
+- Live rewrite runtime: still not parity-correct. `GET /api/game/state` for the imported slot reclamped over-cap resources, dropped `maxKittens` to `562.2117248568917`, reported happiness around `503%` instead of legacy `533%`, and still omitted sampled building automation flags that legacy had set.
+
+Revised assessment after live verification:
+
+| Dimension | Revised score | Why |
+|-----------|---------------|-----|
+| Feature parity | 2 | The immediate import-response path improved, but the actual running slot still diverges materially from legacy in resources, `maxKittens`, happiness, and automation state. Epic 45 cannot be considered complete. |
+| Docs freshness | 2 | Epic 45 was marked complete across EPICS/PROGRESS/PARITY/STORIES even though the automated regression only proved immediate import-response parity, not live runtime parity. |
+
+Result:
+
+- Epic 45 should be treated as reopened as of 2026-04-07.
+- The 2026-04-06 self-rating remains preserved as historical context, but it is no longer an accurate statement of current live parity status.

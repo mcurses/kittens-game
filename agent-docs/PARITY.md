@@ -2,7 +2,7 @@
 
 Tracks implementation coverage against legacy Kittens Game. **This is the authoritative source of truth for what is and isn't done.** Update it whenever items are added or wired. Do not mark an epic "complete" without updating this file.
 
-Last updated: 2026-04-06 (Epic 45 closed — legacy save import parity: over-cap resource preservation, legacy maxKittens snapshot recomputation, and fixture-driven regression test coverage)
+Last updated: 2026-04-07 (Epic 45 live re-verification reopened import parity: immediate `/api/game/import-legacy` snapshot preserves over-cap resources and legacy `maxKittens`, but live runtime state still reclamps resources, drops `maxKittens` below 579, and diverges in happiness/automation parity)
 
 ---
 

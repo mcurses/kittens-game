@@ -60,6 +60,12 @@ This is not yet approved. It is only a starting hypothesis.
 - Inspector ETA text had been computed only from the hover snapshot, so `~Ns`, `Time to zero`, and `Time to cap` froze until the next hover or state refresh.
 - The clean fix was an inspector-owned elapsed-time hook that counts down locally from the inspected snapshot, rather than pushing timer state into every panel that publishes `setInspected(...)`.
 
+## Reopen Notes — 2026-04-07
+
+- Legacy `ToolbarHappiness.getTooltip()` already exposes a rich term-by-term breakdown for happiness, but the rewrite currently renders only the aggregate percentage in `VillagePanel` and `JobsPanel`.
+- The missing piece is not another tooltip. It belongs in the existing inspector model, likely as a dedicated inspector entity populated from the serialized state on hover/focus of the happiness display.
+- Implementation landed via a shared client-side `buildHappinessEntity()` helper so both the village header and jobs summary publish the same breakdown rows into the inspector.
+
 ## Suggested Sequencing
 
 1. Audit legacy detail surfaces

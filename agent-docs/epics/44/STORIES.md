@@ -1,6 +1,6 @@
 # Epic: 44 — Session Management
 
-**Status:** Not Started
+**Status:** Complete
 **Priority:** P1
 **Prerequisites:** 17 (server), 22 (multi-client)
 **Scope:** Full lifecycle management for named save slots — creation, pause/resume, archive, delete, export — exposed via a REST API, a CLI package, and an admin panel in the web client.
@@ -23,6 +23,7 @@
 - [x] `createMemoryAdapter` implements all four new methods correctly
 - [x] `saveSlot` sets `created_at` on first insert, leaves it unchanged on upsert
 - [x] Unit tests cover: listSlotMeta returns all rows, deleteSlot removes row, updateSlotStatus changes only status, getSlotMeta returns null for unknown slot
+- [x] Bun SQLite startup migrates legacy `saves` tables that predate Epic 44 by adding missing `status` and `created_at` columns and backfilling `created_at = updated_at`
 
 ### Status: [x] Tests | [x] Impl | [ ] Rated
 
@@ -116,6 +117,18 @@
 - [x] Delete and Archive show an inline confirmation (not a browser dialog) before proceeding
 - [x] List auto-refreshes via TanStack Query (polling every 5s or on focus); no WebSocket needed for this panel
 - [x] Panel is accessible from the header when `?slot` is set (e.g., a "Manage Sessions" link)
+- [x] Direct navigation to `/sessions` renders the sessions panel without attempting to load game state or open a WebSocket
+- [x] Sessions panel **Open** action navigates to `/?slot=<name>` so opening from `/sessions` returns to the game view
+- [x] Status column shows both the legacy symbol and an explicit text label (`Active`, `Paused`, `Archived`) so state is understandable even if the symbol is visually subtle
+- [x] Archive confirmation explains the behavior: the session is frozen, removed from openable sessions, and still deletable later
+- [x] Sessions list defaults to status-priority sorting: `active` first, then `paused`, then `archived`; ties break by most-recent `updatedAt`
+- [x] Archived sessions are hidden by default behind a `Show archived` checkbox in the panel
+
+### Notes
+- 2026-04-07: Reopened after Chrome verification showed live `/api/sessions` responses returning placeholder strings because the real `packages/server/kittens.db` still had the pre-Epic-44 schema with no `status` or `created_at` columns.
+- 2026-04-07: Reopened after discovering the panel component shipped without any actual route or shell integration. The follow-up closes the route wiring gap by mounting the panel at `/sessions` and making the panel's open action return to the game root with a slot query.
+- 2026-04-07: Reopened again after usability feedback that the status column looked empty and archive semantics were unclear in the browser UI.
+- 2026-04-07: Reopened again for sessions table behavior so active work floats to the top and archived sessions are opt-in.
 
 ### Status: [x] Tests | [x] Impl | [ ] Rated
 
