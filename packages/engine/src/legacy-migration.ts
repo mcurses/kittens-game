@@ -59,8 +59,11 @@ function arrayToRecord<T>(arr: unknown[], pick: (item: Rec) => T | null): Record
  */
 function buildingsArrayToRecord(
   arr: unknown[],
-): Record<string, { val: number; on: number; unlocked?: boolean }> {
-  const result: Record<string, { val: number; on: number; unlocked?: boolean }> = {};
+): Record<string, { val: number; on: number; unlocked?: boolean; automationEnabled?: boolean }> {
+  const result: Record<
+    string,
+    { val: number; on: number; unlocked?: boolean; automationEnabled?: boolean }
+  > = {};
   for (let i = 0; i < arr.length; i++) {
     const item = arr[i];
     if (!isRec(item)) continue;
@@ -73,7 +76,10 @@ function buildingsArrayToRecord(
       val: num(item.val),
       on: num(item.on),
       unlocked: bool(item.unlocked, false),
-      // stage, jammed, isAutomationEnabled dropped
+      // jammed and stage dropped; isAutomationEnabled mapped to new name
+      ...(typeof item.isAutomationEnabled === "boolean"
+        ? { automationEnabled: item.isAutomationEnabled }
+        : {}),
     };
   }
   return result;
@@ -93,7 +99,7 @@ function migrateResources(
 
 function migrateBuildings(
   raw: unknown,
-): Record<string, { val: number; on: number; unlocked?: boolean }> {
+): Record<string, { val: number; on: number; unlocked?: boolean; automationEnabled?: boolean }> {
   if (!isArr(raw)) return {};
 
   // Check if this is a named array (legacy test format) or numeric-indexed (actual legacy saves)
@@ -105,6 +111,10 @@ function migrateBuildings(
       val: num(item.val),
       on: num(item.on),
       unlocked: bool(item.unlocked, false),
+      // jammed and stage dropped; isAutomationEnabled mapped to new name
+      ...(typeof item.isAutomationEnabled === "boolean"
+        ? { automationEnabled: item.isAutomationEnabled }
+        : {}),
     }));
   }
 
