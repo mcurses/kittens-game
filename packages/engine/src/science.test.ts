@@ -3,6 +3,7 @@ import { applyAction } from "./actions.js";
 import { POLICY_DEFS, ScienceManager, TECH_DEFS, createInitialScience } from "./science.js";
 import { createInitialState } from "./state.js";
 import { tick } from "./tick.js";
+import { createInitialWorkshop } from "./workshop.js";
 
 // ── Story 1: TechDef and ScienceState shape ───────────────────────────────────
 
@@ -631,5 +632,163 @@ describe("ScienceManager save/load/reset", () => {
     expect(s.science).toBeDefined();
     expect(s.science.techs).toBeDefined();
     expect(s.science.policies).toBeDefined();
+  });
+});
+
+// ── Epic 46 Story 1: applyResearch propagates workshop upgrades and crafts ────
+
+describe("Epic 46: applyResearch propagates workshop unlocks", () => {
+  function stateWithUnlockedTech(techName: string) {
+    const base = createInitialState();
+    return {
+      ...base,
+      resources: {
+        ...base.resources,
+        science: { value: 999999, maxValue: 999999 },
+        iron: { value: 999999, maxValue: 999999 },
+        wood: { value: 999999, maxValue: 999999 },
+        minerals: { value: 999999, maxValue: 999999 },
+        gold: { value: 999999, maxValue: 999999 },
+        manuscript: { value: 999999, maxValue: 999999 },
+        coal: { value: 999999, maxValue: 999999 },
+      },
+      workshop: createInitialWorkshop(),
+      science: {
+        ...createInitialScience(),
+        techs: {
+          ...createInitialScience().techs,
+          [techName]: { unlocked: true, researched: false },
+        },
+      },
+    };
+  }
+
+  it("researching 'mining' unlocks workshop upgrade 'bolas'", () => {
+    const s0 = stateWithUnlockedTech("mining");
+    const s1 = applyAction(s0, { type: "RESEARCH", name: "mining" });
+    expect(s1.workshop.upgrades.bolas?.unlocked).toBe(true);
+  });
+
+  it("researching 'metal' unlocks workshop upgrade 'huntingArmor'", () => {
+    const s0 = stateWithUnlockedTech("metal");
+    const s1 = applyAction(s0, { type: "RESEARCH", name: "metal" });
+    expect(s1.workshop.upgrades.huntingArmor?.unlocked).toBe(true);
+  });
+
+  it("researching 'math' unlocks workshop upgrade 'celestialMechanics'", () => {
+    const s0 = stateWithUnlockedTech("math");
+    const s1 = applyAction(s0, { type: "RESEARCH", name: "math" });
+    expect(s1.workshop.upgrades.celestialMechanics?.unlocked).toBe(true);
+  });
+
+  it("researching 'construction' unlocks 'compositeBow', 'advancedRefinement', 'reinforcedSaw'", () => {
+    const s0 = stateWithUnlockedTech("construction");
+    const s1 = applyAction(s0, { type: "RESEARCH", name: "construction" });
+    expect(s1.workshop.upgrades.compositeBow?.unlocked).toBe(true);
+    expect(s1.workshop.upgrades.advancedRefinement?.unlocked).toBe(true);
+    expect(s1.workshop.upgrades.reinforcedSaw?.unlocked).toBe(true);
+  });
+
+  it("researching 'currency' unlocks workshop upgrade 'goldOre'", () => {
+    const s0 = stateWithUnlockedTech("currency");
+    const s1 = applyAction(s0, { type: "RESEARCH", name: "currency" });
+    expect(s1.workshop.upgrades.goldOre?.unlocked).toBe(true);
+  });
+
+  it("researching 'writing' unlocks upgrade 'register' and craft 'parchment'", () => {
+    const s0 = stateWithUnlockedTech("writing");
+    const s1 = applyAction(s0, { type: "RESEARCH", name: "writing" });
+    expect(s1.workshop.upgrades.register?.unlocked).toBe(true);
+    expect(s1.workshop.crafts.parchment?.unlocked).toBe(true);
+  });
+
+  it("researching 'philosophy' unlocks craft 'compedium'", () => {
+    const s0 = stateWithUnlockedTech("philosophy");
+    const s1 = applyAction(s0, { type: "RESEARCH", name: "philosophy" });
+    expect(s1.workshop.crafts.compedium?.unlocked).toBe(true);
+  });
+
+  it("upgrade unlocked by tech research was previously locked", () => {
+    const s0 = stateWithUnlockedTech("mining");
+    expect(s0.workshop.upgrades.bolas?.unlocked).toBe(false);
+  });
+
+  it("does not mutate input workshop state", () => {
+    const s0 = stateWithUnlockedTech("mining");
+    applyAction(s0, { type: "RESEARCH", name: "mining" });
+    expect(s0.workshop.upgrades.bolas?.unlocked).toBe(false);
+  });
+});
+
+// ── Epic 46 Story 2: load replays workshop unlocks for researched techs ────────
+
+describe("Epic 46: ScienceManager.load replays workshop unlocks", () => {
+  it("loading a save with researched 'mining' tech causes bolas to be unlocked in workshop state", () => {
+    const mgr = new ScienceManager();
+    const saved = {
+      techs: { mining: { unlocked: true, researched: true } },
+      policies: {},
+    };
+    const base = createInitialState();
+    const restored = mgr.load(saved, base);
+    expect(restored.workshop.upgrades.bolas?.unlocked).toBe(true);
+  });
+
+  it("loading a save with researched 'writing' tech unlocks register and parchment", () => {
+    const mgr = new ScienceManager();
+    const saved = {
+      techs: { writing: { unlocked: true, researched: true } },
+      policies: {},
+    };
+    const base = createInitialState();
+    const restored = mgr.load(saved, base);
+    expect(restored.workshop.upgrades.register?.unlocked).toBe(true);
+    expect(restored.workshop.crafts.parchment?.unlocked).toBe(true);
+  });
+
+  it("loading with no researched techs does not unlock workshop entries beyond initial set", () => {
+    const mgr = new ScienceManager();
+    const saved = {
+      techs: { calendar: { unlocked: true, researched: false } },
+      policies: {},
+    };
+    const base = createInitialState();
+    const restored = mgr.load(saved, base);
+    expect(restored.workshop.upgrades.bolas?.unlocked).toBe(false);
+  });
+
+  it("loading the slot=new tech set unlocks all expected workshop items", () => {
+    const mgr = new ScienceManager();
+    // From agent-docs/epics/46/NOTES.md: the reported slot=new researched techs
+    const slotNewTechs = [
+      "calendar", "agriculture", "archery", "mining", "metal",
+      "animal", "civil", "math", "construction", "engineering",
+      "currency", "writing", "philosophy", "steel",
+    ];
+    const saved = {
+      techs: Object.fromEntries(slotNewTechs.map((t) => [t, { unlocked: true, researched: true }])),
+      policies: {},
+    };
+    const base = createInitialState();
+    const restored = mgr.load(saved, base);
+
+    // Expected missing upgrades from NOTES.md
+    const expectedUpgrades = [
+      "advancedRefinement", "bolas", "celestialMechanics", "coalFurnace",
+      "combustionEngine", "compositeBow", "deepMining", "goldOre",
+      "huntingArmor", "register", "reinforcedSaw", "reinforcedWarehouses",
+      "steelArmor", "steelAxe",
+    ];
+    const missingUpgrades = expectedUpgrades.filter(
+      (u) => !restored.workshop.upgrades[u]?.unlocked,
+    );
+    expect(missingUpgrades).toEqual([]);
+
+    // Expected missing crafts from NOTES.md
+    const expectedCrafts = ["compedium", "parchment", "steel"];
+    const missingCrafts = expectedCrafts.filter(
+      (c) => !restored.workshop.crafts[c]?.unlocked,
+    );
+    expect(missingCrafts).toEqual([]);
   });
 });

@@ -1228,6 +1228,24 @@ export function applyResearch(state: GameState, techName: string): GameState {
         }
       }
     }
+    // Unlock workshop upgrades and crafts.
+    // Port of legacy science.js → game.unlock() which sets upgrade/craft unlocked=true.
+    if (def.unlocks?.upgrades) {
+      for (const upgradeName of def.unlocks.upgrades) {
+        const upg = draft.workshop.upgrades[upgradeName];
+        if (upg && !upg.unlocked) {
+          upg.unlocked = true;
+        }
+      }
+    }
+    if (def.unlocks?.crafts) {
+      for (const craftName of def.unlocks.crafts) {
+        const craft = draft.workshop.crafts[craftName];
+        if (craft && !craft.unlocked) {
+          craft.unlocked = true;
+        }
+      }
+    }
   });
 }
 
@@ -1363,7 +1381,34 @@ export class ScienceManager implements Manager {
       }
     }
 
-    return { ...state, science: { techs, policies } };
+    // Replay workshop unlocks for every researched tech.
+    // Port of legacy science.js:2349-2357 which calls game.unlock(tech.unlocks) on load.
+    const workshop = state.workshop;
+    let upgrades = { ...workshop.upgrades };
+    let crafts = { ...workshop.crafts };
+    for (const [name, entry] of Object.entries(techs)) {
+      if (!entry.researched) continue;
+      const def = TECH_DEFS.find((t) => t.name === name);
+      if (!def) continue;
+      if (def.unlocks?.upgrades) {
+        for (const upgradeName of def.unlocks.upgrades) {
+          const upg = upgrades[upgradeName];
+          if (upg && !upg.unlocked) {
+            upgrades = { ...upgrades, [upgradeName]: { ...upg, unlocked: true } };
+          }
+        }
+      }
+      if (def.unlocks?.crafts) {
+        for (const craftName of def.unlocks.crafts) {
+          const craft = crafts[craftName];
+          if (craft && !craft.unlocked) {
+            crafts = { ...crafts, [craftName]: { ...craft, unlocked: true } };
+          }
+        }
+      }
+    }
+
+    return { ...state, science: { techs, policies }, workshop: { ...workshop, upgrades, crafts } };
   }
 
   resetState(state: GameState): GameState {
