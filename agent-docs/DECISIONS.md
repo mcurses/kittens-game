@@ -45,6 +45,7 @@ Each manager implements a pure `Manager` interface: `update(state) => state`, `u
 - Update order is explicit and deterministic (registration order = call order)
 - Effect cache is rebuilt from scratch each tick (simple, correct; can optimize later)
 - Divergence from legacy: DR is applied to the *summed* total across managers, not per-manager. This matches the *intended* legacy behavior per game.js comment line 140–146.
+- **Load-order dependency (Epic 46):** `ScienceManager.load()` must run before `WorkshopManager.load()` because science replays tech→workshop unlocks that workshop then merges with saved flags. Reordering managers in `_fullDeserialize` would re-break stale-save healing. The `WorkshopManager.load()` merge (`su.unlocked || current.unlocked`) is the safety net, but it depends on science running first.
 
 ---
 

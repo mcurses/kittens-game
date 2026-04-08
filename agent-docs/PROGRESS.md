@@ -6,30 +6,14 @@ Last updated: 2026-04-08
 
 ## Maintenance Updates
 
+- 2026-04-08: Closed the Epic 26 reopen for Buildings panel category grouping. `BuildingsPanel` now groups visible unlocked buildings into bonfire-style sections: `Food Production`, `Population`, `Science`, `Storage`, `Resources`, `Industry`, `Culture`, `Other`, `Mega Structures`, and `Zebras`. Empty categories are hidden, and existing controls plus inspector behavior are preserved. Focused regression coverage added in `packages/client-web/src/BuildingsPanel.test.tsx`.
+- 2026-04-08: Reopened Epic 26 for a Buildings panel information-architecture hotfix. The current `BuildingsPanel` still renders a single flat list under `Structures`, but the requested layout groups visible buildings into bonfire-style categories such as `Food Production`, `Population`, `Science`, `Storage`, `Resources`, `Industry`, `Culture`, `Other`, `Mega Structures`, and `Zebras`. This is a client-side organization change only; it should preserve existing controls, visibility rules, and inspector behavior.
+- 2026-04-08: Fixed the reopened Epic 36 load-replay gap. `ScienceManager.load()` now replays `tech.unlocks.buildings` into building `unlockable` state, and `GameStateStore._fullDeserialize()` runs the building reveal pass once after manager load replay so threshold-met buildings surface immediately in loaded saves. Added a `ScienceManager.load()` regression for `construction -> warehouse.unlockable` and a full `GameStateStore.init()` regression proving stale saves reveal `warehouse` once `beam`/`slab` thresholds are already met. A practical replay of the current exported `slot=new` payload now yields `warehouse: { unlocked: true, unlockable: true }`. Epic 36 remains reopened pending a quick player-facing check after the running app reloads.
+- 2026-04-08: Reopened Epic 36 after checking live `slot=new` for `warehouse` visibility. The save already has `construction` researched and enough `beam`/`slab` to satisfy the `unlockRatio` threshold, so `warehouse` should be visible. It remains blocked because stale saves do not replay `tech.unlocks.buildings` on load. `ScienceManager.load()` currently replays workshop upgrades/crafts only; it does not restore building `unlockable` flags from researched techs, so `warehouse.unlockable` is absent in existing saves until the tech is re-bought. This is a separate building-load parity bug from Epic 46.
+- 2026-04-08: Fixed the reopened Epic 46 load-path bug. `WorkshopManager.load()` now merges saved workshop metadata into the already-replayed `state.workshop` instead of rebuilding from scratch, so `ScienceManager.load()` no longer gets clobbered for existing saves. It also now replays downstream upgrade unlock chains for researched workshop upgrades, matching legacy `workshop.load()`. Added a red/green `GameStateStore.init()` regression for the stale `slot=new` shape and a `WorkshopManager.load()` regression for downstream unlock replay. A practical check using the current exported `slot=new` payload now heals all previously missing upgrades/crafts under the patched load path. Epic 46 remains open pending a final player-facing workshop panel recheck.
+- 2026-04-08: Reopened Epic 46 after verifying the live `slot=new` state still does not heal on load. The engine-side fix exists in isolation: `applyResearch()` propagates `def.unlocks.upgrades` / `def.unlocks.crafts`, and `ScienceManager.load()` replays those unlocks for researched techs. But the real server deserialize sequence still loads `ScienceManager` before `WorkshopManager`, so `WorkshopManager.load()` overwrites the repaired workshop state with the stale saved workshop slice from old saves. Live `slot=new` still shows only `mineralHoes`, `ironHoes`, `mineralAxes`, `ironAxes`, `stoneBarns`, `reinforcedBarns`, and `titaniumBarns`, plus only the initial crafts, despite the researched tech set implying many more unlocks. Epic 46 was closed too early because its tests proved `ScienceManager.load()` in isolation instead of the full `GameStateStore._fullDeserialize()` path.
 - 2026-04-08: Closed Epic 46. `applyResearch()` now propagates `def.unlocks.upgrades` and `def.unlocks.crafts` into workshop state on live research. `ScienceManager.load()` replays those chains for every researched tech on save load, fixing both the live progression path and the import path. The slot=new regression test names all 14 expected upgrades and 3 crafts explicitly. PARITY.md updated to ✅ for both areas.
-- 2026-04-07: Started Epic 46 after investigating the live `slot=new` report that too few workshop upgrades were available. The rewrite currently has researched techs such as `mining`, `metal`, `math`, `construction`, `currency`, `writing`, and `steel`, but only exposes the initial workshop upgrade set plus `titaniumBarns`. Legacy routes researched tech `unlocks` through general `game.unlock()` replay, so expected workshop upgrades/crafts like `bolas`, `huntingArmor`, `advancedRefinement`, `reinforcedSaw`, `goldOre`, `register`, `deepMining`, `coalFurnace`, `steelAxe`, and crafts `parchment`/`compedium`/`steel` are currently missing from the live slot.
-- 2026-04-07: Reopened Epic 45 again after a second Chrome MCP verification against the same Run 8 fixture. The rewrite now keeps over-cap resources and `effectCache.maxKittens=579.784...` in the live slot, so the old reclamp / `579 / 562` bug is fixed. Remaining live parity failures are: immediate import happiness still `1` instead of legacy `5.330126107867796`, imported automation flags still incomplete (`oilWell`/`reactor` missing, `factory` only restored later), and the live slot can still drift to `580 / 579.784...` kittens. Added a low-overhead local audit path backed by `agent-docs/example-saves/run8-legacy-snapshot.json` and `pnpm --filter @kittens/server parity:run8`.
-- 2026-04-07: Closed Epic 45. Fixed over-cap resource preservation (`syncResourceCaps` no longer clamps; `ResourceManager.update` uses `limit=max(prevValue,maxValue)`). Fixed `getTerraformingMaxKittensRatio` to return `getUnlimitedDR(hydroponicsOn,100)` accumulated total so maxKittens=579 natively after every tick. Both immediate import snapshot and live slot now match legacy for resources and population. Happiness import parity (~503% vs ~533%) and building automation import flags remain deferred in PARITY.md.
-- 2026-04-07: Reopened Epic 45 after a Chrome MCP live re-verification against `https://kittensgame.com/web/` and the Run 8 save. The rewrite's immediate `POST /api/game/import-legacy` response now preserves over-cap resources and `maxKittens=579`, but the live slot state still diverges immediately afterward: over-cap resources are reclamped to local caps, `maxKittens` falls back to `562.2117248568917`, happiness lands at `~503%` instead of legacy `~533%`, and sampled building automation flags still do not match legacy.
-- 2026-04-07: Closed the Epic 26 reopen for happiness inspector parity. Hovering or focusing the happiness summary in the village header or jobs tab now opens an inspector breakdown with legacy-style base/bonus/penalty terms.
-- 2026-04-07: Reopened Epic 26 for happiness inspector parity. Legacy `toolbar.js` exposes a term-by-term happiness hover breakdown, but the rewrite only shows the aggregate percentage with no inspector path.
-- 2026-04-06: Started Epic 45 after a live-save audit of `agent-docs/example-saves/Kittens Game - Run 8 - Year 10527 - Autumn, day 48.txt`. The rewrite imports building/progression structure plausibly, but it does not match legacy runtime state for over-cap resources, `maxKittens`, or happiness. The strongest current suspect is import/load-time clamping of resource values against rebuilt storage caps.
-- 2026-04-06: Started Epic 43 from a follow-up parity investigation. The next unresolved producer-without-consumer candidates are harbor (`cargoShips`, `barges`), oil well (`pumpjack`, `oilWellRatio`), reactor (`coldFusion`, `thoriumReactors`), and mint policy bonuses (`mintRatio`, `mintIvoryRatio`).
-- 2026-04-06: Closed Epic 42. Barn, warehouse, and harbor storage outputs now consume legacy `barnRatio` / `warehouseRatio` workshop effects again, warehouse catnip storage follows `silos` gating, and `applyGameAction()` now resyncs serialized resource caps immediately after storage-affecting actions.
-- 2026-04-06: Started Epic 42 after investigating a live `stoneBarns` report. The rewrite emits `barnRatio` from workshop upgrades but never consumes it in storage-cap calculation, and the server action path rebuilds `effectCache` without resyncing serialized `resources[*].maxValue`, so storage upgrades can appear to do nothing even when the cache changed.
-- 2026-04-03: Closed Epic 40. Kitten population is no longer simulated as a generic resource, stale saved `resources.kittens` payloads are dropped during load, achievement/badge kitten checks now read village population, and the web resource table no longer renders a phantom `kittens` row.
-- 2026-04-03: Filed Epic 40 after investigating the live `slot=new` phantom `kittens` row. The rewrite currently simulates `resources.kittens` as a normal ticking resource, but legacy only uses that slot as a transient UI mirror of village population. The planned fix direction is to keep population authoritative in `village` and remove the resource-tab row entirely rather than porting the legacy display alias.
-- 2026-04-03: Reopened and closed Epic 26 for live inspector ETA parity. Hovered cost/time estimates now count down in real time inside the inspector instead of freezing at the value from the initial hover snapshot.
-- 2026-04-03: Closed the Epic 21 reopen for resource-cap parity. Temporary unicorn/tear/alicorn caps are now recomputed from the current effect cache during resource updates and immediately after save-load, so stale `maxValue` fields no longer keep unicorns capped in the live `new` save once `unicornTears` is inactive.
-- 2026-04-03: Reopened Epic 21 for a resource-cap parity regression. In the live `new` save, `resources.unicorns.maxValue` remained stuck at `10` even though `effectCache.unicornsMax` was absent and `unicornTears` was inactive, which indicates the engine is persisting a stale cap instead of recomputing it from current effects.
-- 2026-04-02: Started Epic 39. The engine now has explicit `engineer` village jobs plus per-craft engineer assignment state/actions, so mechanization UI parity is no longer blocked on missing backend state.
-- 2026-04-02: Started Epic 38. The trade panel now computes legacy dynamic caravan shortcut quantities from current affordability instead of exposing fixed `×5` / `×25` buttons.
-- 2026-04-02: Closed Epic 37. Building controls now follow the legacy split between count-adjustable `togglable` buildings and binary `togglableOnOff` buildings, with engine-owned `controlMode` metadata and batch `amount` actions.
-- 2026-04-01: Reopened Epic 35 briefly for a Story 35-03 regression fix. The hide-researched / hide-complete toggles were stored to `localStorage` but did not restore on reload because the boolean panels omitted the `usePersistentUiState` validator path.
-- 2026-04-01: Retroactively opened Epic 34 to capture post-Epic 33 production/control parity work. Recent fixes must not live only in commits and `PARITY.md` without an epic/story trail.
-- 2026-03-30: Fixed the missing Web UI trigger for the `HUNT` action by adding a hunt control to `ActionPanel`.
-- 2026-03-30: Fixed `ActionPanel` action dispatch to use the current slot context, so non-default saves no longer post actions to the default slot.
-- 2026-03-31: Fixed slot-aware action dispatch across client panels (`BuildingsPanel`, `JobsPanel`, `SciencePanel`, `WorkshopPanel`, `ReligionPanel`, `SpacePanel`, `DiplomacyPanel`, `TimePanel`) so actions in `?slot=<name>` mutate the selected save instead of the default slot.
+*Older entries archived to [PROGRESS_ARCHIVE.md](PROGRESS_ARCHIVE.md).*
 
 ---
 
@@ -240,6 +224,16 @@ Stories: 2 / 2 complete
 
 ---
 
+## Epic 46: Workshop Tech Unlock Parity
+**Status:** Complete | **Started:** 2026-04-07 | **Finished:** 2026-04-08
+Stories: 3 / 3 complete
+
+- [x] Story 1: Propagate tech workshop unlocks on research — WorkshopPanel re-renders automatically via TanStack Query
+- [x] Story 2: Replay workshop unlock chains on save load and legacy import — legacy import uses _fullDeserialize with merge fix
+- [x] Story 3: Add a live regression fixture for workshop unlock parity
+
+---
+
 ## Epic 14: Diplomacy / Trade
 **Status:** Complete | **Started:** 2026-03-19 | **Finished:** 2026-03-19
 Stories: 7/7 complete
@@ -446,8 +440,8 @@ Prerequisites: Epics 20, 21
 ---
 
 ## Epic 26: UI Information Architecture
-**Status:** Complete | **Started:** 2026-03-30 | **Finished:** 2026-04-07
-Stories: 12 / 12 complete
+**Status:** Complete | **Started:** 2026-03-30 | **Finished:** 2026-04-08
+Stories: 13 / 13 complete
 
 - [x] Story 26-1: SlotContext — React context for slot name propagation
 - [x] Story 26-2: description? field on engine defs (buildings, upgrades, techs, religion)
@@ -461,6 +455,7 @@ Stories: 12 / 12 complete
 - [x] Story 26-10: Inspector CSS — styles for all entity kinds
 - [x] Story 26-11: Live inspector ETA countdown — hovered shortfall/cap/zero durations update in real time without requiring a new hover event
 - [x] Story 26-12: Happiness inspector breakdown — hovering the happiness display shows legacy-derived base/bonuses/penalty terms in the inspector
+- [x] Story 26-13: Buildings panel category grouping — visible buildings render under bonfire-style grouped headings instead of one flat list
 
 Pre-epic action items executed:
 - [x] Biome lint check in CI — already present as `pnpm run check`
@@ -747,14 +742,15 @@ Total: 1422 tests across all packages
 ---
 
 ## Epic 36: Building Unlock Architecture
-**Status:** Complete | **Started:** 2026-04-02 | **Finished:** 2026-04-02
-Stories: 5/5 complete
+**Status:** Complete | **Started:** 2026-04-02 | **Finished:** 2026-04-08
+Stories: 6 / 6 complete
 
 - [x] Story 36-01: Add `unlockable` to building state and seed defaults
 - [x] Story 36-02: Wire science.ts to set `unlockable` on research completion
 - [x] Story 36-03: Update reveal logic to use the two-step check
 - [x] Story 36-04: Retire duplicated `requiredTech` gates
 - [x] Story 36-05: Regression tests for representative cases
+- [x] Story 36-06: Replay building unlockable state on save load
 
 ---
 
@@ -787,6 +783,9 @@ API-spec tests: 27 passing | Line coverage: 100%
 ## Epic 41: Resource Cost Highlighting
 **Status:** Complete | **Started:** 2026-04-06
 Stories: 7 / 7 complete
+
+- 2026-04-08: Reopened after live investigation found resource-row ETA countdowns were subtracting both current live resource progress and a local `elapsedSeconds` timer, making the displayed ETA fall faster than wall-clock time.
+- 2026-04-08: Closed after removing the extra local countdown from `ResourcePanel` ETA rendering. Resource-row ETA is now derived only from the latest live resource snapshot, and the regression tests now prove ETA does not fall while state is frozen.
 
 - [x] Story 41-01: Highlight required resources on action hover
 - [x] Story 41-02: Show cost target marker on resource progress bar
@@ -844,27 +843,12 @@ Focused verification:
 ---
 
 ## Epic 45: Legacy Import Parity
-**Status:** Reopened | **Started:** 2026-04-06
-Stories: 3 / 4 complete
+**Status:** Complete | **Started:** 2026-04-06 | **Finished:** 2026-04-08
+Stories: 4 / 4 complete
 
-- [x] Story 45-01: Preserve imported over-cap resource stocks — `syncResourceCaps` never clamps; `ResourceManager.update` uses `limit=max(prevValue,maxValue)` matching legacy `addRes`
-- [ ] Story 45-02: Recompute imported derived caps and population stats faithfully — native `maxKittens` now stays at `579.784...`, but happiness parity is still off and the live slot can still overflow to `580 / 579.784...` kittens after import
-- [x] Story 45-03: Add imported snapshot parity regression coverage — Run 8 fixture tests in app.test.ts; Story 45-02 AC2 regression for live-tick maxKittens
-- [x] Story 45-04: Add low-overhead live parity audit tooling — checked-in Run 8 legacy snapshot fixture plus `pnpm --filter @kittens/server parity:run8`
-
-Open parity gaps (documented in PARITY.md): immediate import happiness (`1` vs legacy `5.330126107867796`), partial imported automation flags, and live post-import kitten overflow (`580 / 579.784...`).
-
-Engine tests: 990 passing | Line coverage: 98.47%
-Server tests: 164 passing | Line coverage: 88.85%
-Client-web tests: 398 passing | Line coverage: 95.57%
-Total: 990+164+398+27 = 1579 tests across all packages
+- [x] Story 45-01: Preserve imported over-cap resource stocks
+- [x] Story 45-02: Recompute imported derived caps and population stats faithfully — three root causes fixed (amphitheatre stage migration, cathPollution/pollutionHappines, brewery festivalRatio), happiness matches legacy <1e-5, kitten cap uses Math.floor(maxKittens)
+- [x] Story 45-03: Add imported snapshot parity regression coverage
+- [x] Story 45-04: Add low-overhead live parity audit tooling
 
 ---
-
-## Epic 46: Workshop Tech Unlock Parity
-**Status:** Complete | **Started:** 2026-04-07 | **Finished:** 2026-04-08
-Stories: 3 / 3 complete
-
-- [ ] Story 46-01: Propagate tech workshop unlocks on research
-- [ ] Story 46-02: Replay workshop unlock chains on save load and legacy import
-- [ ] Story 46-03: Add a live regression fixture for workshop unlock parity

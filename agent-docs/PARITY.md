@@ -2,7 +2,7 @@
 
 Tracks implementation coverage against legacy Kittens Game. **This is the authoritative source of truth for what is and isn't done.** Update it whenever items are added or wired. Do not mark an epic "complete" without updating this file.
 
-Last updated: 2026-04-07 (Epic 45 reopened again after a second live verification. Over-cap resource preservation and native `maxKittens` recomputation now survive live ticks, but live import parity is still not complete: immediate import happiness is still wrong, imported automation flags are still partial/missing, and the live slot can still overflow to `580 / 579.784...` kittens. Future checks should use the checked-in Run 8 legacy snapshot plus `pnpm --filter @kittens/server parity:run8`; Chrome MCP is only needed to refresh the legacy fixture.)
+Last updated: 2026-04-08 (Epics 36, 45, 46 closed after reopened fixes: building unlock replay, happiness/pollution/kitten-cap parity, workshop tech unlock propagation through full store deserialize.)
 
 ---
 
@@ -62,6 +62,12 @@ Legacy has 35+ gameplay buildings (confirmed via live save audit). We have 39 de
 
 ---
 
+## Building unlock replay gaps
+
+| Area | Status | Notes |
+|------|--------|-------|
+| Researched tech -> building `unlockable` replay on save load | ✅ | Fixed 2026-04-08 (Epic 36): `ScienceManager.load()` replays `tech.unlocks.buildings`, full deserialize runs building reveal pass, `WorkshopManager.load()` merge fix ensures unlocks survive full store load. Covered by `GameStateStore.init()` regression. |
+
 ## Effect key wiring status
 
 Keys that exist in effectCache from implemented defs but are not fully consumed:
@@ -72,7 +78,7 @@ Keys that exist in effectCache from implemented defs but are not fully consumed:
 | `fursDemandRatio` | (future buildings) | kitten furs consumption | ⚠️ Consumer wired 2026-03-30, no producer yet |
 | `ivoryDemandRatio` | (future buildings) | kitten ivory consumption | ⚠️ Consumer wired 2026-03-30, no producer yet |
 | `spiceDemandRatio` | (future buildings) | kitten spice consumption | ⚠️ Consumer wired 2026-03-30, no producer yet |
-| `happiness` | brewery, temple buildings | village happiness calc | ✅ Producer and consumer wired 2026-03-30 |
+| `happiness` | temple building | village happiness calc | ✅ Producer and consumer wired 2026-03-30 (brewery moved to `festivalRatio` 2026-04-08) |
 | `luxuryDemandRatio` | science tech | luxury consumption | ❌ Not consumed |
 | `consumableLuxuryHappiness` | science tech | happiness bonus for uncommon resources | ✅ Consumed in VillageManager luxury loop (Story 30-06, 2026-03-31) |
 | `breweryConsumptionRatio` | science tech | brewery tick consumption | ✅ Consumed in BuildingManager brewery block (Story 30-05, 2026-03-31) |
@@ -166,9 +172,9 @@ Legacy starts with non-zero base storage from `buildings.js` `effectsBase`, even
 |------|--------|-------|
 | Run 8 import resource preservation | ✅ | Immediate import response and live slot both keep the sampled over-cap resources above current caps after the Epic 45 fixes. |
 | Run 8 derived maxKittens recomputation | ✅ | `effectCache.maxKittens` stays at `579.784...`, so the old `579 / 562` regression is gone. |
-| Run 8 happiness parity | ⚠️ | Legacy snapshot is `5.330126107867796` (`533%`). Rewrite import response still returns `1`, and live state settles around `5.025...` (`~503%`). |
+| Run 8 happiness parity | ✅ | Fixed 2026-04-08 (Epic 45): three root causes resolved — amphitheatre stage migration, cathPollution/pollutionHappines, brewery festivalRatio. Happiness matches legacy to <1e-5 tolerance. |
 | Run 8 imported automation metadata | ⚠️ | Legacy snapshot has `oilWell=true`, `factory=true`, `reactor=false`. Rewrite import response returns `null` for all three; live state only restores factory. |
-| Run 8 live kitten-cap enforcement | ⚠️ | Live rewrite state can drift to `580 / 579.784...` kittens after import. Legacy imported snapshot is `579 / 579`. |
+| Run 8 live kitten-cap enforcement | ✅ | Fixed 2026-04-08 (Epic 45): kitten growth now uses `Math.floor(maxKittens)` for cap checks, matching legacy integer flooring. |
 
 ---
 
@@ -197,8 +203,8 @@ All 61 tech definitions are implemented. Most effects feed into the same `calcRe
 
 | Area | Status | Notes |
 |------|--------|-------|
-| Researched tech -> workshop upgrade unlock propagation | ✅ | Fixed in Epic 46. `applyResearch()` now propagates `def.unlocks.upgrades` into workshop state; `ScienceManager.load()` replays the chains on load. Regression test added for the `slot=new` tech set. |
-| Researched tech -> workshop craft unlock propagation | ✅ | Fixed in Epic 46. Same fix path as upgrades: `applyResearch()` propagates `def.unlocks.crafts`, load replay re-applies for imported/loaded saves. |
+| Researched tech -> workshop upgrade unlock propagation | ✅ | Fixed 2026-04-08 (Epic 46): `ScienceManager.load()` replays tech→upgrade unlocks, `WorkshopManager.load()` merges (not replaces) and replays downstream upgrade→upgrade chains. Full `GameStateStore.init()` regression covers stale-save healing. WorkshopPanel re-renders automatically via TanStack Query state flow. |
+| Researched tech -> workshop craft unlock propagation | ✅ | Fixed 2026-04-08 (Epic 46): craft unlock replay survives full deserialize. Covered by `slot=new` full-store regression and export-payload replay. |
 
 ---
 

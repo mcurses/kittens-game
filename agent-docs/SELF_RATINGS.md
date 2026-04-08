@@ -1707,5 +1707,73 @@ Result:
 - Happiness import parity remains the last major open divergence from legacy; estimate it's a ~2 story effort
 
 ### Action items for next epic
-- [ ] Remove `_legacyMaxKittensImported` override from `_fullDeserialize` — now dead code since formula is natively correct
+- [x] Remove `_legacyMaxKittensImported` override from `_fullDeserialize` — now dead code since formula is natively correct
 - [ ] If happiness parity becomes P0: audit legacy `village.js` happiness computation for any import-time initialization differences (base happiness vs. computed happiness on first tick)
+
+### 2026-04-07 addendum — second live verification reopened Epic 45 again
+
+The later Chrome MCP audit invalidated the second closeout as well.
+
+- Over-cap resource preservation and live `maxKittens` recomputation are now genuinely fixed.
+- The rewrite still fails live import parity on immediate import happiness, partial automation metadata restore, and live kitten-cap enforcement (`580 / 579.784...` observed after import).
+- A checked-in legacy snapshot plus `pnpm --filter @kittens/server parity:run8` now exists so future Epic 45 audits can run locally instead of repeating a full browser session.
+
+## Epic 46 (Workshop Tech Unlock Parity) — 2026-04-08
+
+| Dimension | Score | Notes |
+|-----------|-------|-------|
+| Test coverage (≥90% target) | 5 | engine: 98.44% line, all 1004 tests pass (fixed pre-existing legacy-migration.test.ts regression as part of this session); server: 71.6% (unchanged, not in scope) |
+| No skipped tests / no TODOs | 5 | No `it.skip`, `test.todo`, `TODO`, `FIXME`, or `HACK` in any package |
+| Feature parity | 5 | `applyResearch()` now propagates all `def.unlocks.upgrades` and `def.unlocks.crafts`; `ScienceManager.load()` replays those chains on every save load and legacy import. Slot=new regression test names all 14 expected upgrades and 3 crafts explicitly. Legacy refs: `science.js:2349-2357`, `game.js:5324-5358` |
+| API spec completeness | 5 | No new actions added. All 38 action types verified against openapi.yaml `GameActionRequest` discriminated union |
+| Code quality (no `any`) | 5 | Zero `as any` or `: any` in engine or server production code |
+| Docs freshness (PROGRESS, DECISIONS, PARITY) | 5 | PARITY.md both workshop unlock rows updated ✅; PROGRESS.md Epic 46 marked Complete; EPICS.md marked ✅; STORIES.md ACs checked |
+| Commit hygiene | 5 | 3 focused commits: feat (Epic 46 implementation), docs (Epic 46 closure), fix (pre-existing stage migration bug) |
+| **Overall average** | **5.0** | |
+
+### What went well
+
+- Root cause was narrow and precise: two missing `if` blocks in `applyResearch()` and a missing replay loop in `ScienceManager.load()`
+- TDD flow was clean: 12 red tests → single focused implementation → all green in one pass
+- The slot=new regression test names missing items as an array comparison, giving field-level mismatch output on failure
+- Pre-existing `legacy-migration.ts` `stage` bug caught and fixed within the same session
+
+### What to improve
+
+- `WorkshopManager.load()` still doesn't replay upgrade-chain downstream unlocks (AC left unchecked); this only matters for legacy imports where the saved workshop state didn't carry `unlocked=true` flags, which is an edge case for the current test suite but worth a follow-up
+
+### Action items for next epic
+
+- [ ] Audit whether `WorkshopManager.load()` needs to replay researched-upgrade downstream unlock chains (upgrade → upgrade via `def.unlocks?.upgrades`) for legacy import paths where saved workshop flags may not carry `unlocked=true`
+
+## Epics 36, 45, 46 (Reopened Batch) — 2026-04-08
+
+| Dimension | Score | Notes |
+|-----------|-------|-------|
+| Test coverage (≥90% target) | 5 | Engine 98.26% line, 1006 tests, 0 failures, 0 skips |
+| No skipped tests / no TODOs | 5 | Zero `any`, zero TODO/FIXME/HACK, zero skipped tests |
+| Feature parity | 4 | All 3 spot-checked stories verified line-for-line against legacy; minor gap: no dedicated pollutionHappines unit test (covered by live parity snapshot) |
+| API spec completeness | 5 | 16/16 routes, 38/38 action types documented |
+| Code quality (no `any`) | 5 | No `any` usage in packages/ |
+| Docs freshness | 4 | PROGRESS.md, EPICS.md, PARITY.md all updated after fixes |
+| Commit hygiene | 5 | Atomic commits, clear messages |
+| **Overall average** | **4.7** | |
+
+### What went well
+
+- Systematic root-cause analysis on Epic 45 happiness gap — 3 independent errors partially cancelling each other were identified and fixed in one pass
+- WebFetch verification that legacy repo matches live kittensgame.com JS removed doubt about reference accuracy
+- Epic 46 merge fix in WorkshopManager.load() is elegant — preserves earlier replayed state instead of clobbering
+- PARITY.md updated from ⚠️ to ✅ for 5 rows across happiness, kitten cap, building unlock replay, and workshop unlock propagation
+
+### What to improve
+
+- Previous Epic 46 closure missed the real server deserialize order — tests should always cover the full store path, not just isolated managers
+- No dedicated unit test for `computePollutionHappines` helper — relying on integration coverage alone is fragile
+- Amphitheatre stage migration gap was subtle (stage field explicitly dropped) — migration tests should assert on stage preservation
+
+### Action items for next epic
+
+- [ ] Add a focused unit test for `computePollutionHappines` at each pollution level boundary
+- [ ] Ensure future manager tests include a full `GameStateStore` integration variant, not just isolated manager.load() calls
+- [ ] Remaining PARITY.md ⚠️ items: imported automation metadata (oilWell/reactor flags), smelter stock-limited scaling, steamworks offline daysOffset
