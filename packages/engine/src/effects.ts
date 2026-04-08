@@ -64,6 +64,13 @@ export function buildEffectCache(
     cache[name] = LIMITED_DR_EFFECTS.has(name) ? getLimitedDR(value, 1) : value;
   }
 
+  // Carry forward imported metadata keys (underscore-prefixed) from the current state
+  for (const [name, value] of Object.entries(state.effectCache)) {
+    if (name.startsWith("_") && !(name in cache)) {
+      cache[name] = value;
+    }
+  }
+
   return cache;
 }
 

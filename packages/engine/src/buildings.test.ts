@@ -676,9 +676,10 @@ describe("Story 27-06: brewery", () => {
     expect(BUILDING_DEFS.find((b) => b.name === "brewery")).toBeDefined();
   });
 
-  it("has happiness: 0.01", () => {
+  it("has festivalRatio: 0.01 and festivalArrivalRatio: 0.001", () => {
     const def = BUILDING_DEFS.find((b) => b.name === "brewery");
-    expect(def?.effects.happiness).toBe(0.01);
+    expect(def?.effects.festivalRatio).toBe(0.01);
+    expect(def?.effects.festivalArrivalRatio).toBe(0.001);
   });
 });
 

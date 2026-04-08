@@ -59,10 +59,10 @@ function arrayToRecord<T>(arr: unknown[], pick: (item: Rec) => T | null): Record
  */
 function buildingsArrayToRecord(
   arr: unknown[],
-): Record<string, { val: number; on: number; unlocked?: boolean; automationEnabled?: boolean }> {
+): Record<string, { val: number; on: number; unlocked?: boolean; automationEnabled?: boolean; stage?: number }> {
   const result: Record<
     string,
-    { val: number; on: number; unlocked?: boolean; automationEnabled?: boolean }
+    { val: number; on: number; unlocked?: boolean; automationEnabled?: boolean; stage?: number }
   > = {};
   for (let i = 0; i < arr.length; i++) {
     const item = arr[i];
@@ -76,9 +76,12 @@ function buildingsArrayToRecord(
       val: num(item.val),
       on: num(item.on),
       unlocked: bool(item.unlocked, false),
-      // jammed and stage dropped; isAutomationEnabled mapped to new name
+      // jammed dropped; isAutomationEnabled mapped to new name; stage preserved
       ...(typeof item.isAutomationEnabled === "boolean"
         ? { automationEnabled: item.isAutomationEnabled }
+        : {}),
+      ...(typeof item.stage === "number" && item.stage > 0
+        ? { stage: item.stage }
         : {}),
     };
   }
@@ -99,7 +102,7 @@ function migrateResources(
 
 function migrateBuildings(
   raw: unknown,
-): Record<string, { val: number; on: number; unlocked?: boolean; automationEnabled?: boolean }> {
+): Record<string, { val: number; on: number; unlocked?: boolean; automationEnabled?: boolean; stage?: number }> {
   if (!isArr(raw)) return {};
 
   // Check if this is a named array (legacy test format) or numeric-indexed (actual legacy saves)
@@ -111,9 +114,12 @@ function migrateBuildings(
       val: num(item.val),
       on: num(item.on),
       unlocked: bool(item.unlocked, false),
-      // jammed and stage dropped; isAutomationEnabled mapped to new name
+      // jammed dropped; isAutomationEnabled mapped to new name; stage preserved
       ...(typeof item.isAutomationEnabled === "boolean"
         ? { automationEnabled: item.isAutomationEnabled }
+        : {}),
+      ...(typeof item.stage === "number" && (item.stage as number) > 0
+        ? { stage: item.stage as number }
         : {}),
     }));
   }
@@ -154,7 +160,8 @@ function migrateCalendar(raw: unknown): SerializedGameState["calendar"] {
     day: num(c.day),
     season: num(c.season),
     year: num(c.year),
-    // weather, festivalDays, cycle, cycleYear discarded
+    festivalDays: num(c.festivalDays),
+    // weather, cycle, cycleYear discarded
   };
 }
 
@@ -398,10 +405,17 @@ export function migrateLegacySave(legacyJson: unknown): SerializedGameState {
   // Preserve legacy maxKittens for import parity validation (Story 45-02)
   const legacyMaxKittens = num(isRec(save.village) ? (save.village as Record<string, unknown>).maxKittens : 0);
 
+  // Preserve legacy cathPollution for pollution happiness calculation (Epic 45)
+  const legacyCathPollution = num(save.cathPollution);
+
+  const importedEffects: Record<string, number> = {};
+  if (legacyMaxKittens > 0) importedEffects._legacyMaxKittensImported = legacyMaxKittens;
+  if (legacyCathPollution > 0) importedEffects._cathPollution = legacyCathPollution;
+
   const out: SerializedGameState = {
     version: 1,
     tick: 0,
-    effectCache: legacyMaxKittens > 0 ? { _legacyMaxKittensImported: legacyMaxKittens } : {},
+    effectCache: importedEffects,
     resources: migrateResources(rawResources),
     buildings: migrateBuildings(save.buildings),
     village: migrateVillage(save.village),

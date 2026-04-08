@@ -125,6 +125,91 @@ function freeOneJobSlot(jobs: Record<string, JobEntry>): Record<string, JobEntry
   return newJobs;
 }
 
+// ── Pollution happiness ───────────────────────────────────────────────────────
+
+const POL_LBASE = 10_000_000;
+
+/**
+ * Compute the happiness penalty from cathPollution.
+ * Port of legacy buildings.js calculatePollutionEffects() → pollutionHappines term.
+ */
+function computePollutionHappines(cathPollution: number): number {
+  if (cathPollution <= 0) return 0;
+  const pollutionLevel = Math.max(Math.floor(Math.log10(cathPollution * 10 / POL_LBASE)), 0);
+
+  if (pollutionLevel >= 4) return -Math.log(cathPollution) * 1.2;
+  if (pollutionLevel === 3) return -Math.log(cathPollution) * 1.18;
+  if (pollutionLevel === 2) return -Math.log(cathPollution) * 1.08;
+  if (pollutionLevel === 1) {
+    // Linear ramp starting at 50% of level-1 range
+    const halfThreshold = POL_LBASE * 10 / 2;
+    return cathPollution >= halfThreshold ? -0.00000032 * (cathPollution - halfThreshold) : 0;
+  }
+  return 0;
+}
+
+// ── Happiness computation ─────────────────────────────────────────────────────
+
+/**
+ * Compute the village happiness ratio from the current game state and effect cache.
+ *
+ * Extracted so it can be called outside the tick loop (e.g. immediately after import).
+ * Port of legacy VillageManager.updateHappines().
+ */
+export function computeHappiness(state: GameState): number {
+  const kittens = state.village.kittens;
+  let happinessPct = 100;
+
+  // Unhappiness from population > 5
+  const overPop = kittens - 5;
+  if (overPop > 0) {
+    const unhappinessRatio = state.effectCache.unhappinessRatio ?? 0;
+    happinessPct -= overPop * 2 * (1 + unhappinessRatio);
+  }
+
+  // Environment effect: policy bonuses + pollution happiness
+  // Port of legacy village.js getEnvironmentEffect()
+  // = environmentHappinessBonus + environmentUnhappiness + pollutionHappines
+  const pollutionHappines = computePollutionHappines(state.effectCache._cathPollution ?? 0);
+  const environmentEffect =
+    (state.effectCache.environmentHappinessBonus ?? 0) +
+    (state.effectCache.environmentUnhappiness ?? 0) +
+    pollutionHappines;
+
+  happinessPct += (state.effectCache.happiness ?? 0) + environmentEffect + (state.effectCache.challengeHappiness ?? 0);
+
+  const happinessPerLuxury = 10 + (state.effectCache.luxuryHappinessBonus ?? 0);
+  const consumableLuxuryHappiness = state.effectCache.consumableLuxuryHappiness ?? 0;
+  for (const name of LUXURY_RESOURCE_NAMES) {
+    const res = state.resources[name];
+    if (!res || res.value <= 0) continue;
+    if (name === "elderBox" && (state.resources.wrappingPaper?.value ?? 0) > 0) continue;
+    happinessPct += happinessPerLuxury;
+    if (UNCOMMON_RESOURCE_NAMES.has(name)) happinessPct += consumableLuxuryHappiness;
+  }
+
+  if (state.calendar.festivalDays > 0) {
+    happinessPct += 30 * (1 + (state.effectCache.festivalRatio ?? 0));
+  }
+
+  happinessPct += state.resources.karma?.value ?? 0;
+
+  // Overpopulation penalty: kittens beyond housing capacity
+  // Port of legacy village.js:831-835
+  // Only apply when maxKittens is actually computed (> 0); a value of 0 means
+  // the effect cache hasn't been built yet (e.g. no housing buildings).
+  const maxKittens = state.effectCache.maxKittens ?? 0;
+  if (maxKittens > 0) {
+    const overpopulation = kittens - maxKittens;
+    if (overpopulation > 0) {
+      happinessPct -= overpopulation * 2;
+    }
+  }
+
+  if (happinessPct < 25) happinessPct = 25;
+  return happinessPct / 100;
+}
+
 // ── VillageManager ────────────────────────────────────────────────────────────
 
 /**
@@ -141,7 +226,8 @@ export class VillageManager implements Manager {
     const kittensPerTickBase = state.effectCache.kittensPerTickBase ?? 0;
     const kittenGrowthRatio = state.effectCache.kittenGrowthRatio ?? 0;
     const kittensPerTick = kittensPerTickBase * (1 + kittenGrowthRatio);
-    const maxKittens = state.effectCache.maxKittens ?? 0;
+    // Legacy floors maxKittens for population cap checks (village.js sim.maxKittens is integer).
+    const maxKittens = Math.floor(state.effectCache.maxKittens ?? 0);
 
     // Port of legacy sim.update(): only accumulate progress while below capacity.
     // When kittens reach maxKittens, reset progress to 0 (no backlog building up).
@@ -170,46 +256,11 @@ export class VillageManager implements Manager {
     }
 
     // ── Happiness calculation ──────────────────────────────────────────────────
-    // Port of legacy VillageManager.updateHappines():
-    // starts at 100, 2% penalty per kitten above 5, plus effects, min 25%
-    let happinessPct = 100;
-    const unhappinessPerKitten = 2;
-    const overPop = kittens - 5;
-    if (overPop > 0) {
-      // Port of legacy village.js getUnhappiness(): penalty * (1 + unhappinessRatio)
-      // unhappinessRatio is negative (e.g. -0.048 per amphitheatre), so it reduces the penalty
-      const unhappinessRatio = state.effectCache.unhappinessRatio ?? 0;
-      happinessPct -= overPop * unhappinessPerKitten * (1 + unhappinessRatio);
-    }
-    happinessPct += state.effectCache.happiness ?? 0;
-
-    // ── Luxury resource happiness (Story 30-02) ────────────────────────────────
-    // Port of legacy village.js updateHappines() luxury loop:
-    // +happinessPerLuxury for each non-common resource with value > 0.
-    // elderBox and wrappingPaper don't stack (elderBox canceled if wrappingPaper present).
-    // Uncommon resources also get consumableLuxuryHappiness bonus.
-    const happinessPerLuxury = 10 + (state.effectCache.luxuryHappinessBonus ?? 0);
-    const consumableLuxuryHappiness = state.effectCache.consumableLuxuryHappiness ?? 0;
-    for (const name of LUXURY_RESOURCE_NAMES) {
-      const res = state.resources[name];
-      if (!res || res.value <= 0) continue;
-      if (name === "elderBox" && (state.resources.wrappingPaper?.value ?? 0) > 0) continue;
-      happinessPct += happinessPerLuxury;
-      if (UNCOMMON_RESOURCE_NAMES.has(name)) happinessPct += consumableLuxuryHappiness;
-    }
-
-    // ── Festival bonus (Story 30-04) ───────────────────────────────────────────
-    // Port of legacy village.js: +30 * (1 + festivalRatio) when festivalDays > 0.
-    if (state.calendar.festivalDays > 0) {
-      happinessPct += 30 * (1 + (state.effectCache.festivalRatio ?? 0));
-    }
-
-    // ── Karma happiness (Story 30-03) ─────────────────────────────────────────
-    // Port of legacy village.js getHappinessFromKarma(): +1% per karma point.
-    happinessPct += state.resources.karma?.value ?? 0;
-
-    if (happinessPct < 25) happinessPct = 25;
-    const happiness = happinessPct / 100;
+    // Delegate to computeHappiness() so import-time recomputation uses the same formula.
+    // Note: update() has already applied kittens/jobs/deaths to state, so we build
+    // a partial state with the updated village slice before computing happiness.
+    const stateForHappiness = { ...state, village: { ...state.village, kittens, kittenProgress, jobs, deadKittens } };
+    const happiness = computeHappiness(stateForHappiness);
 
     return {
       ...state,

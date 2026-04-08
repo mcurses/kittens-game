@@ -995,8 +995,8 @@ describe("Legacy import — derived values parity", () => {
     // At import time, we should use the legacy maxKittens value to maintain parity
     // Story 45-02 AC1: "maxKittens matches legacy so the header does not show 579 / 562 for a legacy 579 / 579 save"
     if (legacyMaxKittensImported !== undefined) {
-      // After import, maxKittens should match the legacy value
-      expect(body.effectCache.maxKittens).toBe(legacyMaxKittensImported);
+      // After import, floor(maxKittens) should match the legacy value (legacy stores integer)
+      expect(Math.floor(body.effectCache.maxKittens)).toBe(legacyMaxKittensImported);
     } else {
       // Fallback: at least match housing baseline
       expect(body.effectCache.maxKittens).toBeGreaterThanOrEqual(542);

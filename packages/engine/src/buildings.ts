@@ -23,8 +23,13 @@ export interface BuildingDef {
   readonly description?: string;
   readonly prices: readonly PriceEntry[];
   readonly priceRatio: number;
-  /** Static effects contributed to the effect cache */
+  /** Static effects contributed to the effect cache (used when stageEffects is absent or stage=0) */
   readonly effects: Readonly<Record<string, number>>;
+  /**
+   * Per-stage effect overrides. When present, `stageEffects[entry.stage ?? 0]` is used instead of
+   * `effects`. Port of legacy buildings.js stages[N].effects.
+   */
+  readonly stageEffects?: readonly Readonly<Record<string, number>>[];
   /**
    * If true, this building is a candidate for auto-unlock once resource thresholds are met.
    * Port of legacy `defaultUnlockable` on buildingsData entries.
@@ -56,6 +61,11 @@ export interface BuildingEntry {
   readonly jammed?: boolean;
   /** Whether player-enabled automation is on for buildings that support it. */
   readonly automationEnabled?: boolean;
+  /**
+   * Current stage index (0-based). Only for buildings that have stages (e.g. amphitheatre → broadcastTower).
+   * Port of legacy building meta.stage field.
+   */
+  readonly stage?: number;
 }
 
 /** Flat map of all building states, keyed by building name */
@@ -230,11 +240,17 @@ export const BUILDING_DEFS: readonly BuildingDef[] = [
       { name: "parchment", val: 3 },
     ],
     priceRatio: 1.15,
+    // stage 0 effects (used as fallback and for the `effects` field)
     effects: {
       culturePerTickBase: 0.005,
       cultureMax: 50,
       unhappinessRatio: -0.048,
     },
+    // Port of legacy buildings.js amphitheatre stages[0/1].effects
+    stageEffects: [
+      { culturePerTickBase: 0.005, cultureMax: 50, unhappinessRatio: -0.048 },        // stage 0
+      { culturePerTickBase: 1, cultureMax: 300, unhappinessRatio: -0.75 },            // stage 1 (broadcastTower)
+    ],
     unlockRatio: 0.3,
   },
   {
@@ -248,7 +264,8 @@ export const BUILDING_DEFS: readonly BuildingDef[] = [
     ],
     priceRatio: 1.5,
     effects: {
-      happiness: 0.01,
+      festivalRatio: 0.01,
+      festivalArrivalRatio: 0.001,
     },
     unlockRatio: 0.2,
   },
@@ -1010,7 +1027,10 @@ export class BuildingManager implements Manager {
       if (!entry) continue;
       if (entry.val === 0 && entry.on === 0) continue;
 
-      for (const [effectName, rawBaseValue] of Object.entries(def.effects)) {
+      // Use per-stage effects if the def has them; otherwise fall back to the single effects map.
+      // Port of legacy buildings.js where staged buildings use stages[meta.stage].effects.
+      const stageEffects = def.stageEffects?.[entry.stage ?? 0] ?? def.effects;
+      for (const [effectName, rawBaseValue] of Object.entries(stageEffects)) {
         const baseValue = this.applyStorageCapRatios(state, def.name, effectName, rawBaseValue);
         // Max effects scale by val; all other effects scale by on
         const multiplier = effectName.endsWith("Max") ? entry.val : entry.on;
@@ -1263,6 +1283,7 @@ export class BuildingManager implements Manager {
           ...(typeof e.automationEnabled === "boolean"
             ? { automationEnabled: e.automationEnabled }
             : {}),
+          ...(typeof e.stage === "number" ? { stage: e.stage } : {}),
         };
       }
     }

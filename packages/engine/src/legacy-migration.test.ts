@@ -85,16 +85,23 @@ describe("migrateLegacySave", () => {
 
   it("converts buildings array to Record", () => {
     const result = migrateLegacySave(minimalLegacySave);
-    expect(result.buildings.field).toEqual({ val: 3, on: 3, unlocked: true });
+    expect(result.buildings.field).toEqual({ val: 3, on: 3, unlocked: true, automationEnabled: false });
     expect(result.buildings.hut).toEqual({ val: 2, on: 2, unlocked: true });
   });
 
-  it("drops stage, jammed, isAutomationEnabled from buildings", () => {
+  it("drops stage and jammed from buildings", () => {
     const result = migrateLegacySave(minimalLegacySave);
     const field = result.buildings.field as Record<string, unknown>;
     expect(field.stage).toBeUndefined();
     expect(field.jammed).toBeUndefined();
-    expect(field.isAutomationEnabled).toBeUndefined();
+  });
+
+  it("maps isAutomationEnabled → automationEnabled in buildings", () => {
+    const result = migrateLegacySave(minimalLegacySave);
+    // field has isAutomationEnabled: false in the fixture
+    expect((result.buildings.field as Record<string, unknown>).automationEnabled).toBe(false);
+    // hut has no isAutomationEnabled in the fixture — should be absent
+    expect((result.buildings.hut as Record<string, unknown>).automationEnabled).toBeUndefined();
   });
 
   // ── Village ───────────────────────────────────────────────────────────────
@@ -119,7 +126,7 @@ describe("migrateLegacySave", () => {
 
   it("maps day/season/year directly", () => {
     const result = migrateLegacySave(minimalLegacySave);
-    expect(result.calendar).toEqual({ day: 5, season: 1, year: 3 });
+    expect(result.calendar).toEqual({ day: 5, season: 1, year: 3, festivalDays: 0 });
   });
 
   // ── Science ───────────────────────────────────────────────────────────────

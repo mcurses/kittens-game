@@ -36,7 +36,8 @@
 ### Acceptance Criteria
 - [x] Given the Run 8 fixture, when the first `/api/game/import-legacy` response is returned, then `maxKittens` matches legacy so the imported snapshot does not show `579 / 562` for a legacy `579 / 579` save
 - [x] Given the same fixture, when effect caches and resource caps are rebuilt in the live running slot, then derived max values match legacy formulas for the imported state rather than only the rewrite’s current partial implementation
-- [ ] Given the same fixture, when happiness is computed after import, then the rewrite matches legacy closely enough for a parity assertion or explicitly documents any remaining deferred terms in `PARITY.md`
+- [x] Given the same fixture, when the imported slot is allowed to tick normally, then kitten population never exceeds `floor(maxKittens)` in the live slot
+- [x] Given the same fixture, when happiness is computed after import, then the rewrite matches legacy closely enough for a parity assertion or explicitly documents any remaining deferred terms in `PARITY.md`
 - [x] Given a live-save parity test, when the imported snapshot is compared against legacy, then derived values are checked end-to-end instead of inferring parity from defs alone
 
 ### Legacy Reference
@@ -46,7 +47,7 @@
 
 ### Status: [x] Tests | [x] Impl | [ ] Rated
 
-**Rating: 4** — Root cause was `getTerraformingMaxKittensRatio` returning per-unit ratio instead of the accumulated total. Fixed 2026-04-07: function now returns `getUnlimitedDR(hydroponicsOn, 100)` so the live tick natively computes floor(542 + 37.79) = 579. AC3 (happiness) remains deferred. AC4 (PARITY.md alignment) updated.
+**Rating: 4** — Fixed 2026-04-08: Three root causes resolved (amphitheatre stage migration, cathPollution/pollutionHappines, brewery festivalRatio). Happiness matches legacy to <1e-5 tolerance. Kitten cap floors maxKittens, preventing overflow. `parity:run8` passes with 200 ticks.
 
 ## Story: Add imported snapshot parity regression coverage
 
@@ -73,3 +74,24 @@
 ### Status: [x] Tests | [x] Impl | [ ] Rated
 
 **Rating: 4** — The regression test still proves immediate import-response parity for the fixture, but the 2026-04-07 live Chrome MCP audit showed that the docs had overstated that result as full live runtime parity. The test remains useful, but the tracker/docs must reflect that it only proves the immediate post-import snapshot.
+
+## Story: Add low-overhead live parity audit tooling
+
+**As a** maintainer
+**I want** a cheap local parity audit path for the Run 8 fixture
+**So that** future Epic 45 checks do not need Chrome MCP except when refreshing the canonical legacy snapshot
+
+### Acceptance Criteria
+- [x] A checked-in legacy snapshot artifact derived from the Chrome MCP audit exists for the Run 8 fixture
+- [x] A local command compares the rewrite's immediate import snapshot and live-after-ticks state against that artifact
+- [x] The command reports only mismatched fields at the curated parity surface instead of diffing the full game state
+- [x] The epic notes and tracker point future audits at the local command first, with Chrome MCP reserved for recalibrating the legacy fixture
+
+### Legacy Reference
+- `agent-docs/example-saves/run8-legacy-snapshot.json`
+- Live audit against `https://kittensgame.com/web/`
+- `packages/server/src/liveParity.ts`
+
+### Status: [x] Tests | [x] Impl | [ ] Rated
+
+**Rating: 4** — Added a checked-in legacy snapshot plus `pnpm --filter @kittens/server parity:run8`, which compares only the parity-critical fields and exits non-zero on current mismatches.
