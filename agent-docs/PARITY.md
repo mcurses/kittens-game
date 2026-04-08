@@ -2,7 +2,7 @@
 
 Tracks implementation coverage against legacy Kittens Game. **This is the authoritative source of truth for what is and isn't done.** Update it whenever items are added or wired. Do not mark an epic "complete" without updating this file.
 
-Last updated: 2026-04-07 (Epic 45 close: over-cap resource preservation fixed end-to-end — `syncResourceCaps` never clamps, `ResourceManager.update` uses legacy `limit=max(prevValue,maxValue)`. Fixed `getTerraformingMaxKittensRatio` to return accumulated `getUnlimitedDR(on, 100)` total so maxKittens=579 natively after every tick. Import snapshot + live slot + tick-over all correct. Happiness parity and building automation import flags remain deferred.)
+Last updated: 2026-04-07 (Epic 45 reopened again after a second live verification. Over-cap resource preservation and native `maxKittens` recomputation now survive live ticks, but live import parity is still not complete: immediate import happiness is still wrong, imported automation flags are still partial/missing, and the live slot can still overflow to `580 / 579.784...` kittens. Future checks should use the checked-in Run 8 legacy snapshot plus `pnpm --filter @kittens/server parity:run8`; Chrome MCP is only needed to refresh the legacy fixture.)
 
 ---
 
@@ -160,6 +160,16 @@ Legacy starts with non-zero base storage from `buildings.js` `effectsBase`, even
 
 ✅ Fixed in Epic 42: action responses now sanitize loaded resource caps immediately too. After `BUY_BUILDING` and `PURCHASE_UPGRADE`, the store rebuilds `effectCache` and then resyncs `resources[*].maxValue`, so storage-cap changes are visible without waiting for a separate load path.
 
+## Legacy save import gaps
+
+| Area | Status | Notes |
+|------|--------|-------|
+| Run 8 import resource preservation | ✅ | Immediate import response and live slot both keep the sampled over-cap resources above current caps after the Epic 45 fixes. |
+| Run 8 derived maxKittens recomputation | ✅ | `effectCache.maxKittens` stays at `579.784...`, so the old `579 / 562` regression is gone. |
+| Run 8 happiness parity | ⚠️ | Legacy snapshot is `5.330126107867796` (`533%`). Rewrite import response still returns `1`, and live state settles around `5.025...` (`~503%`). |
+| Run 8 imported automation metadata | ⚠️ | Legacy snapshot has `oilWell=true`, `factory=true`, `reactor=false`. Rewrite import response returns `null` for all three; live state only restores factory. |
+| Run 8 live kitten-cap enforcement | ⚠️ | Live rewrite state can drift to `580 / 579.784...` kittens after import. Legacy imported snapshot is `579 / 579`. |
+
 ---
 
 ## Upgrade effects (all in UPGRADE_DEFS)
@@ -182,6 +192,13 @@ All 137 upgrade definitions are implemented and their effects are put into effec
 ## Tech effects (all in TECH_DEFS)
 
 All 61 tech definitions are implemented. Most effects feed into the same `calcResourcePerTick` pattern and work automatically once the buildings that produce the base values exist.
+
+### Tech unlock propagation parity
+
+| Area | Status | Notes |
+|------|--------|-------|
+| Researched tech -> workshop upgrade unlock propagation | ✅ | Fixed in Epic 46. `applyResearch()` now propagates `def.unlocks.upgrades` into workshop state; `ScienceManager.load()` replays the chains on load. Regression test added for the `slot=new` tech set. |
+| Researched tech -> workshop craft unlock propagation | ✅ | Fixed in Epic 46. Same fix path as upgrades: `applyResearch()` propagates `def.unlocks.crafts`, load replay re-applies for imported/loaded saves. |
 
 ---
 

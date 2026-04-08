@@ -1,11 +1,14 @@
 # Kittens Game Rewrite — Progress Tracker
 
-Last updated: 2026-04-07
+Last updated: 2026-04-08
 
 ---
 
 ## Maintenance Updates
 
+- 2026-04-08: Closed Epic 46. `applyResearch()` now propagates `def.unlocks.upgrades` and `def.unlocks.crafts` into workshop state on live research. `ScienceManager.load()` replays those chains for every researched tech on save load, fixing both the live progression path and the import path. The slot=new regression test names all 14 expected upgrades and 3 crafts explicitly. PARITY.md updated to ✅ for both areas.
+- 2026-04-07: Started Epic 46 after investigating the live `slot=new` report that too few workshop upgrades were available. The rewrite currently has researched techs such as `mining`, `metal`, `math`, `construction`, `currency`, `writing`, and `steel`, but only exposes the initial workshop upgrade set plus `titaniumBarns`. Legacy routes researched tech `unlocks` through general `game.unlock()` replay, so expected workshop upgrades/crafts like `bolas`, `huntingArmor`, `advancedRefinement`, `reinforcedSaw`, `goldOre`, `register`, `deepMining`, `coalFurnace`, `steelAxe`, and crafts `parchment`/`compedium`/`steel` are currently missing from the live slot.
+- 2026-04-07: Reopened Epic 45 again after a second Chrome MCP verification against the same Run 8 fixture. The rewrite now keeps over-cap resources and `effectCache.maxKittens=579.784...` in the live slot, so the old reclamp / `579 / 562` bug is fixed. Remaining live parity failures are: immediate import happiness still `1` instead of legacy `5.330126107867796`, imported automation flags still incomplete (`oilWell`/`reactor` missing, `factory` only restored later), and the live slot can still drift to `580 / 579.784...` kittens. Added a low-overhead local audit path backed by `agent-docs/example-saves/run8-legacy-snapshot.json` and `pnpm --filter @kittens/server parity:run8`.
 - 2026-04-07: Closed Epic 45. Fixed over-cap resource preservation (`syncResourceCaps` no longer clamps; `ResourceManager.update` uses `limit=max(prevValue,maxValue)`). Fixed `getTerraformingMaxKittensRatio` to return `getUnlimitedDR(hydroponicsOn,100)` accumulated total so maxKittens=579 natively after every tick. Both immediate import snapshot and live slot now match legacy for resources and population. Happiness import parity (~503% vs ~533%) and building automation import flags remain deferred in PARITY.md.
 - 2026-04-07: Reopened Epic 45 after a Chrome MCP live re-verification against `https://kittensgame.com/web/` and the Run 8 save. The rewrite's immediate `POST /api/game/import-legacy` response now preserves over-cap resources and `maxKittens=579`, but the live slot state still diverges immediately afterward: over-cap resources are reclamped to local caps, `maxKittens` falls back to `562.2117248568917`, happiness lands at `~503%` instead of legacy `~533%`, and sampled building automation flags still do not match legacy.
 - 2026-04-07: Closed the Epic 26 reopen for happiness inspector parity. Hovering or focusing the happiness summary in the village header or jobs tab now opens an inspector breakdown with legacy-style base/bonus/penalty terms.
@@ -841,16 +844,27 @@ Focused verification:
 ---
 
 ## Epic 45: Legacy Import Parity
-**Status:** Complete | **Started:** 2026-04-06 | **Finished:** 2026-04-07
-Stories: 3 / 3 complete (happiness deferred to PARITY.md)
+**Status:** Reopened | **Started:** 2026-04-06
+Stories: 3 / 4 complete
 
 - [x] Story 45-01: Preserve imported over-cap resource stocks — `syncResourceCaps` never clamps; `ResourceManager.update` uses `limit=max(prevValue,maxValue)` matching legacy `addRes`
-- [x] Story 45-02: Recompute imported derived caps and population stats faithfully — `getTerraformingMaxKittensRatio` fixed to return `getUnlimitedDR(hydroponicsOn,100)` so maxKittens=579 natively every tick
+- [ ] Story 45-02: Recompute imported derived caps and population stats faithfully — native `maxKittens` now stays at `579.784...`, but happiness parity is still off and the live slot can still overflow to `580 / 579.784...` kittens after import
 - [x] Story 45-03: Add imported snapshot parity regression coverage — Run 8 fixture tests in app.test.ts; Story 45-02 AC2 regression for live-tick maxKittens
+- [x] Story 45-04: Add low-overhead live parity audit tooling — checked-in Run 8 legacy snapshot fixture plus `pnpm --filter @kittens/server parity:run8`
 
-Deferred (documented in PARITY.md): happiness import parity (~503% vs legacy ~533%); building automation import flags.
+Open parity gaps (documented in PARITY.md): immediate import happiness (`1` vs legacy `5.330126107867796`), partial imported automation flags, and live post-import kitten overflow (`580 / 579.784...`).
 
 Engine tests: 990 passing | Line coverage: 98.47%
 Server tests: 164 passing | Line coverage: 88.85%
 Client-web tests: 398 passing | Line coverage: 95.57%
 Total: 990+164+398+27 = 1579 tests across all packages
+
+---
+
+## Epic 46: Workshop Tech Unlock Parity
+**Status:** Complete | **Started:** 2026-04-07 | **Finished:** 2026-04-08
+Stories: 3 / 3 complete
+
+- [ ] Story 46-01: Propagate tech workshop unlocks on research
+- [ ] Story 46-02: Replay workshop unlock chains on save load and legacy import
+- [ ] Story 46-03: Add a live regression fixture for workshop unlock parity
