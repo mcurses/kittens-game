@@ -21,6 +21,8 @@ export interface BuildingDef {
   readonly name: string;
   /** Short human-readable description shown in the inspector panel */
   readonly description?: string;
+  /** Flavor text (lore/joke) shown at the bottom of the inspector panel */
+  readonly flavor?: string;
   readonly prices: readonly PriceEntry[];
   readonly priceRatio: number;
   /** Static effects contributed to the effect cache (used when stageEffects is absent or stage=0) */
@@ -66,6 +68,11 @@ export interface BuildingEntry {
    * Port of legacy building meta.stage field.
    */
   readonly stage?: number;
+  /**
+   * Per-stage unlock flags. `stageUnlocked[0]` is always true; `stageUnlocked[1]` starts false
+   * for most buildings and is set true by tech research. Only present on staged buildings.
+   */
+  readonly stageUnlocked?: readonly boolean[];
 }
 
 /** Flat map of all building states, keyed by building name */
@@ -712,14 +719,61 @@ export const BUILDING_DEFS: readonly BuildingDef[] = [
  * Return a fresh BuildingState with all buildings at val:0, on:0.
  * Buildings with defaultUnlockable:true start with unlockable:true (port of legacy buildings.js:2641).
  */
+/**
+ * Default stageUnlocked arrays for buildings with stages.
+ * Stage 0 is always unlocked; stage 1 defaults per legacy buildings.js definitions.
+ * warehouse is unique: both stages unlocked by default.
+ */
+const STAGE_UNLOCK_DEFAULTS: Readonly<Record<string, readonly boolean[]>> = {
+  pasture: [true, false],
+  aqueduct: [true, false],
+  library: [true, false],
+  warehouse: [true, true],
+  amphitheatre: [true, false],
+};
+
 export function createInitialBuildings(): BuildingState {
   const state: BuildingState = {};
   for (const def of BUILDING_DEFS) {
-    state[def.name] = def.defaultUnlockable
+    const stageUnlocked = STAGE_UNLOCK_DEFAULTS[def.name];
+    const base = def.defaultUnlockable
       ? { val: 0, on: 0, unlocked: false, unlockable: true }
       : { val: 0, on: 0, unlocked: false };
+    state[def.name] = stageUnlocked ? { ...base, stageUnlocked } : base;
   }
   return state;
+}
+
+/** Upgrade a staged building to the next stage. Resets val/on to 0. */
+export function applyUpgradeBuildingStage(state: GameState, name: string): GameState {
+  const entry = state.buildings[name];
+  if (!entry || !entry.stageUnlocked) return state; // not a staged building
+  const currentStage = entry.stage ?? 0;
+  const nextStage = currentStage + 1;
+  if (nextStage >= entry.stageUnlocked.length) return state; // already at max stage
+  if (!entry.stageUnlocked[nextStage]) return state; // next stage not unlocked
+  return {
+    ...state,
+    buildings: {
+      ...state.buildings,
+      [name]: { ...entry, stage: nextStage, val: 0, on: 0 },
+    },
+  };
+}
+
+/** Downgrade a staged building to the previous stage. Resets val/on to 0. */
+export function applyDowngradeBuildingStage(state: GameState, name: string): GameState {
+  const entry = state.buildings[name];
+  if (!entry || !entry.stageUnlocked) return state; // not a staged building
+  const currentStage = entry.stage ?? 0;
+  if (currentStage <= 0) return state;
+  return {
+    ...state,
+    buildings: {
+      ...state.buildings,
+      [name]: { ...entry, stage: currentStage - 1, val: 0, on: 0 },
+    },
+  };
 }
 
 const STEAMWORKS_AUTOMATION_BASE_RATE = 0.02;
@@ -1284,6 +1338,7 @@ export class BuildingManager implements Manager {
             ? { automationEnabled: e.automationEnabled }
             : {}),
           ...(typeof e.stage === "number" ? { stage: e.stage } : {}),
+          ...(Array.isArray(e.stageUnlocked) ? { stageUnlocked: e.stageUnlocked as boolean[] } : {}),
         };
       }
     }

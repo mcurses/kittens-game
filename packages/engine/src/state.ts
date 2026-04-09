@@ -81,7 +81,7 @@ export interface SerializedGameState {
   resources: Record<string, { value: number; maxValue: number; perTick: number }>;
   buildings: Record<
     string,
-    { val: number; on: number; unlocked?: boolean; unlockable?: boolean; jammed?: boolean; automationEnabled?: boolean; stage?: number }
+    { val: number; on: number; unlocked?: boolean; unlockable?: boolean; jammed?: boolean; automationEnabled?: boolean; stage?: number; stageUnlocked?: boolean[] }
   >;
   village: {
     kittens: number;
@@ -167,7 +167,7 @@ export function serialize(state: GameState): SerializedGameState {
 
   const buildings: Record<
     string,
-    { val: number; on: number; unlocked?: boolean; unlockable?: boolean; jammed?: boolean; automationEnabled?: boolean; stage?: number }
+    { val: number; on: number; unlocked?: boolean; unlockable?: boolean; jammed?: boolean; automationEnabled?: boolean; stage?: number; stageUnlocked?: boolean[] }
   > = {};
   for (const [name, entry] of Object.entries(state.buildings)) {
     buildings[name] = {
@@ -178,6 +178,7 @@ export function serialize(state: GameState): SerializedGameState {
       ...(entry.jammed !== undefined ? { jammed: entry.jammed } : {}),
       ...(entry.automationEnabled !== undefined ? { automationEnabled: entry.automationEnabled } : {}),
       ...(entry.stage !== undefined ? { stage: entry.stage } : {}),
+      ...(entry.stageUnlocked !== undefined ? { stageUnlocked: [...entry.stageUnlocked] } : {}),
     };
   }
 
@@ -363,7 +364,7 @@ export function deserialize(data: SerializedGameState): GameState {
   const savedBuildings = data.buildings ?? {};
   const buildings: Record<
     string,
-    { val: number; on: number; unlocked?: boolean; unlockable?: boolean; jammed?: boolean; automationEnabled?: boolean; stage?: number }
+    { val: number; on: number; unlocked?: boolean; unlockable?: boolean; jammed?: boolean; automationEnabled?: boolean; stage?: number; stageUnlocked?: readonly boolean[] }
   > = {
     ...createInitialBuildings(),
   };
@@ -379,6 +380,7 @@ export function deserialize(data: SerializedGameState): GameState {
           ? { automationEnabled: entry.automationEnabled }
           : {}),
         ...(typeof entry.stage === "number" ? { stage: entry.stage } : {}),
+        ...(Array.isArray(entry.stageUnlocked) ? { stageUnlocked: entry.stageUnlocked } : {}),
       };
     }
   }

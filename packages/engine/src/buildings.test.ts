@@ -9,7 +9,7 @@ import {
 } from "./buildings.js";
 import { getLimitedDR } from "./effects.js";
 import { createInitialResources } from "./resources.js";
-import { createInitialState } from "./state.js";
+import { createInitialState, serialize, deserialize } from "./state.js";
 
 describe("BUILDING_DEFS", () => {
   it("contains field", () => {
@@ -2235,5 +2235,178 @@ describe("Epic 43: Dynamic Building Consumer Parity — Integration Test", () =>
     const tick2Effects = manager.updateEffects(state);
     expect(tick2Effects.oilPerTickBase ?? 0).toBeCloseTo(tick1Effects.oilPerTickBase ?? 0);
     expect(tick2Effects.energyProduction ?? 0).toBeCloseTo(tick1Effects.energyProduction ?? 0);
+  });
+});
+
+// ── Story 49-04: Stage unlock state tracking ────────────────────────────────
+
+describe("Story 49-04: Stage unlock state tracking", () => {
+  it("createInitialBuildings sets stageUnlocked for staged buildings", () => {
+    const buildings = createInitialBuildings();
+    // pasture has 2 stages: stage 0 always unlocked, stage 1 locked
+    expect(buildings.pasture?.stageUnlocked).toEqual([true, false]);
+    expect(buildings.aqueduct?.stageUnlocked).toEqual([true, false]);
+    expect(buildings.library?.stageUnlocked).toEqual([true, false]);
+    // warehouse: both stages unlocked by default
+    expect(buildings.warehouse?.stageUnlocked).toEqual([true, true]);
+    expect(buildings.amphitheatre?.stageUnlocked).toEqual([true, false]);
+  });
+
+  it("non-staged buildings do not have stageUnlocked", () => {
+    const buildings = createInitialBuildings();
+    expect(buildings.field?.stageUnlocked).toBeUndefined();
+    expect(buildings.hut?.stageUnlocked).toBeUndefined();
+    expect(buildings.mine?.stageUnlocked).toBeUndefined();
+  });
+
+  it("stageUnlocked round-trips through serialize/deserialize", () => {
+    // serialize/deserialize imported at top of file
+    let state = createInitialState();
+    // Unlock amphitheatre stage 1
+    state = {
+      ...state,
+      buildings: {
+        ...state.buildings,
+        amphitheatre: {
+          ...state.buildings.amphitheatre!,
+          stageUnlocked: [true, true],
+        },
+      },
+    };
+    const serialized = serialize(state);
+    const deserialized = deserialize(serialized);
+    expect(deserialized.buildings.amphitheatre?.stageUnlocked).toEqual([true, true]);
+  });
+});
+
+// ── Story 49-01: Building stage upgrade/downgrade actions ───────────────────
+
+describe("Story 49-01: Stage upgrade/downgrade actions", () => {
+  it("UPGRADE_BUILDING_STAGE increments stage when next stage is unlocked", () => {
+    let state = createInitialState();
+    state = {
+      ...state,
+      buildings: {
+        ...state.buildings,
+        warehouse: {
+          val: 3,
+          on: 3,
+          unlocked: true,
+          stage: 0,
+          stageUnlocked: [true, true],
+        },
+      },
+    };
+    const next = applyAction(state, { type: "UPGRADE_BUILDING_STAGE", name: "warehouse" });
+    expect(next.buildings.warehouse?.stage).toBe(1);
+  });
+
+  it("UPGRADE_BUILDING_STAGE resets val and on to 0", () => {
+    let state = createInitialState();
+    state = {
+      ...state,
+      buildings: {
+        ...state.buildings,
+        warehouse: {
+          val: 5,
+          on: 3,
+          unlocked: true,
+          stage: 0,
+          stageUnlocked: [true, true],
+        },
+      },
+    };
+    const next = applyAction(state, { type: "UPGRADE_BUILDING_STAGE", name: "warehouse" });
+    expect(next.buildings.warehouse?.val).toBe(0);
+    expect(next.buildings.warehouse?.on).toBe(0);
+  });
+
+  it("UPGRADE_BUILDING_STAGE is rejected when next stage not unlocked", () => {
+    let state = createInitialState();
+    state = {
+      ...state,
+      buildings: {
+        ...state.buildings,
+        pasture: {
+          val: 2,
+          on: 2,
+          unlocked: true,
+          stage: 0,
+          stageUnlocked: [true, false],
+        },
+      },
+    };
+    const next = applyAction(state, { type: "UPGRADE_BUILDING_STAGE", name: "pasture" });
+    // No change — still stage 0 with val 2
+    expect(next.buildings.pasture?.stage).toBe(0);
+    expect(next.buildings.pasture?.val).toBe(2);
+  });
+
+  it("UPGRADE_BUILDING_STAGE is rejected for non-staged building", () => {
+    const state = createInitialState();
+    const next = applyAction(state, { type: "UPGRADE_BUILDING_STAGE", name: "field" });
+    expect(next).toBe(state);
+  });
+
+  it("DOWNGRADE_BUILDING_STAGE decrements stage and resets val/on", () => {
+    let state = createInitialState();
+    state = {
+      ...state,
+      buildings: {
+        ...state.buildings,
+        warehouse: {
+          val: 4,
+          on: 2,
+          unlocked: true,
+          stage: 1,
+          stageUnlocked: [true, true],
+        },
+      },
+    };
+    const next = applyAction(state, { type: "DOWNGRADE_BUILDING_STAGE", name: "warehouse" });
+    expect(next.buildings.warehouse?.stage).toBe(0);
+    expect(next.buildings.warehouse?.val).toBe(0);
+    expect(next.buildings.warehouse?.on).toBe(0);
+  });
+
+  it("DOWNGRADE_BUILDING_STAGE at stage 0 is a no-op", () => {
+    let state = createInitialState();
+    state = {
+      ...state,
+      buildings: {
+        ...state.buildings,
+        pasture: {
+          val: 3,
+          on: 3,
+          unlocked: true,
+          stage: 0,
+          stageUnlocked: [true, false],
+        },
+      },
+    };
+    const next = applyAction(state, { type: "DOWNGRADE_BUILDING_STAGE", name: "pasture" });
+    expect(next.buildings.pasture?.stage).toBe(0);
+    expect(next.buildings.pasture?.val).toBe(3);
+  });
+
+  it("stage persists through save/load round-trip", () => {
+    // serialize/deserialize imported at top of file
+    let state = createInitialState();
+    state = {
+      ...state,
+      buildings: {
+        ...state.buildings,
+        warehouse: {
+          val: 0,
+          on: 0,
+          unlocked: true,
+          stage: 1,
+          stageUnlocked: [true, true],
+        },
+      },
+    };
+    const roundTripped = deserialize(serialize(state));
+    expect(roundTripped.buildings.warehouse?.stage).toBe(1);
+    expect(roundTripped.buildings.warehouse?.stageUnlocked).toEqual([true, true]);
   });
 });

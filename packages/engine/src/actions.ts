@@ -1,6 +1,6 @@
 import type { Tick } from "@kittens/shared";
 import { produce } from "immer";
-import { BUILDING_DEFS, canAfford, getBuildingPrice } from "./buildings.js";
+import { BUILDING_DEFS, canAfford, getBuildingPrice, applyUpgradeBuildingStage, applyDowngradeBuildingStage } from "./buildings.js";
 import { applyCompleteChallenge, applyStartChallenge } from "./challenges.js";
 import type { Manager } from "./manager.js";
 import { applyBurnParagon, applyPurchasePerk, applySoftReset } from "./prestige.js";
@@ -67,7 +67,9 @@ export type GameAction =
   | { readonly type: "TOGGLE_FAVORITE"; readonly kittenId: string }
   | { readonly type: "UNASSIGN_KITTEN"; readonly kittenId: string }
   | { readonly type: "SET_LEADER"; readonly kittenId: string }
-  | { readonly type: "REMOVE_LEADER" };
+  | { readonly type: "REMOVE_LEADER" }
+  | { readonly type: "UPGRADE_BUILDING_STAGE"; readonly name: string }
+  | { readonly type: "DOWNGRADE_BUILDING_STAGE"; readonly name: string };
 
 /**
  * Pure reducer: apply an action to a state and return the next state.
@@ -327,6 +329,12 @@ export function applyAction(
     }
     case "REMOVE_LEADER": {
       return applyRemoveLeader(state);
+    }
+    case "UPGRADE_BUILDING_STAGE": {
+      return applyUpgradeBuildingStage(state, action.name);
+    }
+    case "DOWNGRADE_BUILDING_STAGE": {
+      return applyDowngradeBuildingStage(state, action.name);
     }
   }
 }
