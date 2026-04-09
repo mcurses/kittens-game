@@ -127,6 +127,10 @@ export const BUILDING_DEFS: readonly BuildingDef[] = [
     ],
     priceRatio: 1.15,
     effects: { catnipDemandRatio: -0.005 },
+    stageEffects: [
+      { catnipDemandRatio: -0.005 },                // stage 0: pasture
+      { energyProduction: 2 },                       // stage 1: solar farm
+    ],
     unlockRatio: 0.3,
   },
   {
@@ -135,6 +139,10 @@ export const BUILDING_DEFS: readonly BuildingDef[] = [
     prices: [{ name: "minerals", val: 75 }],
     priceRatio: 1.12,
     effects: { catnipRatio: 0.03 },
+    stageEffects: [
+      { catnipRatio: 0.03 },                        // stage 0: aqueduct
+      { energyProduction: 5 },                       // stage 1: hydro plant
+    ],
     unlockRatio: 0.3,
   },
   // ── Population ──────────────────────────────────────────────────────────────
@@ -177,6 +185,10 @@ export const BUILDING_DEFS: readonly BuildingDef[] = [
     prices: [{ name: "wood", val: 25 }],
     priceRatio: 1.15,
     effects: { scienceRatio: 0.1, scienceMax: 250, cultureMax: 10 },
+    stageEffects: [
+      { scienceRatio: 0.1, scienceMax: 250, cultureMax: 10 },            // stage 0: library
+      { scienceMaxCompendia: 1000, cultureMax: 25, energyConsumption: 2 }, // stage 1: data center
+    ],
     defaultUnlockable: true,
     unlockRatio: 0.3,
   },
@@ -235,6 +247,10 @@ export const BUILDING_DEFS: readonly BuildingDef[] = [
       titaniumMax: 10,
       goldMax: 5,
     },
+    stageEffects: [
+      { woodMax: 150, mineralsMax: 200, coalMax: 30, ironMax: 25, titaniumMax: 10, goldMax: 5 },  // stage 0
+      { moonBaseStorageBonus: 0.0085, planetCrackerStorageBonus: 0.0085, cryostationStorageBonus: 0.0085, energyConsumption: 5 }, // stage 1: spaceport
+    ],
     unlockRatio: 0.3,
   },
   // ── Culture / happiness ──────────────────────────────────────────────────────
@@ -712,6 +728,22 @@ export const BUILDING_DEFS: readonly BuildingDef[] = [
     },
   },
 ];
+
+// ── Stage labels ─────────────────────────────────────────────────────────────
+
+/** Human-readable labels for each stage of a staged building. */
+export const STAGE_LABELS: Readonly<Record<string, readonly string[]>> = {
+  pasture: ["Pasture", "Solar Farm"],
+  aqueduct: ["Aqueduct", "Hydro Plant"],
+  library: ["Library", "Data Center"],
+  warehouse: ["Warehouse", "Spaceport"],
+  amphitheatre: ["Amphitheatre", "Broadcast Tower"],
+};
+
+/** Get the display name for a building at a given stage, or undefined if not a staged building. */
+export function getBuildingDisplayName(name: string, stage: number): string | undefined {
+  return STAGE_LABELS[name]?.[stage];
+}
 
 // ── Factory ───────────────────────────────────────────────────────────────────
 

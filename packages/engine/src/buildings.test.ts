@@ -3,8 +3,10 @@ import { applyAction } from "./actions.js";
 import {
   BUILDING_DEFS,
   BuildingManager,
+  STAGE_LABELS,
   canAfford,
   createInitialBuildings,
+  getBuildingDisplayName,
   getBuildingPrice,
 } from "./buildings.js";
 import { getLimitedDR } from "./effects.js";
@@ -2408,5 +2410,93 @@ describe("Story 49-01: Stage upgrade/downgrade actions", () => {
     const roundTripped = deserialize(serialize(state));
     expect(roundTripped.buildings.warehouse?.stage).toBe(1);
     expect(roundTripped.buildings.warehouse?.stageUnlocked).toEqual([true, true]);
+  });
+});
+
+// ── Story 49-02: Stage-specific labels and display names ────────────────────
+
+describe("Story 49-02: Stage labels", () => {
+  it("STAGE_LABELS has all 5 staged buildings", () => {
+    expect(STAGE_LABELS.pasture).toEqual(["Pasture", "Solar Farm"]);
+    expect(STAGE_LABELS.aqueduct).toEqual(["Aqueduct", "Hydro Plant"]);
+    expect(STAGE_LABELS.library).toEqual(["Library", "Data Center"]);
+    expect(STAGE_LABELS.warehouse).toEqual(["Warehouse", "Spaceport"]);
+    expect(STAGE_LABELS.amphitheatre).toEqual(["Amphitheatre", "Broadcast Tower"]);
+  });
+
+  it("getBuildingDisplayName returns stage 0 label", () => {
+    expect(getBuildingDisplayName("pasture", 0)).toBe("Pasture");
+    expect(getBuildingDisplayName("library", 0)).toBe("Library");
+  });
+
+  it("getBuildingDisplayName returns stage 1 label", () => {
+    expect(getBuildingDisplayName("pasture", 1)).toBe("Solar Farm");
+    expect(getBuildingDisplayName("warehouse", 1)).toBe("Spaceport");
+  });
+
+  it("getBuildingDisplayName returns undefined for non-staged building", () => {
+    expect(getBuildingDisplayName("field", 0)).toBeUndefined();
+  });
+});
+
+// ── Story 49-03: Stage effects for all staged buildings ─────────────────────
+
+describe("Story 49-03: Stage effects definitions", () => {
+  it("pasture has stageEffects[0] with catnipDemandRatio and stageEffects[1] with energyProduction", () => {
+    const def = BUILDING_DEFS.find((b) => b.name === "pasture");
+    expect(def?.stageEffects?.[0]).toEqual({ catnipDemandRatio: -0.005 });
+    expect(def?.stageEffects?.[1]).toEqual({ energyProduction: 2 });
+  });
+
+  it("aqueduct has stageEffects[0] with catnipRatio and stageEffects[1] with energyProduction", () => {
+    const def = BUILDING_DEFS.find((b) => b.name === "aqueduct");
+    expect(def?.stageEffects?.[0]).toEqual({ catnipRatio: 0.03 });
+    expect(def?.stageEffects?.[1]).toEqual({ energyProduction: 5 });
+  });
+
+  it("library has stageEffects[0] with science/culture and stageEffects[1] with dataCenter effects", () => {
+    const def = BUILDING_DEFS.find((b) => b.name === "library");
+    expect(def?.stageEffects?.[0]).toEqual({ scienceRatio: 0.1, scienceMax: 250, cultureMax: 10 });
+    expect(def?.stageEffects?.[1]).toEqual({ scienceMaxCompendia: 1000, cultureMax: 25, energyConsumption: 2 });
+  });
+
+  it("warehouse has stageEffects[0] with storage and stageEffects[1] with spaceport effects", () => {
+    const def = BUILDING_DEFS.find((b) => b.name === "warehouse");
+    expect(def?.stageEffects?.[0]).toEqual({
+      woodMax: 150, mineralsMax: 200, coalMax: 30, ironMax: 25, titaniumMax: 10, goldMax: 5,
+    });
+    expect(def?.stageEffects?.[1]).toEqual({
+      moonBaseStorageBonus: 0.0085, planetCrackerStorageBonus: 0.0085,
+      cryostationStorageBonus: 0.0085, energyConsumption: 5,
+    });
+  });
+
+  it("amphitheatre stageEffects are correct", () => {
+    const def = BUILDING_DEFS.find((b) => b.name === "amphitheatre");
+    expect(def?.stageEffects?.[0]).toEqual({ culturePerTickBase: 0.005, cultureMax: 50, unhappinessRatio: -0.048 });
+    expect(def?.stageEffects?.[1]).toEqual({ culturePerTickBase: 1, cultureMax: 300, unhappinessRatio: -0.75 });
+  });
+
+  it("effect cache uses stage 1 effects when building is at stage 1", () => {
+    let state = createInitialState();
+    state = {
+      ...state,
+      buildings: {
+        ...state.buildings,
+        amphitheatre: {
+          val: 1,
+          on: 1,
+          unlocked: true,
+          stage: 1,
+          stageUnlocked: [true, true],
+        },
+      },
+    };
+    const manager = new BuildingManager();
+    const effects = manager.updateEffects(state);
+    // stage 1 amphitheatre (broadcastTower) has culturePerTickBase: 1
+    expect(effects.culturePerTickBase).toBeCloseTo(1);
+    // stage 1 has unhappinessRatio: -0.75 (not stage 0's -0.048)
+    expect(effects.unhappinessRatio).toBeCloseTo(-0.75);
   });
 });
