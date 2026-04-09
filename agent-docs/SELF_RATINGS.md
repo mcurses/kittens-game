@@ -1964,3 +1964,28 @@ The later Chrome MCP audit invalidated the second closeout as well.
 ### Action items for next epic
 - [ ] Consider adding policy confirmation dialog (legacy has one, deferred as non-blocking)
 - [ ] Consider adding policy mutual-exclusivity display in inspector (shows which policies would be blocked)
+
+## Epic 52: Toolbar / HUD Parity — 2026-04-09
+
+| Dimension | Score | Notes |
+|-----------|-------|-------|
+| Test coverage (≥90% target) | 5 | Engine 97.84%, all 1862 tests pass |
+| No skipped tests / no TODOs | 5 | Clean |
+| Feature parity | 4 | Energy display + sorrow indicator implemented |
+| API spec completeness | 5 | All 45 actions in spec |
+| Code quality (no `any`) | 5 | No any in production code |
+| Docs freshness | 5 | All docs current |
+| Commit hygiene | 5 | Single focused commit |
+| **Overall average** | **4.9** | |
+
+### What went well
+- Clean, minimal ToolbarPanel component with energy computation from effectCache
+- Sorrow indicator straightforward extraction from resources
+- All 16 new tests pass on first implementation
+
+### What to improve
+- Winter energy warning could have a more thorough test with seasonal solar farm variance
+- MOTD was skipped (commented out in legacy) — document this explicitly
+
+### Action items for next epic
+- [x] MOTD skipped — confirmed commented out in legacy, not blocking

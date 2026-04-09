@@ -1,6 +1,6 @@
 # Epic: 52
 
-**Status:** In Progress
+**Status:** Complete
 **Started:** 2026-04-09
 **Legacy refs:** `legacy/js/jsx/toolbar.jsx.js` (WToolbarEnergy, WBLS), `legacy/js/resources.js` (energy calc, getEnergyDelta)
 
@@ -13,20 +13,20 @@
 **So that** I can monitor whether my energy infrastructure is sufficient
 
 ### Acceptance Criteria
-- [ ] ToolbarPanel component renders above main content area
-- [ ] Energy display shows only when electricity tech is researched
-- [ ] Shows net energy (prod - cons) with "W" unit suffix
-- [ ] Green text when positive, red when negative
-- [ ] Tooltip/title shows production and consumption breakdown
-- [ ] When deficit, tooltip shows penalty percentage: `-X%`
-- [ ] Penalty = floor((1 - delta) * 100) where delta = max(prod/cons, 0.25)
-- [ ] Winter warning class when winter prod < cons but current prod >= cons
+- [x] ToolbarPanel component renders above main content area
+- [x] Energy display shows only when electricity tech is researched
+- [x] Shows net energy (prod - cons) with "W" unit suffix
+- [x] Green text when positive, red when negative
+- [x] Tooltip/title shows production and consumption breakdown
+- [x] When deficit, tooltip shows penalty percentage: `-X%`
+- [x] Penalty = floor((1 - delta) * 100) where delta = max(prod/cons, 0.25)
+- [x] Winter warning class when winter prod < cons but current prod >= cons
 
 ### Legacy Reference
 - `legacy/js/jsx/toolbar.jsx.js` lines 104-143 (WToolbarEnergy)
 - `legacy/js/resources.js` lines 739-751 (energy calc), 1055-1068 (getEnergyDelta)
 
-### Status: [ ] Tests | [ ] Impl | [ ] Rated
+### Status: [x] Tests | [x] Impl | [ ] Rated
 
 ---
 
@@ -37,13 +37,13 @@
 **So that** I can track black liquid sorrow accumulation
 
 ### Acceptance Criteria
-- [ ] Sorrow indicator shows only when sorrow resource value > 0
-- [ ] Displays "BLS: X%" where X is sorrow value rounded
-- [ ] "max" styling when sorrow is at maxValue
-- [ ] Tooltip shows sorrow description text
-- [ ] Hidden when sorrow is 0 or absent
+- [x] Sorrow indicator shows only when sorrow resource value > 0
+- [x] Displays "BLS: X%" where X is sorrow value rounded
+- [x] "max" styling when sorrow is at maxValue
+- [x] Tooltip shows sorrow description text
+- [x] Hidden when sorrow is 0 or absent
 
 ### Legacy Reference
 - `legacy/js/jsx/toolbar.jsx.js` lines 285-310 (WBLS)
 
-### Status: [ ] Tests | [ ] Impl | [ ] Rated
+### Status: [x] Tests | [x] Impl | [ ] Rated
