@@ -217,6 +217,7 @@ export function ResourcePanel({ state }: Props): React.ReactElement {
               onCraft={(name, amount) => mutate({ type: "CRAFT", name, amount })}
               isPending={isPending}
               seasonIndex={calendar?.season}
+              onToggleVisibility={(name) => mutate({ type: "TOGGLE_RESOURCE_VISIBILITY", name })}
               {...(r.name === "catnip" && "catnipDemandRatio" in effectCache ? { demandRatio: effectCache.catnipDemandRatio } : {})}
             />
           ))
@@ -351,6 +352,7 @@ function ResourceItem({
   onCraft,
   isPending,
   seasonIndex,
+  onToggleVisibility,
 }: {
   resource: ResourceEntry;
   breakdown: ResourceBreakdown;
@@ -364,6 +366,7 @@ function ResourceItem({
   onCraft: (name: string, amount: number) => void;
   isPending: boolean;
   seasonIndex?: number;
+  onToggleVisibility?: (name: string) => void;
 }): React.ReactElement {
   const { setInspected, clearInspected } = useInspector();
 
@@ -420,6 +423,12 @@ function ResourceItem({
         <span
           className={getResourceNameClass(resource.name)}
           style={getResourceNameStyle(resource.name)}
+          onClick={onToggleVisibility ? (e) => {
+            if (e.ctrlKey || e.metaKey) {
+              e.preventDefault();
+              onToggleVisibility(resource.name);
+            }
+          } : undefined}
         >
           {resource.name}
         </span>
