@@ -713,7 +713,7 @@ describe("Story 48-04: Individual kitten state", () => {
       village: { ...base.village, kittens: 1, sim: [k1] },
     };
     const next = applyAction(state, { type: "ASSIGN_JOB", job: "farmer" });
-    expect(next.village.jobs.farmer.value).toBe(1);
+    expect(next.village.jobs.farmer!.value).toBe(1);
     expect(next.village.sim[0]?.job).toBe("farmer");
   });
 

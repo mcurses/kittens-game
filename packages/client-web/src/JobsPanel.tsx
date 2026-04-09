@@ -1,9 +1,11 @@
 // JobsPanel — displays jobs with assign/unassign stepper controls
 import type { GameStateResponse } from "@kittens/api-spec";
 import { deriveUiVisibility } from "@kittens/engine";
-import React from "react";
+import React, { useState } from "react";
+import type { JobEntity } from "./InspectorContext.js";
 import { useInspector } from "./InspectorContext.js";
 import { useSlot } from "./SlotContext.js";
+import { JOB_FLAVOR } from "./flavorText.js";
 import { buildHappinessEntity } from "./happinessInspector.js";
 import { useGameAction } from "./useGameAction.js";
 
@@ -12,6 +14,52 @@ interface JobEntry {
   value: number;
   unlocked: boolean;
 }
+
+/** Per-kitten-per-tick production for each job — matches engine JOB_DEFS */
+const JOB_MODIFIERS: Record<string, Array<{ resource: string; perTick: number }>> = {
+  woodcutter: [{ resource: "wood", perTick: 0.018 }],
+  farmer: [{ resource: "catnip", perTick: 1.0 }],
+  scholar: [{ resource: "science", perTick: 0.035 }],
+  hunter: [{ resource: "catpower", perTick: 0.06 }],
+  miner: [{ resource: "minerals", perTick: 0.05 }],
+  geologist: [{ resource: "coal", perTick: 0.015 }],
+  priest: [{ resource: "faith", perTick: 0.0015 }],
+  engineer: [],
+};
+
+const JOB_DESCRIPTIONS: Record<string, string> = {
+  woodcutter: "Produces wood for construction",
+  farmer: "Grows catnip for the village",
+  scholar: "Conducts research to advance science",
+  hunter: "Gathers catpower for hunting expeditions",
+  miner: "Extracts minerals from the earth",
+  geologist: "Surveys land for coal deposits",
+  priest: "Offers prayers to generate faith",
+  engineer: "Operates automated crafting machinery",
+};
+
+function buildJobEntity(name: string): JobEntity {
+  return {
+    kind: "job",
+    name,
+    description: JOB_DESCRIPTIONS[name],
+    flavor: JOB_FLAVOR[name],
+    modifiers: JOB_MODIFIERS[name] ?? [],
+  };
+}
+
+interface CensusKitten {
+  id: string;
+  name: string;
+  surname: string;
+  age: number;
+  trait: string;
+  job: string | null;
+  skills: Record<string, number>;
+  rank: number;
+}
+
+const CENSUS_PAGE_SIZE = 10;
 
 interface Props {
   state: GameStateResponse | null | undefined;
@@ -49,10 +97,26 @@ function extractVillageInfo(state: GameStateResponse): VillageInfo {
   return { jobs: jobList, happiness, festivalDays };
 }
 
+function extractSim(state: GameStateResponse): CensusKitten[] {
+  const raw = state as unknown as Record<string, unknown>;
+  const village = raw.village as Record<string, unknown> | null | undefined;
+  const sim = village?.sim;
+  if (!Array.isArray(sim)) return [];
+  return sim as CensusKitten[];
+}
+
+function topSkills(skills: Record<string, number>, count: number): Array<{ name: string; level: number }> {
+  return Object.entries(skills)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, count)
+    .map(([name, level]) => ({ name, level }));
+}
+
 export function JobsPanel({ state }: Props): React.ReactElement {
   const slot = useSlot();
   const { mutate, isPending } = useGameAction(slot);
   const { setInspected, clearInspected } = useInspector();
+  const [censusPage, setCensusPage] = useState(0);
 
   if (!state) {
     return <div className="loading-text" data-testid="jobs-panel-loading">Loading…</div>;
@@ -62,6 +126,11 @@ export function JobsPanel({ state }: Props): React.ReactElement {
   const happinessEntity = buildHappinessEntity(state);
   const visibility = deriveUiVisibility(state);
   const visibleJobs = jobs.filter((job) => job.unlocked || visibility.jobs[job.name]?.visible === true);
+  const totalAssigned = jobs.reduce((sum, j) => sum + j.value, 0);
+  const totalKittens = typeof (state as unknown as Record<string, unknown>).village === "object"
+    ? (((state as unknown as Record<string, unknown>).village as Record<string, unknown>)?.kittens as number) ?? 0
+    : 0;
+  const freeKittens = totalKittens - totalAssigned;
 
   return (
     <div data-testid="jobs-panel">
@@ -94,11 +163,44 @@ export function JobsPanel({ state }: Props): React.ReactElement {
           <div className="panel-sublabel">Management</div>
         </div>
       )}
-      {visibility.village.censusVisible && (
-        <div data-testid="village-census" className="panel-subsection">
-          <div className="panel-sublabel">Census</div>
-        </div>
-      )}
+      {visibility.village.censusVisible && (() => {
+        const sim = extractSim(state);
+        const totalPages = Math.max(1, Math.ceil(sim.length / CENSUS_PAGE_SIZE));
+        const page = Math.min(censusPage, totalPages - 1);
+        const pageKittens = sim.slice(page * CENSUS_PAGE_SIZE, (page + 1) * CENSUS_PAGE_SIZE);
+        return (
+          <div data-testid="village-census" className="panel-subsection">
+            <div className="panel-sublabel">Census</div>
+            <ul data-testid="census-list" className="item-list census-list">
+              {pageKittens.map((k) => (
+                <li key={k.id} data-testid={`census-kitten-${k.id}`} className="census-row">
+                  <span className="census-name">{k.name} {k.surname}</span>
+                  <span className="census-age">age {k.age}</span>
+                  <span className="census-trait">{k.trait}</span>
+                  <span className="census-job">{k.job ?? "Free"}</span>
+                  <span className="census-rank">rank {k.rank}</span>
+                  {topSkills(k.skills, 3).map((s) => (
+                    <span key={s.name} className="census-skill">{s.name} {s.level.toFixed(1)}</span>
+                  ))}
+                </li>
+              ))}
+            </ul>
+            {totalPages > 1 && (
+              <div className="census-pagination">
+                <button type="button" data-testid="census-page-prev" className="btn btn--xs btn--secondary"
+                  disabled={page <= 0} onClick={() => setCensusPage(page - 1)}>
+                  ◀
+                </button>
+                <span className="census-page-info">{page + 1} / {totalPages}</span>
+                <button type="button" data-testid="census-page-next" className="btn btn--xs btn--secondary"
+                  disabled={page >= totalPages - 1} onClick={() => setCensusPage(page + 1)}>
+                  ▶
+                </button>
+              </div>
+            )}
+          </div>
+        );
+      })()}
       {visibility.village.mapVisible && (
         <div data-testid="village-map" className="panel-subsection">
           <div className="panel-sublabel">Map</div>
@@ -110,9 +212,32 @@ export function JobsPanel({ state }: Props): React.ReactElement {
       ) : (
         <ul className="item-list">
           {visibleJobs.map((j) => (
-            <li key={j.name} data-testid={`job-${j.name}`} className="item-row">
+            <li key={j.name} data-testid={`job-${j.name}`} className="item-row job-row"
+              onMouseEnter={() => setInspected(buildJobEntity(j.name))}
+              onMouseLeave={clearInspected}
+            >
               <span className="item-row-name job-name">{j.name}</span>
               <div className="job-stepper">
+                <button
+                  type="button"
+                  className="btn btn--secondary btn--xs"
+                  data-testid={`job-${j.name}-unassign-all`}
+                  disabled={isPending || j.value <= 0}
+                  onClick={() => mutate({ type: "UNASSIGN_JOB", job: j.name, count: j.value })}
+                  aria-label={`Remove all kittens from ${j.name}`}
+                >
+                  −All
+                </button>
+                <button
+                  type="button"
+                  className="btn btn--secondary btn--xs"
+                  data-testid={`job-${j.name}-unassign-5`}
+                  disabled={isPending || j.value <= 0}
+                  onClick={() => mutate({ type: "UNASSIGN_JOB", job: j.name, count: Math.min(5, j.value) })}
+                  aria-label={`Remove 5 kittens from ${j.name}`}
+                >
+                  −5
+                </button>
                 <button
                   type="button"
                   className="btn btn--secondary btn--icon"
@@ -128,11 +253,31 @@ export function JobsPanel({ state }: Props): React.ReactElement {
                   type="button"
                   className="btn btn--secondary btn--icon"
                   data-testid={`job-${j.name}-assign`}
-                  disabled={isPending}
-                  onClick={() => mutate({ type: "ASSIGN_JOB", job: j.name })}
+                  disabled={isPending || freeKittens <= 0}
+                  onClick={(e) => mutate({ type: "ASSIGN_JOB", job: j.name, ...(e.shiftKey ? { count: freeKittens } : {}) })}
                   aria-label={`Assign kittens to ${j.name}`}
                 >
                   +
+                </button>
+                <button
+                  type="button"
+                  className="btn btn--secondary btn--xs"
+                  data-testid={`job-${j.name}-assign-5`}
+                  disabled={isPending || freeKittens <= 0}
+                  onClick={() => mutate({ type: "ASSIGN_JOB", job: j.name, count: Math.min(5, freeKittens) })}
+                  aria-label={`Assign 5 kittens to ${j.name}`}
+                >
+                  +5
+                </button>
+                <button
+                  type="button"
+                  className="btn btn--secondary btn--xs"
+                  data-testid={`job-${j.name}-assign-all`}
+                  disabled={isPending || freeKittens <= 0}
+                  onClick={() => mutate({ type: "ASSIGN_JOB", job: j.name, count: freeKittens })}
+                  aria-label={`Assign all free kittens to ${j.name}`}
+                >
+                  +All
                 </button>
               </div>
             </li>
