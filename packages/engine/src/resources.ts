@@ -70,6 +70,82 @@ export const RESOURCE_NAMES = [
   "blueprint",
 ] as const;
 
+// ── Resource display metadata ────────────────────────────────────────────────
+
+export type ResourceType = "common" | "uncommon" | "rare" | "exotic";
+
+export interface ResourceDisplayMeta {
+  readonly type: ResourceType;
+  /** Optional custom display color (CSS color string). Overrides type-based color. */
+  readonly color?: string;
+}
+
+/**
+ * Display metadata per resource, matching legacy resource definitions.
+ * Ports `legacy/js/resources.js` type/color properties.
+ */
+export const RESOURCE_DISPLAY: Readonly<Record<string, ResourceDisplayMeta>> = {
+  // Common — raw (no special color)
+  catnip: { type: "common" },
+  wood: { type: "common" },
+  minerals: { type: "common" },
+  coal: { type: "common" },
+  iron: { type: "common" },
+  titanium: { type: "common" },
+  gold: { type: "common" },
+  oil: { type: "common" },
+  uranium: { type: "uncommon", color: "#4EA24E" },
+  unobtainium: { type: "rare", color: "#A00000" },
+  // Common — transient
+  antimatter: { type: "exotic", color: "#5A0EDE" },
+  catpower: { type: "common", color: "#DBA901" },
+  science: { type: "common", color: "#01A9DB" },
+  culture: { type: "common", color: "#DF01D7" },
+  faith: { type: "common", color: "gray" },
+  zebras: { type: "common" },
+  starchart: { type: "common" },
+  temporalFlux: { type: "common" },
+  gflops: { type: "common" },
+  hashrates: { type: "common" },
+  // Luxury
+  furs: { type: "uncommon" },
+  ivory: { type: "uncommon" },
+  spice: { type: "uncommon" },
+  unicorns: { type: "rare" },
+  alicorn: { type: "rare" },
+  necrocorn: { type: "rare", color: "#9A2EFE" },
+  tears: { type: "rare" },
+  karma: { type: "common" },
+  paragon: { type: "common" },
+  burnedParagon: { type: "common" },
+  timeCrystal: { type: "rare" },
+  sorrow: { type: "rare" },
+  relic: { type: "exotic" },
+  void: { type: "exotic" },
+  elderBox: { type: "exotic" },
+  wrappingPaper: { type: "common" },
+  blackcoin: { type: "exotic" },
+  bloodstone: { type: "exotic" },
+  tMythril: { type: "exotic" },
+  // Craft
+  beam: { type: "common" },
+  slab: { type: "common" },
+  plate: { type: "common" },
+  steel: { type: "uncommon" },
+  concrate: { type: "common" },
+  gear: { type: "uncommon" },
+  alloy: { type: "uncommon" },
+  eludium: { type: "rare" },
+  scaffold: { type: "common" },
+  ship: { type: "common" },
+  tanker: { type: "common" },
+  kerosene: { type: "uncommon" },
+  parchment: { type: "common" },
+  manuscript: { type: "common" },
+  compedium: { type: "common" },
+  blueprint: { type: "uncommon" },
+};
+
 // ── Types ─────────────────────────────────────────────────────────────────────
 
 /** A single resource pool entry. */

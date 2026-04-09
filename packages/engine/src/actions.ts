@@ -69,7 +69,8 @@ export type GameAction =
   | { readonly type: "SET_LEADER"; readonly kittenId: string }
   | { readonly type: "REMOVE_LEADER" }
   | { readonly type: "UPGRADE_BUILDING_STAGE"; readonly name: string }
-  | { readonly type: "DOWNGRADE_BUILDING_STAGE"; readonly name: string };
+  | { readonly type: "DOWNGRADE_BUILDING_STAGE"; readonly name: string }
+  | { readonly type: "TOGGLE_RESOURCE_VISIBILITY"; readonly name: string };
 
 /**
  * Pure reducer: apply an action to a state and return the next state.
@@ -335,6 +336,16 @@ export function applyAction(
     }
     case "DOWNGRADE_BUILDING_STAGE": {
       return applyDowngradeBuildingStage(state, action.name);
+    }
+    case "TOGGLE_RESOURCE_VISIBILITY": {
+      const hidden = state.hiddenResources;
+      const idx = hidden.indexOf(action.name);
+      return {
+        ...state,
+        hiddenResources: idx >= 0
+          ? hidden.filter((n) => n !== action.name)
+          : [...hidden, action.name],
+      };
     }
   }
 }

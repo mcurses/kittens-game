@@ -5,6 +5,10 @@ import { type BuildingEntity, InspectorProvider, useInspector } from "./Inspecto
 import { InspectorPanel } from "./InspectorPanel.js";
 import { ResourcePanel } from "./ResourcePanel.js";
 
+vi.mock("./useGameAction.js", () => ({
+  useGameAction: () => ({ mutate: vi.fn(), isPending: false, error: null }),
+}));
+
 // Minimal mock state with resources
 function makeState(
   resources: Record<
@@ -12,12 +16,15 @@ function makeState(
     { value: number; maxValue?: number; perTick?: number; unlocked?: boolean }
   >,
   effectCache: Record<string, number> = {},
+  extra?: { calendar?: { day: number; season: number; year: number }; hiddenResources?: string[] },
 ) {
   return {
     version: 1,
     tick: 0,
     resources,
     effectCache,
+    ...(extra?.calendar ? { calendar: extra.calendar } : {}),
+    ...(extra?.hiddenResources ? { hiddenResources: extra.hiddenResources } : {}),
   } as unknown as import("@kittens/api-spec").GameStateResponse;
 }
 
@@ -559,9 +566,8 @@ describe("Story 41-03: Live ETA to reach required amount", () => {
     expect(etaLabel).toBeNull();
   });
 
-  it("shows live countdown that updates every second", async () => {
+  it("does not reduce ETA from local wall-clock time alone when the resource snapshot is unchanged", async () => {
     vi.useFakeTimers();
-    const TICKS_PER_SECOND = 5;
     // wood: 50, need 200, perTick=2/tick → 10/s → (200-50)/10 = 15s ETA
     const state = makeState({
       wood: { value: 50, maxValue: 500, perTick: 2 },
@@ -581,10 +587,39 @@ describe("Story 41-03: Live ETA to reach required amount", () => {
 
     // Advance 5 seconds
     await act(async () => { vi.advanceTimersByTime(5000); });
-    expect(getEta()).toMatch(/10s/);
+    expect(getEta()).toMatch(/15s/);
 
     vi.useRealTimers();
-    (TICKS_PER_SECOND); // used in production, silence unused warning
+  });
+
+  it("reduces ETA when a newer resource snapshot shows progress toward the goal", () => {
+    const initialState = makeState({
+      wood: { value: 50, maxValue: 500, perTick: 2 },
+    });
+    const advancedState = makeState({
+      wood: { value: 100, maxValue: 500, perTick: 2 },
+    });
+
+    const { rerender } = render(
+      <WithInspector>
+        <HoverAction prices={[{ name: "wood", val: 200 }]} />
+        <ResourcePanel state={initialState} />
+      </WithInspector>,
+    );
+
+    const getEta = () =>
+      screen.getByTestId("resource-wood").querySelector(".resource-item-eta")?.textContent ?? "";
+
+    expect(getEta()).toMatch(/15s/);
+
+    rerender(
+      <WithInspector>
+        <HoverAction prices={[{ name: "wood", val: 200 }]} />
+        <ResourcePanel state={advancedState} />
+      </WithInspector>,
+    );
+
+    expect(getEta()).toMatch(/10s/);
   });
 });
 
@@ -817,5 +852,194 @@ describe("Story 32-08: Resource maxValue and demand display", () => {
     render(<WithInspector><ResourcePanel state={state} /></WithInspector>);
     // Should show some demand reduction indicator on the catnip row
     expect(screen.getByTestId("resource-catnip").textContent).toMatch(/-15%|-0\.15|demand/i);
+  });
+});
+
+// ── Story 50-01: Resource type color coding ──────────────────────────────────
+
+describe("resource type color coding", () => {
+  it("applies custom color to resource name for colored resources", () => {
+    const state = makeState({ uranium: { value: 5, unlocked: true } });
+    render(<WithInspector><ResourcePanel state={state} /></WithInspector>);
+    const row = screen.getByTestId("resource-uranium");
+    const nameEl = row.querySelector(".resource-name") as HTMLElement;
+    expect(nameEl.style.color).toBe("#4EA24E");
+  });
+
+  it("applies uncommon type class when no custom color", () => {
+    const state = makeState({ furs: { value: 5, unlocked: true } });
+    render(<WithInspector><ResourcePanel state={state} /></WithInspector>);
+    const row = screen.getByTestId("resource-furs");
+    const nameEl = row.querySelector(".resource-name") as HTMLElement;
+    expect(nameEl.classList.contains("resource-name--uncommon")).toBe(true);
+  });
+
+  it("applies rare type class with text-shadow when no custom color", () => {
+    const state = makeState({ unicorns: { value: 5, unlocked: true } });
+    render(<WithInspector><ResourcePanel state={state} /></WithInspector>);
+    const row = screen.getByTestId("resource-unicorns");
+    const nameEl = row.querySelector(".resource-name") as HTMLElement;
+    expect(nameEl.classList.contains("resource-name--rare")).toBe(true);
+  });
+
+  it("does not apply special styling to common resources", () => {
+    const state = makeState({ wood: { value: 5, unlocked: true } });
+    render(<WithInspector><ResourcePanel state={state} /></WithInspector>);
+    const row = screen.getByTestId("resource-wood");
+    const nameEl = row.querySelector(".resource-name") as HTMLElement;
+    expect(nameEl.style.color).toBe("");
+    expect(nameEl.classList.contains("resource-name--uncommon")).toBe(false);
+    expect(nameEl.classList.contains("resource-name--rare")).toBe(false);
+  });
+});
+
+// ── Story 50-02: Capacity warning colors ─────────────────────────────────────
+
+describe("capacity warning colors", () => {
+  it("shows orange notice when value > 95% of max", () => {
+    const state = makeState({ wood: { value: 960, maxValue: 1000, unlocked: true } });
+    render(<WithInspector><ResourcePanel state={state} /></WithInspector>);
+    const row = screen.getByTestId("resource-wood");
+    const valueEl = row.querySelector(".resource-value") as HTMLElement;
+    expect(valueEl.classList.contains("resource-value--notice")).toBe(true);
+  });
+
+  it("shows coral warning when value > 75% of max but <= 95%", () => {
+    const state = makeState({ wood: { value: 800, maxValue: 1000, unlocked: true } });
+    render(<WithInspector><ResourcePanel state={state} /></WithInspector>);
+    const row = screen.getByTestId("resource-wood");
+    const valueEl = row.querySelector(".resource-value") as HTMLElement;
+    expect(valueEl.classList.contains("resource-value--warn")).toBe(true);
+  });
+
+  it("no warning styling when below 75%", () => {
+    const state = makeState({ wood: { value: 500, maxValue: 1000, unlocked: true } });
+    render(<WithInspector><ResourcePanel state={state} /></WithInspector>);
+    const row = screen.getByTestId("resource-wood");
+    const valueEl = row.querySelector(".resource-value") as HTMLElement;
+    expect(valueEl.classList.contains("resource-value--notice")).toBe(false);
+    expect(valueEl.classList.contains("resource-value--warn")).toBe(false);
+  });
+
+  it("no warning when maxValue is 0", () => {
+    const state = makeState({ science: { value: 500, maxValue: 0, unlocked: true } });
+    render(<WithInspector><ResourcePanel state={state} /></WithInspector>);
+    const row = screen.getByTestId("resource-science");
+    const valueEl = row.querySelector(".resource-value") as HTMLElement;
+    expect(valueEl.classList.contains("resource-value--notice")).toBe(false);
+    expect(valueEl.classList.contains("resource-value--warn")).toBe(false);
+  });
+});
+
+// ── Story 50-03: Weather production modifier badge ───────────────────────────
+
+describe("weather production modifier badge", () => {
+  it("shows positive weather badge for spring catnip", () => {
+    const state = makeState(
+      { catnip: { value: 10, perTick: 1, unlocked: true } },
+      {},
+      { calendar: { day: 50, season: 0, year: 1 } }, // spring
+    );
+    render(<WithInspector><ResourcePanel state={state} /></WithInspector>);
+    const row = screen.getByTestId("resource-catnip");
+    const badge = row.querySelector(".weather-badge") as HTMLElement;
+    expect(badge).toBeTruthy();
+    expect(badge.textContent).toContain("+50%");
+    expect(badge.classList.contains("weather-badge--pos")).toBe(true);
+  });
+
+  it("shows negative weather badge for winter catnip", () => {
+    const state = makeState(
+      { catnip: { value: 10, perTick: 1, unlocked: true } },
+      {},
+      { calendar: { day: 50, season: 3, year: 1 } }, // winter
+    );
+    render(<WithInspector><ResourcePanel state={state} /></WithInspector>);
+    const row = screen.getByTestId("resource-catnip");
+    const badge = row.querySelector(".weather-badge") as HTMLElement;
+    expect(badge).toBeTruthy();
+    expect(badge.textContent).toContain("-75%");
+    expect(badge.classList.contains("weather-badge--neg")).toBe(true);
+  });
+
+  it("no weather badge for non-catnip resources", () => {
+    const state = makeState(
+      { wood: { value: 10, perTick: 1, unlocked: true } },
+      {},
+      { calendar: { day: 50, season: 0, year: 1 } },
+    );
+    render(<WithInspector><ResourcePanel state={state} /></WithInspector>);
+    const row = screen.getByTestId("resource-wood");
+    expect(row.querySelector(".weather-badge")).toBeNull();
+  });
+
+  it("no weather badge when perTick is 0", () => {
+    const state = makeState(
+      { catnip: { value: 10, perTick: 0, unlocked: true } },
+      {},
+      { calendar: { day: 50, season: 0, year: 1 } },
+    );
+    render(<WithInspector><ResourcePanel state={state} /></WithInspector>);
+    const row = screen.getByTestId("resource-catnip");
+    expect(row.querySelector(".weather-badge")).toBeNull();
+  });
+});
+
+// ── Story 50-04: Resource visibility toggle (UI) ─────────────────────────────
+
+describe("resource visibility toggle", () => {
+  it("hides resources listed in hiddenResources", () => {
+    const state = makeState(
+      {
+        wood: { value: 100, unlocked: true },
+        iron: { value: 50, unlocked: true },
+      },
+      {},
+      { hiddenResources: ["iron"] },
+    );
+    render(<WithInspector><ResourcePanel state={state} /></WithInspector>);
+    expect(screen.getByTestId("resource-wood")).toBeTruthy();
+    expect(screen.queryByTestId("resource-iron")).toBeNull();
+  });
+});
+
+// ── Story 50-05: Craft shortcut cost tooltips ────────────────────────────────
+
+describe("craft shortcut cost tooltips", () => {
+  it("shows ingredient cost breakdown in tooltip for percentage shortcuts", () => {
+    const state = makeState(
+      {
+        wood: { value: 10000, unlocked: true },
+        beam: { value: 0, unlocked: true },
+      },
+      {},
+    );
+    // Need workshop crafts unlocked for craft shortcuts to show
+    const stateWithCrafts = {
+      ...state,
+      workshop: { crafts: { beam: { unlocked: true } }, upgrades: {} },
+    } as unknown as import("@kittens/api-spec").GameStateResponse;
+    render(<WithInspector><ResourcePanel state={stateWithCrafts} /></WithInspector>);
+    const s1Btn = screen.getByTestId("resource-craft-beam-s1");
+    // Tooltip should contain cost info (wood cost for beams)
+    expect(s1Btn.getAttribute("title")).toMatch(/wood/i);
+  });
+
+  it("All button has no cost breakdown in tooltip", () => {
+    const state = makeState(
+      {
+        wood: { value: 10000, unlocked: true },
+        beam: { value: 0, unlocked: true },
+      },
+      {},
+    );
+    const stateWithCrafts = {
+      ...state,
+      workshop: { crafts: { beam: { unlocked: true } }, upgrades: {} },
+    } as unknown as import("@kittens/api-spec").GameStateResponse;
+    render(<WithInspector><ResourcePanel state={stateWithCrafts} /></WithInspector>);
+    const allBtn = screen.getByTestId("resource-craft-beam-all");
+    // All button should NOT contain ingredient cost breakdown
+    expect(allBtn.getAttribute("title")).not.toMatch(/wood.*:/i);
   });
 });

@@ -286,6 +286,10 @@ body {
   white-space: nowrap;
 }
 
+.resource-name--uncommon { color: coral; }
+.resource-name--rare { color: orange; text-shadow: 1px 0px 10px coral; }
+.resource-name--exotic { color: var(--t2); }
+
 .resource-values {
   display: flex;
   align-items: baseline;
@@ -300,6 +304,9 @@ body {
   color: var(--t1);
   letter-spacing: -0.03em;
 }
+
+.resource-value--notice { color: orange; }
+.resource-value--warn { color: coral; opacity: 0.75; }
 
 .resource-max {
   font-family: var(--ff-mono);
@@ -371,6 +378,15 @@ body {
 
 .rate-badge--pos { color: var(--green); }
 .rate-badge--neg { color: var(--red); }
+
+.weather-badge {
+  font-family: var(--ff-mono);
+  font-size: var(--text-2xs);
+  margin-left: 4px;
+  flex-shrink: 0;
+}
+.weather-badge--pos { color: var(--green); }
+.weather-badge--neg { color: var(--red); }
 
 /* ── Epic 41: Resource Cost Highlighting ─────────────────── */
 
@@ -696,6 +712,25 @@ body {
   margin-bottom: var(--sp-3);
   padding-bottom: var(--sp-2);
   border-bottom: 1px solid var(--border-subtle);
+}
+
+/* ── Building Groups (flex-wrap layout) ──────────────────── */
+.building-groups {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-4);
+}
+
+.panel-section {
+  flex: 1 1 100%;
+  min-width: 0;
+}
+
+@media (min-width: 640px) {
+  .panel-section--compact {
+    flex: 1 1 calc(50% - var(--sp-4) / 2);
+    max-width: calc(50% - var(--sp-4) / 2);
+  }
 }
 
 /* ── Card Grid (Buildings) ───────────────────────────────── */

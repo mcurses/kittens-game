@@ -1,12 +1,14 @@
 import type { Serializable } from "@kittens/shared";
 import { describe, expect, it } from "vitest";
+import { applyAction } from "./actions.js";
 import {
+  RESOURCE_DISPLAY,
   RESOURCE_NAMES,
   ResourceManager,
   calcResourcePerTick,
   createInitialResources,
 } from "./resources.js";
-import { createInitialState } from "./state.js";
+import { createInitialState, deserialize, serialize } from "./state.js";
 
 describe("RESOURCE_NAMES", () => {
   it("includes catnip", () => {
@@ -366,4 +368,69 @@ describe("ResourceManager", () => {
     });
   });
 
+});
+
+// ── Story 50-01: Resource display metadata ────────────────────────────────────
+
+describe("RESOURCE_DISPLAY", () => {
+  it("has an entry for every resource", () => {
+    for (const name of RESOURCE_NAMES) {
+      const meta = RESOURCE_DISPLAY[name];
+      expect(meta).toBeDefined();
+      expect(meta!.type).toMatch(/^(common|uncommon|rare|exotic)$/);
+    }
+  });
+
+  it("marks uranium as uncommon with custom color", () => {
+    expect(RESOURCE_DISPLAY.uranium).toEqual({ type: "uncommon", color: "#4EA24E" });
+  });
+
+  it("marks unobtainium as rare with custom color", () => {
+    expect(RESOURCE_DISPLAY.unobtainium).toEqual({ type: "rare", color: "#A00000" });
+  });
+
+  it("marks necrocorn as rare with purple color", () => {
+    expect(RESOURCE_DISPLAY.necrocorn).toEqual({ type: "rare", color: "#9A2EFE" });
+  });
+
+  it("marks catnip as common with no custom color", () => {
+    expect(RESOURCE_DISPLAY.catnip).toEqual({ type: "common" });
+  });
+
+  it("marks antimatter as exotic with custom color", () => {
+    expect(RESOURCE_DISPLAY.antimatter).toEqual({ type: "exotic", color: "#5A0EDE" });
+  });
+});
+
+// ── Story 50-04: Resource visibility toggle ──────────────────────────────────
+
+describe("TOGGLE_RESOURCE_VISIBILITY", () => {
+  it("hides a resource when toggled on", () => {
+    const state = createInitialState();
+    expect(state.hiddenResources).toEqual([]);
+    const next = applyAction(state, { type: "TOGGLE_RESOURCE_VISIBILITY", name: "wood" });
+    expect(next.hiddenResources).toContain("wood");
+  });
+
+  it("shows a resource when toggled off", () => {
+    let state = createInitialState();
+    state = applyAction(state, { type: "TOGGLE_RESOURCE_VISIBILITY", name: "wood" });
+    expect(state.hiddenResources).toContain("wood");
+    state = applyAction(state, { type: "TOGGLE_RESOURCE_VISIBILITY", name: "wood" });
+    expect(state.hiddenResources).not.toContain("wood");
+  });
+
+  it("persists through serialize/deserialize round-trip", () => {
+    let state = createInitialState();
+    state = applyAction(state, { type: "TOGGLE_RESOURCE_VISIBILITY", name: "iron" });
+    state = applyAction(state, { type: "TOGGLE_RESOURCE_VISIBILITY", name: "gold" });
+    const restored = deserialize(serialize(state));
+    expect(restored.hiddenResources).toEqual(["iron", "gold"]);
+  });
+
+  it("handles empty hiddenResources in deserialization", () => {
+    const state = createInitialState();
+    const restored = deserialize(serialize(state));
+    expect(restored.hiddenResources).toEqual([]);
+  });
 });

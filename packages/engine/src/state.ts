@@ -48,6 +48,8 @@ export interface GameState {
   readonly time: TimeState;
   /** Achievements and badges unlocked this run. */
   readonly achievements: AchievementState;
+  /** Resources the player has hidden from the resource panel. */
+  readonly hiddenResources: readonly string[];
 }
 
 export function createInitialState(): GameState {
@@ -68,6 +70,7 @@ export function createInitialState(): GameState {
     diplomacy: createInitialDiplomacy(),
     time: createInitialTime(),
     achievements: createInitialAchievements(),
+    hiddenResources: [],
   };
 }
 
@@ -149,6 +152,7 @@ export interface SerializedGameState {
     achievements: Array<{ name: string; unlocked: boolean; starUnlocked: boolean }>;
     badges: Array<{ name: string; unlocked: boolean }>;
   };
+  hiddenResources?: string[];
 }
 
 /**
@@ -340,6 +344,7 @@ export function serialize(state: GameState): SerializedGameState {
         unlocked: e.unlocked,
       })),
     },
+    ...(state.hiddenResources.length > 0 ? { hiddenResources: [...state.hiddenResources] } : {}),
   };
 }
 
@@ -484,5 +489,6 @@ export function deserialize(data: SerializedGameState): GameState {
     diplomacy,
     time,
     achievements,
+    hiddenResources: Array.isArray(data.hiddenResources) ? data.hiddenResources.filter((n): n is string => typeof n === "string") : [],
   };
 }
