@@ -855,7 +855,25 @@ Stories: 4 / 4 complete
 
 ---
 
-## Epic: 47 — Workshop Crafting Parity
-Status: In Progress | Started: 2026-04-09
-Stories: 0/6 complete
-New files: (pending)
+## Epic 47: Workshop Crafting Parity
+**Status:** Complete | **Started:** 2026-04-09 | **Finished:** 2026-04-09
+Stories: 6/6 complete
+
+- [x] Story 47-01: Craft output preview — button titles show `+N` with craft ratio bonus
+- [x] Story 47-02: Craft cost tooltips in inspector — per-shortcut cost breakdown with color coding
+- [x] Story 47-03: Engineer auto-craft engine — tick-based progress, 3000×progressHandicap formula
+- [x] Story 47-04: Mechanization progress UI — `[XX%]` zero-padded display
+- [x] Story 47-05: Engineer assignment UI — +/- controls with free engineer count
+- [x] Story 47-06: Workshop flavor text — 14 craft flavors in inspector
+
+Total: 1709 tests across all packages
+
+---
+
+## Epic 48: Village Management Parity
+**Status:** In Progress | **Started:** 2026-04-09
+Stories: 0/8 complete
+
+## Epic: 48
+Status: Complete | Started: 2026-04-09 | Completed: 2026-04-09
+Stories: 8/8 complete

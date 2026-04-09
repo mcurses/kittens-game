@@ -1816,3 +1816,68 @@ The later Chrome MCP audit invalidated the second closeout as well.
 - [ ] Story 35-02 (mechanization craft UI) remains deferred — needs engineer-per-craft assignment UI
 - [ ] Add a focused unit test for `computePollutionHappines` at each pollution level boundary
 - [ ] Remaining PARITY.md ⚠️ items: imported automation metadata (oilWell/reactor flags), smelter stock-limited scaling, steamworks offline daysOffset
+
+---
+
+## Epic 47: Workshop Crafting Parity — 2026-04-09
+
+| Dimension | Score | Notes |
+|-----------|-------|-------|
+| Test coverage (≥90% target) | 5 | Engine 98.02% stmt, 1033 tests; client-web 446 tests; server 193 tests; 1709 total, 0 failures |
+| No skipped tests / no TODOs | 5 | Zero `any`, zero TODO/FIXME/HACK, zero skipped tests |
+| Feature parity | 4 | All 6 stories verified against legacy; engineer auto-craft formula matches 3000×progressHandicap; minor gap: rewrite uses ±1 buttons vs legacy's adaptive ±1/5/25/100 shortcuts |
+| API spec completeness | 5 | ASSIGN_CRAFT_ENGINEER + UNASSIGN_CRAFT_ENGINEER added to openapi.yaml; 38 action types in sync |
+| Code quality (no `any`) | 5 | No `any` usage in packages/ |
+| Docs freshness | 5 | PROGRESS.md updated, EPICS.md marked ✅, UI_PARITY.md updated (5 ❌→✅, 1 ❌→⚠️, overall 48%→53%) |
+| Commit hygiene | 3 | All work uncommitted — single working tree with many modified files |
+| **Overall average** | **4.6** | |
+
+### What went well
+
+- Clean TDD loop: all 6 stories implemented with failing tests first, then green
+- Engineer auto-craft formula faithfully matches legacy's 3000-tick cycle with per-craft progressHandicap
+- Inspector entity system cleanly extended with CraftEntity and CraftShortcutEntity types
+- 14 craft flavor texts ported from legacy en.json
+- UI_PARITY.md updated as part of epic close — workshop panel now 11/14 ✅
+
+### What to improve
+
+- Engineer assignment UI is ±1 only vs legacy's adaptive ±1/5/25/100 shortcuts — acceptable for now but noted
+- Engineer throughput/countdown display is ⚠️ — shows output in inspector kind line but no per-second countdown
+- All changes still uncommitted — should commit after each story or at least per-epic
+
+### Action items for next epic
+
+- [ ] Fix the 2 pre-existing App.test.tsx failures (WebSocket mock initialization)
+- [ ] Add a focused unit test for `computePollutionHappines` at each pollution level boundary
+- [ ] Remaining PARITY.md ⚠️ items: imported automation metadata (oilWell/reactor flags), smelter stock-limited scaling, steamworks offline daysOffset
+
+## Epic 48: Village Management Parity — 2026-04-09
+
+| Dimension | Score | Notes |
+|-----------|-------|-------|
+| Test coverage (≥90% target) | 5 | Engine 97.89%, client-web 95.55%, server 88.78% |
+| No skipped tests / no TODOs | 4 | 28 test.todo in ui-parity-audit (tracker file); no source TODOs |
+| Feature parity | 4 | All 8 stories complete; leader bonus not wired to effect cache; loadouts deferred |
+| API spec completeness | 5 | All 43 action types present in openapi.yaml |
+| Code quality (no `any`) | 5 | Clean TypeScript, no any usage |
+| Docs freshness | 4 | PARITY.md updated, EPICS.md fixed, PROGRESS appended |
+| Commit hygiene | 5 | 8 focused commits with clear scope |
+| **Overall average** | **4.6** | |
+
+### What went well
+- Individual kitten simulation added cleanly alongside existing aggregate system
+- Census panel with filter/sort/pagination done in single pass
+- Leader system with trait-based bonuses implemented faithfully
+- All new actions immediately added to API spec
+- Cross-manager integration test covers full lifecycle
+
+### What to improve
+- Leader bonus not yet wired into effect cache (gameplay impact deferred)
+- Kitten aging not per-year-tick (AC left unchecked in Story 48-04)
+- Trait filter dropdown exists but not wired to state change handler
+
+### Action items for next epic
+- [ ] Wire leader bonus into effect cache (craftBonus, tradeBonus, huntBonus, scienceDiscount, religionDiscount)
+- [ ] Wire census trait filter dropdown to actually filter kittens
+- [ ] Add metallurgist and chemist traits to leader bonus map

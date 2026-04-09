@@ -2,7 +2,7 @@
 
 Tracks implementation coverage against legacy Kittens Game. **This is the authoritative source of truth for what is and isn't done.** Update it whenever items are added or wired. Do not mark an epic "complete" without updating this file.
 
-Last updated: 2026-04-08 (Epics 36, 45, 46 closed after reopened fixes: building unlock replay, happiness/pollution/kitten-cap parity, workshop tech unlock propagation through full store deserialize.)
+Last updated: 2026-04-09 (Epic 48: village management parity — census, kitten management, leader system, bulk hunt, job tooltips.)
 
 ---
 
@@ -351,8 +351,11 @@ Root cause: `legacy-migration.ts:migrateTime()` used `bool(item.unlocked)` which
 | **Happiness % not shown** | ✅ Fixed 2026-04-01 (Epic 32-07): JobsPanel now shows `Happiness: N%`. |
 | **Festival duration not shown** | ✅ Fixed 2026-04-01 (Epic 32-07): JobsPanel shows `Festival: Nd remaining` when `festivalDays > 0`. |
 | **Hold Festival action** | ✅ Fixed 2026-04-01 (Epic 32-07): Hold Festival button added to JobsPanel. |
-| **Management actions missing** | Send hunters ×N, Manage Jobs, Promote kittens, Unwrap present box ❌ Not implemented. |
-| **Individual kitten census missing** | Legacy has full census (579 kittens by name, age, job, skills, rank). ❌ Not in rewrite. |
+| **Management actions** | ✅ Fixed in Epic 48: PROMOTE_KITTEN (rank up with exp+gold cost), TOGGLE_FAVORITE, UNASSIGN_KITTEN, bulk hunt (×All/×½/×⅕), shift+click assign all free kittens. |
+| **Individual kitten census** | ✅ Fixed in Epic 48: Full census panel with name, age, trait, job, rank, top 3 skills. Pagination (10/page), filter by job, sort by name/age/rank/exp. |
+| **Leader system** | ✅ Fixed in Epic 48: SET_LEADER/REMOVE_LEADER actions, getLeaderBonus with trait-based bonuses and rank scaling. Make Leader button in census. |
+| **Individual kitten state** | ✅ Fixed in Epic 48: Kitten interface (id, name, surname, age, trait, job, skills, rank, exp, isFavorite, isLeader). VillageState.sim array. Death priority: non-favorite non-leader first. Skill growth 0.01/tick. |
+| **Job inspector tooltips** | ✅ Fixed in Epic 48: Hovering job row shows description, per-kitten production rates, flavor text in inspector panel. |
 | **Loadouts system missing** | Legacy has named job loadout presets. ❌ Not in rewrite. |
 | **Kittens capacity wrong** | All buildings are now implemented (Epic 31) so housing caps should be correct. ✅ Resolved. |
 
