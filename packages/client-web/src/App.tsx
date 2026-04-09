@@ -11,6 +11,7 @@ import { ResourcePanel } from "./ResourcePanel.js";
 import { SessionsPanel } from "./SessionsPanel.js";
 import { SlotProvider } from "./SlotContext.js";
 import { TabContainer } from "./TabContainer.js";
+import { ToolbarPanel } from "./ToolbarPanel.js";
 import { VillagePanel } from "./VillagePanel.js";
 import { useGameState } from "./useGameState.js";
 import { useWebSocket } from "./useWebSocket.js";
@@ -95,6 +96,7 @@ function GameView(): React.ReactElement {
             <div className="header-sep" aria-hidden="true" />
             <CalendarDisplay state={state} />
             <div className="header-spacer" />
+            <ToolbarPanel state={state} />
             <VillagePanel state={state} />
           </header>
 
