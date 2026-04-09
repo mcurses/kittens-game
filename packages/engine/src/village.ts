@@ -133,7 +133,7 @@ const POL_LBASE = 10_000_000;
  * Compute the happiness penalty from cathPollution.
  * Port of legacy buildings.js calculatePollutionEffects() → pollutionHappines term.
  */
-function computePollutionHappines(cathPollution: number): number {
+export function computePollutionHappines(cathPollution: number): number {
   if (cathPollution <= 0) return 0;
   const pollutionLevel = Math.max(Math.floor(Math.log10(cathPollution * 10 / POL_LBASE)), 0);
 

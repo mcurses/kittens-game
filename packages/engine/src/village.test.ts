@@ -4,7 +4,7 @@ import { CalendarManager } from "./calendar.js";
 import { createInitialResources } from "./resources.js";
 import { createInitialState } from "./state.js";
 import { tick } from "./tick.js";
-import { JOB_DEFS, LUXURY_RESOURCE_NAMES, UNCOMMON_RESOURCE_NAMES, VillageManager, applyHoldFestival, applyHunt, createInitialVillage, totalAssignedKittens } from "./village.js";
+import { JOB_DEFS, LUXURY_RESOURCE_NAMES, UNCOMMON_RESOURCE_NAMES, VillageManager, applyHoldFestival, applyHunt, computePollutionHappines, createInitialVillage, totalAssignedKittens } from "./village.js";
 
 describe("JOB_DEFS", () => {
   it("contains all core jobs", () => {
@@ -1048,5 +1048,130 @@ describe("applyHoldFestival", () => {
     };
     const next = applyHoldFestival(state);
     expect(next.calendar.festivalDays).toBe(600); // 200 + 400
+  });
+});
+
+// ── computePollutionHappines: Pollution Level Boundaries ────────────────────
+
+describe("computePollutionHappines", () => {
+  const POL_LBASE = 10_000_000;
+
+  it("returns 0 for zero or negative pollution", () => {
+    expect(computePollutionHappines(0)).toBe(0);
+    expect(computePollutionHappines(-100)).toBe(0);
+  });
+
+  describe("Level 0: No pollution penalty (pollutionLevel = 0)", () => {
+    it("returns 0 for pollution < 1,000,000", () => {
+      expect(computePollutionHappines(999_999)).toBe(0);
+      expect(computePollutionHappines(500_000)).toBe(0);
+      expect(computePollutionHappines(1)).toBe(0);
+    });
+  });
+
+  describe("Level 1: Linear ramp starting at 50% of range (pollutionLevel = 1)", () => {
+    const level1Min = 1_000_000; // Math.floor(Math.log10(1_000_000 * 10 / 10_000_000)) = 0
+    const level1Max = 100_000_000; // Math.floor(Math.log10(100_000_000 * 10 / 10_000_000)) = 2, so level 1 goes up to just below this
+    const halfThreshold = POL_LBASE * 10 / 2; // 10_000_000 * 10 / 2 = 50_000_000
+
+    it("returns 0 below halfThreshold", () => {
+      expect(computePollutionHappines(level1Min)).toBe(0);
+      expect(computePollutionHappines(halfThreshold - 1)).toBe(0);
+    });
+
+    it("returns negative value at and above halfThreshold", () => {
+      const atHalf = computePollutionHappines(halfThreshold);
+      const aboveHalf = computePollutionHappines(halfThreshold + 1_000_000);
+      expect(atHalf).toBeCloseTo(0, 10); // exactly at threshold is 0
+      expect(aboveHalf).toBeLessThan(0);
+      expect(aboveHalf).toBeCloseTo(-0.00000032 * 1_000_000, 5);
+    });
+
+    it("scales linearly with pollution above halfThreshold", () => {
+      const penalty1 = computePollutionHappines(halfThreshold + 1_000_000);
+      const penalty2 = computePollutionHappines(halfThreshold + 2_000_000);
+      const diff = penalty2 - penalty1;
+      expect(diff).toBeCloseTo(-0.00000032 * 1_000_000, 5);
+    });
+  });
+
+  describe("Level 2: Log-based penalty with coefficient 1.08 (pollutionLevel = 2)", () => {
+    const level2Min = 100_000_000; // Math.floor(Math.log10(100_000_000 * 10 / 10_000_000)) = 2
+    const level2Max = 1_000_000_000; // Math.floor(Math.log10(1_000_000_000 * 10 / 10_000_000)) = 3
+
+    it("applies log-based penalty at level 2", () => {
+      const pollution = 500_000_000; // well into level 2
+      const result = computePollutionHappines(pollution);
+      const expected = -Math.log(pollution) * 1.08;
+      expect(result).toBeCloseTo(expected, 4);
+    });
+
+    it("transitions from level 1 to level 2 around 100 million", () => {
+      const level1Penalty = computePollutionHappines(50_000_000); // upper level 1
+      const level2Penalty = computePollutionHappines(100_000_000); // level 2
+      // Level 2 has steeper penalty curve
+      expect(level2Penalty).toBeLessThan(level1Penalty);
+    });
+  });
+
+  describe("Level 3: Log-based penalty with coefficient 1.18 (pollutionLevel = 3)", () => {
+    const level3Min = 1_000_000_000; // Math.floor(Math.log10(1_000_000_000 * 10 / 10_000_000)) = 3
+
+    it("applies log-based penalty at level 3", () => {
+      const pollution = 5_000_000_000; // well into level 3
+      const result = computePollutionHappines(pollution);
+      const expected = -Math.log(pollution) * 1.18;
+      expect(result).toBeCloseTo(expected, 4);
+    });
+
+    it("has steeper penalty than level 2", () => {
+      const level2Pollution = 500_000_000;
+      const level3Pollution = 5_000_000_000;
+      const penalty2 = computePollutionHappines(level2Pollution);
+      const penalty3 = computePollutionHappines(level3Pollution);
+      // Higher coefficient (1.18 vs 1.08) means steeper penalty
+      expect(penalty3).toBeLessThan(penalty2);
+    });
+  });
+
+  describe("Level 4+: Log-based penalty with coefficient 1.2 (pollutionLevel >= 4)", () => {
+    const level4Min = 10_000_000_000; // Math.floor(Math.log10(10_000_000_000 * 10 / 10_000_000)) = 4
+
+    it("applies log-based penalty at level 4", () => {
+      const pollution = 50_000_000_000;
+      const result = computePollutionHappines(pollution);
+      const expected = -Math.log(pollution) * 1.2;
+      expect(result).toBeCloseTo(expected, 4);
+    });
+
+    it("has steepest penalty at highest levels", () => {
+      const level3Pollution = 5_000_000_000;
+      const level4Pollution = 50_000_000_000;
+      const penalty3 = computePollutionHappines(level3Pollution);
+      const penalty4 = computePollutionHappines(level4Pollution);
+      // Coefficient 1.2 is highest, plus log grows
+      expect(penalty4).toBeLessThan(penalty3);
+    });
+  });
+
+  it("boundary test: transitions between all levels", () => {
+    const tests = [
+      { pollution: 999_999, expectedPenalty: 0 },
+      { pollution: 1_000_000, expectedPenalty: 0 },
+      { pollution: 50_000_000, expectedPenalty: 0 }, // below halfThreshold
+      { pollution: 50_000_001, expectedPenalty: "negative" }, // above halfThreshold
+      { pollution: 100_000_000, expectedPenalty: "negative" }, // level 2
+      { pollution: 1_000_000_000, expectedPenalty: "negative" }, // level 3
+      { pollution: 10_000_000_000, expectedPenalty: "negative" }, // level 4
+    ];
+
+    for (const test of tests) {
+      const result = computePollutionHappines(test.pollution);
+      if (test.expectedPenalty === 0) {
+        expect(result).toBeCloseTo(0, 10);
+      } else if (test.expectedPenalty === "negative") {
+        expect(result).toBeLessThan(0);
+      }
+    }
   });
 });
