@@ -25,8 +25,10 @@ export type { BuildingDef, BuildingEntry, BuildingState, PriceEntry } from "./bu
 export {
   BUILDING_DEFS,
   BuildingManager,
+  STAGE_LABELS,
   canAfford,
   createInitialBuildings,
+  getBuildingDisplayName,
   getBuildingPrice,
 } from "./buildings.js";
 export type { JobDef, JobEntry, Kitten, KittenTrait, VillageState } from "./village.js";

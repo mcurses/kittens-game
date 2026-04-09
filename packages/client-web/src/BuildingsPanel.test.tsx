@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import React from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { InspectorProvider } from "./InspectorContext.js";
@@ -44,6 +44,15 @@ vi.mock("@kittens/engine", () => ({
       effects: {},
     },
     {
+      name: "warehouse",
+      prices: [
+        { name: "beam", val: 2 },
+        { name: "slab", val: 2 },
+      ],
+      priceRatio: 1.15,
+      effects: {},
+    },
+    {
       name: "smelter",
       prices: [{ name: "minerals", val: 200 }],
       priceRatio: 1.15,
@@ -67,7 +76,48 @@ vi.mock("@kittens/engine", () => ({
       priceRatio: 1.15,
       effects: {},
     },
+    {
+      name: "harbor",
+      prices: [{ name: "wood", val: 500 }], priceRatio: 1.15, effects: {},
+    },
+    {
+      name: "mint",
+      prices: [{ name: "minerals", val: 600 }], priceRatio: 1.15, effects: {},
+    },
+    {
+      name: "workshop",
+      prices: [{ name: "wood", val: 100 }], priceRatio: 1.15, effects: {},
+    },
+    {
+      name: "ziggurat",
+      prices: [{ name: "megalith", val: 1 }], priceRatio: 1.15, effects: {},
+    },
+    {
+      name: "aiCore",
+      prices: [{ name: "science", val: 1000 }], priceRatio: 1.15, effects: {},
+    },
+    {
+      name: "zebraOutpost",
+      prices: [{ name: "ivory", val: 100 }], priceRatio: 1.15, effects: {},
+    },
   ],
+  STAGE_LABELS: {
+    pasture: ["Pasture", "Solar Farm"],
+    aqueduct: ["Aqueduct", "Hydro Plant"],
+    library: ["Library", "Data Center"],
+    warehouse: ["Warehouse", "Spaceport"],
+    amphitheatre: ["Amphitheatre", "Broadcast Tower"],
+  },
+  getBuildingDisplayName: (name: string, stage: number) => {
+    const labels: Record<string, string[]> = {
+      pasture: ["Pasture", "Solar Farm"],
+      aqueduct: ["Aqueduct", "Hydro Plant"],
+      library: ["Library", "Data Center"],
+      warehouse: ["Warehouse", "Spaceport"],
+      amphitheatre: ["Amphitheatre", "Broadcast Tower"],
+    };
+    return labels[name]?.[stage];
+  },
   // getBuildingPrice returns base prices unchanged for test simplicity
   getBuildingPrice: (def: { prices: readonly { name: string; val: number }[] }) => def.prices,
   deriveUiVisibility: (state: { science?: { techs?: Record<string, { researched?: boolean }> } }) => ({
@@ -79,6 +129,7 @@ vi.mock("@kittens/engine", () => ({
     time: {},
     buildings: {
       brewery: { controlMode: "count", toggleVisible: true, automationVisible: false },
+      warehouse: { controlMode: "none", toggleVisible: false, automationVisible: false },
       smelter: { controlMode: "count", toggleVisible: true, automationVisible: false },
       calciner: { controlMode: "count", toggleVisible: true, automationVisible: false },
       accelerator: { controlMode: "count", toggleVisible: true, automationVisible: false },
@@ -93,12 +144,17 @@ vi.mock("@kittens/engine", () => ({
       field: { controlMode: "none", toggleVisible: false, automationVisible: false },
       hut: { controlMode: "none", toggleVisible: false, automationVisible: false },
       pasture: { controlMode: "none", toggleVisible: false, automationVisible: false },
+      harbor: { controlMode: "none", toggleVisible: false, automationVisible: false },
+      workshop: { controlMode: "none", toggleVisible: false, automationVisible: false },
+      ziggurat: { controlMode: "none", toggleVisible: false, automationVisible: false },
+      aiCore: { controlMode: "none", toggleVisible: false, automationVisible: false },
+      zebraOutpost: { controlMode: "none", toggleVisible: false, automationVisible: false },
     },
   }),
 }));
 
 function makeState(
-  buildings: Record<string, { val: number; on: number; unlocked?: boolean; automationEnabled?: boolean; jammed?: boolean }>,
+  buildings: Record<string, { val: number; on: number; unlocked?: boolean; automationEnabled?: boolean; jammed?: boolean; stage?: number; stageUnlocked?: boolean[] }>,
   resources?: Record<string, { value: number; maxValue: number }>,
 ) {
   return {
@@ -322,6 +378,58 @@ describe("BuildingsPanel", () => {
     // Inspector should show entity name
     expect(screen.getAllByText(/field/).length).toBeGreaterThan(0);
   });
+
+  it("groups visible buildings into bonfire-style categories", () => {
+    const state = makeState({
+      field: { val: 1, on: 1, unlocked: true },
+      hut: { val: 1, on: 1, unlocked: true },
+      warehouse: { val: 0, on: 0, unlocked: true },
+      mine: { val: 1, on: 1, unlocked: true },
+      smelter: { val: 1, on: 1, unlocked: true },
+      brewery: { val: 1, on: 1, unlocked: true },
+      workshop: { val: 1, on: 1, unlocked: true },
+      ziggurat: { val: 1, on: 1, unlocked: true },
+      aiCore: { val: 1, on: 1, unlocked: true },
+      zebraOutpost: { val: 1, on: 1, unlocked: true },
+    });
+
+    render(<WithInspector><BuildingsPanel state={state} /></WithInspector>);
+
+    const food = screen.getByTestId("building-category-food-production");
+    expect(within(food).getByTestId("building-field")).toBeTruthy();
+
+    const population = screen.getByTestId("building-category-population");
+    expect(within(population).getByTestId("building-hut")).toBeTruthy();
+
+    const storage = screen.getByTestId("building-category-storage");
+    expect(within(storage).getByTestId("building-warehouse")).toBeTruthy();
+
+    const resources = screen.getByTestId("building-category-resources");
+    expect(within(resources).getByTestId("building-mine")).toBeTruthy();
+
+    const industry = screen.getByTestId("building-category-industry");
+    expect(within(industry).getByTestId("building-smelter")).toBeTruthy();
+    expect(within(industry).getByTestId("building-aiCore")).toBeTruthy();
+
+    const other = screen.getByTestId("building-category-other");
+    expect(within(other).getByTestId("building-brewery")).toBeTruthy();
+    expect(within(other).getByTestId("building-workshop")).toBeTruthy();
+
+    const mega = screen.getByTestId("building-category-mega-structures");
+    expect(within(mega).getByTestId("building-ziggurat")).toBeTruthy();
+
+    const zebras = screen.getByTestId("building-category-zebras");
+    expect(within(zebras).getByTestId("building-zebraOutpost")).toBeTruthy();
+  });
+
+  it("hides empty building categories", () => {
+    const state = makeState({ field: { val: 1, on: 1, unlocked: true } });
+    render(<WithInspector><BuildingsPanel state={state} /></WithInspector>);
+
+    expect(screen.getByTestId("building-category-food-production")).toBeTruthy();
+    expect(screen.queryByTestId("building-category-industry")).toBeNull();
+    expect(screen.queryByTestId("building-category-zebras")).toBeNull();
+  });
 });
 
 // ── Epic 32 Story 32-04: Buildings on/off display + human-readable names ──────
@@ -405,5 +513,146 @@ describe("camelCase prettifier (via BuildingsPanel)", () => {
     const state = makeState({ field: { val: 1, on: 1, unlocked: true } });
     render(<WithInspector><BuildingsPanel state={state} /></WithInspector>);
     expect(screen.getByText(/^Field$/)).toBeTruthy();
+  });
+});
+
+// ── Story 49-05: Building filter tabs ───────────────────────────────────────
+
+describe("Story 49-05: Building filter tabs", () => {
+  const baseBuildings = {
+    field: { val: 3, on: 3, unlocked: true },
+    hut: { val: 1, on: 1, unlocked: true },
+    brewery: { val: 2, on: 1, unlocked: true },   // count controls, on > 0
+    steamworks: { val: 1, on: 0, unlocked: true }, // binary controls, on = 0
+  };
+  const baseResources = {
+    catnip: { value: 500, maxValue: 5000 },
+    wood: { value: 200, maxValue: 5000 },
+  };
+
+  it("renders filter tabs: All, Available, Enabled, Togglable", () => {
+    const state = makeState(baseBuildings, baseResources);
+    render(<WithInspector><BuildingsPanel state={state} /></WithInspector>);
+    expect(screen.getByTestId("building-filter-all")).toBeTruthy();
+    expect(screen.getByTestId("building-filter-available")).toBeTruthy();
+    expect(screen.getByTestId("building-filter-enabled")).toBeTruthy();
+    expect(screen.getByTestId("building-filter-togglable")).toBeTruthy();
+  });
+
+  it("All tab shows all unlocked buildings (default)", () => {
+    const state = makeState(baseBuildings, baseResources);
+    render(<WithInspector><BuildingsPanel state={state} /></WithInspector>);
+    expect(screen.getByTestId("building-field")).toBeTruthy();
+    expect(screen.getByTestId("building-hut")).toBeTruthy();
+    expect(screen.getByTestId("building-brewery")).toBeTruthy();
+    expect(screen.getByTestId("building-steamworks")).toBeTruthy();
+  });
+
+  it("Available tab shows only affordable buildings", () => {
+    // field costs 10 catnip (affordable), hut costs 5 wood (affordable)
+    // brewery costs 1000 wood (not affordable with 200 wood)
+    // steamworks costs 100 steel (not affordable — no steel in resources)
+    const state = makeState(baseBuildings, baseResources);
+    render(<WithInspector><BuildingsPanel state={state} /></WithInspector>);
+    fireEvent.click(screen.getByTestId("building-filter-available"));
+    expect(screen.getByTestId("building-field")).toBeTruthy();
+    expect(screen.getByTestId("building-hut")).toBeTruthy();
+    expect(screen.queryByTestId("building-brewery")).toBeNull();
+    expect(screen.queryByTestId("building-steamworks")).toBeNull();
+  });
+
+  it("Enabled tab shows only buildings with on > 0", () => {
+    const state = makeState(baseBuildings, baseResources);
+    render(<WithInspector><BuildingsPanel state={state} /></WithInspector>);
+    fireEvent.click(screen.getByTestId("building-filter-enabled"));
+    expect(screen.getByTestId("building-field")).toBeTruthy();
+    expect(screen.getByTestId("building-hut")).toBeTruthy();
+    expect(screen.getByTestId("building-brewery")).toBeTruthy();
+    // steamworks has on=0
+    expect(screen.queryByTestId("building-steamworks")).toBeNull();
+  });
+
+  it("Togglable tab shows only buildings with on/off controls", () => {
+    const state = makeState(baseBuildings, baseResources);
+    render(<WithInspector><BuildingsPanel state={state} /></WithInspector>);
+    fireEvent.click(screen.getByTestId("building-filter-togglable"));
+    // brewery has count controls, steamworks has binary controls
+    expect(screen.getByTestId("building-brewery")).toBeTruthy();
+    expect(screen.getByTestId("building-steamworks")).toBeTruthy();
+    // field and hut have no toggle controls
+    expect(screen.queryByTestId("building-field")).toBeNull();
+    expect(screen.queryByTestId("building-hut")).toBeNull();
+  });
+
+  it("active tab is visually highlighted", () => {
+    const state = makeState(baseBuildings, baseResources);
+    render(<WithInspector><BuildingsPanel state={state} /></WithInspector>);
+    const allTab = screen.getByTestId("building-filter-all");
+    expect(allTab.className).toContain("active");
+    fireEvent.click(screen.getByTestId("building-filter-enabled"));
+    expect(screen.getByTestId("building-filter-enabled").className).toContain("active");
+    expect(screen.getByTestId("building-filter-all").className).not.toContain("active");
+  });
+});
+
+// ── Story 49-06: Stage upgrade/downgrade UI controls ────────────────────────
+
+describe("Story 49-06: Stage UI controls", () => {
+  it("shows upgrade button when next stage is unlocked", () => {
+    const state = makeState({
+      pasture: { val: 2, on: 2, unlocked: true, stage: 0, stageUnlocked: [true, true] },
+    });
+    render(<WithInspector><BuildingsPanel state={state} /></WithInspector>);
+    expect(screen.getByTestId("building-pasture-upgrade")).toBeTruthy();
+  });
+
+  it("hides upgrade button when next stage is locked", () => {
+    const state = makeState({
+      pasture: { val: 2, on: 2, unlocked: true, stage: 0, stageUnlocked: [true, false] },
+    });
+    render(<WithInspector><BuildingsPanel state={state} /></WithInspector>);
+    expect(screen.queryByTestId("building-pasture-upgrade")).toBeNull();
+  });
+
+  it("shows downgrade button when current stage > 0", () => {
+    const state = makeState({
+      pasture: { val: 0, on: 0, unlocked: true, stage: 1, stageUnlocked: [true, true] },
+    });
+    render(<WithInspector><BuildingsPanel state={state} /></WithInspector>);
+    expect(screen.getByTestId("building-pasture-downgrade")).toBeTruthy();
+  });
+
+  it("hides downgrade button when at stage 0", () => {
+    const state = makeState({
+      pasture: { val: 2, on: 2, unlocked: true, stage: 0, stageUnlocked: [true, true] },
+    });
+    render(<WithInspector><BuildingsPanel state={state} /></WithInspector>);
+    expect(screen.queryByTestId("building-pasture-downgrade")).toBeNull();
+  });
+
+  it("upgrade button dispatches UPGRADE_BUILDING_STAGE", () => {
+    const state = makeState({
+      pasture: { val: 2, on: 2, unlocked: true, stage: 0, stageUnlocked: [true, true] },
+    });
+    render(<WithInspector><BuildingsPanel state={state} /></WithInspector>);
+    fireEvent.click(screen.getByTestId("building-pasture-upgrade"));
+    expect(mockMutate).toHaveBeenCalledWith({ type: "UPGRADE_BUILDING_STAGE", name: "pasture" });
+  });
+
+  it("downgrade button dispatches DOWNGRADE_BUILDING_STAGE", () => {
+    const state = makeState({
+      pasture: { val: 0, on: 0, unlocked: true, stage: 1, stageUnlocked: [true, true] },
+    });
+    render(<WithInspector><BuildingsPanel state={state} /></WithInspector>);
+    fireEvent.click(screen.getByTestId("building-pasture-downgrade"));
+    expect(mockMutate).toHaveBeenCalledWith({ type: "DOWNGRADE_BUILDING_STAGE", name: "pasture" });
+  });
+
+  it("displays stage label instead of camelCase name", () => {
+    const state = makeState({
+      pasture: { val: 1, on: 1, unlocked: true, stage: 1, stageUnlocked: [true, true] },
+    });
+    render(<WithInspector><BuildingsPanel state={state} /></WithInspector>);
+    expect(screen.getByText("Solar Farm")).toBeTruthy();
   });
 });
