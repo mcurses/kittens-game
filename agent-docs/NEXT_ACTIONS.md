@@ -3,7 +3,7 @@
 Overwritten by `/self-rate` at the end of each epic. Read by `/epic-start` Step 1.
 Only contains the latest action items — not a history file.
 
-**Source epic:** Epic 50: Resource Display Parity — 2026-04-09
+**Source epic:** Epic 51: Science Panels Parity — 2026-04-09
 
-- [ ] Consider modeling weather events (warm/cold) for more accurate weather badge
-- [ ] Consider adding edit mode for resource visibility (checkbox view)
+- [ ] Consider adding policy confirmation dialog (legacy has one, deferred as non-blocking)
+- [ ] Consider adding policy mutual-exclusivity display in inspector (shows which policies would be blocked)

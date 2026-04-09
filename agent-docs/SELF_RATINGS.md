@@ -1938,3 +1938,29 @@ The later Chrome MCP audit invalidated the second closeout as well.
 ### Action items for next epic
 - [ ] Consider modeling weather events (warm/cold) for more accurate weather badge
 - [ ] Consider adding edit mode for resource visibility (checkbox view)
+
+## Epic 51: Science Panels Parity — 2026-04-09
+
+| Dimension | Score | Notes |
+|-----------|-------|-------|
+| Test coverage (≥90% target) | 5 | Engine 97.84%, all 1846 tests pass |
+| No skipped tests / no TODOs | 5 | No skipped tests, no TODOs |
+| Feature parity | 4 | All 3 stories: policy panel, prestige panel, flavor text |
+| API spec completeness | 5 | All 45 actions in spec |
+| Code quality (no `any`) | 5 | No any usage in production code |
+| Docs freshness | 5 | EPICS.md, STORIES.md, PROGRESS.md all current |
+| Commit hygiene | 5 | Single focused commit |
+| **Overall average** | **4.9** | |
+
+### What went well
+- Clean implementation of policy and prestige panels with minimal code
+- All engine actions (RESEARCH_POLICY, PURCHASE_PERK, BURN_PARAGON) already existed — only UI wiring needed
+- Inspector integration for policy and perk entities was straightforward
+
+### What to improve
+- Could add more policy flavor text entries to match legacy i18n coverage
+- Metaphysics visibility logic could be tested more exhaustively
+
+### Action items for next epic
+- [ ] Consider adding policy confirmation dialog (legacy has one, deferred as non-blocking)
+- [ ] Consider adding policy mutual-exclusivity display in inspector (shows which policies would be blocked)

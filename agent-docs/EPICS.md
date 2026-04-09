@@ -54,5 +54,5 @@ Live status tracker. Update when epics start or complete.
 | 48 | **Village Management Parity** — kitten census with filters/sorting, individual kitten management, government/leader display, job loadouts, job tooltips, shift+click assign, bulk hunt | 06, 35 | P1 | ✅ Complete |
 | 49 | **Buildings Advanced Parity** — stage controls (amphitheatre→broadcastTower), late-game building rename system, filter tabs (All/Available/Enabled/Togglable/IW), almost-limited cap warning | 05, 27, 37 | P2 | ✅ Complete |
 | 50 | **Resource Display Parity** — resource type color coding, weather production modifier badge, resource visibility toggle, capacity warning colors, craft shortcut tooltips on resource rows | 04, 07, 35 | P2 | ✅ Complete |
-| 51 | **Science Panels Parity** — policy panel with adopt/block controls, metaphysics/prestige perks panel, science flavor text | 08, 11 | P2 | ⏳ Not Started |
+| 51 | **Science Panels Parity** — policy panel with adopt/block controls, metaphysics/prestige perks panel, science flavor text | 08, 11 | P2 | ✅ Complete |
 | 52 | **Toolbar / HUD Parity** — energy display with production/consumption breakdown, winter energy warning, deficit production penalty, sorrow indicator, MOTD display | 20, 25 | P2 | ⏳ Not Started |
