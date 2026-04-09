@@ -405,6 +405,17 @@ export class VillageManager implements Manager {
       effects.spicePerTickCon = -0.001 * village.kittens * (1 + spiceDemandRatio);
     }
 
+    // ── Leader bonus ────────────────────────────────────────────────────────────
+    if (village.leader) {
+      const leader = village.sim.find((k) => k.id === village.leader);
+      if (leader) {
+        const bonus = getLeaderBonus(leader);
+        if (bonus) {
+          effects[bonus.type] = (effects[bonus.type] ?? 0) + bonus.value;
+        }
+      }
+    }
+
     return effects;
   }
 
@@ -573,6 +584,8 @@ const LEADER_TRAIT_BONUSES: Record<string, { type: string; base: number }> = {
   manager: { type: "huntBonus", base: 0.50 },
   scientist: { type: "scienceDiscount", base: 0.05 },
   wise: { type: "religionDiscount", base: 0.10 },
+  metallurgist: { type: "smelterBonus", base: 0.10 },
+  chemist: { type: "chemistBonus", base: 0.05 },
 };
 
 export function getLeaderBonus(kitten: Kitten): LeaderBonus | null {

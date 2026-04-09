@@ -121,6 +121,7 @@ export function JobsPanel({ state }: Props): React.ReactElement {
   const { setInspected, clearInspected } = useInspector();
   const [censusPage, setCensusPage] = useState(0);
   const [censusJobFilter, setCensusJobFilter] = useState("all");
+  const [censusTraitFilter, setCensusTraitFilter] = useState("all");
   const [censusSort, setCensusSort] = useState("default");
 
   if (!state) {
@@ -177,6 +178,9 @@ export function JobsPanel({ state }: Props): React.ReactElement {
         } else if (censusJobFilter !== "all") {
           filtered = filtered.filter((k) => k.job === censusJobFilter);
         }
+        if (censusTraitFilter !== "all") {
+          filtered = filtered.filter((k) => k.trait === censusTraitFilter);
+        }
         // Sort
         if (censusSort === "name") {
           filtered = [...filtered].sort((a, b) => a.name.localeCompare(b.name));
@@ -203,7 +207,8 @@ export function JobsPanel({ state }: Props): React.ReactElement {
                 <option value="free">Free</option>
                 {jobsInPop.map((j) => <option key={j} value={j}>{j}</option>)}
               </select>
-              <select data-testid="census-filter-trait" value="all">
+              <select data-testid="census-filter-trait" value={censusTraitFilter}
+                onChange={(e) => { setCensusTraitFilter(e.target.value); setCensusPage(0); }}>
                 <option value="all">All traits</option>
                 {traitsInPop.map((t) => <option key={t} value={t}>{t}</option>)}
               </select>
