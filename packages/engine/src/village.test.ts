@@ -794,6 +794,86 @@ describe("Story 48-03: Bulk hunt with amount", () => {
   });
 });
 
+// ── Story 48-07: Kitten management actions ────────────────────────────────────
+
+describe("Story 48-07: Kitten management actions", () => {
+  it("PROMOTE_KITTEN increments rank and deducts gold and exp", () => {
+    const base = createInitialState();
+    const k1: Kitten = { id: "k1", name: "A", surname: "S", age: 5, trait: "none", job: "farmer", skills: {}, rank: 0, exp: 600, isFavorite: false, isLeader: false };
+    const state = {
+      ...base,
+      village: { ...base.village, kittens: 1, sim: [k1], jobs: { farmer: { value: 1 } } },
+      resources: { ...base.resources, gold: { value: 100, maxValue: 0 } },
+    };
+    // Rank 0 → 1: costs 500 exp and 25 gold
+    const next = applyAction(state, { type: "PROMOTE_KITTEN", kittenId: "k1" });
+    expect(next.village.sim[0]?.rank).toBe(1);
+    expect(next.village.sim[0]?.exp).toBe(100); // 600 - 500
+    expect(next.resources.gold?.value).toBe(75); // 100 - 25
+  });
+
+  it("PROMOTE_KITTEN fails if not enough exp", () => {
+    const base = createInitialState();
+    const k1: Kitten = { id: "k1", name: "A", surname: "S", age: 5, trait: "none", job: null, skills: {}, rank: 0, exp: 100, isFavorite: false, isLeader: false };
+    const state = {
+      ...base,
+      village: { ...base.village, kittens: 1, sim: [k1] },
+      resources: { ...base.resources, gold: { value: 100, maxValue: 0 } },
+    };
+    const next = applyAction(state, { type: "PROMOTE_KITTEN", kittenId: "k1" });
+    expect(next.village.sim[0]?.rank).toBe(0); // unchanged
+  });
+
+  it("PROMOTE_KITTEN fails if not enough gold", () => {
+    const base = createInitialState();
+    const k1: Kitten = { id: "k1", name: "A", surname: "S", age: 5, trait: "none", job: null, skills: {}, rank: 0, exp: 600, isFavorite: false, isLeader: false };
+    const state = {
+      ...base,
+      village: { ...base.village, kittens: 1, sim: [k1] },
+      resources: { ...base.resources, gold: { value: 10, maxValue: 0 } },
+    };
+    const next = applyAction(state, { type: "PROMOTE_KITTEN", kittenId: "k1" });
+    expect(next.village.sim[0]?.rank).toBe(0); // unchanged
+  });
+
+  it("TOGGLE_FAVORITE flips isFavorite", () => {
+    const base = createInitialState();
+    const k1: Kitten = { id: "k1", name: "A", surname: "S", age: 5, trait: "none", job: null, skills: {}, rank: 0, exp: 0, isFavorite: false, isLeader: false };
+    const state = {
+      ...base,
+      village: { ...base.village, kittens: 1, sim: [k1] },
+    };
+    const next = applyAction(state, { type: "TOGGLE_FAVORITE", kittenId: "k1" });
+    expect(next.village.sim[0]?.isFavorite).toBe(true);
+
+    const next2 = applyAction(next, { type: "TOGGLE_FAVORITE", kittenId: "k1" });
+    expect(next2.village.sim[0]?.isFavorite).toBe(false);
+  });
+
+  it("UNASSIGN_KITTEN removes kitten from job", () => {
+    const base = createInitialState();
+    const k1: Kitten = { id: "k1", name: "A", surname: "S", age: 5, trait: "none", job: "farmer", skills: {}, rank: 0, exp: 0, isFavorite: false, isLeader: false };
+    const state = {
+      ...base,
+      village: { ...base.village, kittens: 1, sim: [k1], jobs: { farmer: { value: 1 } } },
+    };
+    const next = applyAction(state, { type: "UNASSIGN_KITTEN", kittenId: "k1" });
+    expect(next.village.sim[0]?.job).toBeNull();
+    expect(next.village.jobs.farmer!.value).toBe(0);
+  });
+
+  it("UNASSIGN_KITTEN is no-op if kitten has no job", () => {
+    const base = createInitialState();
+    const k1: Kitten = { id: "k1", name: "A", surname: "S", age: 5, trait: "none", job: null, skills: {}, rank: 0, exp: 0, isFavorite: false, isLeader: false };
+    const state = {
+      ...base,
+      village: { ...base.village, kittens: 1, sim: [k1] },
+    };
+    const next = applyAction(state, { type: "UNASSIGN_KITTEN", kittenId: "k1" });
+    expect(next).toBe(state); // unchanged reference
+  });
+});
+
 // ── Story 27-12: catnipDemandWorkerRatioGlobal ────────────────────────────────
 
 describe("Story 27-12: catnipDemandWorkerRatioGlobal", () => {

@@ -447,6 +447,9 @@ components:
               enum: [ASSIGN_JOB]
             job:
               type: string
+            count:
+              type: integer
+              minimum: 1
         - type: object
           required: [type, job]
           properties:
@@ -455,6 +458,9 @@ components:
               enum: [UNASSIGN_JOB]
             job:
               type: string
+            count:
+              type: integer
+              minimum: 1
         - type: object
           required: [type, name]
           properties:
@@ -670,12 +676,39 @@ components:
             type:
               type: string
               enum: [HUNT]
+            amount:
+              type: integer
+              description: Number of squads to send (default all affordable)
         - type: object
           required: [type]
           properties:
             type:
               type: string
               enum: [HOLD_FESTIVAL]
+        - type: object
+          required: [type, kittenId]
+          properties:
+            type:
+              type: string
+              enum: [PROMOTE_KITTEN]
+            kittenId:
+              type: string
+        - type: object
+          required: [type, kittenId]
+          properties:
+            type:
+              type: string
+              enum: [TOGGLE_FAVORITE]
+            kittenId:
+              type: string
+        - type: object
+          required: [type, kittenId]
+          properties:
+            type:
+              type: string
+              enum: [UNASSIGN_KITTEN]
+            kittenId:
+              type: string
       discriminator:
         propertyName: type
 

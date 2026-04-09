@@ -460,3 +460,54 @@ describe("Story 48-06: Census filters and sorting", () => {
     expect(ids).toEqual(["census-kitten-k2", "census-kitten-k3", "census-kitten-k1"]);
   });
 });
+
+// ── Story 48-07: Kitten management actions UI ────────────────────────────────
+
+describe("Story 48-07: Kitten management actions UI", () => {
+  it("shows ☆ favorite button that dispatches TOGGLE_FAVORITE", () => {
+    const state = makeCensusState([makeKitten({ id: "k1", isFavorite: false })]);
+    render(<JobsPanel state={state} />);
+
+    const btn = screen.getByTestId("census-kitten-k1-favorite");
+    expect(btn.textContent).toBe("☆");
+    fireEvent.click(btn);
+    expect(mockMutate).toHaveBeenCalledWith({ type: "TOGGLE_FAVORITE", kittenId: "k1" });
+  });
+
+  it("shows ★ for favorited kitten", () => {
+    const state = makeCensusState([makeKitten({ id: "k1", isFavorite: true })]);
+    render(<JobsPanel state={state} />);
+
+    const btn = screen.getByTestId("census-kitten-k1-favorite");
+    expect(btn.textContent).toBe("★");
+  });
+
+  it("shows unassign button when kitten has a job", () => {
+    const state = makeCensusState(
+      [makeKitten({ id: "k1", job: "farmer" })],
+      { farmer: { value: 1, unlocked: true } },
+    );
+    render(<JobsPanel state={state} />);
+
+    const btn = screen.getByTestId("census-kitten-k1-unassign");
+    expect(btn).toBeTruthy();
+    fireEvent.click(btn);
+    expect(mockMutate).toHaveBeenCalledWith({ type: "UNASSIGN_KITTEN", kittenId: "k1" });
+  });
+
+  it("hides unassign button when kitten has no job", () => {
+    const state = makeCensusState([makeKitten({ id: "k1", job: null })]);
+    render(<JobsPanel state={state} />);
+
+    expect(screen.queryByTestId("census-kitten-k1-unassign")).toBeNull();
+  });
+
+  it("shows promote button that dispatches PROMOTE_KITTEN", () => {
+    const state = makeCensusState([makeKitten({ id: "k1", exp: 600, rank: 0 })]);
+    render(<JobsPanel state={state} />);
+
+    const btn = screen.getByTestId("census-kitten-k1-promote");
+    fireEvent.click(btn);
+    expect(mockMutate).toHaveBeenCalledWith({ type: "PROMOTE_KITTEN", kittenId: "k1" });
+  });
+});

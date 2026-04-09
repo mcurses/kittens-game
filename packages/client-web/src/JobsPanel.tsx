@@ -58,6 +58,7 @@ interface CensusKitten {
   skills: Record<string, number>;
   rank: number;
   exp: number;
+  isFavorite: boolean;
 }
 
 const CENSUS_PAGE_SIZE = 10;
@@ -217,6 +218,11 @@ export function JobsPanel({ state }: Props): React.ReactElement {
             <ul data-testid="census-list" className="item-list census-list">
               {pageKittens.map((k) => (
                 <li key={k.id} data-testid={`census-kitten-${k.id}`} className="census-row">
+                  <button type="button" data-testid={`census-kitten-${k.id}-favorite`}
+                    className="btn btn--xs btn--icon census-favorite"
+                    onClick={() => mutate({ type: "TOGGLE_FAVORITE", kittenId: k.id })}>
+                    {k.isFavorite ? "★" : "☆"}
+                  </button>
                   <span className="census-name">{k.name} {k.surname}</span>
                   <span className="census-age">age {k.age}</span>
                   <span className="census-trait">{k.trait}</span>
@@ -225,6 +231,20 @@ export function JobsPanel({ state }: Props): React.ReactElement {
                   {topSkills(k.skills, 3).map((s) => (
                     <span key={s.name} className="census-skill">{s.name} {s.level.toFixed(1)}</span>
                   ))}
+                  <button type="button" data-testid={`census-kitten-${k.id}-promote`}
+                    className="btn btn--xs btn--secondary census-promote"
+                    disabled={isPending}
+                    onClick={() => mutate({ type: "PROMOTE_KITTEN", kittenId: k.id })}>
+                    Promote
+                  </button>
+                  {k.job !== null && (
+                    <button type="button" data-testid={`census-kitten-${k.id}-unassign`}
+                      className="btn btn--xs btn--secondary census-unassign"
+                      disabled={isPending}
+                      onClick={() => mutate({ type: "UNASSIGN_KITTEN", kittenId: k.id })}>
+                      Unassign
+                    </button>
+                  )}
                 </li>
               ))}
             </ul>

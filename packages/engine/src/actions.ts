@@ -20,7 +20,7 @@ import { applySendEmbassy, applyTrade } from "./diplomacy.js";
 import { applyBuySpaceBuilding, applyLaunchMission } from "./space.js";
 import { applyBuyCfu, applyBuyVsu, applyShatterTc } from "./time.js";
 import type { GameState } from "./state.js";
-import { JOB_DEFS, applyHunt, applyHoldFestival, totalAssignedKittens } from "./village.js";
+import { JOB_DEFS, applyHunt, applyHoldFestival, applyPromoteKitten, applyToggleFavorite, applyUnassignKitten, totalAssignedKittens } from "./village.js";
 import { applyAssignCraftEngineer, applyCraft, applyPurchaseUpgrade, applyUnassignCraftEngineer, getAssignedCraftEngineers } from "./workshop.js";
 
 /** Discriminated union of all possible game actions */
@@ -62,7 +62,10 @@ export type GameAction =
   | { readonly type: "SACRIFICE_ALICORNS" }
   | { readonly type: "REFINE_TIME_CRYSTALS" }
   | { readonly type: "HUNT"; readonly amount?: number | undefined }
-  | { readonly type: "HOLD_FESTIVAL" };
+  | { readonly type: "HOLD_FESTIVAL" }
+  | { readonly type: "PROMOTE_KITTEN"; readonly kittenId: string }
+  | { readonly type: "TOGGLE_FAVORITE"; readonly kittenId: string }
+  | { readonly type: "UNASSIGN_KITTEN"; readonly kittenId: string };
 
 /**
  * Pure reducer: apply an action to a state and return the next state.
@@ -307,6 +310,15 @@ export function applyAction(
     }
     case "HOLD_FESTIVAL": {
       return applyHoldFestival(state);
+    }
+    case "PROMOTE_KITTEN": {
+      return applyPromoteKitten(state, action.kittenId);
+    }
+    case "TOGGLE_FAVORITE": {
+      return applyToggleFavorite(state, action.kittenId);
+    }
+    case "UNASSIGN_KITTEN": {
+      return applyUnassignKitten(state, action.kittenId);
     }
   }
 }

@@ -556,6 +556,57 @@ export function applyHunt(state: GameState, amount?: number): GameState {
  * Sets festivalDays = DAYS_PER_SEASON * SEASONS_PER_YEAR (= 400).
  * If "carnivals" perk is researched, adds to festivalDays instead of setting.
  */
+/** Promote cost: 500 * 1.75^rank exp, 25 * (rank + 1) gold */
+function promoteExpCost(rank: number): number {
+  return Math.floor(500 * Math.pow(1.75, rank));
+}
+function promoteGoldCost(rank: number): number {
+  return 25 * (rank + 1);
+}
+
+export function applyPromoteKitten(state: GameState, kittenId: string): GameState {
+  const idx = state.village.sim.findIndex((k) => k.id === kittenId);
+  if (idx < 0) return state;
+  const kitten = state.village.sim[idx]!;
+  const expCost = promoteExpCost(kitten.rank);
+  const goldCost = promoteGoldCost(kitten.rank);
+  if (kitten.exp < expCost) return state;
+  if ((state.resources.gold?.value ?? 0) < goldCost) return state;
+
+  return produce(state, (draft) => {
+    const k = draft.village.sim[idx]!;
+    (k as { rank: number }).rank += 1;
+    (k as { exp: number }).exp -= expCost;
+    const gold = draft.resources.gold;
+    if (gold) gold.value -= goldCost;
+  });
+}
+
+export function applyToggleFavorite(state: GameState, kittenId: string): GameState {
+  const idx = state.village.sim.findIndex((k) => k.id === kittenId);
+  if (idx < 0) return state;
+
+  return produce(state, (draft) => {
+    const k = draft.village.sim[idx]!;
+    (k as { isFavorite: boolean }).isFavorite = !k.isFavorite;
+  });
+}
+
+export function applyUnassignKitten(state: GameState, kittenId: string): GameState {
+  const idx = state.village.sim.findIndex((k) => k.id === kittenId);
+  if (idx < 0) return state;
+  const kitten = state.village.sim[idx]!;
+  if (kitten.job === null) return state;
+
+  const jobName = kitten.job;
+  return produce(state, (draft) => {
+    const k = draft.village.sim[idx]!;
+    (k as { job: string | null }).job = null;
+    const job = draft.village.jobs[jobName];
+    if (job && job.value > 0) job.value -= 1;
+  });
+}
+
 export function applyHoldFestival(state: GameState): GameState {
   const manpower = state.resources.catpower?.value ?? 0;
   const culture = state.resources.culture?.value ?? 0;
