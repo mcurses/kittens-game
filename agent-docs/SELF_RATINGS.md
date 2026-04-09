@@ -1881,3 +1881,60 @@ The later Chrome MCP audit invalidated the second closeout as well.
 - [ ] Wire leader bonus into effect cache (craftBonus, tradeBonus, huntBonus, scienceDiscount, religionDiscount)
 - [ ] Wire census trait filter dropdown to actually filter kittens
 - [ ] Add metallurgist and chemist traits to leader bonus map
+
+## Epic 49: Buildings Advanced Parity — 2026-04-09
+
+| Dimension | Score | Notes |
+|-----------|-------|-------|
+| Test coverage (≥90% target) | 5 | Engine 97.82%, 1084 tests pass, client-web 44 tests pass |
+| No skipped tests / no TODOs | 5 | No any types, no TODOs, no skipped tests in scope |
+| Feature parity | 4 | All 6 stories complete; legacy refunds resources on stage change (sellInternal), we just reset to 0; IW filter tab omitted |
+| API spec completeness | 5 | All 45 action types present in openapi.yaml (including new UPGRADE/DOWNGRADE_BUILDING_STAGE) |
+| Code quality (no `any`) | 5 | Clean TypeScript, pure functions, immutable state updates |
+| Docs freshness | 5 | PARITY.md updated (spaceport, rename, filter, stage rows), EPICS.md ✅, PROGRESS.md 6/6, all ACs checked |
+| Commit hygiene | 5 | 5 focused commits: engine actions, labels+stageEffects, UI, api-spec, integration test |
+| **Overall average** | **4.9** | |
+
+### What went well
+- Stage system cleanly separated stageUnlocked (runtime entry) from stageEffects (def)
+- Filter tabs implemented as pure UI-only feature
+- All 5 staged buildings have correct per-stage effects matching legacy
+- Cross-manager integration test covers full stage lifecycle
+
+### What to improve
+- Legacy refunds resources via sellInternal before stage change — our rewrite resets val/on to 0 without refund
+- Legacy has hideDowngrade option — we always show downgrade button
+- Legacy has IW (Iron Will) filter tab — we omit it
+
+### Action items for next epic
+- [ ] Wire leader bonus into effect cache (carried from Epic 48)
+- [ ] Wire census trait filter dropdown to actually filter kittens (carried from Epic 48)
+- [ ] Consider adding resource refund on stage upgrade/downgrade (legacy sellInternal behavior)
+
+## Epic 50: Resource Display Parity — 2026-04-09
+
+| Dimension | Score | Notes |
+|-----------|-------|-------|
+| Test coverage (≥90% target) | 5 | Engine 97.84%, 1816 total tests pass |
+| No skipped tests / no TODOs | 4 | 28 it.todo in ui-parity-audit (tracker file); no source TODOs |
+| Feature parity | 4 | All 5 stories complete; weather events (warm/cold) not modeled; legacy edit mode for visibility deferred |
+| API spec completeness | 5 | All 46 action types present in openapi.yaml |
+| Code quality (no `any`) | 5 | Clean TypeScript, no any usage |
+| Docs freshness | 5 | PARITY.md updated (craft tooltip + visibility rows fixed), EPICS.md ✅, PROGRESS.md 5/5 |
+| Commit hygiene | 5 | 3 focused commits: main impl, Ctrl+Click toggle, docs |
+| **Overall average** | **4.7** | |
+
+### What went well
+- RESOURCE_DISPLAY metadata cleanly separates type system from per-resource color overrides
+- Capacity warning thresholds match legacy exactly (75% warn, 95% notice)
+- Weather badge correctly handles all 4 seasons including summer/autumn no-badge case
+- All engine state changes (hiddenResources) properly serialized/deserialized
+
+### What to improve
+- Weather events (warm/cold ±15%) not modeled — only base season modifiers
+- Legacy edit mode for visibility toggle not implemented (Ctrl+Click only)
+- No cross-manager integration test added for this epic (UI-only features)
+
+### Action items for next epic
+- [ ] Consider modeling weather events (warm/cold) for more accurate weather badge
+- [ ] Consider adding edit mode for resource visibility (checkbox view)

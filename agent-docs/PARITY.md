@@ -2,7 +2,7 @@
 
 Tracks implementation coverage against legacy Kittens Game. **This is the authoritative source of truth for what is and isn't done.** Update it whenever items are added or wired. Do not mark an epic "complete" without updating this file.
 
-Last updated: 2026-04-09 (Epic 48: village management parity — census, kitten management, leader system, bulk hunt, job tooltips.)
+Last updated: 2026-04-09 (Epic 49: buildings advanced parity — stage system, filter tabs, stage labels, stageEffects.)
 
 ---
 
@@ -46,7 +46,7 @@ Legacy has 35+ gameplay buildings (confirmed via live save audit). We have 39 de
 | **harbor** | ✅ | 7 resource storage boosts (catnipMax 2500, woodMax 700, etc.) wired statically (Story 31-06), plus dynamic `cargoShips` and `barges` multipliers now consuming `harborRatio` and `harborCoalRatio` workshop effects with limited DR support (Story 43-01, 2026-04-06) |
 | **chapel** | ✅ | `culturePerTickBase: 0.05`, `faithPerTickBase: 0.005`, `cultureMax: 200` — Story 31-01, 2026-03-31 |
 | **temple** | ✅ | dynamic happiness wired: `happiness = 0.4 + 0.1 × sunAltar.on` per temple.on (Story 30-01, 2026-03-31) |
-| **spaceport** (bonfire) | ❌ | Stage 1 of warehouse building in legacy — complex staged upgrade, deferred |
+| **spaceport** (bonfire) | ✅ | Stage 1 of warehouse: `stageEffects[1]` with `moonBaseStorageBonus`, `planetCrackerStorageBonus`, `cryostationStorageBonus`, `energyConsumption: 5`. Upgrade/downgrade actions + UI wired — Epic 49, 2026-04-09 |
 | **ziggurat** (building) | ✅ | `cultureMaxRatio: 0.08` per on — Story 31-11, 2026-03-31 |
 | **unicornPasture** | ✅ | — |
 | **chronosphere** | ✅ | `temporalParadoxChance: 0.01`, `resStasisRatio: 0.015`, `energyConsumption: 20` — Story 31-13, 2026-03-31 |
@@ -330,7 +330,9 @@ Root cause: `legacy-migration.ts:migrateTime()` used `bool(item.unlocked)` which
 | **Enable/disable controls** | ✅ Story 37-01/37-04: building controls now distinguish legacy count-adjustable vs binary modes. Smelter-style buildings use `- / -25 / -All / + / +25 / +All`, while binary `On/Off` remains only on `togglableOnOff` buildings such as steamworks. |
 | **on/off state not displayed** | ✅ Fixed 2026-04-01 (Epic 32-04): BuildingsPanel now shows `on/val` when `on < val`. |
 | **Internal names in UI** | ✅ Fixed 2026-04-01 (Epic 32-04): `prettifyName()` splits camelCase → Title Case ("Lumber Mill", "Log House"). |
-| **Building rename system missing** | Late-game upgrades rename buildings in legacy (Solar Farm, Hydro Plant, etc.). Rewrite shows prettified base names only. ❌ Not yet implemented. |
+| **Building rename system** | ✅ Epic 49: `STAGE_LABELS` + `getBuildingDisplayName()` now show stage-appropriate labels (Solar Farm, Hydro Plant, Data Center, Spaceport, Broadcast Tower). |
+| **Building filter tabs** | ✅ Epic 49: All / Available / Enabled / Togglable filter tabs above building list. |
+| **Building stage upgrade/downgrade** | ✅ Epic 49: `UPGRADE_BUILDING_STAGE` / `DOWNGRADE_BUILDING_STAGE` actions with reset-to-zero behavior. UI shows ^ / v buttons. |
 
 ---
 
@@ -366,7 +368,7 @@ Root cause: `legacy-migration.ts:migrateTime()` used `bool(item.unlocked)` which
 | Gap | Detail |
 |-----|--------|
 | **Craft shortcuts are not legacy-faithful** | ✅ Fixed in Epic 35-01: `computeCraftShortcuts` computes `[max(1,1%), max(25,5%), max(100,10%), All]` from live resources. Percentage-mode label toggle (legacy `usePercentageConsumptionValues` setting) is deferred. |
-| **Craft bonus/source-material affordance missing** | Legacy craft controls show output after craft bonus in button title and compute tooltip costs per shortcut. ❌ Not implemented. |
+| **Craft bonus/source-material affordance missing** | ✅ Fixed in Epic 50-05: Craft shortcut buttons (1%, 5%, 10%) now show ingredient cost breakdown in tooltip. "All" button has no breakdown (matches legacy). Output already accounts for craft ratio bonus. |
 | **Workshop craft effectiveness header missing** | ✅ Fixed in Epic 35-01: WorkshopPanel shows `+N% effectiveness` banner when `effectCache.craftRatio > 0`. |
 | **Hide researched toggle missing in Workshop** | ✅ Fixed in Epic 35-03: WorkshopPanel exposes `usePersistentUiState("workshop:hideResearched")` checkbox; researched upgrades are filtered when enabled, and stored values now restore correctly after reload. |
 | **Hide researched toggle missing in Science** | ✅ Fixed in Epic 35-03: SciencePanel exposes `usePersistentUiState("science:hideResearched")` checkbox; researched techs are filtered when enabled, and stored values now restore correctly after reload. |
@@ -382,7 +384,7 @@ Root cause: `legacy-migration.ts:migrateTime()` used `bool(item.unlocked)` which
 | **maxValue = 0 for all resources** | ✅ Fixed 2026-04-01 (Epic 32-08): Resources with `maxValue = 0` no longer show `/0.00`. Storage caps from buildings (barn, warehouse, harbor) now display correctly since all buildings were added in Epic 31. |
 | **catnipDemandRatio display** | ✅ Fixed 2026-04-01 (Epic 32-08): Catnip row shows demand reduction percentage badge when `catnipDemandRatio < 0`. |
 | **Main resource table vs craft table split missing** | Legacy moves dual resources like blueprint into the lower craft table once their recipe unlocks. Rewrite uses one flat resource list in [ResourcePanel.tsx](/Users/max/code/kittens-mcp/packages/client-web/src/ResourcePanel.tsx#L97) and a separate workshop craft list with no migration logic. ❌ Not implemented. |
-| **Resource visibility editing missing** | Legacy allows hiding/showing resource rows from the left panel; rewrite has no equivalent per-resource visibility control. ❌ Not implemented. |
+| **Resource visibility editing missing** | ✅ Fixed in Epic 50-04: `TOGGLE_RESOURCE_VISIBILITY` action toggles per-resource hidden state. Ctrl+Click on resource name in panel. State persists via save/load. |
 | **Domain-specific resource tooltips replaced by generic inspector** | The inspector adds useful ETAs, but legacy resource tooltips are still richer in domain-specific contexts like crafting and dual-table placement. Rewrite has not reached parity there. ⚠️ Partial. |
 
 ---
@@ -391,7 +393,7 @@ Root cause: `legacy-migration.ts:migrateTime()` used `bool(item.unlocked)` which
 
 | Domain | Implemented | Total legacy | Coverage |
 |--------|-------------|--------------|----------|
-| Buildings (engine defs) | 36 | 36 (ivoryTemple base mode ⚠️) | **~97%** (ivoryTemple enhanced mode + spaceport deferred) |
+| Buildings (engine defs) | 37 | 37 (ivoryTemple base mode ⚠️, spaceport as warehouse stage 1 ✅) | **~99%** (ivoryTemple enhanced mode only gap) |
 | Resources (declared) | 56 | 56 | 100% |
 | Resources (have production) | ~14 | ~40 have natural production | **35%** |
 | Upgrade defs | 137 | 137 | 100% |
