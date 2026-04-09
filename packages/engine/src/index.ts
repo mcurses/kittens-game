@@ -29,11 +29,13 @@ export {
   createInitialBuildings,
   getBuildingPrice,
 } from "./buildings.js";
-export type { JobDef, JobEntry, VillageState } from "./village.js";
+export type { JobDef, JobEntry, Kitten, KittenTrait, VillageState } from "./village.js";
 export {
   JOB_DEFS,
   VillageManager,
+  computeHappiness,
   createInitialVillage,
+  generateKitten,
   totalAssignedKittens,
 } from "./village.js";
 export type { CalendarState, SeasonDef } from "./calendar.js";
@@ -188,6 +190,8 @@ export {
   getParagonProductionRatio,
   getParagonStorageRatio,
 } from "./prestige.js";
+export type { ProductionSource } from "./attribution.js";
+export { getResourceAttribution } from "./attribution.js";
 export type {
   AchievementState,
   AchievementEntry,

@@ -4,7 +4,9 @@ import { CalendarManager } from "./calendar.js";
 import { createInitialResources } from "./resources.js";
 import { createInitialState } from "./state.js";
 import { tick } from "./tick.js";
-import { JOB_DEFS, LUXURY_RESOURCE_NAMES, UNCOMMON_RESOURCE_NAMES, VillageManager, applyHoldFestival, applyHunt, computePollutionHappines, createInitialVillage, totalAssignedKittens } from "./village.js";
+import { applyAction } from "./actions.js";
+import type { Kitten } from "./village.js";
+import { JOB_DEFS, LUXURY_RESOURCE_NAMES, UNCOMMON_RESOURCE_NAMES, VillageManager, applyHoldFestival, applyHunt, computePollutionHappines, createInitialVillage, generateKitten, totalAssignedKittens } from "./village.js";
 
 describe("JOB_DEFS", () => {
   it("contains all core jobs", () => {
@@ -653,6 +655,145 @@ describe("applyHunt", () => {
   });
 });
 
+// ── Story 48-04: Individual kitten state foundation ──────────────────────────
+
+describe("Story 48-04: Individual kitten state", () => {
+  it("generateKitten creates a kitten with valid fields", () => {
+    const k = generateKitten();
+    expect(k.id).toMatch(/^k\d+$/);
+    expect(k.name.length).toBeGreaterThan(0);
+    expect(k.surname.length).toBeGreaterThan(0);
+    expect(k.age).toBeGreaterThanOrEqual(5);
+    expect(k.trait).toBeDefined();
+    expect(k.job).toBeNull();
+    expect(k.skills).toEqual({});
+    expect(k.rank).toBe(0);
+    expect(k.exp).toBe(0);
+    expect(k.isFavorite).toBe(false);
+    expect(k.isLeader).toBe(false);
+  });
+
+  it("new kitten spawns into sim on growth", () => {
+    const base = createInitialState();
+    const state = {
+      ...base,
+      village: { ...base.village, kittens: 0, kittenProgress: 0.99, sim: [] },
+      effectCache: { ...base.effectCache, kittensPerTickBase: 0.02, maxKittens: 10 },
+    };
+    const manager = new VillageManager();
+    const next = manager.update(state);
+    expect(next.village.kittens).toBe(1);
+    expect(next.village.sim.length).toBe(1);
+    expect(next.village.sim[0]?.name).toBeDefined();
+  });
+
+  it("kitten death removes from sim preferring non-favorite non-leader", () => {
+    const base = createInitialState();
+    const k1: Kitten = { id: "k1", name: "A", surname: "S", age: 5, trait: "none", job: null, skills: {}, rank: 0, exp: 0, isFavorite: true, isLeader: false };
+    const k2: Kitten = { id: "k2", name: "B", surname: "S", age: 5, trait: "none", job: null, skills: {}, rank: 0, exp: 0, isFavorite: false, isLeader: false };
+    const state = {
+      ...base,
+      village: { ...base.village, kittens: 2, sim: [k1, k2] },
+      resources: { ...base.resources, catnip: { value: -1, maxValue: 100 } },
+      effectCache: { ...base.effectCache, maxKittens: 10 },
+    };
+    const manager = new VillageManager();
+    const next = manager.update(state);
+    expect(next.village.kittens).toBe(1);
+    expect(next.village.sim.length).toBe(1);
+    // Non-favorite k2 should die first
+    expect(next.village.sim[0]?.id).toBe("k1");
+  });
+
+  it("job assignment updates kitten.job in sim", () => {
+    const base = createInitialState();
+    const k1: Kitten = { id: "k1", name: "A", surname: "S", age: 5, trait: "none", job: null, skills: {}, rank: 0, exp: 0, isFavorite: false, isLeader: false };
+    const state = {
+      ...base,
+      village: { ...base.village, kittens: 1, sim: [k1] },
+    };
+    const next = applyAction(state, { type: "ASSIGN_JOB", job: "farmer" });
+    expect(next.village.jobs.farmer.value).toBe(1);
+    expect(next.village.sim[0]?.job).toBe("farmer");
+  });
+
+  it("skill growth per tick for assigned kittens", () => {
+    const base = createInitialState();
+    const k1: Kitten = { id: "k1", name: "A", surname: "S", age: 5, trait: "none", job: "farmer", skills: {}, rank: 0, exp: 0, isFavorite: false, isLeader: false };
+    const state = {
+      ...base,
+      village: { ...base.village, kittens: 1, sim: [k1], jobs: { ...base.village.jobs, farmer: { value: 1 } } },
+      effectCache: { ...base.effectCache, maxKittens: 10 },
+    };
+    const manager = new VillageManager();
+    const next = manager.update(state);
+    expect(next.village.sim[0]?.skills.farmer).toBeCloseTo(0.01);
+  });
+
+  it("save and load round-trips sim array", () => {
+    const base = createInitialState();
+    const k1: Kitten = { id: "k1", name: "A", surname: "S", age: 10, trait: "engineer", job: "miner", skills: { miner: 5.5 }, rank: 2, exp: 1000, isFavorite: true, isLeader: false };
+    const state = {
+      ...base,
+      village: { ...base.village, kittens: 1, sim: [k1] },
+    };
+    const manager = new VillageManager();
+    const saved = manager.save(state);
+    const loaded = manager.load(saved, createInitialState());
+    expect(loaded.village.sim.length).toBe(1);
+    expect(loaded.village.sim[0]?.name).toBe("A");
+    expect(loaded.village.sim[0]?.trait).toBe("engineer");
+    expect(loaded.village.sim[0]?.skills.miner).toBe(5.5);
+    expect(loaded.village.sim[0]?.rank).toBe(2);
+    expect(loaded.village.sim[0]?.isFavorite).toBe(true);
+  });
+});
+
+// ── Story 48-03: Bulk hunt shortcuts ─────────────────────────────────────────
+
+describe("Story 48-03: Bulk hunt with amount", () => {
+  it("limits squads to the specified amount", () => {
+    const state = {
+      ...createInitialState(),
+      resources: {
+        ...createInitialResources(),
+        catpower: { value: 1000, maxValue: 0 },
+        furs: { value: 0, maxValue: 0 },
+      },
+    };
+    // 10 squads affordable, but request only 3
+    const next = applyHunt(state, 3);
+    expect(next.resources.catpower?.value).toBe(700); // 1000 - 3*100
+  });
+
+  it("caps amount at max affordable squads", () => {
+    const state = {
+      ...createInitialState(),
+      resources: {
+        ...createInitialResources(),
+        catpower: { value: 200, maxValue: 0 },
+        furs: { value: 0, maxValue: 0 },
+      },
+    };
+    // Only 2 squads affordable, request 100
+    const next = applyHunt(state, 100);
+    expect(next.resources.catpower?.value).toBe(0); // all spent
+  });
+
+  it("sends all squads when amount is not specified", () => {
+    const state = {
+      ...createInitialState(),
+      resources: {
+        ...createInitialResources(),
+        catpower: { value: 500, maxValue: 0 },
+        furs: { value: 0, maxValue: 0 },
+      },
+    };
+    const next = applyHunt(state);
+    expect(next.resources.catpower?.value).toBe(0); // all 5 squads spent
+  });
+});
+
 // ── Story 27-12: catnipDemandWorkerRatioGlobal ────────────────────────────────
 
 describe("Story 27-12: catnipDemandWorkerRatioGlobal", () => {
@@ -1173,5 +1314,127 @@ describe("computePollutionHappines", () => {
         expect(result).toBeLessThan(0);
       }
     }
+  });
+
+  describe("Precise Boundary Tests", () => {
+    it("pollutionLevel 0 → 1 boundary at 1,000,000", () => {
+      const justBelow = 999_999;
+      const justAt = 1_000_000;
+      const justAbove = 1_000_001;
+
+      expect(computePollutionHappines(justBelow)).toBe(0);
+      expect(computePollutionHappines(justAt)).toBe(0);
+      expect(computePollutionHappines(justAbove)).toBe(0);
+    });
+
+    it("Level 1 halfThreshold transition at 50,000,000", () => {
+      const halfThreshold = POL_LBASE * 10 / 2; // 50,000,000
+      const justBelow = halfThreshold - 1;
+      const justAt = halfThreshold;
+      const justAbove = halfThreshold + 1;
+
+      expect(computePollutionHappines(justBelow)).toBe(0);
+      expect(computePollutionHappines(justAt)).toBeCloseTo(0, 10);
+      expect(computePollutionHappines(justAbove)).toBeLessThan(0);
+    });
+
+    it("pollutionLevel 1 → 2 boundary at 100,000,000", () => {
+      // pollutionLevel = Math.floor(Math.log10(pollution * 10 / POL_LBASE))
+      // At 100,000,000: Math.log10(100,000,000 * 10 / 10,000,000) = Math.log10(100) = 2
+      const justBelow = 99_999_999;
+      const justAt = 100_000_000;
+      const justAbove = 100_000_001;
+
+      const belowResult = computePollutionHappines(justBelow);
+      const atResult = computePollutionHappines(justAt);
+      const aboveResult = computePollutionHappines(justAbove);
+
+      // Just below should use level 1 formula (coefficient changes)
+      // Just at and above should use level 2 formula
+      expect(belowResult).toBeLessThan(0); // level 1
+      expect(atResult).toBeLessThan(0); // level 2
+      expect(aboveResult).toBeLessThan(0); // level 2
+
+      // Level 2 has higher coefficient (1.08 vs linear), so penalty should be steeper
+      expect(Math.abs(atResult)).toBeGreaterThan(Math.abs(belowResult));
+    });
+
+    it("pollutionLevel 2 → 3 boundary at 1,000,000,000", () => {
+      // At 1,000,000,000: Math.log10(1,000,000,000 * 10 / 10,000,000) = Math.log10(1000) = 3
+      const justBelow = 999_999_999;
+      const justAt = 1_000_000_000;
+      const justAbove = 1_000_000_001;
+
+      const belowResult = computePollutionHappines(justBelow);
+      const atResult = computePollutionHappines(justAt);
+      const aboveResult = computePollutionHappines(justAbove);
+
+      // Just below uses level 2 (coefficient 1.08)
+      // Just at and above use level 3 (coefficient 1.18)
+      expect(belowResult).toBeLessThan(0); // level 2
+      expect(atResult).toBeLessThan(0); // level 3
+      expect(aboveResult).toBeLessThan(0); // level 3
+
+      // Level 3 has higher coefficient than level 2, so penalty should be steeper
+      expect(Math.abs(atResult)).toBeGreaterThan(Math.abs(belowResult));
+    });
+
+    it("pollutionLevel 3 → 4 boundary at 10,000,000,000", () => {
+      // At 10,000,000,000: Math.log10(10,000,000,000 * 10 / 10,000,000) = Math.log10(10000) = 4
+      const justBelow = 9_999_999_999;
+      const justAt = 10_000_000_000;
+      const justAbove = 10_000_000_001;
+
+      const belowResult = computePollutionHappines(justBelow);
+      const atResult = computePollutionHappines(justAt);
+      const aboveResult = computePollutionHappines(justAbove);
+
+      // Just below uses level 3 (coefficient 1.18)
+      // Just at and above use level 4+ (coefficient 1.2)
+      expect(belowResult).toBeLessThan(0); // level 3
+      expect(atResult).toBeLessThan(0); // level 4
+      expect(aboveResult).toBeLessThan(0); // level 4
+
+      // Level 4 has higher coefficient than level 3, so penalty should be steeper
+      expect(Math.abs(atResult)).toBeGreaterThan(Math.abs(belowResult));
+    });
+
+    it("Level 1 linear scale: penalty increases by 0.32 per million above threshold", () => {
+      const halfThreshold = POL_LBASE * 10 / 2;
+      const coeff = -0.00000032;
+
+      const base = computePollutionHappines(halfThreshold + 1_000_000);
+      const plusOne = computePollutionHappines(halfThreshold + 2_000_000);
+      const plusTwo = computePollutionHappines(halfThreshold + 3_000_000);
+
+      // Difference should be constant (linear)
+      const diff1 = plusOne - base;
+      const diff2 = plusTwo - plusOne;
+      const expectedDiff = coeff * 1_000_000;
+
+      expect(diff1).toBeCloseTo(expectedDiff, 8);
+      expect(diff2).toBeCloseTo(expectedDiff, 8);
+    });
+
+    it("Level 2 log scale: consistent with -Math.log(x) * 1.08", () => {
+      const pollution = 250_000_000; // well into level 2
+      const result = computePollutionHappines(pollution);
+      const expected = -Math.log(pollution) * 1.08;
+      expect(result).toBeCloseTo(expected, 4);
+    });
+
+    it("Level 3 log scale: consistent with -Math.log(x) * 1.18", () => {
+      const pollution = 2_500_000_000; // well into level 3
+      const result = computePollutionHappines(pollution);
+      const expected = -Math.log(pollution) * 1.18;
+      expect(result).toBeCloseTo(expected, 4);
+    });
+
+    it("Level 4+ log scale: consistent with -Math.log(x) * 1.2", () => {
+      const pollution = 25_000_000_000; // well into level 4
+      const result = computePollutionHappines(pollution);
+      const expected = -Math.log(pollution) * 1.2;
+      expect(result).toBeCloseTo(expected, 4);
+    });
   });
 });

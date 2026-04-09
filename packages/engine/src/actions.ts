@@ -32,8 +32,8 @@ export type GameAction =
   | { readonly type: "DISABLE_BUILDING"; readonly name: string; readonly amount?: number | undefined }
   | { readonly type: "ENABLE_BUILDING_AUTOMATION"; readonly name: string }
   | { readonly type: "DISABLE_BUILDING_AUTOMATION"; readonly name: string }
-  | { readonly type: "ASSIGN_JOB"; readonly job: string }
-  | { readonly type: "UNASSIGN_JOB"; readonly job: string }
+  | { readonly type: "ASSIGN_JOB"; readonly job: string; readonly count?: number | undefined }
+  | { readonly type: "UNASSIGN_JOB"; readonly job: string; readonly count?: number | undefined }
   | { readonly type: "RESEARCH"; readonly name: string }
   | { readonly type: "RESEARCH_POLICY"; readonly name: string }
   | { readonly type: "PURCHASE_UPGRADE"; readonly name: string }
@@ -61,7 +61,7 @@ export type GameAction =
   | { readonly type: "SACRIFICE_UNICORNS" }
   | { readonly type: "SACRIFICE_ALICORNS" }
   | { readonly type: "REFINE_TIME_CRYSTALS" }
-  | { readonly type: "HUNT" }
+  | { readonly type: "HUNT"; readonly amount?: number | undefined }
   | { readonly type: "HOLD_FESTIVAL" };
 
 /**
@@ -170,12 +170,25 @@ export function applyAction(
       if (!def) return state;
 
       const assigned = totalAssignedKittens(state.village);
-      if (assigned >= state.village.kittens) return state;
+      const freeKittens = state.village.kittens - assigned;
+      if (freeKittens <= 0) return state;
+
+      const count = Math.min(action.count ?? 1, freeKittens);
+      if (count <= 0) return state;
 
       return produce(state, (draft) => {
         const job = draft.village.jobs[action.job] ?? { value: 0 };
-        job.value += 1;
+        job.value += count;
         draft.village.jobs[action.job] = job;
+        // Assign individual kittens
+        let remaining = count;
+        for (const k of draft.village.sim) {
+          if (remaining <= 0) break;
+          if (k.job === null) {
+            k.job = action.job;
+            remaining--;
+          }
+        }
       });
     }
     case "UNASSIGN_JOB": {
@@ -184,15 +197,25 @@ export function applyAction(
 
       const job = state.village.jobs[action.job] ?? { value: 0 };
       if (job.value <= 0) return state;
+
+      const count = Math.min(action.count ?? 1, job.value);
       if (action.job === "engineer") {
-        const nextValue = job.value - 1;
+        const nextValue = job.value - count;
         if (nextValue < getAssignedCraftEngineers(state)) return state;
       }
 
       return produce(state, (draft) => {
         const j = draft.village.jobs[action.job] ?? { value: 0 };
-        j.value -= 1;
+        j.value -= count;
         draft.village.jobs[action.job] = j;
+        // Unassign individual kittens (from end, lowest skill first isn't implemented yet)
+        let remaining = count;
+        for (let i = draft.village.sim.length - 1; i >= 0 && remaining > 0; i--) {
+          if (draft.village.sim[i]!.job === action.job) {
+            draft.village.sim[i]!.job = null;
+            remaining--;
+          }
+        }
       });
     }
     case "RESEARCH": {
@@ -280,7 +303,7 @@ export function applyAction(
       return applyRefineTimeCrystals(state);
     }
     case "HUNT": {
-      return applyHunt(state);
+      return applyHunt(state, action.amount);
     }
     case "HOLD_FESTIVAL": {
       return applyHoldFestival(state);

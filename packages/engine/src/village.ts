@@ -21,6 +21,24 @@ export interface JobEntry {
   readonly value: number;
 }
 
+/** Kitten trait names matching legacy */
+export type KittenTrait = "scientist" | "manager" | "engineer" | "merchant" | "wise" | "metallurgist" | "chemist" | "none";
+
+/** Individual kitten tracked by the village simulation */
+export interface Kitten {
+  readonly id: string;
+  readonly name: string;
+  readonly surname: string;
+  readonly age: number;
+  readonly trait: KittenTrait;
+  readonly job: string | null;
+  readonly skills: Record<string, number>;
+  readonly rank: number;
+  readonly exp: number;
+  readonly isFavorite: boolean;
+  readonly isLeader: boolean;
+}
+
 /** Village state slice */
 export interface VillageState {
   readonly kittens: number;
@@ -28,10 +46,45 @@ export interface VillageState {
   readonly kittenProgress: number;
   /** Map of all job states keyed by job name */
   readonly jobs: Record<string, JobEntry>;
+  /** Individual kitten simulation array */
+  readonly sim: readonly Kitten[];
   /** Total kittens that have died this run. Used by achievement conditions. */
   readonly deadKittens: number;
   /** Village happiness ratio (1.0 = baseline). Used by achievement conditions. */
   readonly happiness: number;
+}
+
+// ── Kitten name pool (legacy village.js) ──────────────────────────────────
+
+const KITTEN_NAMES = [
+  "Angel", "Charlie", "Mittens", "Oreo", "Lily", "Ellie", "Amber", "Molly", "Jasper",
+  "Oscar", "Theo", "Maddie", "Cassie", "Timber", "Meeko", "Micha", "Tami", "Plato",
+  "Bea", "Cedar", "Cleo", "Dali", "Fiona", "Hazel", "Iggi", "Jasmine", "Kali", "Luna",
+  "Reilly", "Reo", "Rikka", "Ruby", "Tammy", "Amy", "Henry",
+];
+
+const KITTEN_SURNAMES = [
+  "Smoke", "Dust", "Chalk", "Fur", "Clay", "Paws", "Tails", "Sand", "Scratch", "Berry", "Shadow",
+  "Ash", "Bark", "Bowl", "Brass", "Dusk", "Gaze", "Gleam", "Grass", "Moss", "Plaid", "Puff", "Rain",
+  "Silk", "Silver", "Speck", "Stripes", "Tingle", "Wool", "Yarn", "Snail", "Rabbit",
+];
+
+const KITTEN_TRAITS: readonly KittenTrait[] = [
+  "scientist", "manager", "engineer", "merchant", "wise", "metallurgist", "chemist", "none",
+];
+
+let nextKittenId = 0;
+
+/** Generate a new kitten with random name, surname, trait, and starting age. */
+export function generateKitten(): Kitten {
+  const name = KITTEN_NAMES[Math.floor(Math.random() * KITTEN_NAMES.length)] ?? "Unknown";
+  const surname = KITTEN_SURNAMES[Math.floor(Math.random() * KITTEN_SURNAMES.length)] ?? "Unknown";
+  const trait = KITTEN_TRAITS[Math.floor(Math.random() * KITTEN_TRAITS.length)] ?? "none";
+  // Legacy: age = 5 + rand(10), 30% chance of +rand(30)
+  let age = 5 + Math.floor(Math.random() * 10);
+  if (Math.random() < 0.3) age += Math.floor(Math.random() * 30);
+  const id = `k${++nextKittenId}`;
+  return { id, name, surname, age, trait, job: null, skills: {}, rank: 0, exp: 0, isFavorite: false, isLeader: false };
 }
 
 // ── Luxury resource constants ─────────────────────────────────────────────────
@@ -90,6 +143,7 @@ export function createInitialVillage(): VillageState {
     kittens: 0,
     kittenProgress: 0,
     jobs,
+    sim: [],
     deadKittens: 0,
     happiness: 1.0,
   };
@@ -123,6 +177,25 @@ function freeOneJobSlot(jobs: Record<string, JobEntry>): Record<string, JobEntry
     }
   }
   return newJobs;
+}
+
+/**
+ * Pick a kitten to die: prefer non-favorite, non-leader.
+ * Returns index in sim array, or -1 if sim is empty.
+ */
+function pickDeathVictim(sim: readonly Kitten[]): number {
+  if (sim.length === 0) return -1;
+  // First: non-favorite, non-leader
+  for (let i = 0; i < sim.length; i++) {
+    const k = sim[i]!;
+    if (!k.isFavorite && !k.isLeader) return i;
+  }
+  // Then: non-leader
+  for (let i = 0; i < sim.length; i++) {
+    if (!sim[i]!.isLeader) return i;
+  }
+  // Last resort: any
+  return 0;
 }
 
 // ── Pollution happiness ───────────────────────────────────────────────────────
@@ -221,6 +294,7 @@ export class VillageManager implements Manager {
 
   update(state: GameState): GameState {
     let { kittens, kittenProgress, jobs } = state.village;
+    let sim = [...state.village.sim];
 
     // ── Kitten growth ─────────────────────────────────────────────────────────
     const kittensPerTickBase = state.effectCache.kittensPerTickBase ?? 0;
@@ -236,6 +310,7 @@ export class VillageManager implements Manager {
       if (kittenProgress >= 1) {
         kittens += 1;
         kittenProgress -= 1;
+        sim.push(generateKitten());
         if (kittens >= maxKittens) {
           kittenProgress = 0;
         }
@@ -251,20 +326,35 @@ export class VillageManager implements Manager {
     if (kittens > 0 && catnip.value + catnipDelta < 0) {
       kittens -= 1;
       deadKittens += 1;
-      // Free a job slot for the dead kitten
-      jobs = freeOneJobSlot(jobs);
+      // Remove a kitten: prefer non-favorite, non-leader
+      const victim = pickDeathVictim(sim);
+      if (victim >= 0) {
+        const dead = sim[victim]!;
+        sim = sim.filter((_, i) => i !== victim);
+        if (dead.job) {
+          jobs = { ...jobs, [dead.job]: { value: Math.max(0, (jobs[dead.job]?.value ?? 0) - 1) } };
+        }
+      } else {
+        jobs = freeOneJobSlot(jobs);
+      }
     }
 
+    // ── Skill growth: kittens gain XP in their assigned job per tick ──────────
+    sim = sim.map((k) => {
+      if (!k.job) return k;
+      const currentSkill = k.skills[k.job] ?? 0;
+      if (currentSkill >= 20001) return k; // hard cap
+      // Legacy: skill growth rate = 0.01 per tick (simplified)
+      return { ...k, skills: { ...k.skills, [k.job]: Math.min(20001, currentSkill + 0.01) } };
+    });
+
     // ── Happiness calculation ──────────────────────────────────────────────────
-    // Delegate to computeHappiness() so import-time recomputation uses the same formula.
-    // Note: update() has already applied kittens/jobs/deaths to state, so we build
-    // a partial state with the updated village slice before computing happiness.
-    const stateForHappiness = { ...state, village: { ...state.village, kittens, kittenProgress, jobs, deadKittens } };
+    const stateForHappiness = { ...state, village: { ...state.village, kittens, kittenProgress, jobs, sim, deadKittens } };
     const happiness = computeHappiness(stateForHappiness);
 
     return {
       ...state,
-      village: { ...state.village, kittens, kittenProgress, jobs, deadKittens, happiness },
+      village: { ...state.village, kittens, kittenProgress, jobs, sim, deadKittens, happiness },
     };
   }
 
@@ -348,11 +438,37 @@ export class VillageManager implements Manager {
     const deadKittens = typeof raw.deadKittens === "number" ? raw.deadKittens : 0;
     const happiness = typeof raw.happiness === "number" ? raw.happiness : 1.0;
 
-    return { ...state, village: { kittens, kittenProgress, jobs, deadKittens, happiness } };
+    // Deserialize individual kittens
+    let sim: Kitten[] = [];
+    if (Array.isArray(raw.sim)) {
+      sim = (raw.sim as unknown[]).filter((k): k is Record<string, unknown> => k != null && typeof k === "object")
+        .map((k) => ({
+          id: typeof k.id === "string" ? k.id : `k${++nextKittenId}`,
+          name: typeof k.name === "string" ? k.name : "Unknown",
+          surname: typeof k.surname === "string" ? k.surname : "Unknown",
+          age: typeof k.age === "number" ? k.age : 0,
+          trait: (typeof k.trait === "string" ? k.trait : "none") as KittenTrait,
+          job: typeof k.job === "string" ? k.job : null,
+          skills: (k.skills && typeof k.skills === "object" && !Array.isArray(k.skills))
+            ? k.skills as Record<string, number> : {},
+          rank: typeof k.rank === "number" ? k.rank : 0,
+          exp: typeof k.exp === "number" ? k.exp : 0,
+          isFavorite: k.isFavorite === true,
+          isLeader: k.isLeader === true,
+        }));
+    }
+
+    return { ...state, village: { kittens, kittenProgress, jobs, sim, deadKittens, happiness } };
   }
 
   resetState(state: GameState): GameState {
     return { ...state, village: createInitialVillage() };
+  }
+
+  /** Age all kittens by 1 year. Called from calendar year tick. */
+  static ageKittens(state: GameState): GameState {
+    const sim = state.village.sim.map((k) => ({ ...k, age: k.age + 1 }));
+    return { ...state, village: { ...state.village, sim } };
   }
 }
 
@@ -408,10 +524,11 @@ function addRes(
  * Cost: 100 catpower per squad (reduced by huntCatpowerDiscount effect).
  * Port of legacy village.js huntFraction(1) / gainHuntRes().
  */
-export function applyHunt(state: GameState): GameState {
+export function applyHunt(state: GameState, amount?: number): GameState {
   const huntCost = 100 - (state.effectCache.huntCatpowerDiscount ?? 0);
   const catpower = state.resources.catpower?.value ?? 0;
-  const squads = Math.floor(catpower / huntCost);
+  const maxSquads = Math.floor(catpower / huntCost);
+  const squads = amount != null ? Math.min(amount, maxSquads) : maxSquads;
   if (squads < 1) return state;
 
   const hunterRatio = state.effectCache.hunterRatio ?? 0;

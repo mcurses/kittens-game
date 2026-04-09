@@ -144,10 +144,31 @@ function migrateVillage(raw: unknown): SerializedGameState["village"] {
     ? arrayToRecord(v.jobs, (item) => ({ value: num(item.value) }))
     : {};
 
+  // Migrate individual kittens from legacy array
+  const sim = kittensArr.map((k, i) => {
+    const kr = isRec(k) ? k : {};
+    return {
+      id: `k${i + 1}`,
+      name: typeof kr.name === "string" ? kr.name : "Unknown",
+      surname: typeof kr.surname === "string" ? kr.surname : "Unknown",
+      age: num(kr.age),
+      trait: typeof kr.trait === "object" && kr.trait !== null ? str((kr.trait as Record<string, unknown>).name) : "none",
+      job: typeof kr.job === "string" ? kr.job : null,
+      skills: isRec(kr.skills) ? Object.fromEntries(
+        Object.entries(kr.skills as Record<string, unknown>).map(([k, v]) => [k, num(v)]),
+      ) : {},
+      rank: num(kr.rank),
+      exp: num(kr.exp),
+      isFavorite: kr.favorite === true,
+      isLeader: kr.isLeader === true,
+    };
+  });
+
   return {
     kittens,
     kittenProgress,
     jobs,
+    sim,
     deadKittens: 0,
     happiness: 1.0,
     // biomes, loadouts, map discarded

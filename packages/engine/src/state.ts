@@ -81,12 +81,17 @@ export interface SerializedGameState {
   resources: Record<string, { value: number; maxValue: number; perTick: number }>;
   buildings: Record<
     string,
-    { val: number; on: number; unlocked?: boolean; unlockable?: boolean; jammed?: boolean; automationEnabled?: boolean }
+    { val: number; on: number; unlocked?: boolean; unlockable?: boolean; jammed?: boolean; automationEnabled?: boolean; stage?: number }
   >;
   village: {
     kittens: number;
     kittenProgress: number;
     jobs: Record<string, { value: number }>;
+    sim?: Array<{
+      id: string; name: string; surname: string; age: number; trait: string;
+      job: string | null; skills: Record<string, number>; rank: number; exp: number;
+      isFavorite: boolean; isLeader: boolean;
+    }>;
     deadKittens?: number;
     happiness?: number;
   };
@@ -161,7 +166,7 @@ export function serialize(state: GameState): SerializedGameState {
 
   const buildings: Record<
     string,
-    { val: number; on: number; unlocked?: boolean; unlockable?: boolean; jammed?: boolean; automationEnabled?: boolean }
+    { val: number; on: number; unlocked?: boolean; unlockable?: boolean; jammed?: boolean; automationEnabled?: boolean; stage?: number }
   > = {};
   for (const [name, entry] of Object.entries(state.buildings)) {
     buildings[name] = {
@@ -171,6 +176,7 @@ export function serialize(state: GameState): SerializedGameState {
       ...(entry.unlockable !== undefined ? { unlockable: entry.unlockable } : {}),
       ...(entry.jammed !== undefined ? { jammed: entry.jammed } : {}),
       ...(entry.automationEnabled !== undefined ? { automationEnabled: entry.automationEnabled } : {}),
+      ...(entry.stage !== undefined ? { stage: entry.stage } : {}),
     };
   }
 
@@ -354,7 +360,7 @@ export function deserialize(data: SerializedGameState): GameState {
   const savedBuildings = data.buildings ?? {};
   const buildings: Record<
     string,
-    { val: number; on: number; unlocked?: boolean; unlockable?: boolean; jammed?: boolean; automationEnabled?: boolean }
+    { val: number; on: number; unlocked?: boolean; unlockable?: boolean; jammed?: boolean; automationEnabled?: boolean; stage?: number }
   > = {
     ...createInitialBuildings(),
   };
@@ -369,6 +375,7 @@ export function deserialize(data: SerializedGameState): GameState {
         ...(typeof entry.automationEnabled === "boolean"
           ? { automationEnabled: entry.automationEnabled }
           : {}),
+        ...(typeof entry.stage === "number" ? { stage: entry.stage } : {}),
       };
     }
   }
@@ -389,7 +396,8 @@ export function deserialize(data: SerializedGameState): GameState {
     }
     const deadKittens = typeof savedVillage.deadKittens === "number" ? savedVillage.deadKittens : 0;
     const happiness = typeof savedVillage.happiness === "number" ? savedVillage.happiness : 1.0;
-    village = { kittens, kittenProgress, jobs, deadKittens, happiness };
+    const sim = Array.isArray(savedVillage.sim) ? savedVillage.sim as unknown as VillageState["sim"] : [];
+    village = { kittens, kittenProgress, jobs, sim, deadKittens, happiness };
   }
 
   const savedCalendar = data.calendar;
