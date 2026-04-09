@@ -741,6 +741,22 @@ describe("Story 27-11: tier craft ratio wiring", () => {
 // ── Coverage gap: WorkshopManager.load non-boolean fallbacks ─────────────────
 
 describe("WorkshopManager.load edge cases", () => {
+  it("replays downstream upgrade unlocks for researched upgrades during load", () => {
+    const mgr = new WorkshopManager();
+    const loaded = mgr.load(
+      {
+        upgrades: {
+          reinforcedBarns: { unlocked: true, researched: true },
+        },
+        crafts: {},
+      } as unknown as Parameters<typeof mgr.load>[0],
+      createInitialState(),
+    );
+
+    expect(loaded.workshop.upgrades.reinforcedBarns?.researched).toBe(true);
+    expect(loaded.workshop.upgrades.titaniumBarns?.unlocked).toBe(true);
+  });
+
   it("handles non-boolean unlocked/researched in saved upgrade data", () => {
     const mgr = new WorkshopManager();
     // Pass malformed saved data where unlocked/researched are not booleans
@@ -761,5 +777,144 @@ describe("WorkshopManager.load edge cases", () => {
     expect(loaded.workshop.upgrades.mineralHoes?.researched).toBe(false);
     // wood craft: falls back to initial value (true)
     expect(loaded.workshop.crafts.wood?.unlocked).toBe(true);
+  });
+});
+
+// ── Story 47-03: Engineer auto-craft engine ─────────────────────────────────
+
+describe("Story 47-03: Engineer auto-craft engine", () => {
+  const mgr = new WorkshopManager();
+
+  function makeAutoCraftState(): import("./state.js").GameState {
+    const state = createInitialState();
+    return {
+      ...state,
+      resources: {
+        ...state.resources,
+        wood: { value: 5000, maxValue: 10000 },
+        beam: { value: 0, maxValue: 0 },
+      },
+      workshop: {
+        ...state.workshop,
+        crafts: {
+          ...state.workshop.crafts,
+          beam: { unlocked: true, engineers: 1, progress: 0 },
+        },
+      },
+      village: {
+        ...state.village,
+        jobs: { ...state.village.jobs, engineer: { value: 5 } },
+      },
+    };
+  }
+
+  it("accumulates progress per tick when engineers are assigned", () => {
+    const state = makeAutoCraftState();
+    const next = mgr.update(state);
+    // beam: progressHandicap=1, engineers=1 → 1/(3000×1) per tick
+    expect(next.workshop.crafts.beam?.progress).toBeCloseTo(1 / 3000, 10);
+  });
+
+  it("crafts one unit when progress reaches 1 and inputs are available", () => {
+    const state = {
+      ...makeAutoCraftState(),
+      workshop: {
+        ...makeAutoCraftState().workshop,
+        crafts: {
+          ...makeAutoCraftState().workshop.crafts,
+          beam: { unlocked: true, engineers: 1, progress: 0.999 },
+        },
+      },
+    };
+    // After 1 more tick at 1/3000 → progress ≈ 0.999333 < 1, so need to set progress higher
+    // Set progress to just below 1 so one tick pushes it over
+    const almostDone = {
+      ...state,
+      workshop: {
+        ...state.workshop,
+        crafts: {
+          ...state.workshop.crafts,
+          beam: { unlocked: true, engineers: 1, progress: 1 - 1 / 3000 },
+        },
+      },
+    };
+    const next = mgr.update(almostDone);
+    // Progress should reset to near 0 (fractional remainder)
+    expect(next.workshop.crafts.beam?.progress).toBeCloseTo(0, 3);
+    // Beam resource should have increased (1 + craftRatio, craftRatio=0 here)
+    expect(next.resources.beam?.value).toBe(1);
+    // Wood should be deducted by 175 (beam cost)
+    expect(next.resources.wood?.value).toBe(5000 - 175);
+  });
+
+  it("stalls at 0.999 when inputs are insufficient", () => {
+    const state = {
+      ...makeAutoCraftState(),
+      resources: {
+        ...makeAutoCraftState().resources,
+        wood: { value: 10, maxValue: 10000 }, // Not enough for beam (175)
+      },
+      workshop: {
+        ...makeAutoCraftState().workshop,
+        crafts: {
+          ...makeAutoCraftState().workshop.crafts,
+          beam: { unlocked: true, engineers: 1, progress: 0.999 },
+        },
+      },
+    };
+    const next = mgr.update(state);
+    // Should stall — no craft, no wood deduction
+    expect(next.resources.wood?.value).toBe(10);
+    expect(next.resources.beam?.value).toBe(0);
+    expect(next.workshop.crafts.beam?.progress).toBeCloseTo(0.999, 3);
+  });
+
+  it("does not accumulate progress when no engineers assigned", () => {
+    const state = {
+      ...makeAutoCraftState(),
+      workshop: {
+        ...makeAutoCraftState().workshop,
+        crafts: {
+          ...makeAutoCraftState().workshop.crafts,
+          beam: { unlocked: true, engineers: 0, progress: 0 },
+        },
+      },
+    };
+    const next = mgr.update(state);
+    expect(next.workshop.crafts.beam?.progress).toBe(0);
+  });
+
+  it("applies craft ratio bonus to auto-crafted output", () => {
+    const state = {
+      ...makeAutoCraftState(),
+      effectCache: { ...makeAutoCraftState().effectCache, craftRatio: 0.5 },
+      workshop: {
+        ...makeAutoCraftState().workshop,
+        crafts: {
+          ...makeAutoCraftState().workshop.crafts,
+          beam: { unlocked: true, engineers: 1, progress: 1 - 1 / 3000 },
+        },
+      },
+    };
+    const next = mgr.update(state);
+    // Output: 1 × (1 + 0.5) = 1.5
+    expect(next.resources.beam?.value).toBeCloseTo(1.5, 5);
+  });
+
+  it("saves and loads progress field", () => {
+    const state = {
+      ...makeAutoCraftState(),
+      workshop: {
+        ...makeAutoCraftState().workshop,
+        crafts: {
+          ...makeAutoCraftState().workshop.crafts,
+          beam: { unlocked: true, engineers: 2, progress: 0.42 },
+        },
+      },
+    };
+    const saved = mgr.save(state);
+    const loaded = mgr.load(saved, createInitialState());
+    expect(loaded.workshop.crafts.beam?.engineers).toBe(2);
+    expect(loaded.workshop.crafts.beam?.progress).toBeCloseTo(0.42, 5);
   });
 });

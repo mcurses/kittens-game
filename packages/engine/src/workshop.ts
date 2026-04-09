@@ -32,11 +32,14 @@ export interface CraftDef {
   readonly prices: readonly PriceEntry[];
   readonly tier: number;
   readonly ignoreBonuses: boolean;
+  /** Engineer auto-craft speed divisor. Higher = slower. Default 1. */
+  readonly progressHandicap: number;
 }
 
 export interface CraftEntry {
   readonly unlocked: boolean;
   readonly engineers?: number;
+  readonly progress?: number;
 }
 
 // ── WorkshopState ─────────────────────────────────────────────────────────────
@@ -1434,172 +1437,27 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
 // ── CRAFT_DEFS ────────────────────────────────────────────────────────────────
 
 export const CRAFT_DEFS: readonly CraftDef[] = [
-  {
-    name: "wood",
-    prices: [{ name: "catnip", val: 100 }],
-    ignoreBonuses: true,
-    tier: 1,
-  },
-  {
-    name: "beam",
-    prices: [{ name: "wood", val: 175 }],
-    ignoreBonuses: false,
-    tier: 1,
-  },
-  {
-    name: "slab",
-    prices: [{ name: "minerals", val: 250 }],
-    ignoreBonuses: false,
-    tier: 1,
-  },
-  {
-    name: "plate",
-    prices: [{ name: "iron", val: 125 }],
-    ignoreBonuses: false,
-    tier: 1,
-  },
-  {
-    name: "steel",
-    prices: [
-      { name: "coal", val: 100 },
-      { name: "iron", val: 100 },
-    ],
-    ignoreBonuses: false,
-    tier: 2,
-  },
-  {
-    name: "concrate",
-    prices: [
-      { name: "slab", val: 2500 },
-      { name: "steel", val: 25 },
-    ],
-    ignoreBonuses: false,
-    tier: 4,
-  },
-  {
-    name: "gear",
-    prices: [{ name: "steel", val: 15 }],
-    ignoreBonuses: false,
-    tier: 3,
-  },
-  {
-    name: "alloy",
-    prices: [
-      { name: "titanium", val: 10 },
-      { name: "steel", val: 75 },
-    ],
-    ignoreBonuses: false,
-    tier: 4,
-  },
-  {
-    name: "eludium",
-    prices: [
-      { name: "unobtainium", val: 1000 },
-      { name: "alloy", val: 2500 },
-    ],
-    ignoreBonuses: false,
-    tier: 5,
-  },
-  {
-    name: "scaffold",
-    prices: [{ name: "beam", val: 50 }],
-    ignoreBonuses: false,
-    tier: 2,
-  },
-  {
-    name: "ship",
-    prices: [
-      { name: "starchart", val: 25 },
-      { name: "plate", val: 150 },
-      { name: "scaffold", val: 100 },
-    ],
-    ignoreBonuses: false,
-    tier: 3,
-  },
-  {
-    name: "tanker",
-    prices: [
-      { name: "alloy", val: 1250 },
-      { name: "ship", val: 200 },
-      { name: "blueprint", val: 5 },
-    ],
-    ignoreBonuses: false,
-    tier: 5,
-  },
-  {
-    name: "kerosene",
-    prices: [{ name: "oil", val: 7500 }],
-    ignoreBonuses: false,
-    tier: 2,
-  },
-  {
-    name: "parchment",
-    prices: [{ name: "furs", val: 175 }],
-    ignoreBonuses: false,
-    tier: 1,
-  },
-  {
-    name: "manuscript",
-    prices: [
-      { name: "culture", val: 400 },
-      { name: "parchment", val: 25 },
-    ],
-    ignoreBonuses: false,
-    tier: 2,
-  },
-  {
-    name: "compedium",
-    prices: [
-      { name: "science", val: 10000 },
-      { name: "manuscript", val: 50 },
-    ],
-    ignoreBonuses: false,
-    tier: 3,
-  },
-  {
-    name: "blueprint",
-    prices: [
-      { name: "science", val: 25000 },
-      { name: "compedium", val: 25 },
-    ],
-    ignoreBonuses: false,
-    tier: 3,
-  },
-  {
-    name: "thorium",
-    prices: [{ name: "uranium", val: 250 }],
-    ignoreBonuses: false,
-    tier: 3,
-  },
-  {
-    name: "megalith",
-    prices: [
-      { name: "beam", val: 25 },
-      { name: "slab", val: 50 },
-      { name: "plate", val: 5 },
-    ],
-    ignoreBonuses: false,
-    tier: 3,
-  },
-  {
-    name: "bloodstone",
-    prices: [
-      { name: "timeCrystal", val: 5000 },
-      { name: "relic", val: 10000 },
-    ],
-    ignoreBonuses: false,
-    tier: 5,
-  },
-  {
-    name: "tMythril",
-    prices: [
-      { name: "bloodstone", val: 5 },
-      { name: "ivory", val: 1000 },
-      { name: "titanium", val: 500 },
-    ],
-    ignoreBonuses: false,
-    tier: 7,
-  },
+  { name: "wood", prices: [{ name: "catnip", val: 100 }], ignoreBonuses: true, tier: 1, progressHandicap: 1 },
+  { name: "beam", prices: [{ name: "wood", val: 175 }], ignoreBonuses: false, tier: 1, progressHandicap: 1 },
+  { name: "slab", prices: [{ name: "minerals", val: 250 }], ignoreBonuses: false, tier: 1, progressHandicap: 1 },
+  { name: "plate", prices: [{ name: "iron", val: 125 }], ignoreBonuses: false, tier: 1, progressHandicap: 4 },
+  { name: "steel", prices: [{ name: "coal", val: 100 }, { name: "iron", val: 100 }], ignoreBonuses: false, tier: 2, progressHandicap: 4 },
+  { name: "concrate", prices: [{ name: "slab", val: 2500 }, { name: "steel", val: 25 }], ignoreBonuses: false, tier: 4, progressHandicap: 9 },
+  { name: "gear", prices: [{ name: "steel", val: 15 }], ignoreBonuses: false, tier: 3, progressHandicap: 5 },
+  { name: "alloy", prices: [{ name: "titanium", val: 10 }, { name: "steel", val: 75 }], ignoreBonuses: false, tier: 4, progressHandicap: 7 },
+  { name: "eludium", prices: [{ name: "unobtainium", val: 1000 }, { name: "alloy", val: 2500 }], ignoreBonuses: false, tier: 5, progressHandicap: 300 },
+  { name: "scaffold", prices: [{ name: "beam", val: 50 }], ignoreBonuses: false, tier: 2, progressHandicap: 2 },
+  { name: "ship", prices: [{ name: "starchart", val: 25 }, { name: "plate", val: 150 }, { name: "scaffold", val: 100 }], ignoreBonuses: false, tier: 3, progressHandicap: 20 },
+  { name: "tanker", prices: [{ name: "alloy", val: 1250 }, { name: "ship", val: 200 }, { name: "blueprint", val: 5 }], ignoreBonuses: false, tier: 5, progressHandicap: 20 },
+  { name: "kerosene", prices: [{ name: "oil", val: 7500 }], ignoreBonuses: false, tier: 2, progressHandicap: 5 },
+  { name: "parchment", prices: [{ name: "furs", val: 175 }], ignoreBonuses: false, tier: 1, progressHandicap: 1 },
+  { name: "manuscript", prices: [{ name: "culture", val: 400 }, { name: "parchment", val: 25 }], ignoreBonuses: false, tier: 2, progressHandicap: 2 },
+  { name: "compedium", prices: [{ name: "science", val: 10000 }, { name: "manuscript", val: 50 }], ignoreBonuses: false, tier: 3, progressHandicap: 5 },
+  { name: "blueprint", prices: [{ name: "science", val: 25000 }, { name: "compedium", val: 25 }], ignoreBonuses: false, tier: 3, progressHandicap: 10 },
+  { name: "thorium", prices: [{ name: "uranium", val: 250 }], ignoreBonuses: false, tier: 3, progressHandicap: 5 },
+  { name: "megalith", prices: [{ name: "beam", val: 25 }, { name: "slab", val: 50 }, { name: "plate", val: 5 }], ignoreBonuses: false, tier: 3, progressHandicap: 5 },
+  { name: "bloodstone", prices: [{ name: "timeCrystal", val: 5000 }, { name: "relic", val: 10000 }], ignoreBonuses: false, tier: 5, progressHandicap: 7500 },
+  { name: "tMythril", prices: [{ name: "bloodstone", val: 5 }, { name: "ivory", val: 1000 }, { name: "titanium", val: 500 }], ignoreBonuses: false, tier: 7, progressHandicap: 10000 },
 ];
 
 // ── Initial sets ──────────────────────────────────────────────────────────────
@@ -1640,6 +1498,7 @@ export function createInitialWorkshop(): WorkshopState {
     crafts[def.name] = {
       unlocked: INITIAL_UNLOCKED_CRAFTS.has(def.name),
       engineers: 0,
+      progress: 0,
     };
   }
 
@@ -1772,11 +1631,71 @@ export function applyUnassignCraftEngineer(state: GameState, craftName: string):
 
 type Serializable_ = Serializable;
 
+/**
+ * Legacy: 1 craft per engineer per 600 real seconds × ticksPerSecond (5) = 3000 ticks.
+ * Our engine uses the same abstract tick rate.
+ */
+const TICKS_PER_CRAFT_CYCLE = 3000;
+
 export class WorkshopManager implements Manager {
   readonly sectionKey = "workshop";
 
   update(state: GameState): GameState {
-    return state;
+    // Engineer auto-craft: accumulate progress per assigned craft
+    let result = state;
+    for (const def of CRAFT_DEFS) {
+      const entry = result.workshop.crafts[def.name];
+      if (!entry?.unlocked || (entry.engineers ?? 0) <= 0) continue;
+
+      const engineers = entry.engineers ?? 0;
+      const progressPerTick = engineers / (TICKS_PER_CRAFT_CYCLE * def.progressHandicap);
+      let newProgress = (entry.progress ?? 0) + progressPerTick;
+
+      // When progress >= 1, attempt to craft one unit
+      if (newProgress >= 1) {
+        // Check if we can afford 1 unit
+        if (canAfford(def.prices, result.resources)) {
+          // Compute output with bonus
+          let craftRatio = 0;
+          if (!def.ignoreBonuses) {
+            craftRatio += result.effectCache.craftRatio ?? 0;
+            if (def.tier >= 1 && def.tier <= 5) {
+              craftRatio += result.effectCache[`t${def.tier}CraftRatio`] ?? 0;
+            }
+          }
+          const output = 1 + craftRatio;
+
+          result = produce(result, (draft) => {
+            // Deduct inputs
+            for (const price of def.prices) {
+              const res = draft.resources[price.name];
+              if (res) res.value -= price.val;
+            }
+            // Add output
+            const outRes = draft.resources[def.name] ?? { value: 0, maxValue: 0 };
+            const newVal = outRes.value + output;
+            outRes.value = outRes.maxValue > 0 ? Math.min(newVal, outRes.maxValue) : newVal;
+            draft.resources[def.name] = outRes;
+            // Reset progress, keep fractional remainder
+            const craftEntry = draft.workshop.crafts[def.name];
+            if (craftEntry) craftEntry.progress = newProgress - 1;
+          });
+        } else {
+          // Can't afford — stall at 0.999 (don't lose progress but don't craft)
+          result = produce(result, (draft) => {
+            const craftEntry = draft.workshop.crafts[def.name];
+            if (craftEntry) craftEntry.progress = Math.min(newProgress, 0.999);
+          });
+        }
+      } else {
+        // Just accumulate progress
+        result = produce(result, (draft) => {
+          const craftEntry = draft.workshop.crafts[def.name];
+          if (craftEntry) craftEntry.progress = newProgress;
+        });
+      }
+    }
+    return result;
   }
 
   updateEffects(state: GameState): Record<string, number> {
@@ -1801,7 +1720,9 @@ export class WorkshopManager implements Manager {
     }
     const raw = saved as Record<string, unknown>;
 
-    const workshop = createInitialWorkshop();
+    // Start from the current state so earlier manager load replay (for example
+    // science tech unlocks) is not clobbered by stale saved workshop flags.
+    const workshop = state.workshop;
 
     // Restore upgrade flags
     const upgrades = { ...workshop.upgrades };
@@ -1813,8 +1734,11 @@ export class WorkshopManager implements Manager {
           const su = s as Record<string, unknown>;
           upgrades[name] = {
             unlocked:
-              typeof su.unlocked === "boolean" ? su.unlocked : (upgrades[name]?.unlocked ?? false),
-            researched: typeof su.researched === "boolean" ? su.researched : false,
+              typeof su.unlocked === "boolean"
+                ? su.unlocked || (upgrades[name]?.unlocked ?? false)
+                : (upgrades[name]?.unlocked ?? false),
+            researched:
+              typeof su.researched === "boolean" ? su.researched : (upgrades[name]?.researched ?? false),
           };
         }
       }
@@ -1830,9 +1754,26 @@ export class WorkshopManager implements Manager {
           const sc = s as Record<string, unknown>;
           crafts[name] = {
             unlocked:
-              typeof sc.unlocked === "boolean" ? sc.unlocked : (crafts[name]?.unlocked ?? false),
+              typeof sc.unlocked === "boolean"
+                ? sc.unlocked || (crafts[name]?.unlocked ?? false)
+                : (crafts[name]?.unlocked ?? false),
             engineers: typeof sc.engineers === "number" ? Math.max(0, sc.engineers) : (crafts[name]?.engineers ?? 0),
+            progress: typeof sc.progress === "number" ? Math.max(0, sc.progress) : 0,
           };
+        }
+      }
+    }
+
+    // Legacy workshop.load() replays unlock chains for researched upgrades
+    // after metadata is restored.
+    for (const [name, entry] of Object.entries(upgrades)) {
+      if (!entry.researched) continue;
+      const def = UPGRADE_DEFS.find((upgrade) => upgrade.name === name);
+      if (!def?.unlocks?.upgrades) continue;
+      for (const unlockName of def.unlocks.upgrades) {
+        const unlockEntry = upgrades[unlockName];
+        if (unlockEntry && !unlockEntry.unlocked) {
+          upgrades[unlockName] = { ...unlockEntry, unlocked: true };
         }
       }
     }
