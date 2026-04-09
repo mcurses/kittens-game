@@ -2500,3 +2500,76 @@ describe("Story 49-03: Stage effects definitions", () => {
     expect(effects.unhappinessRatio).toBeCloseTo(-0.75);
   });
 });
+
+// ── Cross-manager integration: stage lifecycle ──────────────────────────────
+
+describe("Epic 49 integration: full stage lifecycle", () => {
+  it("upgrade → buy at new stage → effects reflect new stage → downgrade resets", () => {
+    let state = createInitialState();
+    const manager = new BuildingManager();
+
+    // Set up warehouse with some buildings, both stages unlocked
+    state = {
+      ...state,
+      buildings: {
+        ...state.buildings,
+        warehouse: {
+          val: 3,
+          on: 3,
+          unlocked: true,
+          stage: 0,
+          stageUnlocked: [true, true],
+        },
+      },
+    };
+
+    // Verify stage 0 effects
+    let effects = manager.updateEffects(state);
+    expect(effects.woodMax).toBeGreaterThan(0);
+
+    // Upgrade to stage 1 (spaceport) — should reset val/on to 0
+    state = applyAction(state, { type: "UPGRADE_BUILDING_STAGE", name: "warehouse" });
+    expect(state.buildings.warehouse?.stage).toBe(1);
+    expect(state.buildings.warehouse?.val).toBe(0);
+    expect(state.buildings.warehouse?.on).toBe(0);
+
+    // After upgrade, val/on = 0, so warehouse contributes nothing; only base effects remain
+    effects = manager.updateEffects(state);
+    // Base woodMax (200) is still there but no warehouse contribution
+    expect(effects.woodMax).toBe(200); // only base, no warehouse stage contribution
+
+    // Give resources and buy one spaceport
+    state = {
+      ...state,
+      resources: {
+        ...state.resources,
+        beam: { value: 100, maxValue: 999 },
+        slab: { value: 100, maxValue: 999 },
+      },
+      buildings: {
+        ...state.buildings,
+        warehouse: { ...state.buildings.warehouse!, val: 1, on: 1 },
+      },
+    };
+
+    // Stage 1 effects: moonBaseStorageBonus etc.
+    effects = manager.updateEffects(state);
+    expect(effects.moonBaseStorageBonus).toBeCloseTo(0.0085);
+    expect(effects.energyConsumption).toBeGreaterThanOrEqual(5);
+
+    // Downgrade back to stage 0 — resets val/on again
+    state = applyAction(state, { type: "DOWNGRADE_BUILDING_STAGE", name: "warehouse" });
+    expect(state.buildings.warehouse?.stage).toBe(0);
+    expect(state.buildings.warehouse?.val).toBe(0);
+    expect(state.buildings.warehouse?.on).toBe(0);
+
+    // Stage labels
+    expect(getBuildingDisplayName("warehouse", 0)).toBe("Warehouse");
+    expect(getBuildingDisplayName("warehouse", 1)).toBe("Spaceport");
+
+    // Serialize and deserialize
+    const roundTripped = deserialize(serialize(state));
+    expect(roundTripped.buildings.warehouse?.stage).toBe(0);
+    expect(roundTripped.buildings.warehouse?.stageUnlocked).toEqual([true, true]);
+  });
+});
