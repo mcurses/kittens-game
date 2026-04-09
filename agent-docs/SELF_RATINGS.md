@@ -1777,3 +1777,42 @@ The later Chrome MCP audit invalidated the second closeout as well.
 - [ ] Add a focused unit test for `computePollutionHappines` at each pollution level boundary
 - [ ] Ensure future manager tests include a full `GameStateStore` integration variant, not just isolated manager.load() calls
 - [ ] Remaining PARITY.md ⚠️ items: imported automation metadata (oilWell/reactor flags), smelter stock-limited scaling, steamworks offline daysOffset
+
+---
+
+## Epic 35 (Reopened): UI QoL Parity — 2026-04-09
+
+| Dimension | Score | Notes |
+|-----------|-------|-------|
+| Test coverage (≥90% target) | 4 | Engine 98% stmt; client-web has 2 pre-existing App.test failures unrelated to this epic |
+| No skipped tests / no TODOs | 4 | 28 `it.todo` in ui-parity-audit.test.tsx — all are documented known UI gaps, not code defects |
+| Feature parity | 4 | 5/5 reopened stories complete; UI_PARITY.md 47/98 (48%); engine PARITY.md unchanged (no engine-level changes needed) |
+| API spec completeness | 5 | All 36 actions in sync; ASSIGN_JOB/UNASSIGN_JOB count field added to both engine + spec |
+| Code quality (no `any`) | 5 | Zero `any`, zero TODO/FIXME/HACK |
+| Docs freshness (PROGRESS, DECISIONS, PARITY) | 4 | PROGRESS.md updated; EPICS.md marked ✅; UI_PARITY.md summary counts refreshed; no new decisions needed |
+| Commit hygiene | 3 | All work uncommitted — single working tree with many modified files |
+| **Overall average** | **4.1** | |
+
+### What went well
+
+- Created UI_PARITY.md as a systematic tracker for UI element parity — 98 elements tracked across 11 panels
+- Created ui-parity-audit.test.tsx as an automated component-level UI surface audit — catches "marked complete but missing" gaps
+- All 5 reopened stories (35-06 through 35-10) implemented with TDD approach
+- New engine `getResourceAttribution()` function cleanly decomposes production by source without modifying the core effect cache architecture
+- flavorText.ts ported ~70 flavor strings from legacy en.json without introducing an i18n dependency
+- Converted 4 `it.todo` entries to passing tests
+
+### What to improve
+
+- App.test.tsx has 2 pre-existing failures (WebSocket mock setup) — should be fixed to get a clean test run
+- The attribution function partially duplicates building effect logic — could be fragile if building effects change
+- Server coverage at 75.5% is below the 90% target
+- 28 remaining `it.todo` entries in ui-parity-audit represent real UI gaps (weather modifier, resource coloring, census, government, etc.)
+
+### Action items for next epic
+
+- [ ] Fix the 2 pre-existing App.test.tsx failures (WebSocket mock initialization)
+- [ ] Raise server package test coverage above 80%
+- [ ] Story 35-02 (mechanization craft UI) remains deferred — needs engineer-per-craft assignment UI
+- [ ] Add a focused unit test for `computePollutionHappines` at each pollution level boundary
+- [ ] Remaining PARITY.md ⚠️ items: imported automation metadata (oilWell/reactor flags), smelter stock-limited scaling, steamworks offline daysOffset

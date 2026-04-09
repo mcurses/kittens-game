@@ -80,3 +80,29 @@ Legacy references:
 - [x] Test: `catnipField` (defaultUnlockable) → visible from game start once resources met, no research required
 - [x] Test: building not yet unlockable → stays hidden even with all resources
 - [x] Tests live in `packages/engine/src/buildings.test.ts`
+
+---
+
+## Story 36-06 — Replay building unlockable state on save load
+
+**Why it exists**: Legacy does not save `unlockable`; it reconstructs building permission from researched tech unlocks on load. Existing rewrite saves can therefore drift stale and keep buildings hidden even when the research grant and reveal threshold are already satisfied.
+
+**ACs**:
+- [x] Given a serialized save where `construction` is researched and current `beam`/`slab` already satisfy the warehouse reveal threshold, when the store loads that save, then `warehouse` is immediately visible without re-researching `construction`
+- [x] Given any researched tech with `unlocks.buildings`, when `ScienceManager.load()` runs, then the corresponding buildings regain `unlockable = true` in loaded state
+- [x] Given the full server deserialize path, when a stale save is loaded, then replayed building unlockability is not lost and threshold-based reveal runs against the replayed permission
+- [x] Regression tests cover the real `GameStateStore.init()` path and name the missing building keys explicitly on failure
+
+### Legacy Reference
+- `legacy/js/science.js:2349-2357`
+- `legacy/game.js:5336-5352`
+- `legacy/js/buildings.js:2578-2606`
+
+### Status: [x] Tests | [x] Impl | [ ] Rated
+
+## Fix Results — 2026-04-08
+
+- `ScienceManager.load()` now replays `tech.unlocks.buildings` into `building.unlockable`, matching legacy `game.unlock()` behavior on load.
+- `GameStateStore._fullDeserialize()` now runs the building reveal pass once after manager load replay so buildings whose resource thresholds are already met become visible immediately in loaded saves.
+- New regressions cover both the isolated replay (`construction -> warehouse.unlockable`) and the full stale-save load path (`warehouse` visible when `beam`/`slab` thresholds are already met).
+- A practical replay of the current exported `slot=new` payload now restores `warehouse` as `{ unlocked: true, unlockable: true }`.

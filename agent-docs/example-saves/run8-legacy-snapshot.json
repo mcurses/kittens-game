@@ -1,0 +1,117 @@
+{
+  "fixture": "Run 8 - Year 10527 - Autumn, day 48",
+  "capturedAt": "2026-04-07",
+  "source": "Chrome MCP audit against https://kittensgame.com/web/# using gamePage.saveImportDropboxText(text)",
+  "snapshot": {
+    "calendar": {
+      "year": 10527,
+      "season": 2,
+      "day": 48
+    },
+    "village": {
+      "kittens": 579,
+      "maxKittens": 579,
+      "happiness": 5.330126107867796
+    },
+    "resources": {
+      "catnip": {
+        "value": 837318451.904724
+      },
+      "wood": {
+        "value": 112353055.47464252
+      },
+      "minerals": {
+        "value": 138836437.52918628
+      },
+      "science": {
+        "value": 276057022.7414399
+      },
+      "faith": {
+        "value": 228373.76341050008
+      },
+      "antimatter": {
+        "value": 2075.36
+      },
+      "unobtainium": {
+        "value": 88289.38720909761
+      }
+    },
+    "buildings": {
+      "hut": {
+        "val": 67,
+        "on": 67
+      },
+      "logHouse": {
+        "val": 216,
+        "on": 216
+      },
+      "mansion": {
+        "val": 192,
+        "on": 192
+      },
+      "barn": {
+        "val": 29,
+        "on": 29
+      },
+      "warehouse": {
+        "val": 22,
+        "on": 22
+      },
+      "harbor": {
+        "val": 297,
+        "on": 297
+      },
+      "oilWell": {
+        "val": 190,
+        "on": 190
+      },
+      "factory": {
+        "val": 126,
+        "on": 126
+      },
+      "reactor": {
+        "val": 112,
+        "on": 112
+      },
+      "biolab": {
+        "val": 751,
+        "on": 751
+      },
+      "aiCore": {
+        "val": 17,
+        "on": 17
+      },
+      "accelerator": {
+        "val": 99,
+        "on": 99
+      },
+      "chronosphere": {
+        "val": 18,
+        "on": 18
+      }
+    },
+    "automation": {
+      "oilWell": true,
+      "factory": true,
+      "reactor": false
+    },
+    "workshop": {
+      "silos": true,
+      "stoneBarns": true,
+      "concreteBarns": true,
+      "reinforcedBarns": true,
+      "ironwood": true
+    },
+    "policies": {
+      "liberty": false,
+      "tradition": true,
+      "fascism": false,
+      "communism": true,
+      "fullIndustrialization": true
+    },
+    "time": {
+      "flux": 9414.981333344942,
+      "heat": 0
+    }
+  }
+}

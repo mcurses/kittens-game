@@ -228,3 +228,24 @@
 - Rewrite parity for this story is scoped to the currently implemented happiness formula terms. Environment and challenge rows should only be shown if the rewrite state actually carries non-zero values for them.
 
 ### Status: [x] Tests | [x] Impl | [ ] Rated
+
+---
+
+## Story 26-13: Buildings panel category grouping
+
+**As a** player
+**I want** the Buildings tab organized into clear building categories
+**So that** I can scan the bonfire/buildings surface by function instead of reading one flat list
+
+### Acceptance Criteria
+- [x] BuildingsPanel renders visible unlocked buildings under category headings rather than a single flat `Structures` list
+- [x] Categories follow the requested grouped layout shape: `Food Production`, `Population`, `Science`, `Storage`, `Resources`, `Industry`, `Culture`, `Other`, `Mega Structures`, and `Zebras`
+- [x] Each visible building appears exactly once under its assigned category
+- [x] Empty categories are hidden
+- [x] Existing buy controls, on/off controls, automation controls, and inspector hover/focus behavior are preserved
+- [x] Focused BuildingsPanel tests cover category rendering and representative building placement
+
+### Notes
+- This is a client-side information-architecture hotfix only. It should not change engine state, unlock logic, or visibility rules.
+
+### Status: [x] Tests | [x] Impl | [ ] Rated

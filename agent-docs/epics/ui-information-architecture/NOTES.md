@@ -66,6 +66,30 @@ This is not yet approved. It is only a starting hypothesis.
 - The missing piece is not another tooltip. It belongs in the existing inspector model, likely as a dedicated inspector entity populated from the serialized state on hover/focus of the happiness display.
 - Implementation landed via a shared client-side `buildHappinessEntity()` helper so both the village header and jobs summary publish the same breakdown rows into the inspector.
 
+## Reopen Notes — 2026-04-08
+
+- `BuildingsPanel` still renders a single flat list under `Structures`.
+- Requested layout is grouped by building role, following the reference image:
+  - `Food Production`
+  - `Population`
+  - `Science`
+  - `Storage`
+  - `Resources`
+  - `Industry`
+  - `Culture`
+  - `Other`
+  - `Mega Structures`
+  - `Zebras`
+- This is a client-only presentation change over the existing visible/unlocked building set.
+- The hotfix must preserve current controls and inspector publishing for each building row.
+
+### Fix Results
+
+- `BuildingsPanel` now renders visible buildings under ordered bonfire-style categories instead of one flat list.
+- Category ordering is explicit and stable, and empty categories are suppressed.
+- Existing row-level controls and inspector publishing were preserved; only the surrounding list organization changed.
+- Focused client regression coverage now checks representative placement across categories and verifies empty categories stay hidden.
+
 ## Suggested Sequencing
 
 1. Audit legacy detail surfaces

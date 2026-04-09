@@ -77,7 +77,7 @@
 
 ### Notes
 - ETA = `(needed - current) / (perTick * TICKS_PER_SECOND)` where `TICKS_PER_SECOND = 5`
-- Live update: 1-second `setInterval` inside a `useEffect`, or a shared ticker from the existing inspector elapsed hook
+- Live update must be derived from the latest serialized resource state. Do not subtract an extra local wall-clock timer on top of already-advancing live `value` updates, or the ETA will count down too fast.
 - The label is small and muted (`font-size: 0.75rem`, `color: var(--color-muted)`)
 - Positioned directly below the progress bar, only visible in highlight mode
 

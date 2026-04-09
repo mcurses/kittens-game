@@ -74,3 +74,38 @@ unicornPasture, ziggurat, chapel, steamworks, magneto, tradepost, harbor, quarry
 - The `unlocked` field is one-way (never reset). The check `if (!entry || entry.unlocked) continue` already handles this correctly.
 - `applyResearch` must guard against missing building state entries (building might not exist in state.buildings if it was never touched).
 - `applyResearchPolicy` also has `unlocks.buildings` possibly — check if any policy unlocks buildings. (From the code scan: policies use `unlocks.tech` and `unlocks.upgrades`, not buildings, so no change needed there.)
+
+## Reopen Findings — 2026-04-08
+
+The live `slot=new` report for `warehouse` exposed a remaining load-path gap in Epic 36.
+
+- `construction` is already researched in `slot=new`
+- `warehouse` is unlocked by `construction` in `packages/engine/src/science.ts`
+- current live resources already exceed the reveal threshold:
+  - warehouse prices: `beam 1.5`, `slab 2`
+  - unlock threshold (`unlockRatio: 0.3`): `beam 0.45`, `slab 0.6`
+  - live `slot=new`: `beam 0.76`, `slab 2.32`
+- yet `GET /api/game/state?slot=new` still reports `buildings.warehouse.unlocked = false`
+
+Root cause:
+
+- `applyResearch()` correctly sets `building.unlockable = true` when a tech is researched
+- but `ScienceManager.load()` only replays workshop unlocks on load; it does not replay `tech.unlocks.buildings`
+- because stale saves do not persist `unlockable`, `warehouse` loses its research-granted permission on load
+- without `unlockable`, `BuildingManager.update()` correctly refuses to reveal the building even though the resource threshold is met
+
+This is the same two-step unlock model from Epic 36, but the load-time replay half is still incomplete.
+
+## Fix Results — 2026-04-08
+
+The reopened load-time replay gap is now fixed.
+
+- `packages/engine/src/science.ts` now replays `tech.unlocks.buildings` during `ScienceManager.load()`, restoring building `unlockable` permission from researched techs in stale saves.
+- `packages/server/src/store.ts` now runs a single building reveal pass after manager load replay, so already-threshold-met buildings surface immediately without waiting for a later tick.
+- `packages/engine/src/science.test.ts` now proves `construction` restores `warehouse.unlockable` on load.
+- `packages/server/src/store.test.ts` now proves a stale save with researched `construction` plus sufficient `beam`/`slab` loads with `warehouse.unlocked = true`.
+- A practical replay of the current exported `slot=new` payload confirms the healed state: `warehouse` restores as unlocked and unlockable.
+
+Follow-up before reclosing Epic 36:
+
+- Recheck the running app after restart to confirm the buildings panel reflects the healed loaded state for `slot=new`.

@@ -47,7 +47,13 @@ When `needed > maxValue`: the bar is already at cap but storage is too low. Show
 
 ### Live ETA updates
 
-Reuse the `useElapsedInspectorSeconds()` pattern already in `InspectorPanel.tsx` — 1-second interval that forces a re-render so the countdown stays live.
+The ETA must be derived from the current serialized resource snapshot only:
+
+```typescript
+remainingSeconds = (needed - currentValueFromLatestState) / (perTick * TICKS_PER_SECOND)
+```
+
+Do not subtract a separate local `elapsedSeconds` timer on top of a resource value that is already advancing from WebSocket state updates. That double-counts progress and makes the ETA visually run faster than real time.
 
 ## CSS approach
 
@@ -114,10 +120,38 @@ Use the same `perTick`-based formula as primary rows — how long to accumulate 
 - `perTick` may be 0 or negative → show `—` for ETA.
 - `maxValue === Infinity` or very large → no storage limit case applies.
 - Multiple prices: all required resources highlighted simultaneously.
-- Fast tick rate (5/sec): 1s re-render interval is sufficient.
+- Fast tick rate (5/sec): live WS state updates are already sufficient to refresh ETA. A local interval is only safe if it does not also subtract progress independently of state.
 - Craft `yields` field (how many you get per craft) must be factored in when scaling ingredient amounts — don't assume 1:1.
 - If `craftDefs` not yet exposed in game state shape, check WorkshopPanel for how it reads them; may need a selector/derived field.
 - The target marker position must use `Math.min(needed / maxValue, 1)` to clamp at 100% for storage-limited case.
+
+## Reopen Note — 2026-04-08
+
+Live investigation found a real bug in the Story 41-03 implementation:
+
+- [ResourcePanel.tsx](/Users/max/code/kittens-mcp/packages/client-web/src/ResourcePanel.tsx#L249) computed ETA from the current live `value`
+- then [ResourcePanel.tsx](/Users/max/code/kittens-mcp/packages/client-web/src/ResourcePanel.tsx#L250) subtracted a local `elapsedSeconds`
+- while [store.ts](/Users/max/code/kittens-mcp/packages/server/src/store.ts#L191) was already advancing game state every 200ms and the client was applying fresh state over WebSocket
+
+That meant the countdown decreased once because `value` was rising in live state and a second time because the local timer was being subtracted, so the visible ETA ran faster than wall-clock time.
+
+Regression standard for the fix:
+
+- Do not test ETA by freezing state and advancing only the local timer.
+- Test ETA by advancing the underlying resource value between renders and proving the displayed duration drops only by the amount implied by the new state.
+
+## Resolution — 2026-04-08
+
+Implemented the fix in [ResourcePanel.tsx](/Users/max/code/kittens-mcp/packages/client-web/src/ResourcePanel.tsx):
+
+- removed the per-row local `elapsedSeconds` interval
+- removed the extra subtraction from the ETA formula
+- left ETA purely state-derived: `(needed - currentValue) / perSecond`
+
+Regression coverage in [ResourcePanel.test.tsx](/Users/max/code/kittens-mcp/packages/client-web/src/ResourcePanel.test.tsx):
+
+- ETA does not fall when only local wall-clock time advances and the resource snapshot is unchanged
+- ETA does fall from `15s` to `10s` when the rerendered resource snapshot advances from `50` wood to `100` wood at the same production rate
 
 ## Open Questions
 
