@@ -117,6 +117,37 @@ export interface CraftShortcutEntity {
   resources: Record<string, ResourceSnapshot>;
 }
 
+export interface JobEntity {
+  kind: "job";
+  name: string;
+  description?: string;
+  flavor?: string;
+  modifiers: Array<{ resource: string; perTick: number }>;
+}
+
+export interface PolicyEntity {
+  kind: "policy";
+  name: string;
+  description?: string;
+  flavor?: string;
+  researched: boolean;
+  blocked: boolean;
+  effects: Record<string, number>;
+  prices: Array<{ name: string; val: number }>;
+  resources: Record<string, ResourceSnapshot>;
+}
+
+export interface PerkEntity {
+  kind: "perk";
+  name: string;
+  description?: string;
+  flavor?: string;
+  researched: boolean;
+  effects: Record<string, number>;
+  prices: Array<{ name: string; val: number }>;
+  resources: Record<string, ResourceSnapshot>;
+}
+
 export type InspectorEntity =
   | HappinessEntity
   | ResourceEntity
@@ -126,7 +157,10 @@ export type InspectorEntity =
   | ZigguratUpgradeEntity
   | ReligionUpgradeEntity
   | CraftEntity
-  | CraftShortcutEntity;
+  | CraftShortcutEntity
+  | JobEntity
+  | PolicyEntity
+  | PerkEntity;
 
 // ── Context ───────────────────────────────────────────────────────────────────
 

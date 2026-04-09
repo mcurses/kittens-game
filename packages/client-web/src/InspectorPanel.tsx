@@ -6,6 +6,9 @@ import {
   type CraftShortcutEntity,
   type HappinessEntity,
   type InspectorEntity,
+  type JobEntity,
+  type PerkEntity,
+  type PolicyEntity,
   type ReligionUpgradeEntity,
   type ResourceAttributionEntry,
   type ResourceEntity,
@@ -58,6 +61,12 @@ function EntityDetail({ entity }: { entity: InspectorEntity }): React.ReactEleme
       return <CraftDetail entity={entity} />;
     case "craftShortcut":
       return <CraftShortcutDetail entity={entity} elapsedSeconds={elapsedSeconds} />;
+    case "job":
+      return <JobDetail entity={entity} />;
+    case "policy":
+      return <PolicyDetail entity={entity} elapsedSeconds={elapsedSeconds} />;
+    case "perk":
+      return <PerkDetail entity={entity} elapsedSeconds={elapsedSeconds} />;
   }
 }
 
@@ -372,6 +381,74 @@ function TechDetail({
   );
 }
 
+// ── Policy detail ─────────────────────────────────────────────────────────────
+
+function PolicyDetail({
+  entity,
+  elapsedSeconds,
+}: {
+  entity: PolicyEntity;
+  elapsedSeconds: number;
+}): React.ReactElement {
+  return (
+    <div className="inspector-entity">
+      <div className="inspector-name">{entity.name}</div>
+      <div className="inspector-kind">
+        Policy{entity.researched ? " · Adopted" : entity.blocked ? " · Blocked" : ""}
+      </div>
+      {entity.description && (
+        <p className="inspector-description">{entity.description}</p>
+      )}
+      <EffectsSection effects={entity.effects} />
+      {!entity.researched && !entity.blocked && (
+        <PricesSection
+          prices={entity.prices}
+          label="Cost"
+          resources={entity.resources}
+          elapsedSeconds={elapsedSeconds}
+        />
+      )}
+      {entity.flavor && (
+        <p className="inspector-flavor" data-testid="inspector-flavor">{entity.flavor}</p>
+      )}
+    </div>
+  );
+}
+
+// ── Perk detail ───────────────────────────────────────────────────────────────
+
+function PerkDetail({
+  entity,
+  elapsedSeconds,
+}: {
+  entity: PerkEntity;
+  elapsedSeconds: number;
+}): React.ReactElement {
+  return (
+    <div className="inspector-entity">
+      <div className="inspector-name">{entity.name}</div>
+      <div className="inspector-kind">
+        Metaphysics Perk{entity.researched ? " · Purchased" : ""}
+      </div>
+      {entity.description && (
+        <p className="inspector-description">{entity.description}</p>
+      )}
+      <EffectsSection effects={entity.effects} />
+      {!entity.researched && (
+        <PricesSection
+          prices={entity.prices}
+          label="Cost"
+          resources={entity.resources}
+          elapsedSeconds={elapsedSeconds}
+        />
+      )}
+      {entity.flavor && (
+        <p className="inspector-flavor" data-testid="inspector-flavor">{entity.flavor}</p>
+      )}
+    </div>
+  );
+}
+
 // ── Ziggurat upgrade detail ───────────────────────────────────────────────────
 
 function ZigguratUpgradeDetail({
@@ -597,7 +674,9 @@ function entityHasLiveDurations(entity: InspectorEntity): boolean {
     entity.kind === "upgrade" ||
     entity.kind === "tech" ||
     entity.kind === "zigguratUpgrade" ||
-    entity.kind === "religionUpgrade"
+    entity.kind === "religionUpgrade" ||
+    entity.kind === "policy" ||
+    entity.kind === "perk"
   ) {
     return entity.prices.some((price) => {
       const resource = entity.resources[price.name];
@@ -630,4 +709,33 @@ function formatSignedPct(value: number, withPlus = true): string {
   const rounded = Math.round(value);
   if (!withPlus) return `${rounded}%`;
   return `${rounded > 0 ? "+" : ""}${rounded}%`;
+}
+
+function JobDetail({ entity }: { entity: JobEntity }): React.ReactElement {
+  const { name, description, flavor, modifiers } = entity;
+  return (
+    <div className="inspector-entity">
+      <div className="inspector-name" data-testid="inspector-job-name">{prettifyName(name)}</div>
+      <div className="inspector-kind">Job</div>
+      {description && <div className="inspector-description">{description}</div>}
+      {modifiers.length > 0 && (
+        <div className="inspector-section">
+          <div className="inspector-section-label">Per kitten</div>
+          <dl className="inspector-stats">
+            {modifiers.map((m) => (
+              <div key={m.resource} className="inspector-stat-row">
+                <dt>{prettifyName(m.resource)}</dt>
+                <dd>{m.perTick > 0 ? "+" : ""}{m.perTick}/tick</dd>
+              </div>
+            ))}
+          </dl>
+        </div>
+      )}
+      {flavor && <div className="inspector-flavor">{flavor}</div>}
+    </div>
+  );
+}
+
+function prettifyName(camelCase: string): string {
+  return camelCase.replace(/([a-z])([A-Z])/g, "$1 $2").replace(/^./, (c) => c.toUpperCase());
 }
