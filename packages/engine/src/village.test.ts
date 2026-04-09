@@ -1577,3 +1577,64 @@ describe("computePollutionHappines", () => {
     });
   });
 });
+
+// ── Epic 48: Cross-manager integration test ──────────────────────────────────
+
+describe("Epic 48: Village multi-tick integration", () => {
+  it("spawns kittens, assigns jobs, grows skills, and promotes over multiple ticks", () => {
+    let state = createInitialState();
+    // Setup: enough resources for kitten growth
+    state = {
+      ...state,
+      effectCache: {
+        ...state.effectCache,
+        kittensPerTickBase: 0.5,
+        maxKittens: 20,
+      },
+      resources: {
+        ...state.resources,
+        catnip: { value: 10000, maxValue: 50000 },
+        gold: { value: 100, maxValue: 0 },
+      },
+    };
+
+    const manager = new VillageManager();
+
+    // Run ticks until we have kittens
+    for (let i = 0; i < 5; i++) {
+      state = manager.update(state);
+    }
+    expect(state.village.kittens).toBeGreaterThanOrEqual(2);
+    expect(state.village.sim.length).toBe(state.village.kittens);
+
+    // Assign a kitten as farmer
+    state = applyAction(state, { type: "ASSIGN_JOB", job: "farmer" });
+    expect(state.village.jobs.farmer!.value).toBe(1);
+    const farmerId = state.village.sim.find((k) => k.job === "farmer")!.id;
+
+    // Run more ticks for skill growth
+    for (let i = 0; i < 10; i++) {
+      state = manager.update(state);
+    }
+    const farmer = state.village.sim.find((k) => k.id === farmerId)!;
+    expect(farmer.skills.farmer).toBeGreaterThan(0);
+
+    // Set farmer as leader
+    state = applyAction(state, { type: "SET_LEADER", kittenId: farmerId });
+    expect(state.village.leader).toBe(farmerId);
+    expect(state.village.sim.find((k) => k.id === farmerId)!.isLeader).toBe(true);
+
+    // Toggle favorite
+    state = applyAction(state, { type: "TOGGLE_FAVORITE", kittenId: farmerId });
+    expect(state.village.sim.find((k) => k.id === farmerId)!.isFavorite).toBe(true);
+
+    // Remove leader
+    state = applyAction(state, { type: "REMOVE_LEADER" });
+    expect(state.village.leader).toBeNull();
+
+    // Unassign kitten from job
+    state = applyAction(state, { type: "UNASSIGN_KITTEN", kittenId: farmerId });
+    expect(state.village.sim.find((k) => k.id === farmerId)!.job).toBeNull();
+    expect(state.village.jobs.farmer!.value).toBe(0);
+  });
+});
