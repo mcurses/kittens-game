@@ -511,3 +511,42 @@ describe("Story 48-07: Kitten management actions UI", () => {
     expect(mockMutate).toHaveBeenCalledWith({ type: "PROMOTE_KITTEN", kittenId: "k1" });
   });
 });
+
+// ── Story 48-08: Leader and government UI ─────────────────────────────────────
+
+describe("Story 48-08: Leader and government UI", () => {
+  it("shows Make Leader button in census that dispatches SET_LEADER", () => {
+    const state = makeCensusState([makeKitten({ id: "k1" })]);
+    render(<JobsPanel state={state} />);
+
+    const btn = screen.getByTestId("census-kitten-k1-leader");
+    fireEvent.click(btn);
+    expect(mockMutate).toHaveBeenCalledWith({ type: "SET_LEADER", kittenId: "k1" });
+  });
+
+  it("shows leader indicator for current leader", () => {
+    const state = makeCensusState([makeKitten({ id: "k1", isLeader: true })]);
+    render(<JobsPanel state={state} />);
+
+    const btn = screen.getByTestId("census-kitten-k1-leader");
+    expect(btn.textContent).toContain("Leader");
+  });
+
+  it("shows government info in management section", () => {
+    // Management requires 5+ kittens
+    const kittens = Array.from({ length: 5 }, (_, i) =>
+      makeKitten({ id: `k${i}`, name: `Cat${i}`, isLeader: i === 0, trait: i === 0 ? "scientist" : "none" }),
+    );
+    const state = {
+      ...makeCensusState(kittens),
+      village: {
+        ...(makeCensusState(kittens) as unknown as Record<string, unknown>).village as Record<string, unknown>,
+        leader: "k0",
+      },
+      science: { techs: { civil: { researched: true } }, policies: { theocracy: { researched: true } } },
+    } as unknown as import("@kittens/api-spec").GameStateResponse;
+
+    render(<JobsPanel state={state} />);
+    expect(screen.getByTestId("village-management")).toBeTruthy();
+  });
+});

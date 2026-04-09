@@ -36,6 +36,7 @@ export {
   computeHappiness,
   createInitialVillage,
   generateKitten,
+  getLeaderBonus,
   totalAssignedKittens,
 } from "./village.js";
 export type { CalendarState, SeasonDef } from "./calendar.js";

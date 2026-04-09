@@ -94,6 +94,7 @@ export interface SerializedGameState {
     }>;
     deadKittens?: number;
     happiness?: number;
+    leader?: string | null;
   };
   calendar: {
     day: number;
@@ -195,8 +196,10 @@ export function serialize(state: GameState): SerializedGameState {
       kittens: state.village.kittens,
       kittenProgress: state.village.kittenProgress,
       jobs,
+      sim: [...state.village.sim],
       deadKittens: state.village.deadKittens,
       happiness: state.village.happiness,
+      leader: state.village.leader,
     },
     calendar: {
       day: state.calendar.day,
@@ -397,7 +400,8 @@ export function deserialize(data: SerializedGameState): GameState {
     const deadKittens = typeof savedVillage.deadKittens === "number" ? savedVillage.deadKittens : 0;
     const happiness = typeof savedVillage.happiness === "number" ? savedVillage.happiness : 1.0;
     const sim = Array.isArray(savedVillage.sim) ? savedVillage.sim as unknown as VillageState["sim"] : [];
-    village = { kittens, kittenProgress, jobs, sim, deadKittens, happiness };
+    const leader = typeof savedVillage.leader === "string" ? savedVillage.leader : null;
+    village = { kittens, kittenProgress, jobs, sim, deadKittens, happiness, leader };
   }
 
   const savedCalendar = data.calendar;

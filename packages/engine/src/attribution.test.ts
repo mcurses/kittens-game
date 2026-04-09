@@ -47,6 +47,7 @@ describe("getResourceAttribution", () => {
         sim: [],
         deadKittens: 0,
         happiness: 1.0,
+        leader: null,
       },
       effectCache: {},
     });
@@ -66,6 +67,7 @@ describe("getResourceAttribution", () => {
         sim: [],
         deadKittens: 0,
         happiness: 1.0,
+        leader: null,
       },
       effectCache: {},
     });
@@ -136,6 +138,7 @@ describe("getResourceAttribution", () => {
         sim: [],
         deadKittens: 0,
         happiness: 1.0,
+        leader: null,
       },
       effectCache: {},
     });

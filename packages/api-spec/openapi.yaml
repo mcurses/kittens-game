@@ -709,6 +709,20 @@ components:
               enum: [UNASSIGN_KITTEN]
             kittenId:
               type: string
+        - type: object
+          required: [type, kittenId]
+          properties:
+            type:
+              type: string
+              enum: [SET_LEADER]
+            kittenId:
+              type: string
+        - type: object
+          required: [type]
+          properties:
+            type:
+              type: string
+              enum: [REMOVE_LEADER]
       discriminator:
         propertyName: type
 

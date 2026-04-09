@@ -59,6 +59,7 @@ interface CensusKitten {
   rank: number;
   exp: number;
   isFavorite: boolean;
+  isLeader: boolean;
 }
 
 const CENSUS_PAGE_SIZE = 10;
@@ -245,6 +246,12 @@ export function JobsPanel({ state }: Props): React.ReactElement {
                       Unassign
                     </button>
                   )}
+                  <button type="button" data-testid={`census-kitten-${k.id}-leader`}
+                    className={`btn btn--xs ${k.isLeader ? "btn--primary" : "btn--secondary"} census-leader`}
+                    disabled={isPending}
+                    onClick={() => mutate({ type: "SET_LEADER", kittenId: k.id })}>
+                    {k.isLeader ? "Leader" : "Make Leader"}
+                  </button>
                 </li>
               ))}
             </ul>

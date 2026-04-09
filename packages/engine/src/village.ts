@@ -52,6 +52,8 @@ export interface VillageState {
   readonly deadKittens: number;
   /** Village happiness ratio (1.0 = baseline). Used by achievement conditions. */
   readonly happiness: number;
+  /** Current leader kitten ID, or null if no leader. */
+  readonly leader: string | null;
 }
 
 // ── Kitten name pool (legacy village.js) ──────────────────────────────────
@@ -146,6 +148,7 @@ export function createInitialVillage(): VillageState {
     sim: [],
     deadKittens: 0,
     happiness: 1.0,
+    leader: null,
   };
 }
 
@@ -458,7 +461,8 @@ export class VillageManager implements Manager {
         }));
     }
 
-    return { ...state, village: { kittens, kittenProgress, jobs, sim, deadKittens, happiness } };
+    const leader = typeof saved.leader === "string" ? saved.leader as string : null;
+    return { ...state, village: { kittens, kittenProgress, jobs, sim, deadKittens, happiness, leader } };
   }
 
   resetState(state: GameState): GameState {
@@ -556,6 +560,53 @@ export function applyHunt(state: GameState, amount?: number): GameState {
  * Sets festivalDays = DAYS_PER_SEASON * SEASONS_PER_YEAR (= 400).
  * If "carnivals" perk is researched, adds to festivalDays instead of setting.
  */
+// ── Leader bonus ──────────────────────────────────────────────────────────────
+
+interface LeaderBonus {
+  type: string;
+  value: number;
+}
+
+const LEADER_TRAIT_BONUSES: Record<string, { type: string; base: number }> = {
+  engineer: { type: "craftBonus", base: 0.05 },
+  merchant: { type: "tradeBonus", base: 0.03 },
+  manager: { type: "huntBonus", base: 0.50 },
+  scientist: { type: "scienceDiscount", base: 0.05 },
+  wise: { type: "religionDiscount", base: 0.10 },
+};
+
+export function getLeaderBonus(kitten: Kitten): LeaderBonus | null {
+  const def = LEADER_TRAIT_BONUSES[kitten.trait];
+  if (!def) return null;
+  const scale = kitten.rank === 0 ? 1.0 : (kitten.rank + 1) / 1.4;
+  return { type: def.type, value: def.base * scale };
+}
+
+export function applySetLeader(state: GameState, kittenId: string): GameState {
+  const idx = state.village.sim.findIndex((k) => k.id === kittenId);
+  if (idx < 0) return state;
+
+  return produce(state, (draft) => {
+    // Clear previous leader
+    for (const k of draft.village.sim) {
+      if (k.isLeader) (k as { isLeader: boolean }).isLeader = false;
+    }
+    (draft.village.sim[idx] as { isLeader: boolean }).isLeader = true;
+    (draft.village as { leader: string | null }).leader = kittenId;
+  });
+}
+
+export function applyRemoveLeader(state: GameState): GameState {
+  if (state.village.leader === null) return state;
+
+  return produce(state, (draft) => {
+    for (const k of draft.village.sim) {
+      if (k.isLeader) (k as { isLeader: boolean }).isLeader = false;
+    }
+    (draft.village as { leader: string | null }).leader = null;
+  });
+}
+
 /** Promote cost: 500 * 1.75^rank exp, 25 * (rank + 1) gold */
 function promoteExpCost(rank: number): number {
   return Math.floor(500 * Math.pow(1.75, rank));

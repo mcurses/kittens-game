@@ -6,7 +6,7 @@ import { createInitialState } from "./state.js";
 import { tick } from "./tick.js";
 import { applyAction } from "./actions.js";
 import type { Kitten } from "./village.js";
-import { JOB_DEFS, LUXURY_RESOURCE_NAMES, UNCOMMON_RESOURCE_NAMES, VillageManager, applyHoldFestival, applyHunt, computePollutionHappines, createInitialVillage, generateKitten, totalAssignedKittens } from "./village.js";
+import { JOB_DEFS, LUXURY_RESOURCE_NAMES, UNCOMMON_RESOURCE_NAMES, VillageManager, applyHoldFestival, applyHunt, computePollutionHappines, createInitialVillage, generateKitten, getLeaderBonus, totalAssignedKittens } from "./village.js";
 
 describe("JOB_DEFS", () => {
   it("contains all core jobs", () => {
@@ -871,6 +871,65 @@ describe("Story 48-07: Kitten management actions", () => {
     };
     const next = applyAction(state, { type: "UNASSIGN_KITTEN", kittenId: "k1" });
     expect(next).toBe(state); // unchanged reference
+  });
+});
+
+// ── Story 48-08: Leader and government ─────────────────────────────────────────
+
+describe("Story 48-08: Leader and government", () => {
+  it("SET_LEADER marks a kitten as leader and clears previous leader", () => {
+    const base = createInitialState();
+    const k1: Kitten = { id: "k1", name: "A", surname: "S", age: 5, trait: "scientist", job: null, skills: {}, rank: 0, exp: 0, isFavorite: false, isLeader: false };
+    const k2: Kitten = { id: "k2", name: "B", surname: "S", age: 5, trait: "engineer", job: null, skills: {}, rank: 0, exp: 0, isFavorite: false, isLeader: false };
+    const state = {
+      ...base,
+      village: { ...base.village, kittens: 2, sim: [k1, k2], leader: null },
+    };
+    const next = applyAction(state, { type: "SET_LEADER", kittenId: "k1" });
+    expect(next.village.sim[0]?.isLeader).toBe(true);
+    expect(next.village.leader).toBe("k1");
+
+    // Set another leader clears the first
+    const next2 = applyAction(next, { type: "SET_LEADER", kittenId: "k2" });
+    expect(next2.village.sim[0]?.isLeader).toBe(false);
+    expect(next2.village.sim[1]?.isLeader).toBe(true);
+    expect(next2.village.leader).toBe("k2");
+  });
+
+  it("REMOVE_LEADER demotes the current leader", () => {
+    const base = createInitialState();
+    const k1: Kitten = { id: "k1", name: "A", surname: "S", age: 5, trait: "scientist", job: null, skills: {}, rank: 0, exp: 0, isFavorite: false, isLeader: true };
+    const state = {
+      ...base,
+      village: { ...base.village, kittens: 1, sim: [k1], leader: "k1" },
+    };
+    const next = applyAction(state, { type: "REMOVE_LEADER" });
+    expect(next.village.sim[0]?.isLeader).toBe(false);
+    expect(next.village.leader).toBeNull();
+  });
+
+  it("getLeaderBonus returns correct bonus for leader traits", () => {
+    // Import the function
+
+    const k: Kitten = { id: "k1", name: "A", surname: "S", age: 5, trait: "scientist", job: null, skills: {}, rank: 2, exp: 0, isFavorite: false, isLeader: true };
+    const bonus = getLeaderBonus(k);
+    // scientist +5% science discount, rank 2 → scaling = (2+1)/1.4 ≈ 2.142
+    expect(bonus!.type).toBe("scienceDiscount");
+    expect(bonus!.value).toBeCloseTo(0.05 * (3 / 1.4));
+  });
+
+  it("getLeaderBonus rank 0 uses scale factor 1.0", () => {
+    const k: Kitten = { id: "k1", name: "A", surname: "S", age: 5, trait: "engineer", job: null, skills: {}, rank: 0, exp: 0, isFavorite: false, isLeader: true };
+    const bonus = getLeaderBonus(k);
+    expect(bonus!.type).toBe("craftBonus");
+    expect(bonus!.value).toBeCloseTo(0.05);
+  });
+
+  it("getLeaderBonus returns null for 'none' trait", () => {
+
+    const k: Kitten = { id: "k1", name: "A", surname: "S", age: 5, trait: "none", job: null, skills: {}, rank: 0, exp: 0, isFavorite: false, isLeader: true };
+    const bonus = getLeaderBonus(k);
+    expect(bonus).toBeNull();
   });
 });
 
