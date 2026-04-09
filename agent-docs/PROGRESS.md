@@ -650,30 +650,32 @@ Current parity note:
 
 ---
 
-## Epic 35: UI QoL Parity
-**Status:** Complete | **Started:** 2026-04-01 | **Finished:** 2026-04-01
-Stories: 4 complete + 1 partial (deferred)
+## Epic 35: UI QoL Parity (Reopened)
+**Status:** Complete | **Started:** 2026-04-01 | **Reopened:** 2026-04-09 | **Finished:** 2026-04-09
+Stories: 9 complete + 1 partial (deferred)
 
+Original stories:
 - [x] Story 35-01: Adaptive craft shortcuts — `max(1,1%)`, `max(25,5%)`, `max(100,10%)`, `All` buttons computed from live resources; global craft effectiveness `+N%` banner
 - [ ] Story 35-02: Mechanization craft controls — deferred; engine prerequisite landed in Epic 39, UI slice still outstanding
 - [x] Story 35-03: Hide-researched/complete toggles — Science, Workshop, and Space panels each expose persistent localStorage-backed toggles
 - [x] Story 35-04: Trade multi-send shortcuts — ×5 and ×25 buttons added to DiplomacyPanel; TRADE action extended with optional `amount`
 - [x] Story 35-05: Storage-limited action highlighting — shared client `isStorageLimited()` check added; Buildings, Science, Workshop, Space, Time, and Religion now keep normal action labels while marking storage-limited controls and inspector price lines
 
-Engine changes:
-- `packages/engine/src/actions.ts`: TRADE action gains optional `amount` field; action handler loops `applyTrade` N times
-- `packages/engine/src/buildings.ts`: `effectsBase` base storage caps (catnipMax:5000, woodMax:200, etc.) added to `BuildingManager.updateEffects()`
-- Fixed 4 test regressions from effectsBase: harbor goldMax baseline, 3 steamworks parity tests requiring full-capacity resources
+Reopened stories (2026-04-09):
+- [x] Story 35-06: Inline craft shortcuts on resource rows — `CraftShortcuts` component renders +s1/+s2/+s3/+All buttons on each craftable resource row with legacy-faithful adaptive amounts
+- [x] Story 35-07: Inspector enrichment — flavor text, automation status, and pollution warning added to InspectorPanel for buildings/techs/upgrades
+- [x] Story 35-08: Bulk job assignment — ±5/±All buttons in JobsPanel; engine ASSIGN_JOB/UNASSIGN_JOB extended with `count` parameter
+- [x] Story 35-09: Per-source production attribution — new `getResourceAttribution()` engine function decomposes production by source; rendered in inspector per-source breakdown section
+- [x] Story 35-10: Craft output with bonus display — craft shortcut buttons show craftRatio-adjusted output
 
-Client-web tests: 334 passing | Line coverage: 96.4%
-Total: 1385 tests across all packages
+New files:
+- `packages/engine/src/attribution.ts` — per-source resource production decomposition
+- `packages/client-web/src/flavorText.ts` — English flavor text maps for buildings/techs/upgrades
+- `packages/client-web/src/ui-parity-audit.test.tsx` — component-level UI parity audit (54 tests, 28 todos)
+- `agent-docs/UI_PARITY.md` — authoritative UI element parity tracker (47/98 = 48% parity)
 
-Follow-up:
-- 2026-04-01: Story 35-03 regression fix — reload persistence is now covered explicitly for Science, Workshop, and Space. `usePersistentUiState` now falls back to a default primitive validator when one is omitted, and all three boolean toggle panels pass explicit `isBoolean` validators so stored toggle values survive reloads instead of silently reverting to `false`.
-
-Parity gaps noted:
-- Legacy trade shortcuts are dynamic (50% / 20% of max affordable), not fixed ×5/×25 — filed for future epic
-- Story 35-02 mechanization now has its engine prerequisite from Epic 39; the remaining gap is workshop UI parity
+Client-web tests: 425 passing, 28 todo | Engine tests: 1015 passing
+Total: 1646 tests across all packages
 
 ---
 
@@ -852,3 +854,8 @@ Stories: 4 / 4 complete
 - [x] Story 45-04: Add low-overhead live parity audit tooling
 
 ---
+
+## Epic: 47 — Workshop Crafting Parity
+Status: In Progress | Started: 2026-04-09
+Stories: 0/6 complete
+New files: (pending)

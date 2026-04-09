@@ -2,9 +2,12 @@
 import React from "react";
 import {
   type BuildingEntity,
+  type CraftEntity,
+  type CraftShortcutEntity,
   type HappinessEntity,
   type InspectorEntity,
   type ReligionUpgradeEntity,
+  type ResourceAttributionEntry,
   type ResourceEntity,
   type TechEntity,
   type UpgradeEntity,
@@ -51,6 +54,10 @@ function EntityDetail({ entity }: { entity: InspectorEntity }): React.ReactEleme
       return <ZigguratUpgradeDetail entity={entity} elapsedSeconds={elapsedSeconds} />;
     case "religionUpgrade":
       return <ReligionUpgradeDetail entity={entity} elapsedSeconds={elapsedSeconds} />;
+    case "craft":
+      return <CraftDetail entity={entity} />;
+    case "craftShortcut":
+      return <CraftShortcutDetail entity={entity} elapsedSeconds={elapsedSeconds} />;
   }
 }
 
@@ -194,6 +201,8 @@ function ResourceDetail({
         </div>
       )}
 
+      <AttributionSection attribution={entity.attribution} />
+
       {perTick !== undefined && perTick < 0 && value > 0 && (
         <div className="inspector-notice inspector-notice--warn">
           Time to zero: {formatDuration(value / (-perTick * TICKS_PER_SECOND) - elapsedSeconds)}
@@ -212,6 +221,46 @@ function ResourceDetail({
   );
 }
 
+// ── Attribution section ──────────────────────────────────────────────────────
+
+function AttributionSection({
+  attribution,
+}: {
+  attribution?: ResourceAttributionEntry[];
+}): React.ReactElement | null {
+  if (!attribution || attribution.length === 0) return null;
+
+  const production = attribution.filter((a) => a.channel !== "consumption" && a.channel !== "ratio");
+  const ratios = attribution.filter((a) => a.channel === "ratio");
+  const consumption = attribution.filter((a) => a.channel === "consumption");
+
+  return (
+    <div className="inspector-section" data-testid="inspector-attribution">
+      <div className="inspector-section-label">Per-source breakdown</div>
+      <dl className="inspector-stats">
+        {production.map((s) => (
+          <div key={`prod-${s.label}`} className="inspector-stat-row">
+            <dt>{s.label}</dt>
+            <dd className="stat-pos">{formatRate(s.amount)}</dd>
+          </div>
+        ))}
+        {ratios.map((s) => (
+          <div key={`ratio-${s.label}`} className="inspector-stat-row">
+            <dt>{s.label}</dt>
+            <dd className="stat-pos">{formatPct(s.amount)}</dd>
+          </div>
+        ))}
+        {consumption.map((s) => (
+          <div key={`con-${s.label}`} className="inspector-stat-row">
+            <dt>{s.label}</dt>
+            <dd className="stat-neg">{formatRate(s.amount)}</dd>
+          </div>
+        ))}
+      </dl>
+    </div>
+  );
+}
+
 // ── Building detail ───────────────────────────────────────────────────────────
 
 function BuildingDetail({
@@ -224,9 +273,22 @@ function BuildingDetail({
   return (
     <div className="inspector-entity">
       <div className="inspector-name">{entity.name}</div>
-      <div className="inspector-kind">Building · {entity.val} built</div>
+      <div className="inspector-kind">
+        Building · {entity.val} built
+        {entity.on !== undefined && entity.on < entity.val && ` (${entity.on} on)`}
+      </div>
       {entity.description && (
         <p className="inspector-description">{entity.description}</p>
+      )}
+      {entity.automationEnabled !== undefined && (
+        <div className="inspector-notice" data-testid="inspector-automation">
+          Automation: {entity.automationEnabled ? "ON" : "OFF"}
+        </div>
+      )}
+      {(entity.effects.cathPollutionPerTickProd ?? 0) > 0 && (
+        <div className="inspector-notice inspector-notice--warn" data-testid="inspector-pollution">
+          This building produces pollution
+        </div>
       )}
       <EffectsSection effects={entity.effects} />
       <PricesSection
@@ -235,6 +297,9 @@ function BuildingDetail({
         resources={entity.resources}
         elapsedSeconds={elapsedSeconds}
       />
+      {entity.flavor && (
+        <p className="inspector-flavor" data-testid="inspector-flavor">{entity.flavor}</p>
+      )}
     </div>
   );
 }
@@ -266,6 +331,9 @@ function UpgradeDetail({
           elapsedSeconds={elapsedSeconds}
         />
       )}
+      {entity.flavor && (
+        <p className="inspector-flavor" data-testid="inspector-flavor">{entity.flavor}</p>
+      )}
     </div>
   );
 }
@@ -296,6 +364,9 @@ function TechDetail({
           resources={entity.resources}
           elapsedSeconds={elapsedSeconds}
         />
+      )}
+      {entity.flavor && (
+        <p className="inspector-flavor" data-testid="inspector-flavor">{entity.flavor}</p>
       )}
     </div>
   );
@@ -348,6 +419,52 @@ function ReligionUpgradeDetail({
       <PricesSection
         prices={entity.prices}
         label="Cost (next)"
+        resources={entity.resources}
+        elapsedSeconds={elapsedSeconds}
+      />
+    </div>
+  );
+}
+
+function CraftDetail({
+  entity,
+}: {
+  entity: CraftEntity;
+}): React.ReactElement {
+  return (
+    <div className="inspector-entity">
+      <div className="inspector-name">{entity.name}</div>
+      <div className="inspector-kind">Craft</div>
+      {entity.engineers > 0 && (
+        <div className="inspector-section">
+          <div className="inspector-section-label">Engineers</div>
+          <dl className="inspector-stats">
+            <dt>Assigned</dt>
+            <dd>{entity.engineers}</dd>
+          </dl>
+        </div>
+      )}
+      {entity.flavor && (
+        <p className="inspector-flavor" data-testid="inspector-flavor">{entity.flavor}</p>
+      )}
+    </div>
+  );
+}
+
+function CraftShortcutDetail({
+  entity,
+  elapsedSeconds,
+}: {
+  entity: CraftShortcutEntity;
+  elapsedSeconds: number;
+}): React.ReactElement {
+  return (
+    <div className="inspector-entity">
+      <div className="inspector-name">{entity.name}</div>
+      <div className="inspector-kind">Craft ×{entity.amount} → {entity.output}</div>
+      <PricesSection
+        prices={entity.prices}
+        label="Cost"
         resources={entity.resources}
         elapsedSeconds={elapsedSeconds}
       />

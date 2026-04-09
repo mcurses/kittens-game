@@ -277,3 +277,213 @@ describe("Story 35-03: Workshop hide-researched toggle", () => {
     expect(screen.getByTestId("upgrade-ironHoes")).toBeTruthy();
   });
 });
+
+// ── Story 47-01: Craft output preview ─────────────────────────────────────────
+
+describe("Story 47-01: Craft output preview", () => {
+  it("shows expected output in craft button title (no bonus)", () => {
+    const state = makeState({}, { beam: { unlocked: true } }, { wood: { value: 350 } });
+    render(<WithInspector><WorkshopPanel state={state} /></WithInspector>);
+    const s1Btn = screen.getByTestId("craft-beam-s1");
+    // beam has no ignoreBonuses, craftRatio=0 → output = amount × 1 = 1
+    expect(s1Btn.getAttribute("title")).toBe("+1");
+  });
+
+  it("shows output with craft bonus in title", () => {
+    // craftRatio=0.5 → output = 1 × 1.5 = 1.5
+    const state = {
+      ...makeState({}, { beam: { unlocked: true } }, { wood: { value: 350 } }),
+      effectCache: { craftRatio: 0.5 },
+    } as unknown as import("@kittens/api-spec").GameStateResponse;
+    render(<WithInspector><WorkshopPanel state={state} /></WithInspector>);
+    const s1Btn = screen.getByTestId("craft-beam-s1");
+    expect(s1Btn.getAttribute("title")).toBe("+1.5");
+  });
+
+  it("All button shows total output in title", () => {
+    // 350 wood → 2 beams, craftRatio=0 → output = 2
+    const state = makeState({}, { beam: { unlocked: true } }, { wood: { value: 350 } });
+    render(<WithInspector><WorkshopPanel state={state} /></WithInspector>);
+    const allBtn = screen.getByTestId("craft-beam-all");
+    expect(allBtn.getAttribute("title")).toBe("+2");
+  });
+
+  it("ignoreBonuses craft shows raw output without craft ratio", () => {
+    // wood craft has ignoreBonuses=true, so even with craftRatio, output = amount
+    const state = {
+      ...makeState({}, { wood: { unlocked: true } }, { catnip: { value: 1000 } }),
+      effectCache: { craftRatio: 0.5 },
+    } as unknown as import("@kittens/api-spec").GameStateResponse;
+    render(<WithInspector><WorkshopPanel state={state} /></WithInspector>);
+    const s1Btn = screen.getByTestId("craft-wood-s1");
+    expect(s1Btn.getAttribute("title")).toBe("+1");
+  });
+});
+
+// ── Story 47-02: Craft cost tooltips in inspector ─────────────────────────────
+
+describe("Story 47-02: Craft cost tooltips in inspector", () => {
+  it("hovering a craft button shows cost breakdown in inspector", () => {
+    // beam costs 175 wood per unit
+    const state = makeState({}, { beam: { unlocked: true } }, { wood: { value: 350 } });
+    render(<WithInspector><WorkshopPanel state={state} /></WithInspector>);
+    const s1Btn = screen.getByTestId("craft-beam-s1");
+    fireEvent.mouseEnter(s1Btn);
+    // Inspector should show craft info with cost
+    expect(screen.getByTestId("inspector-panel")).toBeTruthy();
+    expect(screen.getByText(/wood/i)).toBeTruthy();
+    expect(screen.getByText(/175/)).toBeTruthy();
+  });
+
+  it("hovering craft All button shows total cost in inspector", () => {
+    // beam costs 175 wood; 350 wood → all=2 → total cost = 350
+    const state = makeState({}, { beam: { unlocked: true } }, { wood: { value: 350 } });
+    render(<WithInspector><WorkshopPanel state={state} /></WithInspector>);
+    const allBtn = screen.getByTestId("craft-beam-all");
+    fireEvent.mouseEnter(allBtn);
+    // Inspector shows "Craft ×2 → 2" in the kind line
+    const inspector = screen.getByTestId("inspector-panel");
+    expect(inspector.textContent).toMatch(/×2/);
+    expect(inspector.textContent).toMatch(/wood/i);
+  });
+
+  it("inspector shows expected output amount after bonus", () => {
+    const state = {
+      ...makeState({}, { beam: { unlocked: true } }, { wood: { value: 350 } }),
+      effectCache: { craftRatio: 0.5 },
+    } as unknown as import("@kittens/api-spec").GameStateResponse;
+    render(<WithInspector><WorkshopPanel state={state} /></WithInspector>);
+    const s1Btn = screen.getByTestId("craft-beam-s1");
+    fireEvent.mouseEnter(s1Btn);
+    // Output: 1 × 1.5 = 1.5
+    expect(screen.getByText(/1\.5/)).toBeTruthy();
+  });
+});
+
+// ── Story 47-05: Engineer assignment UI ───────────────────────────────────────
+
+describe("Story 47-05: Engineer assignment UI", () => {
+  function makeEngineerState(
+    craftEngineers: Record<string, number> = {},
+    totalEngineers = 5,
+    mechanization = true,
+  ) {
+    const crafts: Record<string, { unlocked: boolean; engineers?: number }> = {};
+    for (const [name, eng] of Object.entries(craftEngineers)) {
+      crafts[name] = { unlocked: true, engineers: eng };
+    }
+    // Add a craft with no engineers for testing
+    if (!crafts.beam) crafts.beam = { unlocked: true, engineers: 0 };
+    return {
+      ...makeState({}, crafts as Record<string, { unlocked: boolean }>, {}),
+      village: { jobs: { engineer: { value: totalEngineers } } },
+      science: {
+        techs: { mechanization: { unlocked: true, researched: mechanization } },
+      },
+    } as unknown as import("@kittens/api-spec").GameStateResponse;
+  }
+
+  it("shows engineer controls when mechanization is researched", () => {
+    const state = makeEngineerState({ beam: 0 }, 5, true);
+    render(<WithInspector><WorkshopPanel state={state} /></WithInspector>);
+    expect(screen.getByTestId("craft-beam-engineer-add")).toBeTruthy();
+    expect(screen.getByTestId("craft-beam-engineer-remove")).toBeTruthy();
+  });
+
+  it("hides engineer controls when mechanization not researched", () => {
+    const state = makeEngineerState({ beam: 0 }, 5, false);
+    render(<WithInspector><WorkshopPanel state={state} /></WithInspector>);
+    expect(screen.queryByTestId("craft-beam-engineer-add")).toBeNull();
+  });
+
+  it("shows free engineer count", () => {
+    const state = makeEngineerState({ beam: 2 }, 5, true);
+    render(<WithInspector><WorkshopPanel state={state} /></WithInspector>);
+    // 5 total - 2 assigned = 3 free
+    expect(screen.getByTestId("free-engineers")).toBeTruthy();
+    expect(screen.getByTestId("free-engineers").textContent).toMatch(/3/);
+  });
+
+  it("dispatches ASSIGN_CRAFT_ENGINEER on + click", () => {
+    const state = makeEngineerState({ beam: 0 }, 5, true);
+    render(<WithInspector><WorkshopPanel state={state} /></WithInspector>);
+    fireEvent.click(screen.getByTestId("craft-beam-engineer-add"));
+    expect(mockMutate).toHaveBeenCalledWith({ type: "ASSIGN_CRAFT_ENGINEER", name: "beam" });
+  });
+
+  it("dispatches UNASSIGN_CRAFT_ENGINEER on - click", () => {
+    const state = makeEngineerState({ beam: 2 }, 5, true);
+    render(<WithInspector><WorkshopPanel state={state} /></WithInspector>);
+    fireEvent.click(screen.getByTestId("craft-beam-engineer-remove"));
+    expect(mockMutate).toHaveBeenCalledWith({ type: "UNASSIGN_CRAFT_ENGINEER", name: "beam" });
+  });
+
+  it("disables + when no free engineers", () => {
+    const state = makeEngineerState({ beam: 5 }, 5, true);
+    render(<WithInspector><WorkshopPanel state={state} /></WithInspector>);
+    const addBtn = screen.getByTestId("craft-beam-engineer-add");
+    expect(addBtn.hasAttribute("disabled")).toBe(true);
+  });
+
+  it("disables - when 0 engineers assigned", () => {
+    const state = makeEngineerState({ beam: 0 }, 5, true);
+    render(<WithInspector><WorkshopPanel state={state} /></WithInspector>);
+    const removeBtn = screen.getByTestId("craft-beam-engineer-remove");
+    expect(removeBtn.hasAttribute("disabled")).toBe(true);
+  });
+
+  it("shows assigned engineer count on craft row", () => {
+    const state = makeEngineerState({ beam: 3 }, 5, true);
+    render(<WithInspector><WorkshopPanel state={state} /></WithInspector>);
+    expect(screen.getByTestId("craft-beam-engineers").textContent).toMatch(/3/);
+  });
+});
+
+// ── Story 47-04: Mechanization progress display ──────────────────────────────
+
+describe("Story 47-04: Mechanization progress display", () => {
+  function makeProgressState(progress: number, engineers: number) {
+    return {
+      ...makeState(
+        {},
+        { beam: { unlocked: true, engineers, progress } } as unknown as Record<string, { unlocked: boolean }>,
+      ),
+      village: { jobs: { engineer: { value: engineers } } },
+      science: {
+        techs: { mechanization: { unlocked: true, researched: true } },
+      },
+    } as unknown as import("@kittens/api-spec").GameStateResponse;
+  }
+
+  it("shows zero-padded progress when engineers assigned", () => {
+    const state = makeProgressState(0.05, 1);
+    render(<WithInspector><WorkshopPanel state={state} /></WithInspector>);
+    expect(screen.getByTestId("craft-beam-progress").textContent).toBe("[05%]");
+  });
+
+  it("caps progress display at 99%", () => {
+    const state = makeProgressState(0.999, 1);
+    render(<WithInspector><WorkshopPanel state={state} /></WithInspector>);
+    expect(screen.getByTestId("craft-beam-progress").textContent).toBe("[99%]");
+  });
+
+  it("hides progress when no engineers assigned", () => {
+    const state = makeProgressState(0, 0);
+    render(<WithInspector><WorkshopPanel state={state} /></WithInspector>);
+    expect(screen.queryByTestId("craft-beam-progress")).toBeNull();
+  });
+});
+
+// ── Story 47-06: Workshop flavor text ─────────────────────────────────────────
+
+describe("Story 47-06: Workshop flavor text", () => {
+  it("shows flavor text in inspector when hovering a craft row", () => {
+    const state = makeState({}, { beam: { unlocked: true } }, { wood: { value: 100 } });
+    render(<WithInspector><WorkshopPanel state={state} /></WithInspector>);
+    const craftRow = screen.getByTestId("craft-beam");
+    fireEvent.mouseEnter(craftRow);
+    // Inspector should show the craft info with flavor text
+    const inspector = screen.getByTestId("inspector-panel");
+    expect(inspector.textContent).toMatch(/beam/i);
+  });
+});

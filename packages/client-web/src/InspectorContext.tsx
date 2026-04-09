@@ -3,6 +3,12 @@ import React from "react";
 
 // ── Entity union ──────────────────────────────────────────────────────────────
 
+export interface ResourceAttributionEntry {
+  label: string;
+  amount: number;
+  channel: "base" | "ratio" | "direct" | "prod" | "autoprod" | "consumption";
+}
+
 export interface ResourceEntity {
   kind: "resource";
   name: string;
@@ -15,6 +21,7 @@ export interface ResourceEntity {
     direct: number;
     consumption: number;
   };
+  attribution?: ResourceAttributionEntry[];
 }
 
 export interface ResourceSnapshot {
@@ -42,7 +49,10 @@ export interface BuildingEntity {
   kind: "building";
   name: string;
   description?: string;
+  flavor?: string;
+  automationEnabled?: boolean;
   val: number;
+  on?: number;
   effects: Record<string, number>;
   prices: Array<{ name: string; val: number }>;
   resources: Record<string, ResourceSnapshot>;
@@ -52,6 +62,7 @@ export interface UpgradeEntity {
   kind: "upgrade";
   name: string;
   description?: string;
+  flavor?: string;
   researched: boolean;
   effects: Record<string, number>;
   prices: Array<{ name: string; val: number }>;
@@ -62,6 +73,7 @@ export interface TechEntity {
   kind: "tech";
   name: string;
   description?: string;
+  flavor?: string;
   researched: boolean;
   effects: Record<string, number>;
   prices: Array<{ name: string; val: number }>;
@@ -88,6 +100,23 @@ export interface ReligionUpgradeEntity {
   resources: Record<string, ResourceSnapshot>;
 }
 
+export interface CraftEntity {
+  kind: "craft";
+  name: string;
+  flavor?: string;
+  engineers: number;
+  progress: number;
+}
+
+export interface CraftShortcutEntity {
+  kind: "craftShortcut";
+  name: string;
+  amount: number;
+  output: number;
+  prices: Array<{ name: string; val: number }>;
+  resources: Record<string, ResourceSnapshot>;
+}
+
 export type InspectorEntity =
   | HappinessEntity
   | ResourceEntity
@@ -95,7 +124,9 @@ export type InspectorEntity =
   | UpgradeEntity
   | TechEntity
   | ZigguratUpgradeEntity
-  | ReligionUpgradeEntity;
+  | ReligionUpgradeEntity
+  | CraftEntity
+  | CraftShortcutEntity;
 
 // ── Context ───────────────────────────────────────────────────────────────────
 

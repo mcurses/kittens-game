@@ -1,10 +1,10 @@
+import type { SerializedGameState } from "@kittens/engine";
 import { describe, expect, it } from "vitest";
 import {
   captureAuditSnapshot,
   compareImportSnapshot,
   compareLiveSnapshot,
   type AuditSnapshot,
-  type SerializedGameState,
 } from "./liveParity.js";
 
 const baseSnapshot: AuditSnapshot = {
@@ -280,7 +280,7 @@ describe("liveParity helpers", () => {
     });
 
     it("detects kittens overflow", () => {
-      const actual: AuditSnapshot = { ...baseSnapshot, village: { kittens: 600, maxKittens: 579 } };
+      const actual: AuditSnapshot = { ...baseSnapshot, village: { kittens: 600, maxKittens: 579, happiness: 5.33 } };
       const expected = baseSnapshot;
 
       const mismatches = compareLiveSnapshot(actual, expected);

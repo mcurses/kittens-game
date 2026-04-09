@@ -5,6 +5,7 @@ import React from "react";
 import { useInspector } from "./InspectorContext.js";
 import { useSlot } from "./SlotContext.js";
 import { useGameAction } from "./useGameAction.js";
+import { CRAFT_FLAVOR, UPGRADE_FLAVOR } from "./flavorText.js";
 import { usePersistentUiState } from "./usePersistentUiState.js";
 import { type ResourceMap, canAfford, extractEffectCache, extractResources, isStorageLimited } from "./utils.js";
 
@@ -17,6 +18,8 @@ interface UpgradeEntry {
 interface CraftEntry {
   name: string;
   unlocked: boolean;
+  engineers: number;
+  progress: number;
 }
 
 interface Props {
@@ -55,9 +58,37 @@ function extractCrafts(state: GameStateResponse): CraftEntry[] {
       return {
         name,
         unlocked: e.unlocked === true,
+        engineers: typeof e.engineers === "number" ? e.engineers : 0,
+        progress: typeof e.progress === "number" ? e.progress : 0,
       };
     })
     .filter((e): e is CraftEntry => e !== null && e.unlocked);
+}
+
+/** Check if mechanization tech is researched */
+function isMechanizationResearched(state: GameStateResponse): boolean {
+  const raw = state as unknown as Record<string, unknown>;
+  const science = raw.science;
+  if (typeof science !== "object" || science === null) return false;
+  const techs = (science as Record<string, unknown>).techs;
+  if (typeof techs !== "object" || techs === null) return false;
+  const mech = (techs as Record<string, unknown>).mechanization;
+  if (typeof mech !== "object" || mech === null) return false;
+  return (mech as Record<string, unknown>).researched === true;
+}
+
+/** Get total engineer kittens from village.jobs.engineer */
+function getTotalEngineers(state: GameStateResponse): number {
+  const raw = state as unknown as Record<string, unknown>;
+  const village = raw.village;
+  if (typeof village !== "object" || village === null) return 0;
+  const jobs = (village as Record<string, unknown>).jobs;
+  if (typeof jobs !== "object" || jobs === null) return 0;
+  const eng = (jobs as Record<string, unknown>).engineer;
+  if (typeof eng !== "object" || eng === null) return 0;
+  return typeof (eng as Record<string, unknown>).value === "number"
+    ? ((eng as Record<string, unknown>).value as number)
+    : 0;
 }
 
 /** Story 35-01: Compute adaptive craft shortcut amounts matching legacy left.jsx logic. */
@@ -76,6 +107,23 @@ function computeCraftShortcuts(craftName: string, resources: ResourceMap): [numb
     Math.max(100, Math.floor(n * 0.1)),
     n,
   ];
+}
+
+/** Compute craft output for a given amount, respecting ignoreBonuses and tier ratios */
+function computeCraftOutput(craftName: string, amount: number, effectCache: Record<string, number>): number {
+  const def = CRAFT_DEFS.find((d) => d.name === craftName);
+  if (!def) return amount;
+  if (def.ignoreBonuses) return amount;
+  let craftRatio = effectCache.craftRatio ?? 0;
+  if (def.tier >= 1 && def.tier <= 5) {
+    craftRatio += effectCache[`t${def.tier}CraftRatio`] ?? 0;
+  }
+  return amount * (1 + craftRatio);
+}
+
+/** Format craft output for display: drop ".0" suffix */
+function formatOutput(n: number): string {
+  return n === Math.floor(n) ? String(n) : n.toFixed(1);
 }
 
 export function WorkshopPanel({ state }: Props): React.ReactElement {
@@ -97,6 +145,10 @@ export function WorkshopPanel({ state }: Props): React.ReactElement {
   const resources = extractResources(state);
   const effectCache = extractEffectCache(state);
   const craftRatio = effectCache.craftRatio ?? 0;
+  const mechanization = isMechanizationResearched(state);
+  const totalEngineers = getTotalEngineers(state);
+  const assignedEngineers = crafts.reduce((sum, c) => sum + c.engineers, 0);
+  const freeEngineers = totalEngineers - assignedEngineers;
 
   const visibleUpgrades = hideResearched ? upgrades.filter((u) => !u.researched) : upgrades;
 
@@ -136,6 +188,7 @@ export function WorkshopPanel({ state }: Props): React.ReactElement {
                     kind: "upgrade",
                     name: u.name,
                     description: def?.description,
+                    flavor: UPGRADE_FLAVOR[u.name],
                     researched: u.researched,
                     effects: def?.effects ?? {},
                     prices: [...prices],
@@ -148,6 +201,7 @@ export function WorkshopPanel({ state }: Props): React.ReactElement {
                     kind: "upgrade",
                     name: u.name,
                     description: def?.description,
+                    flavor: UPGRADE_FLAVOR[u.name],
                     researched: u.researched,
                     effects: def?.effects ?? {},
                     prices: [...prices],
@@ -195,54 +249,114 @@ export function WorkshopPanel({ state }: Props): React.ReactElement {
               </span>
             )}
           </div>
+          {mechanization && totalEngineers > 0 && (
+            <div className="craft-engineer-summary" data-testid="free-engineers">
+              Free engineers: {freeEngineers} / {totalEngineers}
+            </div>
+          )}
           <ul className="item-list">
             {crafts.map((c) => {
+              const def = CRAFT_DEFS.find((d) => d.name === c.name);
               const [s1, s2, s3, all] = computeCraftShortcuts(c.name, resources);
+              const shortcuts = [
+                { key: "s1", amount: s1, label: `×${s1}` },
+                { key: "s2", amount: s2, label: `×${s2}` },
+                { key: "s3", amount: s3, label: `×${s3}` },
+                { key: "all", amount: all, label: "All" },
+              ];
+
+              const progressPct = Math.min(99, Math.floor(c.progress * 100));
+              const progressStr = progressPct < 10 ? `0${progressPct}` : String(progressPct);
+              const showProgress = mechanization && c.engineers > 0;
+
               return (
-                <li key={c.name} data-testid={`craft-${c.name}`} className="item-row">
+                <li
+                  key={c.name}
+                  data-testid={`craft-${c.name}`}
+                  className="item-row"
+                  onMouseEnter={() =>
+                    setInspected({
+                      kind: "craft",
+                      name: c.name,
+                      flavor: CRAFT_FLAVOR[c.name],
+                      engineers: c.engineers,
+                      progress: c.progress,
+                    })
+                  }
+                  onMouseLeave={clearInspected}
+                  onFocus={() =>
+                    setInspected({
+                      kind: "craft",
+                      name: c.name,
+                      flavor: CRAFT_FLAVOR[c.name],
+                      engineers: c.engineers,
+                      progress: c.progress,
+                    })
+                  }
+                  onBlur={clearInspected}
+                  tabIndex={0}
+                >
                   <span className="item-row-name craft-name">{c.name}</span>
+                  {showProgress && (
+                    <span className="craft-progress" data-testid={`craft-${c.name}-progress`}>
+                      [{progressStr}%]
+                    </span>
+                  )}
                   <div className="craft-amounts">
-                    <button
-                      key="s1"
-                      type="button"
-                      data-testid={`craft-${c.name}-s1`}
-                      className="btn btn--secondary btn--xs"
-                      disabled={isPending}
-                      onClick={() => mutate({ type: "CRAFT", name: c.name, amount: s1 })}
-                    >
-                      ×{s1}
-                    </button>
-                    <button
-                      key="s2"
-                      type="button"
-                      data-testid={`craft-${c.name}-s2`}
-                      className="btn btn--secondary btn--xs"
-                      disabled={isPending}
-                      onClick={() => mutate({ type: "CRAFT", name: c.name, amount: s2 })}
-                    >
-                      ×{s2}
-                    </button>
-                    <button
-                      key="s3"
-                      type="button"
-                      data-testid={`craft-${c.name}-s3`}
-                      className="btn btn--secondary btn--xs"
-                      disabled={isPending}
-                      onClick={() => mutate({ type: "CRAFT", name: c.name, amount: s3 })}
-                    >
-                      ×{s3}
-                    </button>
-                    <button
-                      key="all"
-                      type="button"
-                      data-testid={`craft-${c.name}-all`}
-                      className="btn btn--secondary btn--xs"
-                      disabled={isPending}
-                      onClick={() => mutate({ type: "CRAFT", name: c.name, amount: all })}
-                    >
-                      All
-                    </button>
+                    {shortcuts.map((sc) => {
+                      const output = computeCraftOutput(c.name, sc.amount, effectCache);
+                      const scaledPrices = def
+                        ? def.prices.map((p) => ({ name: p.name, val: p.val * sc.amount }))
+                        : [];
+                      return (
+                        <button
+                          key={sc.key}
+                          type="button"
+                          data-testid={`craft-${c.name}-${sc.key}`}
+                          className="btn btn--secondary btn--xs"
+                          disabled={isPending}
+                          title={`+${formatOutput(output)}`}
+                          onClick={() => mutate({ type: "CRAFT", name: c.name, amount: sc.amount })}
+                          onMouseEnter={(e) => {
+                            e.stopPropagation();
+                            setInspected({
+                              kind: "craftShortcut",
+                              name: c.name,
+                              amount: sc.amount,
+                              output,
+                              prices: scaledPrices,
+                              resources,
+                            });
+                          }}
+                        >
+                          {sc.label}
+                        </button>
+                      );
+                    })}
                   </div>
+                  {mechanization && (
+                    <div className="craft-engineers" data-testid={`craft-${c.name}-engineers`}>
+                      <button
+                        type="button"
+                        data-testid={`craft-${c.name}-engineer-remove`}
+                        className="btn btn--xs btn--secondary"
+                        disabled={isPending || c.engineers <= 0}
+                        onClick={() => mutate({ type: "UNASSIGN_CRAFT_ENGINEER", name: c.name })}
+                      >
+                        -
+                      </button>
+                      <span className="craft-engineer-count">{c.engineers}</span>
+                      <button
+                        type="button"
+                        data-testid={`craft-${c.name}-engineer-add`}
+                        className="btn btn--xs btn--secondary"
+                        disabled={isPending || freeEngineers <= 0}
+                        onClick={() => mutate({ type: "ASSIGN_CRAFT_ENGINEER", name: c.name })}
+                      >
+                        +
+                      </button>
+                    </div>
+                  )}
                 </li>
               );
             })}
