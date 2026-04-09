@@ -376,3 +376,87 @@ describe("Story 48-05: Census Panel", () => {
     expect(list.children.length).toBe(5);
   });
 });
+
+// ── Story 48-06: Census Filters and Sorting ──────────────────────────────────
+
+describe("Story 48-06: Census filters and sorting", () => {
+  it("filters by job showing only matching kittens", () => {
+    const kittens = [
+      makeKitten({ id: "k1", name: "Alice", job: "farmer" }),
+      makeKitten({ id: "k2", name: "Bob", job: "scholar" }),
+      makeKitten({ id: "k3", name: "Carol", job: "farmer" }),
+    ];
+    const state = makeCensusState(kittens, {
+      farmer: { value: 2, unlocked: true },
+      scholar: { value: 1, unlocked: true },
+    });
+    render(<JobsPanel state={state} />);
+
+    // Select farmer filter
+    fireEvent.change(screen.getByTestId("census-filter-job"), { target: { value: "farmer" } });
+    const list = screen.getByTestId("census-list");
+    expect(list.children.length).toBe(2);
+    expect(screen.getByTestId("census-kitten-k1")).toBeTruthy();
+    expect(screen.getByTestId("census-kitten-k3")).toBeTruthy();
+    expect(screen.queryByTestId("census-kitten-k2")).toBeNull();
+  });
+
+  it("filters by Free (unassigned kittens)", () => {
+    const kittens = [
+      makeKitten({ id: "k1", name: "Alice", job: "farmer" }),
+      makeKitten({ id: "k2", name: "Bob", job: null }),
+    ];
+    const state = makeCensusState(kittens, { farmer: { value: 1, unlocked: true } });
+    render(<JobsPanel state={state} />);
+
+    fireEvent.change(screen.getByTestId("census-filter-job"), { target: { value: "free" } });
+    const list = screen.getByTestId("census-list");
+    expect(list.children.length).toBe(1);
+    expect(screen.getByTestId("census-kitten-k2")).toBeTruthy();
+  });
+
+  it("sorts by name alphabetically", () => {
+    const kittens = [
+      makeKitten({ id: "k1", name: "Charlie", surname: "A" }),
+      makeKitten({ id: "k2", name: "Alice", surname: "A" }),
+      makeKitten({ id: "k3", name: "Bob", surname: "A" }),
+    ];
+    const state = makeCensusState(kittens);
+    render(<JobsPanel state={state} />);
+
+    fireEvent.change(screen.getByTestId("census-sort"), { target: { value: "name" } });
+    const list = screen.getByTestId("census-list");
+    const ids = Array.from(list.children).map((el) => el.getAttribute("data-testid"));
+    expect(ids).toEqual(["census-kitten-k2", "census-kitten-k3", "census-kitten-k1"]);
+  });
+
+  it("sorts by age descending", () => {
+    const kittens = [
+      makeKitten({ id: "k1", name: "A", age: 5 }),
+      makeKitten({ id: "k2", name: "B", age: 20 }),
+      makeKitten({ id: "k3", name: "C", age: 10 }),
+    ];
+    const state = makeCensusState(kittens);
+    render(<JobsPanel state={state} />);
+
+    fireEvent.change(screen.getByTestId("census-sort"), { target: { value: "age" } });
+    const list = screen.getByTestId("census-list");
+    const ids = Array.from(list.children).map((el) => el.getAttribute("data-testid"));
+    expect(ids).toEqual(["census-kitten-k2", "census-kitten-k3", "census-kitten-k1"]);
+  });
+
+  it("sorts by rank descending", () => {
+    const kittens = [
+      makeKitten({ id: "k1", name: "A", rank: 1 }),
+      makeKitten({ id: "k2", name: "B", rank: 5 }),
+      makeKitten({ id: "k3", name: "C", rank: 3 }),
+    ];
+    const state = makeCensusState(kittens);
+    render(<JobsPanel state={state} />);
+
+    fireEvent.change(screen.getByTestId("census-sort"), { target: { value: "rank" } });
+    const list = screen.getByTestId("census-list");
+    const ids = Array.from(list.children).map((el) => el.getAttribute("data-testid"));
+    expect(ids).toEqual(["census-kitten-k2", "census-kitten-k3", "census-kitten-k1"]);
+  });
+});

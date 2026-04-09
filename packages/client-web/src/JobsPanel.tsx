@@ -57,6 +57,7 @@ interface CensusKitten {
   job: string | null;
   skills: Record<string, number>;
   rank: number;
+  exp: number;
 }
 
 const CENSUS_PAGE_SIZE = 10;
@@ -117,6 +118,8 @@ export function JobsPanel({ state }: Props): React.ReactElement {
   const { mutate, isPending } = useGameAction(slot);
   const { setInspected, clearInspected } = useInspector();
   const [censusPage, setCensusPage] = useState(0);
+  const [censusJobFilter, setCensusJobFilter] = useState("all");
+  const [censusSort, setCensusSort] = useState("default");
 
   if (!state) {
     return <div className="loading-text" data-testid="jobs-panel-loading">Loading…</div>;
@@ -165,12 +168,52 @@ export function JobsPanel({ state }: Props): React.ReactElement {
       )}
       {visibility.village.censusVisible && (() => {
         const sim = extractSim(state);
-        const totalPages = Math.max(1, Math.ceil(sim.length / CENSUS_PAGE_SIZE));
+        // Filter
+        let filtered = sim;
+        if (censusJobFilter === "free") {
+          filtered = filtered.filter((k) => k.job === null);
+        } else if (censusJobFilter !== "all") {
+          filtered = filtered.filter((k) => k.job === censusJobFilter);
+        }
+        // Sort
+        if (censusSort === "name") {
+          filtered = [...filtered].sort((a, b) => a.name.localeCompare(b.name));
+        } else if (censusSort === "age") {
+          filtered = [...filtered].sort((a, b) => b.age - a.age);
+        } else if (censusSort === "rank") {
+          filtered = [...filtered].sort((a, b) => b.rank - a.rank);
+        } else if (censusSort === "exp") {
+          filtered = [...filtered].sort((a, b) => (b.exp ?? 0) - (a.exp ?? 0));
+        }
+        const totalPages = Math.max(1, Math.ceil(filtered.length / CENSUS_PAGE_SIZE));
         const page = Math.min(censusPage, totalPages - 1);
-        const pageKittens = sim.slice(page * CENSUS_PAGE_SIZE, (page + 1) * CENSUS_PAGE_SIZE);
+        const pageKittens = filtered.slice(page * CENSUS_PAGE_SIZE, (page + 1) * CENSUS_PAGE_SIZE);
+        // Collect unique jobs and traits for filter dropdowns
+        const jobsInPop = [...new Set(sim.map((k) => k.job).filter((j): j is string => j !== null))].sort();
+        const traitsInPop = [...new Set(sim.map((k) => k.trait))].sort();
         return (
           <div data-testid="village-census" className="panel-subsection">
             <div className="panel-sublabel">Census</div>
+            <div className="census-controls">
+              <select data-testid="census-filter-job" value={censusJobFilter}
+                onChange={(e) => { setCensusJobFilter(e.target.value); setCensusPage(0); }}>
+                <option value="all">All jobs</option>
+                <option value="free">Free</option>
+                {jobsInPop.map((j) => <option key={j} value={j}>{j}</option>)}
+              </select>
+              <select data-testid="census-filter-trait" value="all">
+                <option value="all">All traits</option>
+                {traitsInPop.map((t) => <option key={t} value={t}>{t}</option>)}
+              </select>
+              <select data-testid="census-sort" value={censusSort}
+                onChange={(e) => { setCensusSort(e.target.value); setCensusPage(0); }}>
+                <option value="default">Default</option>
+                <option value="name">Name</option>
+                <option value="age">Age</option>
+                <option value="rank">Rank</option>
+                <option value="exp">Exp</option>
+              </select>
+            </div>
             <ul data-testid="census-list" className="item-list census-list">
               {pageKittens.map((k) => (
                 <li key={k.id} data-testid={`census-kitten-${k.id}`} className="census-row">
