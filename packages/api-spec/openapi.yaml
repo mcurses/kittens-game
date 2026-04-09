@@ -723,6 +723,22 @@ components:
             type:
               type: string
               enum: [REMOVE_LEADER]
+        - type: object
+          required: [type, name]
+          properties:
+            type:
+              type: string
+              enum: [UPGRADE_BUILDING_STAGE]
+            name:
+              type: string
+        - type: object
+          required: [type, name]
+          properties:
+            type:
+              type: string
+              enum: [DOWNGRADE_BUILDING_STAGE]
+            name:
+              type: string
       discriminator:
         propertyName: type
 
