@@ -106,3 +106,18 @@ Append to `agent-docs/SELF_RATINGS.md`:
 ### Action items for next epic
 <bullets>
 ```
+
+Then **overwrite** `agent-docs/NEXT_ACTIONS.md` with just the action items block:
+
+```markdown
+# Next Actions
+
+Overwritten by `/self-rate` at the end of each epic. Read by `/epic-start` Step 1.
+Only contains the latest action items — not a history file.
+
+**Source epic:** <Epic Name> — <date>
+
+- [ ] <item>
+```
+
+This small file is what `/epic-start` reads instead of the full SELF_RATINGS.md.

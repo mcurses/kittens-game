@@ -8,7 +8,7 @@ allowed-tools: Read, Glob, Grep, Write, Edit, Bash
 
 # Queue Epics: $ARGUMENTS
 
-Parse "$ARGUMENTS" as either a range (`10-12` → epics 10, 11, 12) or a comma-separated list (`10,12,14` → epics 10, 12, 14). Look up each epic number in `agents.md`.
+Parse "$ARGUMENTS" as either a range (`10-12` → epics 10, 11, 12) or a comma-separated list (`10,12,14` → epics 10, 12, 14). Look up each epic number in `agent-docs/EPICS.md`.
 
 For each epic in order:
 

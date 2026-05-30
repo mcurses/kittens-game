@@ -12,9 +12,9 @@ You are bootstrapping epic "$ARGUMENTS" for the kittens-mcp rewrite. Follow agen
 
 ## Step 1 — Check prerequisites and fix outstanding action items
 
-Read `agents.md` epic backlog. Find epic "$ARGUMENTS" and check its prerequisites are marked complete in `agent-docs/PROGRESS.md`. If not, stop and tell the user which epics need to finish first.
+Read `agents.md` epic backlog. Find epic "$ARGUMENTS" and check its prerequisites are marked complete in `agent-docs/EPICS.md`. If not, stop and tell the user which epics need to finish first.
 
-Read `agent-docs/SELF_RATINGS.md` and find the most recent "Action items for next epic" section. **Execute every unchecked item (`- [ ]`) before continuing.** These are mandatory fixes left over from the previous self-rate — do not skip them. Mark each item as `- [x]` once done. Only proceed to Step 2 after all action items are resolved.
+Read `agent-docs/NEXT_ACTIONS.md`. **Execute every unchecked item (`- [ ]`) before continuing.** These are mandatory fixes left over from the previous self-rate — do not skip them. Mark each item as `- [x]` once done. Only proceed to Step 2 after all action items are resolved.
 
 ## Step 2 — Create scaffold
 
@@ -48,7 +48,7 @@ Create `agent-docs/epics/$ARGUMENTS/NOTES.md`:
 
 ## Step 3 — Read legacy code
 
-Read all legacy files listed in agents.md for this epic. Summarize key behavior in NOTES.md. Note any cryptic or surprising logic.
+Read `agent-docs/LEGACY_REFERENCE.md` for the file map. Read all legacy files relevant to this epic. Summarize key behavior in NOTES.md. Note any cryptic or surprising logic.
 
 Also read `legacy/test/` for any test files covering this domain. The existing test suite is the most reliable specification of expected behavior — use it to inform ACs rather than deriving expected values by hand from source.
 
@@ -76,7 +76,7 @@ Be thorough — missed stories mean missed features.
 
 ## Step 5 — Register in PROGRESS.md
 
-Add entry to `agent-docs/PROGRESS.md`:
+Add an entry to the bottom of `agent-docs/PROGRESS.md` (do NOT read the whole file — just append):
 ```
 ## Epic: $ARGUMENTS
 Status: In Progress | Started: <date>

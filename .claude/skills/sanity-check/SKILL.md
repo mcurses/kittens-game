@@ -11,7 +11,7 @@ A qualitative review complementing `/self-rate`. Where self-rate does mechanical
 
 ## Step 1 — Identify scope
 
-Read `agent-docs/SELF_RATINGS.md` and identify which epics were completed in the most recent batch. Read their corresponding source files in `packages/engine/src/`.
+Read `agent-docs/EPICS.md` and identify which epics were completed in the most recent batch. Read their corresponding source files in `packages/engine/src/`.
 
 ## Step 2 — Code quality opinion
 

@@ -1,450 +1,72 @@
-# Kittens Game — Modern Rewrite: Agent Strategy Guide
+# Kittens Game Rewrite — Agent Rules
 
-> This document is the **operating manual for the rewrite agent**. Read it fully before starting any work. Update it as the project evolves.
+Faithful rewrite of [Kittens Game](https://kittensgame.com) in TypeScript. Engine is pure `(state, action) => newState` with zero I/O. Server (Hono/Bun) owns persistence and WS broadcast. Clients are thin renderers. Legacy code in `legacy/` is read-only reference.
 
----
-
-## Vision
-
-A faithful, feature-complete rewrite of [Kittens Game](https://kittensgame.com) using modern engineering practices:
-
-- **TypeScript** everywhere
-- **API-contract-first** — OpenAPI spec is the source of truth for the client/server boundary
-- **Server/client architecture** — multiple browser/CLI clients can connect to the same running game state simultaneously
-- **TDD** — no production code without a failing test first
-- **Domain-driven** — each game system is an isolated, testable module
-- **Event-driven** — game state changes broadcast via WebSocket to all connected clients
-- **Fully documented** — agent-docs/ tracks every decision, epic, story, and self-rating
-
-Legacy codebase lives in `legacy/` (~46k lines, Dojo/jQuery/ES5). Do not touch it.
+Key docs: `agent-docs/EPICS.md` (backlog + status), `agent-docs/PARITY.md` (coverage tracker), `agent-docs/LEGACY_REFERENCE.md` (legacy file map). Skills: `/epic-start`, `/self-rate`, `/queue-epics`, `/sanity-check`, `/sync-docs`.
 
 ---
 
-## Repository Layout
+## Epic-First Workflow (mandatory)
 
-```
-kittens-mcp/
-├── agents.md                   ← this file
-├── agent-docs/                 ← all living agent documentation
-│   ├── DECISIONS.md            ← architecture decisions log (ADR-style)
-│   ├── PROGRESS.md             ← epic/story status tracker
-│   ├── EPICS.md                ← epic backlog with priorities
-│   ├── SELF_RATINGS.md         ← output of /self-rate runs
-│   └── epics/
-│       └── <epic-name>/
-│           ├── STORIES.md      ← user stories + acceptance criteria
-│           └── NOTES.md        ← implementation notes, gotchas, links to legacy
-├── legacy/                     ← read-only reference (do not modify)
-├── packages/
-│   ├── api-spec/               ← OpenAPI 3.1 YAML + generated types
-│   ├── engine/                 ← pure game logic (no I/O)
-│   ├── server/                 ← HTTP + WebSocket server
-│   ├── client-web/             ← React web client
-│   └── shared/                 ← shared TypeScript types, constants, utils
-├── .claude/
-│   └── skills/                  ← Claude Code slash-command skills
-├── .agents/
-│   └── skills/                  ← OpenAI Codex skill equivalents
-├── turbo.json                  ← Turborepo config
-└── package.json                ← pnpm workspace root
-```
+Every substantive change must belong to an epic with story-level acceptance criteria. Start work with `/epic-start <N>` or explicitly reopen an existing epic (update STORIES.md, EPICS.md, PROGRESS.md) before touching production code.
 
----
+- No "I just fixed a small parity issue while I was there" without it being documented in an active epic first.
+- Retroactive filing is a process failure. The only exceptions are trivial doc-only edits or non-gameplay housekeeping explicitly requested by the user.
 
-## Tech Stack
+## TDD (mandatory)
 
-| Layer | Choice | Rationale |
-|-------|--------|-----------|
-| Language | TypeScript 5.x strict | Safety, inference, modern ergonomics |
-| Runtime | Bun | Fast, built-in test runner, bundler, TS-native |
-| HTTP server | Hono | Tiny, typed, edge-ready |
-| WebSocket | Bun native WS | Real-time state push to all clients |
-| Game state DB | SQLite via Drizzle ORM | Single-file, embedded, easy backup/export |
-| Testing | Vitest (or Bun test) | Co-located, fast, ESM-native, coverage built-in |
-| API spec | OpenAPI 3.1 + zod-openapi | Contract-first, generates TS types |
-| Monorepo | Turborepo + pnpm workspaces | Incremental builds, isolated packages |
-| Frontend | React 19 + TanStack Query | Live state sync, optimistic updates |
-| Styling | Tailwind CSS | Low-overhead, theme-friendly |
-| Linting | Biome | Unified lint + format, fast |
+Write failing Vitest tests first → implement minimum code to pass → `pnpm turbo build` → commit. Never write production code without test coverage. Commits: `<type>(<scope>): <summary>` (types: feat/fix/test/refactor/docs/chore; scopes: engine/server/client/api-spec/agent-docs).
 
----
+## Parity Verification Standard (mandatory)
 
-## Architecture Overview
+A feature reaches `✅` parity only when ALL of these are true:
 
-```
-┌─────────────────────────────────────────────────────┐
-│  packages/engine                                    │
-│  Pure TypeScript, zero I/O                          │
-│  • Tick engine (deterministic)                      │
-│  • All domain managers (resources, buildings, …)    │
-│  • Effect system + diminishing returns              │
-│  • Save/load serialization (plain objects)          │
-│  • 100% unit-testable with Vitest                   │
-└────────────────┬────────────────────────────────────┘
-                 │ called by
-┌────────────────▼────────────────────────────────────┐
-│  packages/server                                    │
-│  Hono + Bun WS                                      │
-│  • POST /api/game/tick  (or auto-tick loop)         │
-│  • GET/POST /api/game/state                         │
-│  • POST /api/game/action  (buy building, assign job…│
-│  • WS  /ws              (broadcasts state deltas)   │
-│  • SQLite persistence via Drizzle                   │
-│  • Multiple save slots / user sessions              │
-└────────────────┬────────────────────────────────────┘
-                 │ HTTP + WS
-      ┌──────────┴──────────┐
-      │                     │
-┌─────▼──────┐       ┌──────▼──────┐
-│ client-web │  …N   │  CLI client │  (future)
-│ React SPA  │       │  automation │
-└────────────┘       └─────────────┘
-```
+- **Legacy source identified** — exact `legacy/js/` or `legacy/test/` references recorded
+- **Producer wired** — engine creates the effect/state/behavior
+- **Consumer wired** — effect is actually consumed in runtime logic
+- **Action surface wired** — legacy controls/actions exist in `GameAction`, API spec, server, client
+- **UI surface wired** — player can see and operate the feature where legacy allows
+- **Save/load wired** — state survives serialization, reset, and legacy import
+- **Parity-tested** — at least one test proves the feature against legacy behavior
 
-**Key invariant:** The engine has zero knowledge of HTTP, WebSockets, or the DOM. It is a pure function: `(state, action) => newState`. The server owns the event loop and persistence. Clients only send actions and render state diffs.
+If any is missing, the tracker stays `⚠️` or `❌`. Never flatten a partial port into `✅`.
 
----
-
-## API Contract Principles
-
-1. **OpenAPI spec is written first** before any implementation.
-2. All request/response shapes are defined as Zod schemas and exported as TypeScript types shared between server and client.
-3. WebSocket messages follow the same envelope: `{ type: string, payload: unknown, ts: number }`.
-4. Save data format is a versioned JSON schema — migration functions for every version bump.
-5. The spec lives in `packages/api-spec/openapi.yaml` — never hand-edit generated files.
-
-### Core Endpoints (initial)
-
-```
-GET  /api/health
-GET  /api/game/state          → full GameState snapshot
-POST /api/game/action         → { type, payload } → ActionResult
-POST /api/game/tick           → advance one tick manually (testing)
-GET  /api/game/save           → export save JSON
-POST /api/game/load           → import save JSON
-POST /api/game/reset          → soft reset (prestige)
-
-WS   /ws                      → subscribe to state deltas
-```
-
----
-
-## Development Workflow
-
-### Epic-First Workflow (mandatory)
-
-Every substantive change must be tracked through the epic workflow. The only acceptable way to start non-trivial work is to run `/epic-start <epic>` for a new epic or to explicitly reopen an existing epic by updating its `STORIES.md`, `NOTES.md`, `agent-docs/EPICS.md`, and `agent-docs/PROGRESS.md` before touching production code.
-
-Rules:
-
-- Every feature, parity fix, production-value correction, UI control change, API change, migration, or gameplay bug fix must belong to an epic with story-level acceptance criteria.
-- If a bug is discovered mid-implementation and it is not already covered by the active epic stories, stop and document it under the current epic or a new epic before continuing.
-- "I just fixed a small parity issue while I was there" is not acceptable unless the issue was already documented in the active epic.
-- Retroactive filing is a process failure to correct immediately, not a normal mode of operation.
-- The only acceptable exceptions are trivial documentation-only edits or other clearly non-gameplay housekeeping explicitly requested by the user.
-
-### TDD Loop (mandatory)
-
-```
-1. Read the relevant legacy code for the feature being ported
-2. Write STORIES.md for the epic if not already done
-3. Write failing Vitest tests (acceptance + unit)
-4. Run tests → confirm red
-5. Implement minimum code to make tests pass
-6. Refactor
-7. git commit (small, frequent, descriptive)
-8. Repeat
-```
-
-Never write production code that has no test coverage. If you find yourself typing `// TODO: test this`, stop and write the test first.
-
-### Commit Convention
-
-```
-<type>(<scope>): <summary>
-
-Types: feat, fix, test, refactor, docs, chore
-Scopes: engine, server, client, api-spec, agent-docs
-
-Examples:
-feat(engine): add catnip resource with per-tick production
-test(engine): add building purchase price scaling tests
-docs(agent-docs): complete epic-01 self-rating
-```
-
-Commit after every green test run. Small commits make bisecting easy.
-
-### Self-Rating Cadence
-
-Run `/self-rate` at the end of every epic and at any natural milestone. Results go in `agent-docs/SELF_RATINGS.md`. Use the rating to adjust approach for the next epic.
-
-### Parity Verification Standard (mandatory)
-
-Do not treat "definition exists" as "feature complete". A feature reaches `✅` parity only when all of the following are true:
-
-- **Legacy source identified** — exact `legacy/js/` or `legacy/test/` references are recorded
-- **Producer wired** — the engine creates the effect / state / behavior
-- **Consumer wired** — the effect is actually consumed in runtime logic
-- **Action surface wired** — any legacy controls or actions exist in `GameAction`, API spec, server, and client
-- **UI surface wired** — the player can see and operate the feature where legacy allows it
-- **Save/load wired** — the state survives serialization, reset, and legacy import when applicable
-- **Parity-tested** — at least one test proves the feature against legacy behavior or a legacy-derived save fixture
-
-If any one of these is missing, the tracker stays `⚠️` or `❌`. Never flatten a partial port into `✅`.
-
-### Live Parity Audit Gate (mandatory)
+## Live Parity Audit Gate (mandatory)
 
 Before marking any epic complete:
 
-1. Run a live parity audit against the relevant legacy code and a representative imported or synthetic save.
-2. Check actual player-facing behavior, not just effect definitions: production, consumption, unlocks, controls, automation, and visibility.
-3. Record every deferred behavior explicitly in `agent-docs/PARITY.md` and the epic notes/stories.
+1. Audit against legacy code and a representative imported or synthetic save.
+2. Check actual player-facing behavior, not just effect definitions.
+3. Record every deferred behavior explicitly in `agent-docs/PARITY.md` and epic notes.
 4. Block epic completion if any row still claims `✅` while significant legacy behavior is deferred.
 
-### Production / Control Audit Questions
+## Production / Control Audit
 
-Whenever porting a building, upgrade, job, automation system, or UI control, answer these questions in notes or tests:
+Whenever porting a building, upgrade, job, automation, or UI control, answer in notes or tests:
 
 1. What exact legacy outputs, consumption, and side effects does it have?
 2. Where is each output consumed in the rewrite?
-3. What controls does legacy expose for it (`on/off`, rename, quantity buttons, automation toggles, done states)?
+3. What controls does legacy expose (`on/off`, rename, quantity, automation, done-state)?
 4. What fixture or regression test proves parity?
 
-If the agent cannot answer all four, the feature is partial by default.
-
----
-
-## Epic Backlog
-
-Epics are ordered by dependency. Do not start an epic until its prerequisites are complete. Mark status in `agent-docs/EPICS.md`.
-
-| # | Epic | Prerequisites | Priority |
-|---|------|--------------|----------|
-| 01 | **Foundation** — monorepo, tooling, CI, package skeletons | — | P0 |
-| 02 | **API Spec** — OpenAPI schema, Zod types, WS envelope | 01 | P0 |
-| 03 | **Core Engine** — tick loop, effect system, base managers | 01 | P0 |
-| 04 | **Resources** — all resource types, storage, perTick calc | 03 | P0 |
-| 05 | **Buildings** — all buildings, prices, effects, stages | 04 | P0 |
-| 06 | **Village / Population / Jobs** — kittens, jobs, happiness | 04 | P0 |
-| 07 | **Calendar & Seasons** — seasons, moon, year tick | 03 | P1 |
-| 08 | **Science / Tech Tree** — 100+ techs, unlock chains | 05, 06 | P1 |
-| 09 | **Workshop / Upgrades** — crafting recipes, upgrade effects | 05, 08 | P1 |
-| 10 | **Religion & Faith** — faith, gods, praise mechanics | 08 | P1 |
-| 11 | **Prestige / Reset** — paragon, perks, soft reset flow | 08 | P1 |
-| 12 | **Challenges** — challenge types, LDR stacking, completions | 11 | P2 |
-| 13 | **Space** — planets, space buildings, space upgrades | 09 | P2 |
-| 14 | **Diplomacy / Trade** — races, trade missions, trade post | 09 | P2 |
-| 15 | **Time Mechanics** — Chronoforge, queue, heat/flux | 10 | P2 |
-| 16 | **Achievements** — 200+ achievements, badge unlock | 08 | P2 |
-| 17 | **Server** — Hono server, SQLite, session mgmt, WS | 02, 03 | P1 |
-| 18 | **Web Client** — React SPA, TanStack Query, WS live sync | 17 | P1 |
-| 19 | **Engine Completeness** — close sanity-check gaps: time shatter, religion pacts/necrocorns, prestige paragon, space beacons, diplomacy seasons, challenge completion conditions | 10–16 | P1 |
-| 20 | **Game UI** — full client interface: resource filtering, buildings panel, jobs panel, calendar/year display, log/messages, tech tree, workshop panels | 18, 19 | P1 |
-| 21 | **Feature Parity Audit** — systematic legacy comparison, fix divergences | 19, 20 | P1 |
-| 22 | **Multi-client** — concurrent sessions, auth/session isolation, optimistic UI | 20 | P2 |
-| 23 | **i18n** — translation system, port all 40+ locale files | 20 | P3 |
-| 24 | **Themes & Assets** — CSS themes, image assets | 20 | P3 |
-| 25 | **UI Completeness** — auto-tick, village panel, per-tick rates, costs in panels, religion/space/time/diplomacy/achievements tabs, craft-N UI | 20, 21 | P1 |
-| 26 | **UI Information Architecture** — replace hover-only legacy detail with modern inspector / progressive disclosure patterns across resources, buildings, workshop, and related panels | 20, 21, 25 | P1 |
-| 27 | **Building Completeness** — implement remaining gameplay buildings and wire all effect keys end-to-end per PARITY.md | 05, 09 | P1 |
-| 28 | **Legacy Save Import** — import legacy KG save files (LZString-compressed) into the new engine via a pure migration function, server endpoint, and web UI panel | 17, 18, 25 | P1 |
-| 29 | **Critical Bug Fixes** — fix auto-tick not starting after save import, fix VSU migration unlocked:false bug | 28 | P0 |
-| 30 | **Happiness Formula Completeness** — add luxury bonus, karma, festival, and temple happiness terms; wire breweryConsumptionRatio and consumableLuxuryHappiness | 27, 29 | P1 |
-| 31 | **Missing Buildings (Round 2)** — implement the ~15 buildings absent after epic 27 and close remaining building parity gaps | 27 | P1 |
-| 32 | **UI Parity Pass** — close all UI gaps found in live parity audit: religion TU section, trade economics, space mission/on-off, buildings on/off + rename system, village happiness/festival/management, resource maxValue display | 26, 29, 31 | P1 |
-| 33 | **UI Unlock & Visibility Parity** — replace hardcoded client visibility shortcuts with legacy-faithful unlock/visible rules for tabs, subpanels, jobs, actions, and conditional sections | 20, 21, 25, 32 | P1 |
-
----
-
-## Starting a New Epic
-
-Before writing a single line of code for an epic:
-
-1. Run `/epic-start <epic-name>` — creates `agent-docs/epics/<name>/STORIES.md` scaffold
-2. Read the corresponding legacy code thoroughly
-3. Fill in all user stories with **Given/When/Then** acceptance criteria
-4. Get story sign-off (re-read and confirm they cover legacy behavior)
-5. Only then: start TDD loop
-
-This is the only acceptable workflow for substantive repository changes. Do not bypass epic bootstrap and edit gameplay code "willy nilly" outside tracked epic stories.
-
-### Story Template
-
-```markdown
-## Story: <title>
-
-**As a** <who>
-**I want** <what>
-**So that** <why>
-
-### Acceptance Criteria
-- [ ] Given <context>, when <action>, then <outcome>
-- [ ] Given <context>, when <action>, then <outcome>
-
-### Legacy Reference
-- File: `legacy/js/<file>.js` lines <N>-<M>
-- Key logic: <brief description>
-
-### Notes
-<any edge cases, known divergences from legacy>
-```
-
----
-
-## Self-Rating Rubric
-
-When running `/self-rate`, evaluate against:
-
-| Dimension | Questions |
-|-----------|-----------|
-| **Test coverage** | Is line coverage ≥ 90% for the epic? Are edge cases covered? |
-| **Feature parity** | Does each story's AC map 1:1 to legacy behavior? Is `agent-docs/PARITY.md` updated? Spot-check 2 ✅ rows against actual code. |
-| **API contract** | Are all new `GameAction` types in `openapi.yaml`? (must be added same epic, not deferred) |
-| **Code quality** | No `any` types, no skipped tests, no TODOs left in code |
-| **Docs** | Is PROGRESS.md updated? Were decisions logged in DECISIONS.md? |
-| **Commit hygiene** | Small commits? Meaningful messages? No "WIP" left in main? |
-
-Score each dimension 1–5 and record in `agent-docs/SELF_RATINGS.md`. If any dimension scores ≤ 2, pause and fix before moving to the next epic.
-
-Additional parity rules during self-rate:
-
-- A row marked `✅` in `agent-docs/PARITY.md` must be verified end-to-end, not inferred from defs alone.
-- Spot-check at least one production/consumption path and one action/UI control path from recently touched work.
-- Downgrade stale `✅` rows to `⚠️` immediately when deferred or missing runtime behavior is found.
-
----
-
-## Legacy Reference Guide
-
-When porting a system, always read the legacy code first. Key reference points:
-
-| System | Legacy Files | Key Classes |
-|--------|-------------|-------------|
-| Game loop | `legacy/game.js:1891` | `Timer`, `GamePage.update()` |
-| Effect system | `legacy/core.js` | `IGameAware`, `updateEffectCached()` |
-| Resources | `legacy/js/resources.js` | `ResourceManager` |
-| Buildings | `legacy/js/buildings.js` | `BuildingsManager`, `getBuildingExt()` |
-| Jobs | `legacy/js/village.js` | `VillageManager.getJob()` |
-| Science | `legacy/js/science.js` | `ScienceManager` |
-| Workshop | `legacy/js/workshop.js` | `WorkshopManager` |
-| Religion | `legacy/js/religion.js` | `ReligionManager` |
-| Prestige | `legacy/js/prestige.js` | `PrestigeManager` |
-| Challenges | `legacy/js/challenges.js` | `ChallengesManager`, LDR logic |
-| Space | `legacy/js/space.js` | `SpaceManager` |
-| Diplomacy | `legacy/js/diplomacy.js` | `DiplomacyManager` |
-| Calendar | `legacy/js/calendar.js` | `Calendar`, `seasons` |
-| Time | `legacy/js/time.js` | `TimeManager`, queue system |
-| Achievements | `legacy/js/achievements.js` | `Achievements` |
-| Save format | `legacy/test/res/save.js` | Top-level save keys |
-
-The existing test suite in `legacy/test/` is a gold mine for expected behavior — read it before writing new tests.
-
----
-
-## Multi-Client Design Notes
-
-The server holds the authoritative game state. Clients are thin:
-
-- On connect: server sends full `GameState` snapshot
-- Every tick: server broadcasts `StateDelta` to all connected WS clients
-- Client sends `Action` → server validates → applies to engine → broadcasts delta
-- No client-side game logic — just rendering + input
-- Optimistic UI optional (mark as experimental)
-- Save slots are server-side; clients reference by `saveId`
-- Auth is simple session token (no user accounts required initially)
-
----
-
-## Shared Agent Skills
-
-Claude Code skills live in `.claude/skills/`. Matching OpenAI Codex skills live in `.agents/skills/`.
-Keep the workflow semantics aligned between both directories so either agent can follow the same process.
-
-### `self-rate`
-Runs the full test suite, checks coverage, audits open TODOs, compares against PROGRESS.md, and produces a structured rating report. Output is appended to `agent-docs/SELF_RATINGS.md`.
-
-### `epic-start <name>`
-Creates the epic directory scaffold (`agent-docs/epics/<name>/`), pre-fills STORIES.md with the standard template, and adds the epic to PROGRESS.md as "In Progress".
-
-### `queue-epics <range-or-list>`
-Runs multiple epics end-to-end in order. Accepts a range (`10-12`) or comma-separated list (`10,12,14`). For each epic: runs `/epic-start`, TDD loop, `/self-rate`, and only advances if all dimensions ≥ 3. Ends the batch with `/sanity-check`. Use this instead of writing out the full multi-epic prompt by hand.
-
-### `sanity-check`
-Qualitative batch-level review: reads actual source code, compares against legacy to find parity gaps, spots architectural risks, and files any missing features as stories. Runs automatically at the end of each `/queue-epics` batch. Can also be run standalone. Distinct from `/self-rate` (which is mechanical — build/tests/coverage/linting). It must treat live gameplay behavior as higher-priority evidence than tracker claims.
-
-### `sync-docs`
-Reads the current git log and test results, then updates `agent-docs/PROGRESS.md` with accurate story completion status and coverage metrics. Run this before any self-rating.
-
-Claude Code exposes these from `.claude/skills/<name>/SKILL.md` as slash commands.
-OpenAI Codex exposes matching equivalents from `.agents/skills/<name>/SKILL.md`.
+If any answer is missing, the feature is partial by default.
 
 ---
 
 ## Non-Negotiables
 
 - No `any` types in production code
-- No skipping tests (`it.skip`, `test.todo` must have a linked issue)
+- No skipped tests without a linked issue
 - No production code without a test
-- OpenAPI spec updated before merging any new endpoint
-- **New `GameAction` types are added to `openapi.yaml` in the same epic that adds them to the engine** — never deferred
-- `pnpm turbo build` must pass after every story — not just tests
+- `pnpm turbo build` must pass after every story
 - `legacy/test/` must be read before writing stories for any domain it covers
 - Each epic must include a cross-manager integration test for the full tick loop
-- `agent-docs/PROGRESS.md` updated at the end of every work session
-- **`agent-docs/EPICS.md` status must be updated when an epic completes** — mark the row ✅ Complete before closing out the epic
-- Legacy code is **read-only reference** — never modify it
-- **`agent-docs/PARITY.md` is the authoritative coverage tracker** — update it whenever a building, effect key, or resource production path is added. Do not mark an epic complete without updating PARITY.md.
-- **Never mark a PARITY row `✅` unless producer, consumer, action/control surface, and a parity test all exist.** Partial ports stay `⚠️`.
-- **Every parity-sensitive epic must include at least one live-save or legacy-derived regression test for player-visible behavior** such as production, consumption, unlocks, or controls.
-- **If a legacy feature has controls (`on/off`, rename, quantity buttons, automation toggles, done-state), parity is not complete until those controls exist or the PARITY tracker says they are missing.**
-- **Every new building or upgrade must wire both halves in the same commit**: the def that produces the effectCache key AND the manager code that consumes it. Verify with `grep -rn "effectCache\[" packages/engine/src/` before committing.
-
----
-
-## Autonomous Mode (running 2–3 epics hands-off)
-
-You don't need to babysit each epic. Give the agent a multi-epic prompt and check in after it finishes. The agent will self-direct using this document as its operating manual.
-
-### Kick-off prompt template
-
-```
-Read agents.md fully, then run: /queue-epics 1-3
-```
-
-### What the agent does autonomously
-
-- Reads legacy code to extract stories
-- Writes all tests before implementation
-- Commits after each green run
-- Runs `/self-rate` at epic boundaries
-- Updates `agent-docs/PROGRESS.md` throughout
-- Stops and flags blockers rather than pushing through them
-
-### Your check-in checklist (every 2–3 epics)
-
-- [ ] Read `agent-docs/PROGRESS.md` — stories complete as expected?
-- [ ] Read `agent-docs/SELF_RATINGS.md` — any ≤ 2 scores that weren't fixed?
-- [ ] Skim recent commits: `git log --oneline -20`
-- [ ] Run the test suite yourself once: `pnpm test`
-- [ ] Spot-check one completed story against its legacy behavior
-- [ ] If happy: kick off the next batch with another multi-epic prompt
-
-### When to intervene
-
-- A self-rating score stays ≤ 2 across two runs
-- Tests are passing but something feels wrong in behavior (run legacy side-by-side)
-- An epic has been "In Progress" for a suspiciously long time with few commits
-
----
-
-## Getting Started (Epic 01 checklist)
-
-- [ ] Initialize pnpm workspace + turbo.json
-- [ ] Create package skeletons: `engine`, `server`, `client-web`, `api-spec`, `shared`
-- [ ] Configure TypeScript strict mode in each package
-- [ ] Set up Vitest in `engine` and `server`
-- [ ] Configure Biome for lint + format
-- [ ] Add CI (GitHub Actions): lint → test → build
-- [ ] Create `agent-docs/` directory with DECISIONS.md, PROGRESS.md, EPICS.md, SELF_RATINGS.md
-- [ ] Create `.claude/skills/` and `.agents/skills/` with matching workflow skill definitions
-- [ ] Run `/self-rate` on the foundation and record baseline
+- New `GameAction` types are added to `packages/api-spec/openapi.yaml` in the same epic — never deferred
+- `agent-docs/PROGRESS.md` updated at end of every work session
+- `agent-docs/EPICS.md` status updated when an epic completes
+- `agent-docs/PARITY.md` updated whenever a building, effect key, or resource path is added
+- Never mark a PARITY row `✅` unless producer, consumer, action/control surface, and a parity test all exist
+- Every parity-sensitive epic needs at least one live-save or legacy-derived regression test
+- If a legacy feature has controls, parity is not complete until those controls exist or PARITY says they are missing
+- Every new building/upgrade must wire both halves in the same commit: the def that produces the effectCache key AND the manager code that consumes it
+- Legacy code is **read-only** — never modify it
