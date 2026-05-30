@@ -7,7 +7,7 @@ import { getServerDbPath, getStartupSlots } from "./runtime.js";
 import { SessionRegistry } from "./store.js";
 import { attachWebSocket, websocket } from "./ws.js";
 
-const PORT = 3000;
+const PORT = Number(process.env.PORT ?? 3000);
 
 async function main(): Promise<void> {
   const adapter = await createBunAdapter(getServerDbPath(import.meta.url));
