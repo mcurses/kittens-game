@@ -147,6 +147,60 @@ describe("ActionPanel", () => {
     expect(screen.queryByTestId("btn-hunt")).toBeNull();
   });
 
+  it("shows hunt shortcuts when 2+ squads affordable", () => {
+    mockFetch.mockImplementation(() => new Promise(() => {}));
+    renderWithClient(
+      <ActionPanel
+        state={{
+          resources: { catpower: { value: 1000 } },
+          effectCache: {},
+          science: { techs: { archery: { researched: true } } },
+        }}
+      />,
+    );
+    expect(screen.getByTestId("btn-hunt-half")).toBeTruthy();
+    expect(screen.getByTestId("btn-hunt-fifth")).toBeTruthy();
+  });
+
+  it("hides hunt shortcuts when only 1 squad affordable", () => {
+    mockFetch.mockImplementation(() => new Promise(() => {}));
+    renderWithClient(
+      <ActionPanel
+        state={{
+          resources: { catpower: { value: 100 } },
+          effectCache: {},
+          science: { techs: { archery: { researched: true } } },
+        }}
+      />,
+    );
+    expect(screen.queryByTestId("btn-hunt-half")).toBeNull();
+    expect(screen.queryByTestId("btn-hunt-fifth")).toBeNull();
+  });
+
+  it("dispatches HUNT with half amount on ×½ click", async () => {
+    const actionResult = { ok: true, state: { version: 1, tick: 1 } };
+    mockFetch.mockResolvedValueOnce(makeResponse(actionResult, 200));
+    renderWithClient(
+      <ActionPanel
+        state={{
+          resources: { catpower: { value: 1000 } },
+          effectCache: {},
+          science: { techs: { archery: { researched: true } } },
+        }}
+      />,
+    );
+    fireEvent.click(screen.getByTestId("btn-hunt-half"));
+    await vi.waitFor(() => {
+      expect(mockFetch).toHaveBeenCalledWith(
+        "/api/game/action",
+        expect.objectContaining({
+          method: "POST",
+          body: JSON.stringify({ type: "HUNT", amount: 5 }),
+        }),
+      );
+    });
+  });
+
   it("shows error message when mutation fails", async () => {
     // Simulate a network error
     mockFetch.mockRejectedValueOnce(new Error("Network error"));

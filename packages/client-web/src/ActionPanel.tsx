@@ -49,15 +49,39 @@ export function ActionPanel({
         Gather Catnip
       </button>
       {visibility.actions.huntVisible && (
-        <button
-          type="button"
-          className="btn btn--secondary btn--full"
-          data-testid="btn-hunt"
-          disabled={isPending || huntSquads < 1}
-          onClick={() => mutate({ type: "HUNT" })}
-        >
-          {huntLabel}
-        </button>
+        <div className="hunt-actions">
+          <button
+            type="button"
+            className="btn btn--secondary btn--full"
+            data-testid="btn-hunt"
+            disabled={isPending || huntSquads < 1}
+            onClick={() => mutate({ type: "HUNT" })}
+          >
+            {huntLabel}
+          </button>
+          {huntSquads >= 2 && (
+            <div className="hunt-shortcuts">
+              <button
+                type="button"
+                className="btn btn--secondary btn--xs"
+                data-testid="btn-hunt-half"
+                disabled={isPending}
+                onClick={() => mutate({ type: "HUNT", amount: Math.floor(huntSquads / 2) })}
+              >
+                ×½
+              </button>
+              <button
+                type="button"
+                className="btn btn--secondary btn--xs"
+                data-testid="btn-hunt-fifth"
+                disabled={isPending}
+                onClick={() => mutate({ type: "HUNT", amount: Math.max(1, Math.floor(huntSquads / 5)) })}
+              >
+                ×⅕
+              </button>
+            </div>
+          )}
+        </div>
       )}
     </div>
   );
