@@ -8,3 +8,6 @@ coverage/
 .env.*
 !.env.example
 *.db
+*.db*
+*.bak
+.DS_Store
