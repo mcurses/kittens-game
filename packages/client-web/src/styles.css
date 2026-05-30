@@ -408,6 +408,12 @@ body {
   padding-left: calc(var(--sp-2) - 2px);
 }
 
+/* Affected row — resources whose production changes */
+.resource-item--affected {
+  border-left: 2px solid var(--green);
+  padding-left: calc(var(--sp-2) - 2px);
+}
+
 /* Dimmed row — all non-required resources fade out */
 .resource-item--dimmed {
   opacity: 0.35;

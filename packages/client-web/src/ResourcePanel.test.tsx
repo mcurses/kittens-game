@@ -648,9 +648,9 @@ describe("Story 41-05: No visual regression on existing resource panel behavior"
 });
 
 describe("Story 41-06: Secondary ingredient highlighting", () => {
-  it("shows craft ingredient of a required resource as secondary-highlighted and positioned after its parent", () => {
+  it("does not expand craft sub-ingredients — only direct prices are highlighted", () => {
     // Require compedium (craftable: science + manuscript) but have none
-    // manuscript should appear highlighted at secondary depth, immediately after compedium
+    // manuscript should NOT be highlighted (no craft expansion)
     const state = makeState({
       compedium: { value: 0, maxValue: 100, unlocked: true },
       manuscript: { value: 0, maxValue: 100, unlocked: true },
@@ -663,38 +663,13 @@ describe("Story 41-06: Secondary ingredient highlighting", () => {
       </WithInspector>,
     );
 
+    // compedium is highlighted (depth 1)
+    const compediumItem = screen.getByTestId("resource-compedium");
+    expect(compediumItem.className).toContain("resource-item--highlighted");
+    // manuscript should be dimmed — no craft recipe expansion
     const manuscriptItem = screen.getByTestId("resource-manuscript");
-    expect(manuscriptItem.className).toContain("resource-item--highlighted-secondary");
-
-    // Hierarchy conveys parent relationship — no annotation label
-    const annotation = manuscriptItem.querySelector(".resource-item-annotation");
-    expect(annotation).toBeNull();
-
-    // manuscript rendered after compedium (its parent)
-    const list = screen.getByRole("list", { name: /resources/i });
-    const items = Array.from(list.querySelectorAll("li"));
-    const compediumIdx = items.findIndex((el) => el.dataset.testid === "resource-compedium");
-    const manuscriptIdx = items.findIndex((el) => el.dataset.testid === "resource-manuscript");
-    expect(compediumIdx).toBeLessThan(manuscriptIdx);
-  });
-
-  it("secondary rows show softer highlight (not primary) class", () => {
-    const state = makeState({
-      compedium: { value: 0, maxValue: 100, unlocked: true },
-      manuscript: { value: 0, maxValue: 100, unlocked: true },
-      science: { value: 9_999_999, maxValue: 9_999_999, unlocked: true },
-    });
-    render(
-      <WithInspector>
-        <HoverAction prices={[{ name: "compedium", val: 1 }]} />
-        <ResourcePanel state={state} />
-      </WithInspector>,
-    );
-
-    const manuscriptItem = screen.getByTestId("resource-manuscript");
-    expect(manuscriptItem.className).toContain("resource-item--highlighted-secondary");
-    expect(manuscriptItem.className).not.toContain("resource-item--highlighted ");
-    expect(manuscriptItem.className).not.toMatch(/resource-item--highlighted(?!-)/);
+    expect(manuscriptItem.className).toContain("resource-item--dimmed");
+    expect(manuscriptItem.className).not.toContain("resource-item--highlighted-secondary");
   });
 
   it("does not expand ingredients when the parent resource requirement is already met", () => {
@@ -743,8 +718,8 @@ describe("Story 41-07: Hierarchical tree ordering for highlighted resources", ()
     expect(mineralIdx).toBeLessThan(ironIdx);
   });
 
-  it("renders craft ingredients immediately after their parent resource", () => {
-    // compedium (depth 1) → manuscript (depth 2), science (depth 2)
+  it("does not expand craft ingredients — only direct prices reorder", () => {
+    // compedium required, manuscript/science are sub-ingredients but should NOT be highlighted
     const state = makeState({
       compedium: { value: 0, maxValue: 100, unlocked: true },
       manuscript: { value: 0, maxValue: 100, unlocked: true },
@@ -762,54 +737,11 @@ describe("Story 41-07: Hierarchical tree ordering for highlighted resources", ()
     const items = Array.from(list.querySelectorAll("li"));
     const getIdx = (id: string) => items.findIndex((el) => el.dataset.testid === `resource-${id}`);
 
-    const compediumIdx = getIdx("compedium");
-    const manuscriptIdx = getIdx("manuscript");
-    const scienceIdx = getIdx("science");
-    const mineralsIdx = getIdx("minerals");
-
-    // compedium is depth 1; manuscript and science are its children (depth 2)
-    expect(compediumIdx).toBeLessThan(manuscriptIdx);
-    expect(compediumIdx).toBeLessThan(scienceIdx);
-    // Dimmed minerals appears after all highlighted resources
-    expect(manuscriptIdx).toBeLessThan(mineralsIdx);
-    expect(scienceIdx).toBeLessThan(mineralsIdx);
-  });
-
-  it("applies indentation class based on depth", () => {
-    const state = makeState({
-      compedium: { value: 0, maxValue: 100, unlocked: true },
-      manuscript: { value: 0, maxValue: 100, unlocked: true },
-      science: { value: 0, maxValue: 999_999, unlocked: true },
-    });
-    render(
-      <WithInspector>
-        <HoverAction prices={[{ name: "compedium", val: 3 }]} />
-        <ResourcePanel state={state} />
-      </WithInspector>,
-    );
-
-    const compediumItem = screen.getByTestId("resource-compedium");
-    const manuscriptItem = screen.getByTestId("resource-manuscript");
-
-    // depth 1 → no indent class; depth 2 → child-depth-1
-    expect(compediumItem.className).not.toContain("child-depth");
-    expect(manuscriptItem.className).toContain("resource-item--child-depth-1");
-  });
-
-  it("removes the annotation label in favor of hierarchy", () => {
-    const state = makeState({
-      compedium: { value: 0, maxValue: 100, unlocked: true },
-      manuscript: { value: 0, maxValue: 100, unlocked: true },
-      science: { value: 0, maxValue: 999_999, unlocked: true },
-    });
-    render(
-      <WithInspector>
-        <HoverAction prices={[{ name: "compedium", val: 3 }]} />
-        <ResourcePanel state={state} />
-      </WithInspector>,
-    );
-
-    expect(document.querySelector(".resource-item-annotation")).toBeNull();
+    // compedium is highlighted (depth 1), manuscript/science/minerals are dimmed
+    expect(screen.getByTestId("resource-compedium").className).toContain("resource-item--highlighted");
+    expect(screen.getByTestId("resource-manuscript").className).toContain("resource-item--dimmed");
+    // compedium appears first (highlighted), dimmed resources follow
+    expect(getIdx("compedium")).toBeLessThan(getIdx("minerals"));
   });
 
   it("flat order unchanged when no highlighting is active", () => {
@@ -844,14 +776,14 @@ describe("Story 32-08: Resource maxValue and demand display", () => {
     expect(screen.getByText(/5000/)).toBeTruthy();
   });
 
-  it("shows catnip demand reduction when catnipDemandRatio < 0", () => {
+  it("does not show catnip demand reduction in the resource panel", () => {
     const state = makeState(
       { catnip: { value: 10 } },
       { catnipDemandRatio: -0.15 },
     );
     render(<WithInspector><ResourcePanel state={state} /></WithInspector>);
-    // Should show some demand reduction indicator on the catnip row
-    expect(screen.getByTestId("resource-catnip").textContent).toMatch(/-15%|-0\.15|demand/i);
+    // Demand ratio badge was removed — should not appear
+    expect(screen.getByTestId("resource-catnip").textContent).not.toMatch(/-15%|demand/i);
   });
 });
 

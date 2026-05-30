@@ -1,6 +1,6 @@
 // ResourcePanel — resource inventory with rates and progress bars
 import type { GameStateResponse } from "@kittens/api-spec";
-import { CRAFT_DEFS, RESOURCE_DISPLAY, SEASON_DEFS, deriveUiVisibility, getResourceAttribution } from "@kittens/engine";
+import { CRAFT_DEFS, RESOURCE_DISPLAY, RESOURCE_NAMES, SEASON_DEFS, deriveUiVisibility, getResourceAttribution } from "@kittens/engine";
 import React from "react";
 import { type ResourceAttributionEntry, type ResourceEntity, useInspector } from "./InspectorContext.js";
 import { useSlot } from "./SlotContext.js";
@@ -178,7 +178,15 @@ export function ResourcePanel({ state }: Props): React.ReactElement {
               { value: r.value, maxValue: r.maxValue, perTick: r.perTick },
             ]),
           ),
+          1, // no craft recipe expansion — only direct prices
         )
+      : null;
+
+  // Build set of resources affected by the inspected item's effects (production
+  // changes, ratio bonuses, etc.) — these should not be dimmed.
+  const affectedSet: Set<string> | null =
+    inspected !== null && "effects" in inspected && "prices" in inspected
+      ? extractAffectedResources(inspected.effects, inspected.prices)
       : null;
 
   return (
@@ -203,13 +211,14 @@ export function ResourcePanel({ state }: Props): React.ReactElement {
         {visibleResources.length === 0 ? (
           <li className="panel-empty">No resources yet.</li>
         ) : (
-          buildRenderOrder(visibleResources, highlightMap).map((r) => (
+          buildRenderOrder(visibleResources, highlightMap, affectedSet).map((r) => (
             <ResourceItem
               key={r.name}
               resource={r}
               breakdown={getResourceBreakdown(effectCache, r.name)}
               showPerSecond={showPerSecond}
               highlightMap={highlightMap}
+              affectedSet={affectedSet}
               craftable={craftableNames.has(r.name)}
               allResources={resources}
               craftRatio={craftRatio}
@@ -218,7 +227,6 @@ export function ResourcePanel({ state }: Props): React.ReactElement {
               isPending={isPending}
               seasonIndex={calendar?.season}
               onToggleVisibility={(name) => mutate({ type: "TOGGLE_RESOURCE_VISIBILITY", name })}
-              {...(r.name === "catnip" && "catnipDemandRatio" in effectCache ? { demandRatio: effectCache.catnipDemandRatio } : {})}
             />
           ))
         )}
@@ -236,18 +244,21 @@ export function ResourcePanel({ state }: Props): React.ReactElement {
 function buildRenderOrder(
   resources: ResourceEntry[],
   highlightMap: Map<string, IngredientNode> | null,
+  affectedSet: Set<string> | null,
 ): ResourceEntry[] {
-  if (!highlightMap) return resources;
+  if (!highlightMap && !affectedSet) return resources;
 
   const byName = new Map(resources.map((r) => [r.name, r]));
 
   // Build a children index: parentName → ordered list of child names
   const childrenOf = new Map<string, string[]>();
-  for (const [name, node] of highlightMap) {
-    if (node.depth > 1 && node.parentName) {
-      const siblings = childrenOf.get(node.parentName) ?? [];
-      siblings.push(name);
-      childrenOf.set(node.parentName, siblings);
+  if (highlightMap) {
+    for (const [name, node] of highlightMap) {
+      if (node.depth > 1 && node.parentName) {
+        const siblings = childrenOf.get(node.parentName) ?? [];
+        siblings.push(name);
+        childrenOf.set(node.parentName, siblings);
+      }
     }
   }
 
@@ -263,8 +274,20 @@ function buildRenderOrder(
   }
 
   // Emit depth-1 roots in their original prices order
-  for (const [name, node] of highlightMap) {
-    if (node.depth === 1) visit(name);
+  if (highlightMap) {
+    for (const [name, node] of highlightMap) {
+      if (node.depth === 1) visit(name);
+    }
+  }
+
+  // Emit affected resources (not costs) in original order
+  if (affectedSet) {
+    for (const r of resources) {
+      if (affectedSet.has(r.name) && !visited.has(r.name)) {
+        visited.add(r.name);
+        ordered.push(r);
+      }
+    }
   }
 
   // Append dimmed resources in original order
@@ -278,14 +301,19 @@ function buildRenderOrder(
 function getItemClass(
   name: string,
   highlightMap: Map<string, IngredientNode> | null,
+  affectedSet: Set<string> | null,
 ): string {
-  if (highlightMap === null) return "resource-item";
-  const node = highlightMap.get(name);
-  if (!node) return "resource-item resource-item--dimmed";
-  const indent = node.depth > 1 ? ` resource-item--child-depth-${node.depth - 1}` : "";
-  if (node.depth === 1) return `resource-item resource-item--highlighted${indent}`;
-  if (node.depth === 2) return `resource-item resource-item--highlighted-secondary${indent}`;
-  return `resource-item resource-item--highlighted-tertiary${indent}`;
+  const isActive = highlightMap !== null || affectedSet !== null;
+  if (!isActive) return "resource-item";
+  const node = highlightMap?.get(name);
+  if (node) {
+    const indent = node.depth > 1 ? ` resource-item--child-depth-${node.depth - 1}` : "";
+    if (node.depth === 1) return `resource-item resource-item--highlighted${indent}`;
+    if (node.depth === 2) return `resource-item resource-item--highlighted-secondary${indent}`;
+    return `resource-item resource-item--highlighted-tertiary${indent}`;
+  }
+  if (affectedSet?.has(name)) return "resource-item resource-item--affected";
+  return "resource-item resource-item--dimmed";
 }
 
 function TargetMarker({
@@ -343,8 +371,8 @@ function ResourceItem({
   resource,
   breakdown,
   showPerSecond,
-  demandRatio,
   highlightMap,
+  affectedSet,
   craftable,
   allResources,
   craftRatio,
@@ -357,8 +385,8 @@ function ResourceItem({
   resource: ResourceEntry;
   breakdown: ResourceBreakdown;
   showPerSecond: boolean;
-  demandRatio?: number | undefined;
   highlightMap: Map<string, IngredientNode> | null;
+  affectedSet: Set<string> | null;
   craftable: boolean;
   allResources: ResourceEntry[];
   craftRatio: number;
@@ -406,7 +434,7 @@ function ResourceItem({
     setInspected(entity);
   };
 
-  const itemClass = getItemClass(resource.name, highlightMap);
+  const itemClass = getItemClass(resource.name, highlightMap, affectedSet);
 
   return (
     <li
@@ -439,11 +467,6 @@ function ResourceItem({
           ) : node ? (
             <span className="resource-max resource-max--target">/{formatValue(node.amount)}</span>
           ) : null}
-          {demandRatio !== undefined && demandRatio < 0 && (
-            <span className="resource-demand" title="Demand reduction">
-              {Math.round(demandRatio * 100)}%
-            </span>
-          )}
         </span>
       </div>
 
@@ -660,4 +683,40 @@ function getResourceBreakdown(
 
 function isResourceRateUnit(value: unknown): value is ResourceRateUnit {
   return value === "perTick" || value === "perSecond";
+}
+
+// ── Affected resources extraction ─────────────────────────
+
+const EFFECT_SUFFIXES = [
+  "PerTickBase",
+  "PerTickCon",
+  "PerTickAutoprod",
+  "PerTickProd",
+  "PerTick",
+  "DemandRatio",
+  "Ratio",
+  "Max",
+] as const;
+const RESOURCE_SET = new Set<string>(RESOURCE_NAMES);
+
+/** Extract resource names affected by effects but not already in prices. */
+function extractAffectedResources(
+  effects: Record<string, number>,
+  prices: Array<{ name: string; val: number }>,
+): Set<string> {
+  const priceNames = new Set(prices.map((p) => p.name));
+  const affected = new Set<string>();
+  for (const key of Object.keys(effects)) {
+    if (effects[key] === 0) continue;
+    for (const suffix of EFFECT_SUFFIXES) {
+      if (key.endsWith(suffix)) {
+        const res = key.slice(0, -suffix.length);
+        if (RESOURCE_SET.has(res) && !priceNames.has(res)) {
+          affected.add(res);
+        }
+        break;
+      }
+    }
+  }
+  return affected;
 }

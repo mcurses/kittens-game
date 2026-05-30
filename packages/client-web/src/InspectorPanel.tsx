@@ -1,4 +1,5 @@
 // InspectorPanel — persistent detail view, updated on hover
+import { RESOURCE_NAMES } from "@kittens/engine";
 import React from "react";
 import {
   type BuildingEntity,
@@ -306,6 +307,7 @@ function BuildingDetail({
         resources={entity.resources}
         elapsedSeconds={elapsedSeconds}
       />
+      <AffectedResourcesSection effects={entity.effects} prices={entity.prices} resources={entity.resources} />
       {entity.flavor && (
         <p className="inspector-flavor" data-testid="inspector-flavor">{entity.flavor}</p>
       )}
@@ -340,6 +342,7 @@ function UpgradeDetail({
           elapsedSeconds={elapsedSeconds}
         />
       )}
+      <AffectedResourcesSection effects={entity.effects} prices={entity.prices} resources={entity.resources} />
       {entity.flavor && (
         <p className="inspector-flavor" data-testid="inspector-flavor">{entity.flavor}</p>
       )}
@@ -374,6 +377,7 @@ function TechDetail({
           elapsedSeconds={elapsedSeconds}
         />
       )}
+      <AffectedResourcesSection effects={entity.effects} prices={entity.prices} resources={entity.resources} />
       {entity.flavor && (
         <p className="inspector-flavor" data-testid="inspector-flavor">{entity.flavor}</p>
       )}
@@ -408,6 +412,7 @@ function PolicyDetail({
           elapsedSeconds={elapsedSeconds}
         />
       )}
+      <AffectedResourcesSection effects={entity.effects} prices={entity.prices} resources={entity.resources} />
       {entity.flavor && (
         <p className="inspector-flavor" data-testid="inspector-flavor">{entity.flavor}</p>
       )}
@@ -442,6 +447,7 @@ function PerkDetail({
           elapsedSeconds={elapsedSeconds}
         />
       )}
+      <AffectedResourcesSection effects={entity.effects} prices={entity.prices} resources={entity.resources} />
       {entity.flavor && (
         <p className="inspector-flavor" data-testid="inspector-flavor">{entity.flavor}</p>
       )}
@@ -472,6 +478,7 @@ function ZigguratUpgradeDetail({
         resources={entity.resources}
         elapsedSeconds={elapsedSeconds}
       />
+      <AffectedResourcesSection effects={entity.effects} prices={entity.prices} resources={entity.resources} />
     </div>
   );
 }
@@ -499,6 +506,7 @@ function ReligionUpgradeDetail({
         resources={entity.resources}
         elapsedSeconds={elapsedSeconds}
       />
+      <AffectedResourcesSection effects={entity.effects} prices={entity.prices} resources={entity.resources} />
     </div>
   );
 }
@@ -571,6 +579,78 @@ function EffectsSection({
             </dd>
           </div>
         ))}
+      </dl>
+    </div>
+  );
+}
+
+// ── Effect key suffixes → resource name extraction ────────────────────────────
+const EFFECT_SUFFIXES = [
+  "PerTickBase",
+  "PerTickCon",
+  "PerTickAutoprod",
+  "PerTickProd",
+  "PerTick",
+  "DemandRatio",
+  "Ratio",
+  "Max",
+] as const;
+const RESOURCE_SET = new Set<string>(RESOURCE_NAMES);
+
+function extractAffectedResources(
+  effects: Record<string, number>,
+  prices: Array<{ name: string; val: number }>,
+): string[] {
+  const priceNames = new Set(prices.map((p) => p.name));
+  const affected = new Set<string>();
+  for (const key of Object.keys(effects)) {
+    if (effects[key] === 0) continue;
+    for (const suffix of EFFECT_SUFFIXES) {
+      if (key.endsWith(suffix)) {
+        const res = key.slice(0, -suffix.length);
+        if (RESOURCE_SET.has(res) && !priceNames.has(res)) {
+          affected.add(res);
+        }
+        break;
+      }
+    }
+  }
+  return [...affected];
+}
+
+function AffectedResourcesSection({
+  effects,
+  prices,
+  resources = {},
+}: {
+  effects: Record<string, number>;
+  prices: Array<{ name: string; val: number }>;
+  resources?: Record<string, { value: number; maxValue?: number; perTick?: number }>;
+}): React.ReactElement | null {
+  const names = extractAffectedResources(effects, prices);
+  if (names.length === 0) return null;
+  return (
+    <div className="inspector-section">
+      <div className="inspector-section-label">Affected resources</div>
+      <dl className="inspector-stats">
+        {names.map((name) => {
+          const res = resources[name];
+          const rate = res?.perTick;
+          return (
+            <div key={name} className="inspector-stat-row">
+              <dt>{name}</dt>
+              <dd>
+                {rate !== undefined && rate !== 0 ? (
+                  <span className={rate > 0 ? "stat-pos" : "stat-neg"}>
+                    {formatRate(rate)}
+                  </span>
+                ) : (
+                  <span>{formatValue(res?.value ?? 0)}</span>
+                )}
+              </dd>
+            </div>
+          );
+        })}
       </dl>
     </div>
   );

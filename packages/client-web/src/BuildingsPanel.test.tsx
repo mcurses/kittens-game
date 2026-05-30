@@ -15,6 +15,15 @@ vi.mock("./useGameAction.js", () => ({
 
 // Mock BUILDING_DEFS and getBuildingPrice from @kittens/engine
 vi.mock("@kittens/engine", () => ({
+  RESOURCE_NAMES: [
+    "catnip", "wood", "minerals", "iron", "coal", "gold", "titanium", "oil",
+    "uranium", "unobtainium", "antimatter", "relic", "blueprint", "compedium",
+    "parchment", "manuscript", "science", "culture", "faith", "beam", "slab",
+    "plate", "steel", "gear", "scaffold", "megalith", "concrete", "alloy",
+    "eludium", "thorium", "kerosene", "starchart", "tanker", "ivory", "spice",
+    "furs", "catpower", "unicorns", "necrocorn", "tears", "karma", "paragon",
+    "burnedParagon", "timeCrystal", "void", "sorrow", "temporalFlux",
+  ],
   BUILDING_DEFS: [
     {
       name: "field",

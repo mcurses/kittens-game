@@ -11,9 +11,9 @@ const mockFetch = vi.fn();
 class MockWebSocket {
   static instances: MockWebSocket[] = [];
   readonly url: string;
-  onmessage: null = null;
-  onclose: null = null;
-  onerror: null = null;
+  onmessage: ((event: MessageEvent) => void) | null = null;
+  onclose: (() => void) | null = null;
+  onerror: (() => void) | null = null;
   constructor(url: string) {
     this.url = url;
     MockWebSocket.instances.push(this);
