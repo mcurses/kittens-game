@@ -55,7 +55,8 @@ export function getWsUrl(
     location.port === "5173";
 
   if (isLocalViteDevServer) {
-    return `ws://localhost:3000/ws${slotSuffix}`;
+    const port = (import.meta.env as { PORT?: string }).PORT ?? "3000";
+    return `ws://localhost:${port}/ws${slotSuffix}`;
   }
 
   const protocol = location.protocol === "https:" ? "wss:" : "ws:";
