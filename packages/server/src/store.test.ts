@@ -89,6 +89,132 @@ describe("GameStateStore", () => {
     expect(restoredState.resources.unicorns?.maxValue).toBe(0);
   });
 
+  it("init preserves science-replayed workshop unlocks for an existing slot with stale workshop flags", () => {
+    const adapter = createMemoryAdapter();
+    const seeded = new GameStateStore(adapter, "new");
+    seeded.init();
+    const saved = seeded.getSerialized();
+
+    const slotNewTechs = [
+      "calendar",
+      "agriculture",
+      "archery",
+      "mining",
+      "metal",
+      "animal",
+      "civil",
+      "math",
+      "construction",
+      "engineering",
+      "currency",
+      "writing",
+      "philosophy",
+      "steel",
+    ];
+
+    adapter.saveSlot(
+      "new",
+      JSON.stringify({
+        ...saved,
+        science: {
+          ...saved.science,
+          techs: {
+            ...saved.science.techs,
+            ...Object.fromEntries(slotNewTechs.map((tech) => [tech, { unlocked: true, researched: true }])),
+          },
+        },
+        workshop: {
+          upgrades: {
+            mineralHoes: { unlocked: true, researched: false },
+            ironHoes: { unlocked: true, researched: false },
+            mineralAxes: { unlocked: true, researched: false },
+            ironAxes: { unlocked: true, researched: false },
+            stoneBarns: { unlocked: true, researched: false },
+            reinforcedBarns: { unlocked: true, researched: false },
+            titaniumBarns: { unlocked: true, researched: false },
+          },
+          crafts: {
+            wood: { unlocked: true },
+            beam: { unlocked: true },
+            slab: { unlocked: true },
+            plate: { unlocked: true },
+            gear: { unlocked: true },
+            scaffold: { unlocked: true },
+            manuscript: { unlocked: true },
+            megalith: { unlocked: true },
+          },
+        },
+      }),
+    );
+
+    const restored = new GameStateStore(adapter, "new");
+    restored.init();
+    const restoredState = restored.getSerialized();
+
+    const expectedUpgrades = [
+      "advancedRefinement",
+      "bolas",
+      "celestialMechanics",
+      "coalFurnace",
+      "combustionEngine",
+      "compositeBow",
+      "deepMining",
+      "goldOre",
+      "huntingArmor",
+      "register",
+      "reinforcedSaw",
+      "reinforcedWarehouses",
+      "steelArmor",
+      "steelAxe",
+    ];
+    const missingUpgrades = expectedUpgrades.filter(
+      (name) => !restoredState.workshop.upgrades[name]?.unlocked,
+    );
+    expect(missingUpgrades).toEqual([]);
+
+    const expectedCrafts = ["compedium", "parchment", "steel"];
+    const missingCrafts = expectedCrafts.filter(
+      (name) => !restoredState.workshop.crafts[name]?.unlocked,
+    );
+    expect(missingCrafts).toEqual([]);
+  });
+
+  it("init reveals warehouse for an existing slot once construction is replayed and beam/slab thresholds are met", () => {
+    const adapter = createMemoryAdapter();
+    const seeded = new GameStateStore(adapter, "new");
+    seeded.init();
+    const saved = seeded.getSerialized();
+
+    adapter.saveSlot(
+      "new",
+      JSON.stringify({
+        ...saved,
+        resources: {
+          ...saved.resources,
+          beam: { value: 0.76, maxValue: 0, perTick: 0 },
+          slab: { value: 2.32, maxValue: 0, perTick: 0 },
+        },
+        science: {
+          ...saved.science,
+          techs: {
+            ...saved.science.techs,
+            construction: { unlocked: true, researched: true },
+          },
+        },
+        buildings: {
+          ...saved.buildings,
+          warehouse: { val: 0, on: 0, unlocked: false, jammed: false },
+        },
+      }),
+    );
+
+    const restored = new GameStateStore(adapter, "new");
+    restored.init();
+    const restoredState = restored.getSerialized();
+
+    expect(restoredState.buildings.warehouse?.unlocked).toBe(true);
+  });
+
   it("applyGameAction refreshes resource maxValue immediately after purchasing stoneBarns", () => {
     const prevState = store.getState();
     store["state"] = {

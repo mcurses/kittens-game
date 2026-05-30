@@ -791,4 +791,16 @@ describe("Epic 46: ScienceManager.load replays workshop unlocks", () => {
     );
     expect(missingCrafts).toEqual([]);
   });
+
+  it("loading a save with researched 'construction' restores warehouse.unlockable", () => {
+    const mgr = new ScienceManager();
+    const saved = {
+      techs: { construction: { unlocked: true, researched: true } },
+      policies: {},
+    };
+    const base = createInitialState();
+    const restored = mgr.load(saved, base);
+    expect(restored.buildings.warehouse?.unlockable).toBe(true);
+    expect(restored.buildings.warehouse?.unlocked).toBe(false);
+  });
 });

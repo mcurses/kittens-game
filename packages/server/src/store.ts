@@ -20,6 +20,7 @@ import {
   WorkshopManager,
   applyAction,
   buildEffectCache,
+  computeHappiness,
   createInitialState,
   deserialize,
   resetState,
@@ -226,10 +227,22 @@ export class GameStateStore {
       const slice = dataMap[manager.sectionKey];
       state = manager.load(slice as Parameters<typeof manager.load>[0], state);
     }
+    // Run the building reveal pass once after load replay so researched
+    // building permissions plus current resources immediately surface
+    // threshold-met buildings in loaded saves.
+    const buildingManager = this.managers.find(
+      (manager): manager is BuildingManager => manager instanceof BuildingManager,
+    );
+    if (buildingManager) {
+      state = buildingManager.update(state);
+    }
     // Rebuild effect cache after loading
-    let effectCache = buildEffectCache(this.managers, state);
-
-    return { ...state, effectCache, resources: syncResourceCaps(state.resources, effectCache) };
+    const effectCache = buildEffectCache(this.managers, state);
+    state = { ...state, effectCache, resources: syncResourceCaps(state.resources, effectCache) };
+    // Recompute happiness from the freshly built effectCache.
+    // Import happiness may be stale (legacy saves store no happiness; migrateVillage sets 1.0).
+    const happiness = computeHappiness(state);
+    return { ...state, village: { ...state.village, happiness } };
   }
 
   /** Create a fresh initial state with effect cache built. */

@@ -1381,8 +1381,10 @@ export class ScienceManager implements Manager {
       }
     }
 
-    // Replay workshop unlocks for every researched tech.
+    // Replay building/workshop unlocks for every researched tech.
     // Port of legacy science.js:2349-2357 which calls game.unlock(tech.unlocks) on load.
+    const buildings = state.buildings;
+    let replayedBuildings = { ...buildings };
     const workshop = state.workshop;
     let upgrades = { ...workshop.upgrades };
     let crafts = { ...workshop.crafts };
@@ -1390,6 +1392,17 @@ export class ScienceManager implements Manager {
       if (!entry.researched) continue;
       const def = TECH_DEFS.find((t) => t.name === name);
       if (!def) continue;
+      if (def.unlocks?.buildings) {
+        for (const buildingName of def.unlocks.buildings) {
+          const building = replayedBuildings[buildingName];
+          if (building && !building.unlockable) {
+            replayedBuildings = {
+              ...replayedBuildings,
+              [buildingName]: { ...building, unlockable: true },
+            };
+          }
+        }
+      }
       if (def.unlocks?.upgrades) {
         for (const upgradeName of def.unlocks.upgrades) {
           const upg = upgrades[upgradeName];
@@ -1408,7 +1421,12 @@ export class ScienceManager implements Manager {
       }
     }
 
-    return { ...state, science: { techs, policies }, workshop: { ...workshop, upgrades, crafts } };
+    return {
+      ...state,
+      science: { techs, policies },
+      buildings: replayedBuildings,
+      workshop: { ...workshop, upgrades, crafts },
+    };
   }
 
   resetState(state: GameState): GameState {
