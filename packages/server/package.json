@@ -10,7 +10,8 @@
     "test": "vitest run --coverage",
     "test:watch": "vitest",
     "lint": "biome check ./src",
-    "dev": "bun --watch src/index.ts"
+    "dev": "bun --watch src/index.ts",
+    "parity:run8": "bun src/run8-live-parity.ts"
   },
   "dependencies": {
     "@kittens/api-spec": "workspace:*",
