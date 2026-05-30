@@ -977,13 +977,13 @@ export const POLICY_DEFS: readonly PolicyDef[] = [
     name: "stripMining",
     prices: [{ name: "science", val: 2000 }],
     effects: { environmentUnhappiness: -2, mineralsPolicyRatio: 0.3 },
-    blocks: ["environmentalism"],
+    blocks: ["clearCutting", "environmentalism"],
   },
   {
     name: "clearCutting",
     prices: [{ name: "science", val: 2000 }],
     effects: { woodPolicyRatio: 0.2, environmentUnhappiness: -2 },
-    blocks: ["environmentalism"],
+    blocks: ["stripMining", "environmentalism"],
   },
   {
     name: "environmentalism",
