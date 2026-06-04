@@ -1,0 +1,13 @@
+{
+  "plugins": ["stylelint-declaration-strict-value"],
+  "rules": {
+    "scale-unlimited/declaration-strict-value": [
+      ["/^padding/", "/^margin/", "gap", "row-gap", "column-gap"],
+      {
+        "ignoreValues": ["0", "0px", "auto", "inherit", "initial", "/^var\\(--/"],
+        "disableFix": true,
+        "severity": "error"
+      }
+    ]
+  }
+}

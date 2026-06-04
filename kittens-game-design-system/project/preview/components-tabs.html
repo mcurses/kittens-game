@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Tabs</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  body { margin: 0; padding: 16px; background: var(--bg); }
+  .tabs { display: flex; gap: 0; align-items: baseline; font-family: var(--font-display); font-size: 11px; }
+  .tabs a { padding: 8px 12px; color: var(--ink-3); border-bottom: 1px solid var(--border); cursor: pointer; }
+  .tabs .sep { color: var(--border); padding: 0 2px; align-self: center; font-size: 13px; }
+  .tabs .active { color: var(--accent); border-bottom: 2px solid var(--accent); }
+  .tabs a:hover { color: var(--ink); }
+</style>
+</head>
+<body>
+  <div class="tabs">
+    <a class="active">Bonfire</a><span class="sep">|</span>
+    <a>Village</a><span class="sep">|</span>
+    <a>Science</a><span class="sep">|</span>
+    <a>Workshop</a><span class="sep">|</span>
+    <a>Religion</a><span class="sep">|</span>
+    <a>Space</a><span class="sep">|</span>
+    <a style="color:var(--ink-3); opacity:.4">Time ✦</a>
+  </div>
+  <div style="margin-top: 22px; font-family: var(--font-body); font-size: 13px; color: var(--ink-2);">unicode-dingbat tab markers — ★ ⚒ ☣ ⚖ ⚛ ☀</div>
+</body>
+</html>

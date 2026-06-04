@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Spacing — 4px scale</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  body { margin: 0; padding: 18px; background: var(--bg); color: var(--ink); font-family: var(--font-mono); }
+  .row { display: flex; align-items: center; gap: 12px; padding: 4px 0;}
+  .label { width: 80px; font-size: 13px; color: var(--ink-2); }
+  .bar { background: var(--accent); height: 12px; border-radius: 2px; }
+  .px { color: var(--ink-3); font-size: 12px; }
+</style>
+</head>
+<body>
+  <div class="row"><span class="label">--space-1</span><span class="bar" style="width:4px"></span><span class="px">4px</span></div>
+  <div class="row"><span class="label">--space-2</span><span class="bar" style="width:8px"></span><span class="px">8px</span></div>
+  <div class="row"><span class="label">--space-3</span><span class="bar" style="width:12px"></span><span class="px">12px</span></div>
+  <div class="row"><span class="label">--space-4</span><span class="bar" style="width:16px"></span><span class="px">16px</span></div>
+  <div class="row"><span class="label">--space-6</span><span class="bar" style="width:24px"></span><span class="px">24px</span></div>
+  <div class="row"><span class="label">--space-8</span><span class="bar" style="width:32px"></span><span class="px">32px</span></div>
+  <div class="row"><span class="label">--space-12</span><span class="bar" style="width:48px"></span><span class="px">48px</span></div>
+</body>
+</html>

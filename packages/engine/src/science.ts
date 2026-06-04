@@ -36,6 +36,12 @@ export interface TechDef {
   readonly prices: readonly SciencePriceEntry[];
   readonly effects?: Record<string, number>;
   readonly unlocks?: TechUnlocks;
+  /**
+   * Optional absolute URL for a book-cover style hover/card image
+   * (e.g. "/assets/techs/calendar.webp"). Renderers must fall back
+   * gracefully when missing or 404. See assets/README.md.
+   */
+  readonly iconPath?: string;
 }
 
 // ── PolicyDef ─────────────────────────────────────────────────────────────────
@@ -53,6 +59,12 @@ export interface PolicyDef {
   readonly effects?: Record<string, number>;
   readonly blocks: readonly string[];
   readonly unlocks?: PolicyUnlocks;
+  /**
+   * Optional absolute URL for a book-cover style hover/card image
+   * (e.g. "/assets/policies/republic.webp"). Renderers must fall back
+   * gracefully when missing or 404. See assets/README.md.
+   */
+  readonly iconPath?: string;
 }
 
 // ── State types ───────────────────────────────────────────────────────────────

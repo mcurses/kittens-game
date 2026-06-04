@@ -1,0 +1,379 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Brand / Pixel role icons</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  html, body { margin: 0; padding: 0; background: var(--bg); color: var(--ink); }
+  body {
+    padding: 26px 30px;
+    font-family: var(--font-body);
+    font-size: 13px;
+  }
+  .head {
+    display: flex; align-items: baseline; gap: 12px;
+    border-bottom: 1px dashed var(--border);
+    padding-bottom: 10px;
+    margin-bottom: 18px;
+  }
+  .head h2 {
+    margin: 0;
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 22px;
+    color: var(--ink);
+  }
+  .head .role {
+    font-family: var(--font-mono); font-size: 11px;
+    color: var(--accent); text-transform: uppercase; letter-spacing: 1.5px;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+  }
+  .ic {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px;
+    background: var(--surface-1);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    transition: border-color 120ms;
+  }
+  .ic:hover { border-color: var(--border-strong); }
+  .ic .frame {
+    width: 40px; height: 40px;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .ic svg {
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+    shape-rendering: crispEdges;
+    display: block;
+  }
+  .ic .meta { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+  .ic .name {
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-size: 14px;
+    color: var(--ink);
+  }
+  .ic .role {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--ink-3);
+    letter-spacing: 0.5px;
+  }
+
+  .footnote {
+    margin-top: 18px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    line-height: 1.6;
+    color: var(--ink-2);
+    background: var(--surface-2);
+    border-left: 2px solid var(--accent);
+    padding: 10px 14px;
+    border-radius: 4px;
+  }
+  .footnote b { color: var(--ink); }
+</style>
+</head>
+<body>
+
+  <div class="head">
+    <h2>Role icons</h2>
+    <span class="role">— pixel sprites · 16×16 grid · era-tinted</span>
+  </div>
+
+  <div class="grid">
+
+    <!-- LEADER — star -->
+    <div class="ic">
+      <div class="frame">
+        <svg width="32" height="32" viewBox="0 0 16 16" fill="var(--accent)">
+          <rect x="7" y="1" width="2" height="2"/>
+          <rect x="6" y="3" width="4" height="2"/>
+          <rect x="1" y="5" width="14" height="2"/>
+          <rect x="3" y="7" width="10" height="2"/>
+          <rect x="4" y="9" width="2" height="2"/><rect x="10" y="9" width="2" height="2"/>
+          <rect x="2" y="11" width="3" height="2"/><rect x="11" y="11" width="3" height="2"/>
+          <rect x="1" y="13" width="2" height="2"/><rect x="13" y="13" width="2" height="2"/>
+        </svg>
+      </div>
+      <div class="meta"><span class="name">Leader</span><span class="role">star · ★</span></div>
+    </div>
+
+    <!-- ENGINEER — crossed hammer & pick -->
+    <div class="ic">
+      <div class="frame">
+        <svg width="32" height="32" viewBox="0 0 16 16" fill="var(--accent)">
+          <!-- hammer head -->
+          <rect x="2" y="2" width="5" height="3"/>
+          <rect x="3" y="5" width="3" height="1"/>
+          <!-- hammer handle -->
+          <rect x="6" y="6" width="2" height="2"/>
+          <rect x="8" y="8" width="2" height="2"/>
+          <rect x="10" y="10" width="2" height="2"/>
+          <rect x="12" y="12" width="2" height="3"/>
+          <!-- pick handle (other diagonal) -->
+          <rect x="4" y="12" width="2" height="3"/>
+          <rect x="6" y="10" width="2" height="2"/>
+          <rect x="8" y="8" width="2" height="2"/>
+          <rect x="10" y="6" width="2" height="2"/>
+          <!-- pick head -->
+          <rect x="11" y="3" width="3" height="1"/>
+          <rect x="9" y="4" width="5" height="2"/>
+        </svg>
+      </div>
+      <div class="meta"><span class="name">Engineer</span><span class="role">hammer · ⚒</span></div>
+    </div>
+
+    <!-- METALLURGIST — anvil -->
+    <div class="ic">
+      <div class="frame">
+        <svg width="32" height="32" viewBox="0 0 16 16" fill="var(--accent)">
+          <rect x="2" y="3" width="11" height="2"/>
+          <rect x="13" y="4" width="2" height="2"/>
+          <rect x="3" y="5" width="10" height="3"/>
+          <rect x="6" y="8" width="4" height="3"/>
+          <rect x="3" y="11" width="10" height="2"/>
+          <rect x="2" y="13" width="12" height="1"/>
+        </svg>
+      </div>
+      <div class="meta"><span class="name">Metallurgist</span><span class="role">anvil · ♻</span></div>
+    </div>
+
+    <!-- CHEMIST — flask -->
+    <div class="ic">
+      <div class="frame">
+        <svg width="32" height="32" viewBox="0 0 16 16" fill="var(--accent)">
+          <!-- neck -->
+          <rect x="6" y="1" width="4" height="1"/>
+          <rect x="6" y="2" width="1" height="4"/>
+          <rect x="9" y="2" width="1" height="4"/>
+          <!-- body curves -->
+          <rect x="5" y="6" width="1" height="2"/>
+          <rect x="10" y="6" width="1" height="2"/>
+          <rect x="4" y="8" width="1" height="3"/>
+          <rect x="11" y="8" width="1" height="3"/>
+          <rect x="3" y="11" width="10" height="3"/>
+          <rect x="4" y="14" width="8" height="1"/>
+          <!-- bubble -->
+          <rect x="6" y="11" width="2" height="1" fill="var(--bg)"/>
+          <rect x="9" y="13" width="1" height="1" fill="var(--bg)"/>
+        </svg>
+      </div>
+      <div class="meta"><span class="name">Chemist</span><span class="role">flask · ☣</span></div>
+    </div>
+
+    <!-- MERCHANT — coin scale -->
+    <div class="ic">
+      <div class="frame">
+        <svg width="32" height="32" viewBox="0 0 16 16" fill="var(--accent)">
+          <!-- post -->
+          <rect x="7" y="2" width="2" height="11"/>
+          <!-- top crossbar -->
+          <rect x="2" y="4" width="12" height="1"/>
+          <!-- left chains -->
+          <rect x="3" y="5" width="1" height="3"/>
+          <rect x="2" y="8" width="3" height="1"/>
+          <!-- right chains -->
+          <rect x="12" y="5" width="1" height="3"/>
+          <rect x="11" y="8" width="3" height="1"/>
+          <!-- left pan -->
+          <rect x="1" y="9" width="5" height="2"/>
+          <!-- right pan -->
+          <rect x="10" y="9" width="5" height="2"/>
+          <!-- base -->
+          <rect x="5" y="13" width="6" height="1"/>
+          <rect x="4" y="14" width="8" height="1"/>
+        </svg>
+      </div>
+      <div class="meta"><span class="name">Merchant</span><span class="role">scale · ⚖</span></div>
+    </div>
+
+    <!-- HUNTER / MANAGER — bow & arrow -->
+    <div class="ic">
+      <div class="frame">
+        <svg width="32" height="32" viewBox="0 0 16 16" fill="var(--accent)">
+          <!-- bow curve -->
+          <rect x="2" y="2" width="2" height="1"/>
+          <rect x="1" y="3" width="2" height="2"/>
+          <rect x="1" y="5" width="1" height="6"/>
+          <rect x="1" y="11" width="2" height="2"/>
+          <rect x="2" y="13" width="2" height="1"/>
+          <!-- string -->
+          <rect x="3" y="3" width="1" height="10"/>
+          <!-- arrow shaft -->
+          <rect x="4" y="7" width="9" height="2"/>
+          <!-- arrowhead -->
+          <rect x="13" y="6" width="1" height="4"/>
+          <rect x="14" y="7" width="1" height="2"/>
+          <!-- fletching -->
+          <rect x="4" y="6" width="1" height="1"/>
+          <rect x="4" y="9" width="1" height="1"/>
+        </svg>
+      </div>
+      <div class="meta"><span class="name">Hunter</span><span class="role">bow · ➴</span></div>
+    </div>
+
+    <!-- SCIENTIST — atom -->
+    <div class="ic">
+      <div class="frame">
+        <svg width="32" height="32" viewBox="0 0 16 16" fill="var(--accent)">
+          <!-- nucleus -->
+          <rect x="7" y="7" width="2" height="2"/>
+          <!-- horizontal orbit -->
+          <rect x="2" y="7" width="2" height="2"/>
+          <rect x="12" y="7" width="2" height="2"/>
+          <rect x="4" y="6" width="1" height="1"/><rect x="4" y="9" width="1" height="1"/>
+          <rect x="11" y="6" width="1" height="1"/><rect x="11" y="9" width="1" height="1"/>
+          <rect x="5" y="5" width="6" height="1" fill-opacity="0"/>
+          <!-- diagonal orbit (NE-SW) -->
+          <rect x="3" y="3" width="2" height="1"/>
+          <rect x="5" y="4" width="1" height="1"/>
+          <rect x="6" y="5" width="1" height="1"/>
+          <rect x="9" y="10" width="1" height="1"/>
+          <rect x="10" y="11" width="1" height="1"/>
+          <rect x="11" y="12" width="2" height="1"/>
+          <!-- diagonal orbit (NW-SE) -->
+          <rect x="11" y="3" width="2" height="1"/>
+          <rect x="10" y="4" width="1" height="1"/>
+          <rect x="9" y="5" width="1" height="1"/>
+          <rect x="6" y="10" width="1" height="1"/>
+          <rect x="5" y="11" width="1" height="1"/>
+          <rect x="3" y="12" width="2" height="1"/>
+        </svg>
+      </div>
+      <div class="meta"><span class="name">Scientist</span><span class="role">atom · ⚛</span></div>
+    </div>
+
+    <!-- WISE / SOLAR — sun -->
+    <div class="ic">
+      <div class="frame">
+        <svg width="32" height="32" viewBox="0 0 16 16" fill="var(--accent)">
+          <!-- core -->
+          <rect x="6" y="6" width="4" height="4"/>
+          <rect x="5" y="7" width="6" height="2"/>
+          <rect x="7" y="5" width="2" height="6"/>
+          <!-- N S E W rays -->
+          <rect x="7" y="1" width="2" height="2"/>
+          <rect x="7" y="13" width="2" height="2"/>
+          <rect x="1" y="7" width="2" height="2"/>
+          <rect x="13" y="7" width="2" height="2"/>
+          <!-- diagonal rays -->
+          <rect x="2" y="2" width="2" height="2"/>
+          <rect x="12" y="2" width="2" height="2"/>
+          <rect x="2" y="12" width="2" height="2"/>
+          <rect x="12" y="12" width="2" height="2"/>
+        </svg>
+      </div>
+      <div class="meta"><span class="name">Wise</span><span class="role">sun · ☀</span></div>
+    </div>
+
+    <!-- PRIEST — eye -->
+    <div class="ic">
+      <div class="frame">
+        <svg width="32" height="32" viewBox="0 0 16 16" fill="var(--accent)">
+          <!-- outer eye shape -->
+          <rect x="4" y="6" width="8" height="4"/>
+          <rect x="3" y="7" width="10" height="2"/>
+          <rect x="2" y="7" width="1" height="2"/>
+          <rect x="13" y="7" width="1" height="2"/>
+          <rect x="5" y="5" width="6" height="1"/>
+          <rect x="5" y="10" width="6" height="1"/>
+          <!-- pupil -->
+          <rect x="7" y="7" width="2" height="2" fill="var(--bg)"/>
+          <!-- lashes -->
+          <rect x="2" y="4" width="1" height="1"/>
+          <rect x="13" y="4" width="1" height="1"/>
+          <rect x="7" y="3" width="2" height="1"/>
+          <rect x="2" y="11" width="1" height="1"/>
+          <rect x="13" y="11" width="1" height="1"/>
+          <rect x="7" y="12" width="2" height="1"/>
+        </svg>
+      </div>
+      <div class="meta"><span class="name">Priest</span><span class="role">eye · ✠</span></div>
+    </div>
+
+    <!-- FARMER — sprout -->
+    <div class="ic">
+      <div class="frame">
+        <svg width="32" height="32" viewBox="0 0 16 16" fill="var(--accent)">
+          <!-- left leaf -->
+          <rect x="2" y="5" width="2" height="1"/>
+          <rect x="2" y="6" width="3" height="1"/>
+          <rect x="2" y="7" width="4" height="1"/>
+          <rect x="3" y="8" width="4" height="1"/>
+          <!-- right leaf -->
+          <rect x="12" y="5" width="2" height="1"/>
+          <rect x="11" y="6" width="3" height="1"/>
+          <rect x="10" y="7" width="4" height="1"/>
+          <rect x="9" y="8" width="4" height="1"/>
+          <!-- stem -->
+          <rect x="7" y="6" width="2" height="7"/>
+          <!-- ground -->
+          <rect x="3" y="13" width="10" height="1"/>
+          <rect x="2" y="14" width="12" height="1"/>
+        </svg>
+      </div>
+      <div class="meta"><span class="name">Farmer</span><span class="role">sprout · ✿</span></div>
+    </div>
+
+    <!-- WOODCUTTER — axe -->
+    <div class="ic">
+      <div class="frame">
+        <svg width="32" height="32" viewBox="0 0 16 16" fill="var(--accent)">
+          <!-- handle -->
+          <rect x="3" y="13" width="2" height="2"/>
+          <rect x="4" y="11" width="2" height="2"/>
+          <rect x="5" y="9" width="2" height="2"/>
+          <rect x="6" y="7" width="2" height="2"/>
+          <rect x="7" y="5" width="2" height="2"/>
+          <rect x="8" y="3" width="2" height="2"/>
+          <!-- axe head -->
+          <rect x="10" y="2" width="2" height="6"/>
+          <rect x="12" y="3" width="2" height="4"/>
+          <rect x="14" y="4" width="1" height="2"/>
+          <rect x="9" y="3" width="1" height="3"/>
+        </svg>
+      </div>
+      <div class="meta"><span class="name">Woodcutter</span><span class="role">axe · ✄</span></div>
+    </div>
+
+    <!-- GEOLOGIST — gem -->
+    <div class="ic">
+      <div class="frame">
+        <svg width="32" height="32" viewBox="0 0 16 16" fill="var(--accent)">
+          <!-- top facet -->
+          <rect x="4" y="3" width="8" height="1"/>
+          <rect x="3" y="4" width="10" height="1"/>
+          <rect x="2" y="5" width="12" height="2"/>
+          <!-- body -->
+          <rect x="3" y="7" width="10" height="1"/>
+          <rect x="4" y="8" width="8" height="1"/>
+          <rect x="5" y="9" width="6" height="1"/>
+          <rect x="6" y="10" width="4" height="1"/>
+          <rect x="7" y="11" width="2" height="2"/>
+          <!-- highlight -->
+          <rect x="5" y="5" width="2" height="1" fill="var(--bg)"/>
+        </svg>
+      </div>
+      <div class="meta"><span class="name">Geologist</span><span class="role">gem · ◆</span></div>
+    </div>
+
+  </div>
+
+  <div class="footnote">
+    <b>Spec.</b> All role icons are 16×16 pixel sprites drawn from rect primitives, scaled 2× for display in 40×40 frames. Fill is <code>var(--accent)</code> so each icon recolors with the era. Negative space punches use <code>var(--bg)</code>. Replace with PNG sprites in <code>assets/sprites/roles/</code> at 16/32/48px when production art ships — the markup contract is just an SVG slot.
+  </div>
+
+</body>
+</html>

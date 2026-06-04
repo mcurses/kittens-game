@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Type — body (terminal) &amp; headlines (pixel)</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  html, body { margin: 0; padding: 0; background: var(--bg); color: var(--ink); }
+  body {
+    padding: 26px 30px;
+    font-family: var(--font-body);
+    font-size: 14px;
+    line-height: 1.55;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 28px;
+    align-items: start;
+  }
+
+  .panel {
+    background: var(--surface-1);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 20px 22px 18px;
+  }
+  .head {
+    display: flex; align-items: baseline; gap: 10px;
+    margin-bottom: 16px;
+    padding-bottom: 10px;
+    border-bottom: 1px dashed var(--border);
+  }
+  .head h2 {
+    margin: 0;
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 22px;
+    letter-spacing: 0;
+    color: var(--ink);
+  }
+  .head .role {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+  }
+  .stack { display: flex; flex-direction: column; gap: 14px; }
+  .row {
+    display: grid;
+    grid-template-columns: 92px 1fr;
+    gap: 14px;
+    align-items: baseline;
+  }
+  .lbl {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--ink-3);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    padding-top: 4px;
+  }
+
+  /* ============ Headlines (pixel, but readable) ============ */
+  .h-display { font-family: var(--font-display); font-weight: 700; font-size: 40px; line-height: 1.05; color: var(--ink); }
+  .h-h1      { font-family: var(--font-display); font-weight: 600; font-size: 28px; line-height: 1.15; color: var(--ink); }
+  .h-h2      { font-family: var(--font-display); font-weight: 500; font-size: 20px; line-height: 1.2;  color: var(--ink); }
+  .h-tab     { font-family: var(--font-display); font-weight: 500; font-size: 16px; color: var(--accent); letter-spacing: 0.5px; }
+  .h-tiny    { font-family: var(--font-pixel);   font-weight: 400; font-size: 10px; color: var(--ink-3); letter-spacing: 2px; text-transform: uppercase; }
+
+  /* ============ Body (terminal) ============ */
+  .b-lead    { font-family: var(--font-body); font-size: 16px; line-height: 1.6; color: var(--ink); }
+  .b-body    { font-family: var(--font-body); font-size: 14px; line-height: 1.55; color: var(--ink); }
+  .b-small   { font-family: var(--font-body); font-size: 12px; line-height: 1.5; color: var(--ink-2); }
+  .b-num     { font-family: var(--font-mono); font-size: 15px; font-weight: 500; color: var(--ink); }
+  .b-num .rate { color: var(--ok); }
+  .b-num .neg  { color: var(--danger); }
+  .b-log     { font-family: var(--font-mono); font-size: 12px; color: var(--ink-2); line-height: 1.5; }
+  .b-log .ts { color: var(--ink-3); }
+  .b-log .you { color: var(--accent); }
+
+  .footnote {
+    grid-column: 1 / -1;
+    background: var(--surface-2);
+    border-radius: 6px;
+    padding: 14px 18px;
+    border-left: 3px solid var(--accent);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    line-height: 1.6;
+    color: var(--ink-2);
+  }
+  .footnote b { color: var(--ink); font-weight: 500; }
+  .footnote code {
+    background: rgba(0,0,0,0.08);
+    padding: 1px 5px;
+    border-radius: 3px;
+    color: var(--accent);
+    font-size: 11px;
+  }
+</style>
+</head>
+<body>
+
+  <!-- ============ HEADLINES — pixel, popular & clean ============ -->
+  <div class="panel">
+    <div class="head">
+      <h2>Headlines</h2>
+      <span class="role">— pixel · popular · clean</span>
+    </div>
+
+    <div class="stack">
+      <div class="row">
+        <div class="lbl">display 40</div>
+        <div class="h-display">Kittens Game</div>
+      </div>
+      <div class="row">
+        <div class="lbl">h1 28</div>
+        <div class="h-h1">Catnip Forest</div>
+      </div>
+      <div class="row">
+        <div class="lbl">h2 20</div>
+        <div class="h-h2">Build &amp; Population</div>
+      </div>
+      <div class="row">
+        <div class="lbl">tab 16</div>
+        <div class="h-tab">Bonfire · Village · Science</div>
+      </div>
+      <div class="row">
+        <div class="lbl">eyebrow 10</div>
+        <div class="h-tiny">SPRING · YEAR 14 · DAY 3</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ BODY / UI — terminal direction ============ -->
+  <div class="panel">
+    <div class="head">
+      <h2>Body &amp; UI</h2>
+      <span class="role">— terminal · monospaced</span>
+    </div>
+
+    <div class="stack">
+      <div class="row">
+        <div class="lbl">lead 16</div>
+        <div class="b-lead">You are a kitten in a catnip forest.</div>
+      </div>
+      <div class="row">
+        <div class="lbl">body 14</div>
+        <div class="b-body">Catnip fields produce catnip — except in winter, when they wither and yield nothing.</div>
+      </div>
+      <div class="row">
+        <div class="lbl">small 12</div>
+        <div class="b-small">Send hunters (3 times). Costs 100 manpower.</div>
+      </div>
+      <div class="row">
+        <div class="lbl">num 15</div>
+        <div class="b-num">catnip&nbsp;&nbsp;1.234K&nbsp;/&nbsp;5.000K&nbsp;&nbsp;<span class="rate">(+0.42)</span></div>
+      </div>
+      <div class="row">
+        <div class="lbl">num neg</div>
+        <div class="b-num">food&nbsp;&nbsp;&nbsp;&nbsp;0.083&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="neg">(-0.17)</span></div>
+      </div>
+      <div class="row">
+        <div class="lbl">log 12</div>
+        <div class="b-log">
+          <span class="ts">[Y14·SPR·D3]</span> <span class="you">you</span> built a Hut.<br>
+          <span class="ts">[Y14·SPR·D3]</span> Hunters return with 14 furs and 6 ivory.<br>
+          <span class="ts">[Y14·SPR·D4]</span> Your kittens are starving!
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ Footnote: the rule ============ -->
+  <div class="footnote">
+    <b>Rule.</b> Body, numbers, logs, button labels, tooltips → <code>--font-body</code> (JetBrains Mono / IBM Plex Mono). Terminal direction: bone-dry, even spacing, digits align across rows. Headlines, tab labels, building names → <code>--font-display</code> (DePixel — Klein 400 / Halbfett 700, self-hosted). Use <code>--font-display-wide</code> (DePixel Breit) for the hero wordmark and <code>--font-display-narrow</code> (DePixel Schmal) for tight tab rails. Reserve <code>--font-pixel</code> (Silkscreen) for tiny eyebrows and badges only — never for paragraphs.
+  </div>
+
+</body>
+</html>

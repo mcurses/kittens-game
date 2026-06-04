@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>UI Shell — Helios</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  html, body { margin: 0; padding: 0; height: 100%; overflow: hidden; }
+  body {
+    background: radial-gradient(ellipse at 50% 30%, #0A1A4E 0%, #050A24 60%, #02050E 100%);
+    font-family: var(--font-body); color: #E8F4FF;
+  }
+
+  .scene { position: fixed; inset: 0; z-index: 0; pointer-events: none; image-rendering: pixelated; }
+  .scene svg { width: 100%; height: 100%; display: block; }
+
+  /* starfield */
+  .stars {
+    position: fixed; inset: 0; z-index: 1; pointer-events: none;
+    background-image:
+      radial-gradient(1px 1px at 8% 12%, #fff, transparent 50%),
+      radial-gradient(1px 1px at 22% 28%, #14F0D8, transparent 50%),
+      radial-gradient(1px 1px at 38% 8%, #fff, transparent 50%),
+      radial-gradient(1px 1px at 55% 35%, #fff, transparent 50%),
+      radial-gradient(1px 1px at 72% 18%, #C23574, transparent 50%),
+      radial-gradient(1px 1px at 88% 42%, #fff, transparent 50%),
+      radial-gradient(1px 1px at 14% 60%, #14F0D8, transparent 50%),
+      radial-gradient(1px 1px at 30% 75%, #fff, transparent 50%),
+      radial-gradient(1px 1px at 64% 68%, #fff, transparent 50%),
+      radial-gradient(1px 1px at 82% 80%, #C23574, transparent 50%),
+      radial-gradient(1px 1px at 6% 88%, #fff, transparent 50%),
+      radial-gradient(1px 1px at 48% 92%, #14F0D8, transparent 50%);
+    background-size: 100% 100%;
+    animation: twinkle 4s ease-in-out infinite alternate;
+  }
+  @keyframes twinkle { 0% { opacity: 0.7; } 100% { opacity: 1; } }
+
+  .ui { position: relative; z-index: 10; height: 100vh; display: flex; flex-direction: column; }
+  .topbar {
+    height: 44px; display: flex; align-items: center; gap: 14px; padding: 0 18px;
+    background: linear-gradient(180deg, rgba(10,26,78,0.92), rgba(2,5,14,0.85));
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid rgba(20,240,216,0.4);
+    box-shadow: 0 0 24px rgba(20,240,216,0.15);
+  }
+  .topbar .title { font-family: var(--font-display); font-size: 16px; font-weight: 600; color: #14F0D8; text-shadow: 0 0 8px rgba(20,240,216,0.6); display: flex; align-items: center; gap: 10px;}
+  .topbar img { image-rendering: pixelated; filter: hue-rotate(180deg) saturate(1.5);}
+  .topbar .stat { font-family: var(--font-mono); font-size: 13px; color: #E8F4FF; padding: 0 8px; border-left: 1px solid rgba(20,240,216,0.25);}
+  .topbar .stat b { color: #14F0D8; font-weight: 500; margin-right: 4px;}
+  .topbar .spacer { flex: 1; }
+  .topbar .era { font-family: var(--font-display); font-size: 12px; color: #02050E; padding: 6px 12px; background: #14F0D8; border-radius: 4px; box-shadow: 0 0 16px rgba(20,240,216,0.7);}
+
+  .stage { flex: 1; display: grid; grid-template-columns: 280px 1fr 320px; gap: 16px; padding: 20px; min-height: 0;}
+  .panel {
+    background: rgba(8,18,52,0.78);
+    backdrop-filter: blur(6px);
+    border: 1px solid rgba(20,240,216,0.3);
+    border-radius: 6px;
+    padding: 14px 16px;
+    box-shadow: 0 0 24px rgba(20,240,216,0.1), inset 0 1px 0 rgba(20,240,216,0.15);
+    overflow: auto;
+  }
+  .panel h3 { font-family: var(--font-display); font-size: 13px; font-weight: 600; margin: 0 0 10px; color: #14F0D8;}
+  .ledger { font-family: var(--font-mono); font-size: 13px; line-height: 1.65;}
+  .ledger .row { display: flex; justify-content: space-between; padding: 1px 2px;}
+  .ledger .row b { color: #14F0D8; font-weight: 500;}
+  .ledger .grp { font-family: var(--font-display); font-size: 9px; color: #C23574; margin: 8px 0 2px; letter-spacing: 1px;}
+
+  .center { display: flex; flex-direction: column; gap: 12px;}
+  .tabs { display: flex; gap: 0; align-items: center; font-family: var(--font-display); font-size: 11px; color: #5E7A9E;}
+  .tabs span { padding: 6px 10px; cursor: pointer;}
+  .tabs .active { color: #14F0D8; border-bottom: 2px solid #14F0D8; text-shadow: 0 0 6px rgba(20,240,216,0.5);}
+  .tabs .sep { color: rgba(20,240,216,0.2); padding: 0 2px; font-family: var(--font-body);}
+
+  .btn-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px;}
+  .kbtn {
+    background: rgba(20,40,90,0.6); border: 1px solid rgba(20,240,216,0.25); border-radius: 3px;
+    padding: 8px 12px; display: flex; justify-content: space-between; align-items: center;
+    font-family: var(--font-body); font-size: 13px; color: #E8F4FF; cursor: pointer; transition: all 100ms;
+  }
+  .kbtn:hover { background: rgba(20,240,216,0.12); border-color: #14F0D8; box-shadow: 0 0 12px rgba(20,240,216,0.4);}
+  .kbtn .price { font-family: var(--font-mono); color: #8FA8C8; font-size: 12px;}
+
+  .log { font-family: var(--font-mono); font-size: 12px; line-height: 1.65; color: #8FA8C8;}
+  .log .date { color: #C23574; font-family: var(--font-display); font-size: 10px; margin-top: 8px; padding-top: 4px; border-top: 1px dashed rgba(194,53,116,0.3);}
+  .log .date:first-child { border: 0; margin-top: 0; padding-top: 0;}
+  .log p { margin: 2px 0;}
+
+  .moodtag { position: fixed; right: 20px; bottom: 18px; z-index: 20; font-family: var(--font-mono); font-size: 11px; color: rgba(20,240,216,0.5); background: rgba(2,5,14,0.7); padding: 4px 10px; border-radius: 3px; pointer-events: none;}
+</style>
+</head>
+<body>
+
+<div class="scene">
+<svg viewBox="0 0 800 600" preserveAspectRatio="xMidYMid slice" shape-rendering="crispEdges">
+  <!-- distant planet rim -->
+  <circle cx="650" cy="180" r="120" fill="#1A2E6E" opacity="0.7"/>
+  <circle cx="650" cy="180" r="120" fill="none" stroke="#14F0D8" stroke-width="1" opacity="0.6"/>
+  <ellipse cx="650" cy="180" rx="180" ry="20" fill="none" stroke="#C23574" stroke-width="1" opacity="0.5" transform="rotate(-15 650 180)"/>
+
+  <!-- nebula clouds -->
+  <ellipse cx="200" cy="350" rx="280" ry="120" fill="#C23574" opacity="0.12"/>
+  <ellipse cx="500" cy="400" rx="240" ry="100" fill="#14F0D8" opacity="0.08"/>
+
+  <!-- distant station silhouette -->
+  <g fill="#02050E" stroke="#14F0D8" stroke-width="0.5" opacity="0.85">
+    <rect x="120" y="450" width="180" height="80"/>
+    <rect x="140" y="430" width="20" height="20"/>
+    <rect x="180" y="425" width="14" height="25"/>
+    <rect x="220" y="430" width="20" height="20"/>
+    <rect x="260" y="425" width="14" height="25"/>
+  </g>
+  <!-- station window glow -->
+  <g fill="#14F0D8" opacity="0.7">
+    <rect x="135" y="465" width="3" height="3"/>
+    <rect x="145" y="475" width="3" height="3"/>
+    <rect x="160" y="465" width="3" height="3"/>
+    <rect x="175" y="480" width="3" height="3"/>
+    <rect x="195" y="470" width="3" height="3"/>
+    <rect x="220" y="475" width="3" height="3"/>
+    <rect x="245" y="465" width="3" height="3"/>
+    <rect x="270" y="475" width="3" height="3"/>
+  </g>
+
+  <!-- right station -->
+  <g fill="#02050E" stroke="#C23574" stroke-width="0.5" opacity="0.85">
+    <rect x="500" y="470" width="220" height="60"/>
+    <rect x="540" y="450" width="16" height="20"/>
+    <rect x="600" y="445" width="22" height="25"/>
+    <rect x="660" y="450" width="16" height="20"/>
+  </g>
+  <g fill="#C23574" opacity="0.6">
+    <rect x="515" y="485" width="3" height="3"/>
+    <rect x="535" y="495" width="3" height="3"/>
+    <rect x="555" y="485" width="3" height="3"/>
+    <rect x="585" y="490" width="3" height="3"/>
+    <rect x="610" y="500" width="3" height="3"/>
+    <rect x="640" y="485" width="3" height="3"/>
+    <rect x="675" y="495" width="3" height="3"/>
+    <rect x="705" y="490" width="3" height="3"/>
+  </g>
+
+  <!-- ground / horizon line glow -->
+  <rect x="0" y="528" width="800" height="2" fill="#14F0D8" opacity="0.5"/>
+  <rect x="0" y="530" width="800" height="70" fill="#02050E"/>
+
+  <!-- cyan grid floor -->
+  <g stroke="#14F0D8" stroke-width="0.5" opacity="0.25" fill="none">
+    <line x1="0" y1="540" x2="800" y2="540"/>
+    <line x1="0" y1="555" x2="800" y2="555"/>
+    <line x1="0" y1="575" x2="800" y2="575"/>
+    <line x1="-200" y1="600" x2="200" y2="528"/>
+    <line x1="-50" y1="600" x2="350" y2="528"/>
+    <line x1="100" y1="600" x2="400" y2="528"/>
+    <line x1="400" y1="600" x2="450" y2="528"/>
+    <line x1="700" y1="600" x2="500" y2="528"/>
+    <line x1="900" y1="600" x2="550" y2="528"/>
+    <line x1="1000" y1="600" x2="650" y2="528"/>
+  </g>
+</svg>
+</div>
+
+<div class="stars"></div>
+
+<div class="ui">
+  <div class="topbar">
+    <span class="title"><img src="../assets/cat.svg" width="32" height="28"/> Kittens Game</span>
+    <span class="stat"><b>★</b>2.4K</span>
+    <span class="stat"><b>⚛</b>78%</span>
+    <span class="stat"><b>✦</b>y. 8,492</span>
+    <span class="spacer"></span>
+    <span class="era">HELIOS</span>
+  </div>
+
+  <div class="stage">
+    <div class="panel">
+      <h3>Resources</h3>
+      <div class="ledger">
+        <div class="grp">EXOTIC</div>
+        <div class="row"><b>unobtainium</b><span>4.2K / 12K</span></div>
+        <div class="row"><b>antimatter</b><span>340 / 1K</span></div>
+        <div class="row"><b>relic</b><span>18 / —</span></div>
+        <div class="grp">TIME</div>
+        <div class="row"><b>flux</b><span>2.1K / 5K</span></div>
+        <div class="row"><b>chronoheat</b><span>89 / 200</span></div>
+        <div class="grp">SCIENCE</div>
+        <div class="row"><b>blueprint</b><span>9.8K / 50K</span></div>
+        <div class="row"><b>compendium</b><span>1.2K / 5K</span></div>
+      </div>
+    </div>
+
+    <div class="center">
+      <div class="tabs">
+        <span>Workshop</span><span class="sep">|</span>
+        <span>Religion</span><span class="sep">|</span>
+        <span class="active">Space</span><span class="sep">|</span>
+        <span>Time</span>
+      </div>
+      <div class="panel" style="flex:1">
+        <h3>Space · Helios</h3>
+        <div class="btn-grid">
+          <button class="kbtn"><span>Sunlifter</span><span class="price">25 antimatter</span></button>
+          <button class="kbtn"><span>Containment chamber</span><span class="price">5K science</span></button>
+          <button class="kbtn"><span>Heatsink</span><span class="price">800 thorium</span></button>
+          <button class="kbtn"><span>Sunforge</span><span class="price">2.5K relic</span></button>
+          <button class="kbtn"><span>Cryostation</span><span class="price">1K eludium</span></button>
+          <button class="kbtn"><span>Spaceport</span><span class="price">10K titanium</span></button>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h3>∴ Year 8492 · Helios orbit</h3>
+      <div class="log">
+        <p>You harvest the heat of a dying sun.</p>
+        <div class="date">Y8492 · STELLAR D3</div>
+        <p>Sunlifter beam locked. +0.04 antimatter/s.</p>
+        <p>Containment field at 99.4%. Stable.</p>
+        <div class="date">Y8492 · STELLAR D7</div>
+        <p>Black pyramid resonance detected.</p>
+        <p>The kittens hum in unison.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="moodtag">scene · planet rim · nebula · station glows · grid floor</div>
+
+</body>
+</html>

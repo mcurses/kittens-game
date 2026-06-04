@@ -329,10 +329,12 @@ describe("Story 47-02: Craft cost tooltips in inspector", () => {
     render(<WithInspector><WorkshopPanel state={state} /></WithInspector>);
     const s1Btn = screen.getByTestId("craft-beam-s1");
     fireEvent.mouseEnter(s1Btn);
-    // Inspector should show craft info with cost
-    expect(screen.getByTestId("inspector-panel")).toBeTruthy();
-    expect(screen.getByText(/wood/i)).toBeTruthy();
-    expect(screen.getByText(/175/)).toBeTruthy();
+    // Inspector should show craft info with cost. The new craft row also
+    // renders the cost in a subline, so scope the assertion to the inspector.
+    const inspector = screen.getByTestId("inspector-panel");
+    expect(inspector).toBeTruthy();
+    expect(inspector.textContent).toMatch(/wood/i);
+    expect(inspector.textContent).toMatch(/175/);
   });
 
   it("hovering craft All button shows total cost in inspector", () => {

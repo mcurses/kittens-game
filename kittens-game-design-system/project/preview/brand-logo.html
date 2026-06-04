@@ -1,0 +1,307 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Brand / Logo &amp; Themes</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  html, body { margin: 0; padding: 0; background: var(--bg); color: var(--ink); }
+  body {
+    padding: 28px 32px 32px;
+    font-family: var(--font-body);
+    display: grid;
+    grid-template-columns: 360px 1fr;
+    gap: 32px;
+    align-items: start;
+    min-height: 100vh;
+    box-sizing: border-box;
+  }
+
+  /* ============ LEFT — Mark ============ */
+  .markCol { display: flex; flex-direction: column; gap: 18px; }
+  .markPlate {
+    position: relative;
+    background:
+      radial-gradient(ellipse at 50% 30%, rgba(180, 90, 58, 0.10), transparent 70%),
+      var(--surface-1);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 28px 24px 22px;
+    text-align: center;
+    overflow: hidden;
+  }
+  .markPlate::before {
+    content: "";
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(transparent 0, transparent calc(100% - 1px), rgba(0,0,0,0.18) 100%),
+      linear-gradient(90deg, transparent 0, transparent calc(100% - 1px), rgba(0,0,0,0.10) 100%);
+    background-size: 4px 4px, 4px 4px;
+    opacity: 0.4;
+    pointer-events: none;
+  }
+  .markPlate img, .markPlate svg { image-rendering: pixelated; shape-rendering: crispEdges; position: relative; z-index: 1; display: inline-block; }
+  .wordmark {
+    position: relative;
+    z-index: 1;
+    margin-top: 14px;
+    font-family: var(--font-display, 'Press Start 2P', monospace);
+    font-size: 18px;
+    line-height: 1.4;
+    letter-spacing: 0.5px;
+    color: var(--ink);
+    text-shadow: 2px 2px 0 rgba(0,0,0,0.4);
+  }
+  .wordmark .of { color: var(--ink-3); font-size: 11px; display: block; margin-top: 6px; letter-spacing: 2px; }
+
+  .tagline {
+    font-family: var(--font-display, 'Press Start 2P', monospace);
+    font-size: 11px;
+    line-height: 1.7;
+    color: var(--accent);
+    text-align: center;
+    padding: 0 8px;
+  }
+  .tagline em {
+    font-style: normal;
+    color: var(--ink-2);
+    display: block;
+    margin-top: 8px;
+    font-size: 10px;
+    letter-spacing: 0.5px;
+  }
+
+  .lockups { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .lockup {
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .lockup img { image-rendering: pixelated; }
+  .lockup .lbl {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--ink-3);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  .lockup .lbl b { color: var(--ink); display: block; font-family: var(--font-display, 'Press Start 2P', monospace); font-size: 9px; margin-bottom: 4px; }
+
+  /* ============ RIGHT — Themes ============ */
+  .themesCol { display: flex; flex-direction: column; gap: 16px; }
+
+  .header {
+    display: flex; align-items: baseline; gap: 12px;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 10px;
+  }
+  .header h1 {
+    margin: 0;
+    font-family: var(--font-display, 'Press Start 2P', monospace);
+    font-size: 14px;
+    letter-spacing: 1px;
+    color: var(--ink);
+  }
+  .header .kicker {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--accent);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+
+  .creed {
+    font-family: 'Roboto Slab', Georgia, serif;
+    font-size: 17px;
+    line-height: 1.55;
+    color: var(--ink);
+    border-left: 3px solid var(--accent);
+    padding: 4px 0 4px 16px;
+    font-style: italic;
+  }
+  .creed b { font-style: normal; color: var(--accent); }
+
+  .gridGood {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+  .pillar {
+    background: var(--surface-1);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 16px 12px;
+    position: relative;
+  }
+  .pillar.good { border-top: 3px solid #6E9E5A; }
+  .pillar.bad  { border-top: 3px solid #8C3A3A; }
+
+  .pillar h2 {
+    margin: 0 0 4px;
+    font-family: var(--font-display, 'Press Start 2P', monospace);
+    font-size: 11px;
+    letter-spacing: 1.5px;
+  }
+  .pillar.good h2 { color: #87B872; }
+  .pillar.bad h2  { color: #C56B6B; }
+  .pillar .verdict {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--ink-3);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-bottom: 10px;
+  }
+
+  .pillar ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .pillar li {
+    font-family: var(--font-body);
+    font-size: 13px;
+    line-height: 1.4;
+    color: var(--ink);
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+  }
+  .pillar li::before {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    flex: 0 0 auto;
+  }
+  .pillar.good li::before { content: "✓"; color: #87B872; }
+  .pillar.bad li::before  { content: "✗"; color: #C56B6B; text-decoration: line-through; }
+  .pillar.bad li { color: var(--ink-2); }
+  .pillar.bad li.loud {
+    color: var(--ink);
+    font-family: var(--font-display, 'Pixelify Sans', monospace);
+    font-size: 15px;
+    letter-spacing: 0.5px;
+    padding: 8px 10px;
+    background: rgba(197, 107, 107, 0.10);
+    border: 1px solid rgba(197, 107, 107, 0.35);
+    border-radius: 4px;
+    margin-bottom: 4px;
+  }
+  .pillar.bad li.loud::before { content: "✗"; font-size: 14px; color: #E07878; text-decoration: none; }
+  .pillar.bad li.loud small { color: var(--ink-2); font-family: var(--font-mono); }
+  .pillar li small {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--ink-3);
+    margin-top: 2px;
+    line-height: 1.3;
+  }
+
+  .footnote {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--ink-3);
+    line-height: 1.5;
+    padding: 10px 12px;
+    background: var(--surface-2);
+    border-radius: 6px;
+    border-left: 2px solid var(--ink-3);
+  }
+  .footnote b { color: var(--ink-2); font-family: var(--font-body); }
+</style>
+</head>
+<body data-era="iron">
+
+  <!-- LEFT: the mark itself -->
+  <div class="markCol">
+    <div class="markPlate">
+      <img src="../assets/cat.svg" width="160" height="160" alt="Kittens Game pixel cat mark">
+      <div class="wordmark">
+        KITTENS<br>GAME
+        <span class="of">— BY BLOODRIZER —</span>
+      </div>
+    </div>
+
+    <div class="tagline">
+      A DARK SOULS<br>OF INCREMENTAL GAMING
+      <em>Subtitle. Always set in pixel display face. Never paraphrased.</em>
+    </div>
+
+    <div class="lockups">
+      <div class="lockup">
+        <img src="../assets/cat.svg" width="48" height="48" alt="">
+        <div class="lbl"><b>FAVICON</b>32×32 crop</div>
+      </div>
+      <div class="lockup">
+        <img src="../assets/cat.svg" width="32" height="32" alt="">
+        <div class="lbl"><b>INLINE</b>16px UI mark</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT: voice + themes -->
+  <div class="themesCol">
+    <div class="header">
+      <h1>BRAND THEMES</h1>
+      <span class="kicker">— what we are, what we are not —</span>
+    </div>
+
+    <div class="creed">
+      In a grim and dark future of catkind,<br>
+      <b>no one can hear you scream.</b>
+    </div>
+
+    <div class="gridGood">
+      <div class="pillar good">
+        <h2>GOOD</h2>
+        <div class="verdict">lean into</div>
+        <ul>
+          <li>Mythical monsters
+            <small>leviathans, elder gods, things older than the catnip forest</small>
+          </li>
+          <li>Elder artifacts
+            <small>blueprints, time crystals, relics of dead empires</small>
+          </li>
+          <li>Arcane technologies
+            <small>chronosphere, antimatter, hand-of-god rituals</small>
+          </li>
+          <li>Lost civilizations
+            <small>ruins, prophecies, things kittenkind has forgotten</small>
+          </li>
+        </ul>
+      </div>
+
+      <div class="pillar bad">
+        <h2>BAD</h2>
+        <div class="verdict">never · ever</div>
+        <ul>
+          <li class="loud">NO ROBOTS
+            <small>not androids, not mechs, not "friendly AI". we have arcane machines, not silicon valley pals.</small>
+          </li>
+          <li>Elves
+            <small>too tidy. wrong genre.</small>
+          </li>
+          <li>Fairies
+            <small>cute &gt; mythic. drains the dread.</small>
+          </li>
+          <li>Owls
+            <small>another forest's mascot. not ours.</small>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="footnote">
+      <b>Voice rule.</b> Bone-dry, observational, slightly fatalistic. Kittens starve, kittens die, the universe is indifferent. Never apologize, never console. The player chose this.
+    </div>
+  </div>
+
+</body>
+</html>

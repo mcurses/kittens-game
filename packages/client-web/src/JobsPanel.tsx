@@ -4,10 +4,14 @@ import { deriveUiVisibility } from "@kittens/engine";
 import React, { useState } from "react";
 import type { JobEntity } from "./InspectorContext.js";
 import { useInspector } from "./InspectorContext.js";
+import { PlaceholderImage } from "./PlaceholderImage.js";
 import { useSlot } from "./SlotContext.js";
+import { ResourceIcon } from "./ui/index.js";
 import { JOB_FLAVOR } from "./flavorText.js";
 import { buildHappinessEntity } from "./happinessInspector.js";
 import { useGameAction } from "./useGameAction.js";
+import { deriveVillageStage } from "./villageStage.js";
+import { RenameVillageDialog } from "./RenameVillageDialog.js";
 
 interface JobEntry {
   name: string;
@@ -123,6 +127,7 @@ export function JobsPanel({ state }: Props): React.ReactElement {
   const [censusJobFilter, setCensusJobFilter] = useState("all");
   const [censusTraitFilter, setCensusTraitFilter] = useState("all");
   const [censusSort, setCensusSort] = useState("default");
+  const [renameOpen, setRenameOpen] = useState(false);
 
   if (!state) {
     return <div className="loading-text" data-testid="jobs-panel-loading">Loading…</div>;
@@ -133,37 +138,84 @@ export function JobsPanel({ state }: Props): React.ReactElement {
   const visibility = deriveUiVisibility(state);
   const visibleJobs = jobs.filter((job) => job.unlocked || visibility.jobs[job.name]?.visible === true);
   const totalAssigned = jobs.reduce((sum, j) => sum + j.value, 0);
-  const totalKittens = typeof (state as unknown as Record<string, unknown>).village === "object"
-    ? (((state as unknown as Record<string, unknown>).village as Record<string, unknown>)?.kittens as number) ?? 0
-    : 0;
+  const villageRaw = (state as unknown as Record<string, unknown>).village as Record<string, unknown> | undefined;
+  const totalKittens = typeof villageRaw?.kittens === "number" ? villageRaw.kittens : 0;
   const freeKittens = totalKittens - totalAssigned;
+  const villageName = typeof villageRaw?.name === "string" && villageRaw.name.trim() !== ""
+    ? villageRaw.name
+    : "Bonfire";
+  const buildingsRaw = (state as unknown as Record<string, unknown>).buildings as
+    | Record<string, { val?: number }>
+    | undefined;
+  const totalBuildings = buildingsRaw
+    ? Object.values(buildingsRaw).reduce(
+        (sum, b) => sum + (typeof b?.val === "number" ? b.val : 0),
+        0,
+      )
+    : 0;
+  const stage = deriveVillageStage(totalKittens, totalBuildings);
+  const mapSrc = `/assets/maps/village-${stage.key}.webp`;
 
   return (
     <div data-testid="jobs-panel">
       <div className="village-info">
-        <span
-          data-testid="jobs-happiness"
-          className="happiness-display"
-          onMouseEnter={() => setInspected(happinessEntity)}
-          onMouseLeave={clearInspected}
-          onFocus={() => setInspected(happinessEntity)}
-          onBlur={clearInspected}
-          tabIndex={0}
-        >
-          Happiness: {Math.round(happiness * 100)}%
-        </span>
-        {festivalDays > 0 && (
-          <span data-testid="jobs-festival" className="festival-display">
-            Festival: {Math.round(festivalDays)}d remaining
-          </span>
-        )}
+        <PlaceholderImage
+          variant="map"
+          src={mapSrc}
+          alt={`${villageName} — ${stage.label}`}
+          className="village-info__map"
+        />
+        <div className="village-info__overlay">
+          <button
+            type="button"
+            data-testid="village-name-edit"
+            className="village-info__name"
+            onClick={() => setRenameOpen(true)}
+            aria-label={`Rename village (currently ${villageName})`}
+          >
+            {villageName}
+            <span className="village-info__stage">{stage.label}</span>
+          </button>
+          <button
+            type="button"
+            data-testid="jobs-happiness"
+            className="happiness-display"
+            onMouseEnter={() => setInspected(happinessEntity)}
+            onMouseLeave={clearInspected}
+            onFocus={() => setInspected(happinessEntity)}
+            onBlur={clearInspected}
+            aria-label={`Village happiness ${Math.round(happiness * 100)}%`}
+          >
+            Happiness: {Math.round(happiness * 100)}%
+          </button>
+          {festivalDays > 0 && (
+            <span data-testid="jobs-festival" className="festival-display">
+              Festival: {Math.round(festivalDays)}d remaining
+            </span>
+          )}
+        </div>
         {visibility.village.festivalVisible && (
-          <button type="button" data-testid="btn-hold-festival" className="btn btn--sm btn--secondary"
-            disabled={isPending} onClick={() => mutate({ type: "HOLD_FESTIVAL" })}>
+          <button
+            type="button"
+            data-testid="btn-hold-festival"
+            className="btn btn--sm btn--secondary village-info__festival-btn"
+            disabled={isPending}
+            onClick={() => mutate({ type: "HOLD_FESTIVAL" })}
+          >
             Hold Festival
           </button>
         )}
       </div>
+      {renameOpen && (
+        <RenameVillageDialog
+          currentName={villageName}
+          onCancel={() => setRenameOpen(false)}
+          onConfirm={(newName) => {
+            mutate({ type: "RENAME_VILLAGE", name: newName });
+            setRenameOpen(false);
+          }}
+        />
+      )}
       {visibility.village.managementVisible && (
         <div data-testid="village-management" className="panel-subsection">
           <div className="panel-sublabel">Management</div>
@@ -200,19 +252,19 @@ export function JobsPanel({ state }: Props): React.ReactElement {
         return (
           <div data-testid="village-census" className="panel-subsection">
             <div className="panel-sublabel">Census</div>
-            <div className="census-controls">
-              <select data-testid="census-filter-job" value={censusJobFilter}
+            <div className="panel-controls">
+              <select data-testid="census-filter-job" className="btn-select" value={censusJobFilter}
                 onChange={(e) => { setCensusJobFilter(e.target.value); setCensusPage(0); }}>
                 <option value="all">All jobs</option>
                 <option value="free">Free</option>
                 {jobsInPop.map((j) => <option key={j} value={j}>{j}</option>)}
               </select>
-              <select data-testid="census-filter-trait" value={censusTraitFilter}
+              <select data-testid="census-filter-trait" className="btn-select" value={censusTraitFilter}
                 onChange={(e) => { setCensusTraitFilter(e.target.value); setCensusPage(0); }}>
                 <option value="all">All traits</option>
                 {traitsInPop.map((t) => <option key={t} value={t}>{t}</option>)}
               </select>
-              <select data-testid="census-sort" value={censusSort}
+              <select data-testid="census-sort" className="btn-select" value={censusSort}
                 onChange={(e) => { setCensusSort(e.target.value); setCensusPage(0); }}>
                 <option value="default">Default</option>
                 <option value="name">Name</option>
@@ -223,40 +275,53 @@ export function JobsPanel({ state }: Props): React.ReactElement {
             </div>
             <ul data-testid="census-list" className="item-list census-list">
               {pageKittens.map((k) => (
-                <li key={k.id} data-testid={`census-kitten-${k.id}`} className="census-row">
+                <li key={k.id} data-testid={`census-kitten-${k.id}`} className="census-card" tabIndex={0}>
+                  <PlaceholderImage
+                    variant="character"
+                    alt={`${k.name} ${k.surname}`}
+                    className="census-card__portrait"
+                  />
                   <button type="button" data-testid={`census-kitten-${k.id}-favorite`}
                     className="btn btn--xs btn--icon census-favorite"
                     onClick={() => mutate({ type: "TOGGLE_FAVORITE", kittenId: k.id })}>
                     {k.isFavorite ? "★" : "☆"}
                   </button>
-                  <span className="census-name">{k.name} {k.surname}</span>
-                  <span className="census-age">age {k.age}</span>
-                  <span className="census-trait">{k.trait}</span>
-                  <span className="census-job">{k.job ?? "Free"}</span>
-                  <span className="census-rank">rank {k.rank}</span>
-                  {topSkills(k.skills, 3).map((s) => (
-                    <span key={s.name} className="census-skill">{s.name} {s.level.toFixed(1)}</span>
-                  ))}
-                  <button type="button" data-testid={`census-kitten-${k.id}-promote`}
-                    className="btn btn--xs btn--secondary census-promote"
-                    disabled={isPending}
-                    onClick={() => mutate({ type: "PROMOTE_KITTEN", kittenId: k.id })}>
-                    Promote
-                  </button>
-                  {k.job !== null && (
-                    <button type="button" data-testid={`census-kitten-${k.id}-unassign`}
-                      className="btn btn--xs btn--secondary census-unassign"
-                      disabled={isPending}
-                      onClick={() => mutate({ type: "UNASSIGN_KITTEN", kittenId: k.id })}>
-                      Unassign
-                    </button>
+                  {k.isLeader && (
+                    <span
+                      className="census-card__leader-mark"
+                      data-testid={`census-kitten-${k.id}-leader-mark`}
+                      title="Leader"
+                      aria-label="Leader"
+                    >
+                      ♛
+                    </span>
                   )}
-                  <button type="button" data-testid={`census-kitten-${k.id}-leader`}
-                    className={`btn btn--xs ${k.isLeader ? "btn--primary" : "btn--secondary"} census-leader`}
-                    disabled={isPending}
-                    onClick={() => mutate({ type: "SET_LEADER", kittenId: k.id })}>
-                    {k.isLeader ? "Leader" : "Make Leader"}
-                  </button>
+                  <div className="census-card__name-strip">
+                    <div className="census-card__name">{k.name} {k.surname}</div>
+                    <div className="census-card__job">{k.job ?? "Free"}</div>
+                  </div>
+                  <div className="census-card__actions">
+                    <button type="button" data-testid={`census-kitten-${k.id}-promote`}
+                      className="btn btn--xs btn--secondary census-promote"
+                      disabled={isPending}
+                      onClick={() => mutate({ type: "PROMOTE_KITTEN", kittenId: k.id })}>
+                      Promote
+                    </button>
+                    {k.job !== null && (
+                      <button type="button" data-testid={`census-kitten-${k.id}-unassign`}
+                        className="btn btn--xs btn--secondary census-unassign"
+                        disabled={isPending}
+                        onClick={() => mutate({ type: "UNASSIGN_KITTEN", kittenId: k.id })}>
+                        Unassign
+                      </button>
+                    )}
+                    <button type="button" data-testid={`census-kitten-${k.id}-leader`}
+                      className={`btn btn--xs ${k.isLeader ? "btn--primary" : "btn--secondary"} census-leader`}
+                      disabled={isPending}
+                      onClick={() => mutate({ type: "SET_LEADER", kittenId: k.id })}>
+                      {k.isLeader ? "Leader" : "Make Leader"}
+                    </button>
+                  </div>
                 </li>
               ))}
             </ul>
@@ -276,11 +341,6 @@ export function JobsPanel({ state }: Props): React.ReactElement {
           </div>
         );
       })()}
-      {visibility.village.mapVisible && (
-        <div data-testid="village-map" className="panel-subsection">
-          <div className="panel-sublabel">Map</div>
-        </div>
-      )}
       <div className="panel-label">Job Assignments</div>
       {!visibility.village.jobsVisible || visibleJobs.length === 0 ? (
         <p className="panel-empty">No jobs available.</p>
@@ -291,6 +351,7 @@ export function JobsPanel({ state }: Props): React.ReactElement {
               onMouseEnter={() => setInspected(buildJobEntity(j.name))}
               onMouseLeave={clearInspected}
             >
+              <ResourceIcon name={j.name} size="md" className="job-row__icon" aria-label={j.name} />
               <span className="item-row-name job-name">{j.name}</span>
               <div className="job-stepper">
                 <button

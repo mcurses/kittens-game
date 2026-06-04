@@ -597,10 +597,10 @@ describe("Story 49-05: Building filter tabs", () => {
     const state = makeState(baseBuildings, baseResources);
     render(<WithInspector><BuildingsPanel state={state} /></WithInspector>);
     const allTab = screen.getByTestId("building-filter-all");
-    expect(allTab.className).toContain("active");
+    expect(allTab.getAttribute("data-active")).toBe("true");
     fireEvent.click(screen.getByTestId("building-filter-enabled"));
-    expect(screen.getByTestId("building-filter-enabled").className).toContain("active");
-    expect(screen.getByTestId("building-filter-all").className).not.toContain("active");
+    expect(screen.getByTestId("building-filter-enabled").getAttribute("data-active")).toBe("true");
+    expect(screen.getByTestId("building-filter-all").getAttribute("data-active")).toBe("false");
   });
 });
 

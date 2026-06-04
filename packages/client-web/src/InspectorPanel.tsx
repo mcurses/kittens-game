@@ -23,10 +23,22 @@ import { formatDuration, isStorageLimited } from "./utils.js";
 const TICKS_PER_SECOND = 5;
 
 export function InspectorPanel(): React.ReactElement {
-  const { inspected } = useInspector();
+  const { inspected, isPinned, setPinned } = useInspector();
 
   return (
     <div data-testid="inspector-panel" className="inspector-panel">
+      {isPinned && (
+        <button
+          type="button"
+          data-testid="inspector-unpin"
+          className="inspector-unpin"
+          onClick={() => setPinned(null)}
+          title="Unpin — double-click anywhere outside the card to release"
+          aria-label="Unpin inspector"
+        >
+          📌 Unpin
+        </button>
+      )}
       {inspected ? <EntityDetail entity={inspected} /> : <InspectorPlaceholder />}
     </div>
   );
@@ -282,6 +294,17 @@ function BuildingDetail({
 }): React.ReactElement {
   return (
     <div className="inspector-entity">
+      {entity.iconPath && (
+        <img
+          className="inspector-icon"
+          src={entity.iconPath}
+          alt=""
+          onError={(e) => {
+            // Hide the slot when the asset is missing — graceful fallback per assets/README.md.
+            e.currentTarget.style.display = "none";
+          }}
+        />
+      )}
       <div className="inspector-name">{entity.name}</div>
       <div className="inspector-kind">
         Building · {entity.val} built

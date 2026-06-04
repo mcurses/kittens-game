@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>UI Shell — Catnip Forest</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  html, body { margin: 0; padding: 0; height: 100%; overflow: hidden; }
+  body {
+    background: linear-gradient(180deg, #DDE9C8 0%, #B8D4A8 35%, #8FB888 70%, #5E8B5E 100%);
+    font-family: var(--font-body);
+    color: #2B3A22;
+  }
+
+  /* ===== ATMOSPHERIC SCENE (back to front) ===== */
+  .scene { position: fixed; inset: 0; z-index: 0; pointer-events: none; image-rendering: pixelated; }
+  .scene svg { width: 100%; height: 100%; display: block; }
+
+  /* dithered mist overlay */
+  .mist {
+    position: fixed; inset: 0; z-index: 1; pointer-events: none;
+    background-image:
+      repeating-linear-gradient(0deg, transparent 0 2px, rgba(255,253,235,0.06) 2px 3px),
+      radial-gradient(ellipse at 50% 60%, rgba(245,240,210,0.5), transparent 70%);
+  }
+
+  /* ===== UI on top ===== */
+  .ui {
+    position: relative; z-index: 10;
+    height: 100vh; display: flex; flex-direction: column;
+  }
+  .topbar {
+    height: 44px; display: flex; align-items: center; gap: 14px;
+    padding: 0 18px;
+    background: rgba(245,235,215,0.85);
+    backdrop-filter: blur(2px);
+    border-bottom: 1px solid rgba(43,58,34,0.25);
+    box-shadow: 0 2px 0 rgba(0,0,0,0.05);
+  }
+  .topbar .title { font-family: var(--font-display); font-size: 16px; font-weight: 600; color: #5E3A22; display: flex; align-items: center; gap: 10px;}
+  .topbar img { image-rendering: pixelated; }
+  .topbar .stat { font-family: var(--font-mono); font-size: 13px; color: #2B3A22; padding: 0 8px; border-left: 1px solid rgba(43,58,34,0.2); }
+  .topbar .stat b { color: #6B8E4E; font-weight: 500; margin-right: 4px; }
+  .topbar .spacer { flex: 1; }
+  .topbar .era { font-family: var(--font-display); font-size: 12px; color: #8B6F3E; padding: 6px 12px; background: rgba(255,253,235,0.6); border: 1px solid rgba(139,111,62,0.4); border-radius: 4px; }
+
+  .stage { flex: 1; display: grid; grid-template-columns: 280px 1fr 320px; gap: 16px; padding: 20px; min-height: 0; }
+  .panel {
+    background: rgba(248,242,220,0.92);
+    backdrop-filter: blur(2px);
+    border: 1px solid rgba(94,75,42,0.3);
+    border-radius: 6px;
+    padding: 14px 16px;
+    box-shadow: 0 4px 0 rgba(94,75,42,0.15), 0 0 0 1px rgba(255,253,235,0.5) inset;
+    overflow: auto;
+  }
+  .panel h3 { font-family: var(--font-display); font-size: 13px; font-weight: 600; margin: 0 0 10px; color: #6B4E2A; }
+  .ledger { font-family: var(--font-mono); font-size: 13px; line-height: 1.65; color: #2B3A22;}
+  .ledger .row { display: flex; justify-content: space-between; padding: 1px 2px; }
+  .ledger .row b { color: #5E8B47; font-weight: 500; }
+  .ledger .grp { font-family: var(--font-display); font-size: 9px; color: #8B6F3E; margin: 8px 0 2px; letter-spacing: 1px; }
+
+  .center { display: flex; flex-direction: column; gap: 12px; }
+  .tabs { display: flex; gap: 0; align-items: center; font-family: var(--font-display); font-size: 11px; color: #8B6F3E; }
+  .tabs span { padding: 6px 10px; cursor: pointer; }
+  .tabs .active { color: #C97D5D; border-bottom: 2px solid #C97D5D; }
+  .tabs .sep { color: rgba(94,75,42,0.4); padding: 0 2px; font-family: var(--font-body);}
+
+  .btn-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; }
+  .kbtn {
+    background: rgba(255,253,235,0.7);
+    border: 1px solid rgba(94,75,42,0.35);
+    border-radius: 4px;
+    padding: 8px 12px;
+    display: flex; justify-content: space-between; align-items: center;
+    font-family: var(--font-body); font-size: 13px; color: #2B3A22;
+    cursor: pointer; transition: all 100ms;
+  }
+  .kbtn:hover { background: rgba(184,212,168,0.6); border-color: #5E8B47; }
+  .kbtn .price { font-family: var(--font-mono); color: #6B5E3E; font-size: 12px;}
+
+  .log { font-family: var(--font-mono); font-size: 12px; line-height: 1.65; color: #3F4A2F;}
+  .log .date { color: #6B8E4E; font-family: var(--font-display); font-size: 10px; margin-top: 8px; padding-top: 4px; border-top: 1px dashed rgba(94,75,42,0.25);}
+  .log .date:first-child { border: 0; margin-top: 0; padding-top: 0;}
+  .log p { margin: 2px 0; }
+
+  .moodtag {
+    position: fixed; right: 20px; bottom: 18px; z-index: 20;
+    font-family: var(--font-mono); font-size: 11px; color: rgba(94,75,42,0.7);
+    background: rgba(248,242,220,0.7); padding: 4px 10px; border-radius: 3px;
+    pointer-events: none;
+  }
+</style>
+</head>
+<body>
+
+<!-- ===== Atmospheric forest scene ===== -->
+<div class="scene">
+<svg viewBox="0 0 800 600" preserveAspectRatio="xMidYMid slice" shape-rendering="crispEdges">
+  <!-- sky / canopy gradient base -->
+  <defs>
+    <pattern id="dither" x="0" y="0" width="2" height="2" patternUnits="userSpaceOnUse">
+      <rect width="1" height="1" fill="rgba(255,253,235,0.18)"/>
+      <rect x="1" y="1" width="1" height="1" fill="rgba(255,253,235,0.18)"/>
+    </pattern>
+    <pattern id="canopy-dither" x="0" y="0" width="3" height="3" patternUnits="userSpaceOnUse">
+      <rect width="1" height="1" fill="#7DA86A"/>
+      <rect x="1" y="1" width="1" height="1" fill="#5E8B47"/>
+      <rect x="2" y="2" width="1" height="1" fill="#3F6B2E"/>
+    </pattern>
+  </defs>
+
+  <!-- Far canopy (back) -->
+  <rect x="0" y="0" width="800" height="220" fill="url(#canopy-dither)"/>
+  <rect x="0" y="0" width="800" height="220" fill="rgba(180,210,150,0.3)"/>
+
+  <!-- Distant tree trunks (faint, foggy) -->
+  <g opacity="0.3" fill="#A8B89A">
+    <rect x="80"  y="180" width="6"  height="240"/>
+    <rect x="180" y="160" width="5"  height="280"/>
+    <rect x="290" y="170" width="6"  height="260"/>
+    <rect x="430" y="155" width="5"  height="290"/>
+    <rect x="540" y="180" width="6"  height="240"/>
+    <rect x="660" y="165" width="5"  height="270"/>
+  </g>
+
+  <!-- Mid-ground trunks -->
+  <g fill="#8B7E5E">
+    <rect x="220" y="120" width="14" height="380"/>
+    <rect x="220" y="120" width="3"  height="380" fill="#6B5E3E"/>
+    <rect x="500" y="100" width="16" height="400"/>
+    <rect x="500" y="100" width="3"  height="400" fill="#6B5E3E"/>
+  </g>
+
+  <!-- Mid canopy puffs -->
+  <g fill="#5E8B47">
+    <ellipse cx="225" cy="140" rx="80" ry="50"/>
+    <ellipse cx="510" cy="120" rx="100" ry="60"/>
+  </g>
+  <g fill="#3F6B2E" opacity="0.7">
+    <ellipse cx="225" cy="135" rx="60" ry="35"/>
+    <ellipse cx="510" cy="115" rx="75" ry="40"/>
+  </g>
+
+  <!-- Foreground trunks (dark, large) -->
+  <g fill="#3F2E1E">
+    <rect x="40"  y="0"   width="50" height="600"/>
+    <rect x="40"  y="0"   width="8"  height="600" fill="#2B1F12"/>
+    <rect x="82"  y="0"   width="8"  height="600" fill="#5E4A2E"/>
+    <rect x="700" y="0"   width="60" height="600"/>
+    <rect x="700" y="0"   width="10" height="600" fill="#2B1F12"/>
+    <rect x="750" y="0"   width="10" height="600" fill="#5E4A2E"/>
+  </g>
+
+  <!-- Ground / brush -->
+  <rect x="0" y="500" width="800" height="100" fill="#7DA86A"/>
+  <rect x="0" y="540" width="800" height="60"  fill="#5E8B47"/>
+  <rect x="0" y="580" width="800" height="20"  fill="#3F6B2E"/>
+
+  <!-- Brush tufts -->
+  <g fill="#3F6B2E">
+    <rect x="120" y="490" width="40" height="12"/>
+    <rect x="115" y="495" width="50" height="10"/>
+    <rect x="370" y="495" width="60" height="14"/>
+    <rect x="365" y="500" width="70" height="10"/>
+    <rect x="600" y="488" width="50" height="14"/>
+    <rect x="595" y="494" width="60" height="10"/>
+  </g>
+
+  <!-- Mist band -->
+  <rect x="0" y="280" width="800" height="120" fill="url(#dither)"/>
+  <rect x="0" y="280" width="800" height="120" fill="rgba(245,240,210,0.35)"/>
+</svg>
+</div>
+
+<div class="mist"></div>
+
+<!-- ===== UI ===== -->
+<div class="ui">
+  <div class="topbar">
+    <span class="title"><img src="../assets/cat.svg" width="32" height="28"/> Kittens Game</span>
+    <span class="stat"><b>★</b>6</span>
+    <span class="stat"><b>☺</b>112%</span>
+    <span class="stat"><b>☀</b>y. 12 · Spring</span>
+    <span class="spacer"></span>
+    <span class="era">CATNIP FOREST</span>
+  </div>
+
+  <div class="stage">
+    <!-- LEFT: resources -->
+    <div class="panel">
+      <h3>Resources</h3>
+      <div class="ledger">
+        <div class="grp">FOOD</div>
+        <div class="row"><b>catnip</b><span>1.24K / 5.00K</span></div>
+        <div class="grp">MATERIAL</div>
+        <div class="row"><b>wood</b><span>486 / 2.0K</span></div>
+        <div class="row"><b>minerals</b><span>2.10K / 5.0K</span></div>
+        <div class="row"><b>iron</b><span>152 / 400</span></div>
+        <div class="grp">SACRED</div>
+        <div class="row"><b>faith</b><span>340 / 1.0K</span></div>
+        <div class="grp">SCIENCE</div>
+        <div class="row"><b>science</b><span>12.4K / 28K</span></div>
+      </div>
+    </div>
+
+    <!-- CENTER: tabs + buildings -->
+    <div class="center">
+      <div class="tabs">
+        <span class="active">Bonfire</span><span class="sep">|</span>
+        <span>Village</span><span class="sep">|</span>
+        <span>Science</span><span class="sep">|</span>
+        <span>Workshop</span>
+      </div>
+      <div class="panel" style="flex:1">
+        <h3>Bonfire</h3>
+        <div class="btn-grid">
+          <button class="kbtn"><span>Catnip field</span><span class="price">10 catnip</span></button>
+          <button class="kbtn"><span>Pasture</span><span class="price">100 catnip</span></button>
+          <button class="kbtn"><span>Hut</span><span class="price">5 wood</span></button>
+          <button class="kbtn"><span>Library</span><span class="price">25 wood</span></button>
+          <button class="kbtn"><span>Aqueduct</span><span class="price">75 mineral</span></button>
+          <button class="kbtn"><span>Log house</span><span class="price">200 wood</span></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: log -->
+    <div class="panel">
+      <h3>Spring · Year 12</h3>
+      <div class="log">
+        <p>You are a kitten in a catnip forest.</p>
+        <div class="date">SPRING · Y12 · D3</div>
+        <p>A kitten has joined your village.</p>
+        <p>Hunters return with 14 furs.</p>
+        <div class="date">SPRING · Y12 · D5</div>
+        <p>You learned: Mining.</p>
+        <p>Catnip surplus reached.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="moodtag">scene · sun-warmed canopy · dawn dither · brush band</div>
+
+</body>
+</html>

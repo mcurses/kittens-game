@@ -20,7 +20,7 @@ import { applySendEmbassy, applyTrade } from "./diplomacy.js";
 import { applyBuySpaceBuilding, applyLaunchMission } from "./space.js";
 import { applyBuyCfu, applyBuyVsu, applyShatterTc } from "./time.js";
 import type { GameState } from "./state.js";
-import { JOB_DEFS, applyHunt, applyHoldFestival, applyPromoteKitten, applyRemoveLeader, applySetLeader, applyToggleFavorite, applyUnassignKitten, totalAssignedKittens } from "./village.js";
+import { JOB_DEFS, applyHunt, applyHoldFestival, applyPromoteKitten, applyRemoveLeader, applySetLeader, applyToggleFavorite, applyUnassignKitten, sanitizeVillageName, totalAssignedKittens } from "./village.js";
 import { applyAssignCraftEngineer, applyCraft, applyPurchaseUpgrade, applyUnassignCraftEngineer, getAssignedCraftEngineers } from "./workshop.js";
 
 /** Discriminated union of all possible game actions */
@@ -70,7 +70,8 @@ export type GameAction =
   | { readonly type: "REMOVE_LEADER" }
   | { readonly type: "UPGRADE_BUILDING_STAGE"; readonly name: string }
   | { readonly type: "DOWNGRADE_BUILDING_STAGE"; readonly name: string }
-  | { readonly type: "TOGGLE_RESOURCE_VISIBILITY"; readonly name: string };
+  | { readonly type: "TOGGLE_RESOURCE_VISIBILITY"; readonly name: string }
+  | { readonly type: "RENAME_VILLAGE"; readonly name: string };
 
 /**
  * Pure reducer: apply an action to a state and return the next state.
@@ -346,6 +347,11 @@ export function applyAction(
           ? hidden.filter((n) => n !== action.name)
           : [...hidden, action.name],
       };
+    }
+    case "RENAME_VILLAGE": {
+      const clean = sanitizeVillageName(action.name);
+      if (clean === null) return state;
+      return { ...state, village: { ...state.village, name: clean } };
     }
   }
 }

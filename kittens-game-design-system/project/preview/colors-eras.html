@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Color — Era arc</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  body { margin: 0; padding: 16px; }
+  .row { display: flex; gap: 8px; align-items: stretch; }
+  .era { flex: 1; border-radius: 8px; padding: 12px 14px; border: 1px solid rgba(0,0,0,0.1); display: flex; flex-direction: column; gap: 8px; min-height: 152px; }
+  .era .name { font-family: var(--font-display); font-size: 11px; }
+  .era .swatches { display: flex; gap: 4px; flex: 1; }
+  .swatches > div { flex: 1; border-radius: 4px; border: 1px solid rgba(0,0,0,0.12); }
+  .meta { display:flex; justify-content:space-between; font-size: 10px; opacity: 0.8; font-family: var(--font-mono); }
+</style>
+</head>
+<body>
+  <div class="row">
+    <div class="era" data-era="forest" style="background:#F2E6CF;color:#2B221A;">
+      <div class="name">Catnip Forest</div>
+      <div class="swatches">
+        <div style="background:#F2E6CF" title="bg"></div>
+        <div style="background:#ECDDC0"></div>
+        <div style="background:#E2D0AC"></div>
+        <div style="background:#D6BF93"></div>
+        <div style="background:#C97D5D"></div>
+        <div style="background:#7A9A6E"></div>
+        <div style="background:#B8893E"></div>
+        <div style="background:#2B221A"></div>
+      </div>
+      <div class="meta"><span>warm · paper</span><span>early</span></div>
+    </div>
+    <div class="era" data-era="iron" style="background:#2A2722;color:#E8DDC9;border-color:rgba(255,255,255,.1);">
+      <div class="name" style="color:#B45A3A">Iron Will</div>
+      <div class="swatches">
+        <div style="background:#2A2722"></div>
+        <div style="background:#34302A"></div>
+        <div style="background:#3F3A33"></div>
+        <div style="background:#4D463E"></div>
+        <div style="background:#B45A3A"></div>
+        <div style="background:#8C6A2F"></div>
+        <div style="background:#6E6155"></div>
+        <div style="background:#E8DDC9"></div>
+      </div>
+      <div class="meta"><span>slate · soot</span><span>mid</span></div>
+    </div>
+    <div class="era" data-era="helios" style="background:#02050E;color:#DDD;border-color:rgba(20,240,216,.18);">
+      <div class="name" style="color:#14F0D8">Helios</div>
+      <div class="swatches">
+        <div style="background:#02050E"></div>
+        <div style="background:#0A1A4E"></div>
+        <div style="background:#061030"></div>
+        <div style="background:#0F516E"></div>
+        <div style="background:#14F0D8"></div>
+        <div style="background:#C23574"></div>
+        <div style="background:#1B9CC2"></div>
+        <div style="background:#DDDDDD"></div>
+      </div>
+      <div class="meta"><span>cobalt · cyan</span><span>late</span></div>
+    </div>
+  </div>
+</body>
+</html>

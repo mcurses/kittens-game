@@ -41,6 +41,8 @@ export interface Kitten {
 
 /** Village state slice */
 export interface VillageState {
+  /** User-given name of the village. Defaults to "Bonfire" on a fresh run. */
+  readonly name: string;
   readonly kittens: number;
   /** Fractional kitten growth accumulator. When >= 1, a new kitten spawns. */
   readonly kittenProgress: number;
@@ -54,6 +56,27 @@ export interface VillageState {
   readonly happiness: number;
   /** Current leader kitten ID, or null if no leader. */
   readonly leader: string | null;
+}
+
+/** Default village name used at run start and on soft-reset. */
+export const DEFAULT_VILLAGE_NAME = "Bonfire";
+
+/** Max length for a user-chosen village name. */
+export const MAX_VILLAGE_NAME_LENGTH = 40;
+
+/**
+ * Validate + normalize a candidate village name. Returns the trimmed name on
+ * success, or `null` if it fails validation (empty, too long, or contains
+ * disallowed characters).
+ */
+export function sanitizeVillageName(input: string): string | null {
+  const trimmed = input.trim();
+  if (trimmed.length === 0) return null;
+  if (trimmed.length > MAX_VILLAGE_NAME_LENGTH) return null;
+  // Allow letters, digits, spaces, dashes and apostrophes. Excludes control
+  // chars and most punctuation to avoid weird UI/log injection.
+  if (!/^[\p{L}\p{N} '\-]+$/u.test(trimmed)) return null;
+  return trimmed;
 }
 
 // ── Kitten name pool (legacy village.js) ──────────────────────────────────
@@ -142,6 +165,7 @@ export function createInitialVillage(): VillageState {
     jobs[def.name] = { value: 0 };
   }
   return {
+    name: DEFAULT_VILLAGE_NAME,
     kittens: 0,
     kittenProgress: 0,
     jobs,
@@ -473,7 +497,10 @@ export class VillageManager implements Manager {
     }
 
     const leader = typeof saved.leader === "string" ? saved.leader as string : null;
-    return { ...state, village: { kittens, kittenProgress, jobs, sim, deadKittens, happiness, leader } };
+    const name = typeof raw.name === "string" && sanitizeVillageName(raw.name)
+      ? (sanitizeVillageName(raw.name) as string)
+      : initial.name;
+    return { ...state, village: { name, kittens, kittenProgress, jobs, sim, deadKittens, happiness, leader } };
   }
 
   resetState(state: GameState): GameState {

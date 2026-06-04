@@ -1,6 +1,7 @@
-// ToolbarPanel — persistent HUD strip showing energy, sorrow, and other status indicators
+// ToolbarPanel — persistent HUD strip showing energy, sorrow, and UI controls
 import type { GameStateResponse } from "@kittens/api-spec";
 import React from "react";
+import { useCardSize } from "./useCardSize.js";
 import { extractResources } from "./utils.js";
 
 interface Props {
@@ -60,14 +61,14 @@ function formatEnergy(n: number): string {
   return `${n.toFixed(2)}W`;
 }
 
-export function ToolbarPanel({ state }: Props): React.ReactElement | null {
-  if (!state) return null;
+export function ToolbarPanel({ state }: Props): React.ReactElement {
+  const [cardSize, setCardSize] = useCardSize();
 
-  const effectCache = extractEffectCache(state);
-  const resources = extractResources(state);
-  const hasElectricity = extractTechResearched(state, "electricity");
+  const effectCache = state ? extractEffectCache(state) : {};
+  const resources = state ? extractResources(state) : {};
+  const hasElectricity = state ? extractTechResearched(state, "electricity") : false;
 
-  const energy = hasElectricity ? computeEnergy(effectCache) : null;
+  const energy = state && hasElectricity ? computeEnergy(effectCache) : null;
 
   const sorrowRes = resources.sorrow;
   const sorrowVal = sorrowRes?.value ?? 0;
@@ -94,6 +95,16 @@ export function ToolbarPanel({ state }: Props): React.ReactElement | null {
           BLS: {Math.round(sorrowVal)}%
         </span>
       )}
+      <button
+        type="button"
+        data-testid="toolbar-card-size"
+        className="btn btn--xs btn--toggle btn--toggle-dark"
+        onClick={() => setCardSize(cardSize === "compact" ? "large" : "compact")}
+        title={`Cards: ${cardSize === "compact" ? "compact (click for large)" : "large (click for compact)"}`}
+        aria-pressed={cardSize === "large"}
+      >
+        {cardSize === "compact" ? "⊟" : "⊞"} Cards
+      </button>
     </div>
   );
 }

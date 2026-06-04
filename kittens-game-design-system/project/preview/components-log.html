@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Game log</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  body { margin: 0; padding: 14px; background: var(--bg); }
+  .log { background: var(--surface-1); border: 1px solid var(--border); border-radius: 6px; padding: 10px 14px; font-family: var(--font-mono); font-size: 14px; color: var(--ink-2); width: 380px; }
+  .date { color: var(--info); border-bottom: 1px solid var(--border); padding-bottom: 2px; margin: 6px 0 4px 0; }
+  .msg { display: list-item; list-style: disc inside; padding: 1px 0; }
+  .notice { color: var(--info); }
+  .important { color: var(--warn); }
+  .alert { color: var(--danger); }
+  .urgent { color: var(--accent); font-size: 15px; }
+</style>
+</head>
+<body>
+  <div class="log">
+    <div class="date">Spring, year 12</div>
+    <div class="msg">A kitten has joined your village.</div>
+    <div class="msg notice">Catnip surplus reached.</div>
+    <div class="msg important">Winter is coming.</div>
+    <div class="msg alert">Your kittens are starving!</div>
+    <div class="msg urgent">Embassy established with Lizards.</div>
+  </div>
+</body>
+</html>

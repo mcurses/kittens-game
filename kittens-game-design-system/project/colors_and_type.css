@@ -1,0 +1,257 @@
+/* =========================================================
+   Kittens Game Design System — colors, type, spacing tokens
+   ========================================================= */
+
+/* ---------- DePixel (brand display face, self-hosted) ---------- */
+@font-face {
+  font-family: 'DePixel';
+  src: url('fonts/DePixelKlein.otf') format('opentype'),
+       url('fonts/DePixelKlein.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'DePixel';
+  src: url('fonts/DePixelHalbfett.otf') format('opentype'),
+       url('fonts/DePixelHalbfett.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'DePixel Schmal';
+  src: url('fonts/DePixelSchmal.otf') format('opentype'),
+       url('fonts/DePixelSchmal.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'DePixel Breit';
+  src: url('fonts/DePixelBreit.otf') format('opentype'),
+       url('fonts/DePixelBreit.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&family=Silkscreen:wght@400;700&family=JetBrains+Mono:wght@300;400;500;700&family=IBM+Plex+Mono:wght@300;400;500;700&family=Oxanium:wght@300;400;600;700&family=Roboto+Slab:wght@300;400;600;700&display=swap');
+
+/* ---------- ROOT TOKENS (default = Catnip Forest era) ---------- */
+:root {
+  /* ---- color: surfaces ---- */
+  --bg:           #F2E6CF;          /* parchment */
+  --surface-1:    #ECDDC0;          /* panel */
+  --surface-2:    #E2D0AC;          /* card */
+  --surface-3:    #D6BF93;          /* hover/active */
+  --border:       rgba(43, 34, 26, 0.18);
+  --border-strong:rgba(43, 34, 26, 0.45);
+
+  /* ---- color: text ---- */
+  --ink:          #2B221A;          /* primary, warm near-black */
+  --ink-2:        #5A4A3A;          /* secondary */
+  --ink-3:        #8A7A66;          /* tertiary / disabled */
+  --ink-inv:      #FFF8EB;
+
+  /* ---- color: brand / era accent ---- */
+  --accent:       #C97D5D;          /* terracotta (Forest) */
+  --accent-2:     #7A9A6E;          /* sage */
+  --accent-3:     #B8893E;          /* mustard */
+
+  /* ---- color: semantic (constant across eras) ---- */
+  --ok:           #35C283;          /* production, on, positive */
+  --warn:         #F4691A;          /* warning */
+  --danger:       #EA152C;          /* danger, can't afford */
+  --info:         #1B9CC2;          /* leader / special */
+  --sacred:       #C23574;          /* religion / magenta */
+  --cyber:        #14F0D8;          /* helios cyan */
+
+  /* ---- color: resources ---- */
+  --res-catnip:   #5E8B47;
+  --res-wood:     #8B5A2B;
+  --res-minerals: #847266;
+  --res-coal:     #1A1A1A;
+  --res-iron:     #6E6155;
+  --res-gold:     #D9A441;
+  --res-faith:    #C23574;
+  --res-science:  #7A9DC2;
+  --res-anti:     #14F0D8;
+  --res-uno:      #B45A8E;
+
+  /* ---- type: family ----
+     Headlines: DePixel — brand pixel face (Klein 400 / Halbfett 700).
+     Body / UI: terminal mono — bone-dry, lets the game's voice carry.
+     Numbers: same terminal mono so digits align across columns. */
+  --font-display: 'DePixel', 'Silkscreen', 'Press Start 2P', monospace;
+  --font-display-wide: 'DePixel Breit', 'DePixel', monospace;     /* hero wordmark */
+  --font-display-narrow: 'DePixel Schmal', 'DePixel', monospace;  /* tight tab rails */
+  --font-pixel:   'Silkscreen', 'Press Start 2P', monospace;      /* tiny labels only */
+  --font-body:    'JetBrains Mono', 'IBM Plex Mono', ui-monospace, monospace;
+  --font-mono:    'JetBrains Mono', 'IBM Plex Mono', ui-monospace, monospace;
+  --font-serif:   'Roboto Slab', Georgia, serif;
+
+  /* ---- type: size ---- */
+  --fs-12: 12px;
+  --fs-13: 13px;
+  --fs-14: 14px;
+  --fs-15: 15px;
+  --fs-16: 16px;
+  --fs-18: 18px;
+  --fs-20: 20px;
+  --fs-24: 24px;
+  --fs-32: 32px;
+  --fs-48: 48px;
+
+  /* ---- type: weight ---- */
+  --fw-light: 300;
+  --fw-reg:   400;
+  --fw-med:   600;
+  --fw-bold:  700;
+
+  /* ---- type: leading ---- */
+  --lh-tight: 1.15;
+  --lh-base:  1.45;
+  --lh-loose: 1.7;
+
+  /* ---- spacing (4px base) ---- */
+  --space-0: 0;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+
+  /* ---- radii ---- */
+  --r-none: 0;
+  --r-sm: 2px;
+  --r-md: 4px;
+  --r-lg: 8px;
+  --r-xl: 12px;
+  --r-pill: 999px;
+
+  /* ---- shadows ---- */
+  --shadow-1: 0 1px 2px rgba(0,0,0,0.08);
+  --shadow-2: 0 4px 12px rgba(0,0,0,0.14);
+  --shadow-3: 0 8px 32px rgba(0,0,0,0.22);
+  --shadow-inset: inset 0 1px 2px rgba(0,0,0,0.18);
+  --shadow-glow: 0 0 0 0 transparent;
+
+  /* ---- motion ---- */
+  --ease-snap:   cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-out:    cubic-bezier(0.22, 0.61, 0.36, 1);
+  --ease-linear: linear;
+  --dur-fast:    80ms;
+  --dur-base:    160ms;
+  --dur-slow:    320ms;
+
+  /* ---- layout ---- */
+  --col-left:  280px;
+  --col-right: 360px;
+  --top-bar:   40px;
+  --footer:    24px;
+  --btn-w:     264px;
+  --btn-h:     36px;
+}
+
+/* ---------- ERA: Iron Will (mid-game) ---------- */
+[data-era="iron"], body[data-era="iron"], html[data-era="iron"] {
+  --bg:        #2A2722;
+  --surface-1: #34302A;
+  --surface-2: #3F3A33;
+  --surface-3: #4D463E;
+  --border:       rgba(255, 240, 220, 0.10);
+  --border-strong:rgba(255, 240, 220, 0.30);
+  --ink:        #E8DDC9;
+  --ink-2:      #B0A48E;
+  --ink-3:      #756A58;
+  --accent:     #B45A3A;
+  --accent-2:   #8C6A2F;
+  --accent-3:   #6E6155;
+}
+
+/* ---------- ERA: Helios (late / space) ---------- */
+[data-era="helios"] {
+  --bg:        #02050E;
+  --surface-1: #0A1A4E;
+  --surface-2: #061030;
+  --surface-3: #0F516E;
+  --border:       rgba(20, 240, 216, 0.18);
+  --border-strong:rgba(20, 240, 216, 0.55);
+  --ink:        #DDDDDD;
+  --ink-2:      #9FA5D6;
+  --ink-3:      #5C638E;
+  --accent:     #14F0D8;
+  --accent-2:   #C23574;
+  --accent-3:   #1B9CC2;
+  --shadow-glow: 0 0 12px var(--accent);
+}
+
+/* ---------- BASE ---------- */
+html, body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: var(--fs-15);
+  line-height: var(--lh-base);
+  font-variant-numeric: tabular-nums;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* pixel art images crisp */
+img.pixel, .pixel img, [data-pixel] { image-rendering: pixelated; }
+
+/* ---------- SEMANTIC TYPE STYLES ---------- */
+.h-display {
+  font-family: var(--font-display);
+  font-size: var(--fs-20);
+  line-height: var(--lh-tight);
+  letter-spacing: 0.02em;
+  color: var(--ink);
+}
+h1, .h1 {
+  font-family: var(--font-display);
+  font-size: var(--fs-18);
+  font-weight: var(--fw-reg);
+  line-height: var(--lh-tight);
+  margin: 0 0 var(--space-3) 0;
+  color: var(--accent);
+  letter-spacing: 0.02em;
+}
+h2, .h2 {
+  font-family: var(--font-display);
+  font-size: var(--fs-14);
+  font-weight: var(--fw-reg);
+  letter-spacing: 0.04em;
+  text-transform: none;
+  margin: 0 0 var(--space-2) 0;
+  color: var(--ink);
+}
+h3, .h3 {
+  font-family: var(--font-body);
+  font-size: var(--fs-15);
+  font-weight: var(--fw-bold);
+  margin: 0 0 var(--space-2) 0;
+  color: var(--ink);
+}
+p, .p { font-size: var(--fs-15); line-height: var(--lh-base); margin: 0 0 var(--space-3) 0; }
+small, .small { font-size: var(--fs-13); color: var(--ink-2); }
+.tiny { font-size: var(--fs-12); color: var(--ink-3); }
+.mono, code, .num {
+  font-family: var(--font-mono);
+  font-size: var(--fs-16);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0;
+}
+.flavor { font-style: italic; color: var(--info); font-size: var(--fs-13); }
+a {
+  color: var(--accent);
+  text-decoration: none;
+  transition: color var(--dur-fast) var(--ease-out);
+}
+a:hover { color: var(--ink); }

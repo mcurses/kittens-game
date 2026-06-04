@@ -70,6 +70,7 @@ export const GameActionRequestSchema = z.discriminatedUnion("type", [
   z.object({ type: z.literal("REFINE_TIME_CRYSTALS") }),
   z.object({ type: z.literal("HUNT") }),
   z.object({ type: z.literal("HOLD_FESTIVAL") }),
+  z.object({ type: z.literal("RENAME_VILLAGE"), name: s }),
 ]);
 export type GameActionRequest = z.infer<typeof GameActionRequestSchema>;
 

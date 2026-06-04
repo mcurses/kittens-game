@@ -108,7 +108,7 @@ function GameView(): React.ReactElement {
               <ActionPanel state={state} />
               <button
                 type="button"
-                className="import-legacy-toggle"
+                className="btn btn--sm btn--ghost btn--full"
                 data-testid="import-legacy-toggle"
                 onClick={() => setShowImport((v) => !v)}
               >

@@ -52,6 +52,35 @@ describe("createInitialVillage", () => {
       expect(village.jobs[def.name]?.value).toBe(0);
     }
   });
+
+  it("starts with the default village name", () => {
+    expect(createInitialVillage().name).toBe("Bonfire");
+  });
+});
+
+describe("RENAME_VILLAGE action — serialize round-trip", () => {
+  it("persists a renamed village across serialize + load", async () => {
+    // The bug we're guarding: state.ts:serialize() once omitted village.name,
+    // so the new name was lost the moment the server persisted state.
+    const { serialize } = await import("./state.js");
+    const initial = { ...createInitialState(), village: createInitialVillage() };
+    const renamed = applyAction(initial, { type: "RENAME_VILLAGE", name: "MyCity" });
+    expect(renamed.village.name).toBe("MyCity");
+
+    const serialized = serialize(renamed);
+    expect(serialized.village.name).toBe("MyCity");
+
+    // load round-trip
+    const manager = new VillageManager();
+    const loaded = manager.load(serialized.village, initial);
+    expect(loaded.village.name).toBe("MyCity");
+  });
+
+  it("rejects invalid names (does not mutate state)", () => {
+    const initial = { ...createInitialState(), village: createInitialVillage() };
+    const renamed = applyAction(initial, { type: "RENAME_VILLAGE", name: "  " });
+    expect(renamed.village.name).toBe("Bonfire");
+  });
 });
 
 describe("totalAssignedKittens", () => {

@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Tooltip</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  body { margin: 0; padding: 18px; background: var(--bg); }
+  .tt { background: rgba(236,221,192,0.95); border: 1px solid var(--border-strong); border-radius: 5px; padding: 10px 12px; font-family: var(--font-body); font-size: 13px; width: 300px; box-shadow: var(--shadow-2); backdrop-filter: blur(6px);}
+  .title { color: var(--accent); font-family: var(--font-display); font-size: 11px; margin-bottom: 6px;}
+  .desc { color: var(--ink-2); font-size: 12px; border-bottom: 1px solid var(--border); padding-bottom: 6px; margin-bottom: 6px;}
+  .effect { color: var(--warn); font-size: 12px; }
+  .price { color: var(--ink); font-family: var(--font-mono); font-size: 13px; margin-top: 6px;}
+  .price .have { color: var(--ok); }
+  .price .need { color: var(--danger); }
+  .flavor { color: var(--info); font-style: italic; font-size: 11px; margin-top: 6px;}
+</style>
+</head>
+<body>
+  <div class="tt">
+    <div class="title">Catnip field</div>
+    <div class="desc">Plant some catnip to grow it in the village.</div>
+    <div class="effect">+ 0.63 catnip / sec</div>
+    <div class="price"><span class="have">10</span> / 10 catnip</div>
+    <div class="flavor">Mew-driven agriculture.</div>
+  </div>
+</body>
+</html>

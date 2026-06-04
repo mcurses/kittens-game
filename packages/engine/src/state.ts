@@ -87,6 +87,7 @@ export interface SerializedGameState {
     { val: number; on: number; unlocked?: boolean; unlockable?: boolean; jammed?: boolean; automationEnabled?: boolean; stage?: number; stageUnlocked?: boolean[] }
   >;
   village: {
+    name?: string;
     kittens: number;
     kittenProgress: number;
     jobs: Record<string, { value: number }>;
@@ -198,6 +199,7 @@ export function serialize(state: GameState): SerializedGameState {
     resources,
     buildings,
     village: {
+      name: state.village.name,
       kittens: state.village.kittens,
       kittenProgress: state.village.kittenProgress,
       jobs,

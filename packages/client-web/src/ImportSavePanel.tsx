@@ -43,7 +43,7 @@ export function ImportSavePanel({ onClose }: Props): React.ReactElement {
 
   return (
     <form onSubmit={handleSubmit} className="import-save-panel">
-      <h3 className="import-save-title">Import Legacy Save</h3>
+      <h3 className="panel-subheading">Import Legacy Save</h3>
       <p className="import-save-hint">
         Paste a legacy Kittens Game save string, or upload a .txt export file.
       </p>
@@ -71,24 +71,34 @@ export function ImportSavePanel({ onClose }: Props): React.ReactElement {
           type="submit"
           data-testid="import-save-btn"
           disabled={status === "loading" || !text.trim()}
-          className="import-save-submit"
+          className="btn btn--sm btn--primary"
         >
           {status === "loading" ? "Importing…" : "Import Save"}
         </button>
         {onClose && (
-          <button type="button" onClick={onClose} className="import-save-cancel">
+          <button
+            type="button"
+            onClick={onClose}
+            className="btn btn--sm btn--secondary"
+          >
             Cancel
           </button>
         )}
       </div>
 
       {status === "success" && (
-        <p data-testid="import-save-success" className="import-save-success">
+        <p
+          data-testid="import-save-success"
+          className="status-message status-message--success"
+        >
           Save imported successfully.
         </p>
       )}
       {status === "error" && (
-        <p data-testid="import-save-error" className="import-save-error">
+        <p
+          data-testid="import-save-error"
+          className="status-message status-message--error"
+        >
           {errorMsg}
         </p>
       )}

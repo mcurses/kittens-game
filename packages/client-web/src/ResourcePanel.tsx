@@ -7,6 +7,7 @@ import { useSlot } from "./SlotContext.js";
 import { type IngredientNode, expandCraftCosts } from "./expandCraftCosts.js";
 import { useGameAction } from "./useGameAction.js";
 import { usePersistentUiState } from "./usePersistentUiState.js";
+import { ResourceIcon } from "./ui/index.js";
 import { formatDuration } from "./utils.js";
 
 const TICKS_PER_SECOND = 5;
@@ -195,7 +196,7 @@ export function ResourcePanel({ state }: Props): React.ReactElement {
         <span className="resource-panel-label">Resources</span>
         <button
           type="button"
-          className="rate-toggle"
+          className="btn btn--xs btn--toggle"
           onClick={() => setRateUnit(showPerSecond ? "perTick" : "perSecond")}
           aria-pressed={showPerSecond}
         >
@@ -448,6 +449,7 @@ function ResourceItem({
     >
       {/* Name + value row */}
       <div className="resource-item-main">
+        <ResourceIcon name={resource.name} size="xs" />
         <span
           className={getResourceNameClass(resource.name)}
           style={getResourceNameStyle(resource.name)}

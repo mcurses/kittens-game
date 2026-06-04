@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Buttons</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  body { margin: 0; padding: 16px; background: var(--bg); }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 16px; }
+  .btn { width: 264px; height: 36px; padding: 0 12px; display: flex; align-items: center; justify-content: space-between; background: var(--surface-2); border: 1px solid var(--border-strong); border-radius: 4px; font-family: var(--font-body); font-size: 14px; color: var(--ink); cursor: pointer; transition: all 120ms; box-shadow: var(--shadow-1); }
+  .btn:hover { background: var(--surface-3); }
+  .btn .price { font-family: var(--font-mono); color: var(--ink-3); font-size: 13px; }
+  .btn.disabled { opacity: 0.4; }
+  .btn.limited { background: transparent; border-color: rgba(234,21,44,0.55); }
+  .btn.limited:hover { background: rgba(234,21,44,0.06); }
+  .btn.limited .price { color: var(--danger); }
+  .btn.limited > span:first-child { color: var(--danger); }
+  .btn.on { background: linear-gradient(90deg, #35C283 0 4px, var(--surface-2) 4px); border-color: var(--ok); }
+  .lbl { font-family: var(--font-display); font-size: 9px; color: var(--ink-3); margin-bottom: 4px; grid-column: span 2; }
+</style>
+</head>
+<body>
+  <div class="grid">
+    <div class="lbl">DEFAULT / HOVER</div>
+    <button class="btn"><span>Catnip field</span><span class="price">10 catnip</span></button>
+    <button class="btn" style="background:var(--surface-3)"><span>Catnip field</span><span class="price">10 catnip</span></button>
+    <div class="lbl" style="margin-top:8px">DISABLED / LIMITED</div>
+    <button class="btn disabled"><span>Hut</span><span class="price">5 wood</span></button>
+    <button class="btn limited"><span>Smelter</span><span class="price">200 minerals</span></button>
+    <div class="lbl" style="margin-top:8px">ACTIVE (running)</div>
+    <button class="btn on"><span>Steamworks</span><span class="price">on</span></button>
+    <button class="btn on"><span>Calciner</span><span class="price">on</span></button>
+  </div>
+</body>
+</html>

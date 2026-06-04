@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Shadows</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  body { margin: 0; padding: 24px; background: var(--bg); }
+  .row { display: flex; gap: 24px; align-items: flex-end; }
+  .b { width: 100px; height: 64px; background: var(--surface-1); border: 1px solid var(--border); border-radius: 6px; }
+  .lbl { font-family: var(--font-mono); font-size: 12px; color: var(--ink-2); margin-top: 10px; text-align: center; }
+  .col { display: flex; flex-direction: column; align-items: center; }
+</style>
+</head>
+<body>
+  <div class="row">
+    <div class="col"><div class="b" style="box-shadow:0 1px 2px rgba(0,0,0,0.08)"></div><div class="lbl">--shadow-1<br>buttons</div></div>
+    <div class="col"><div class="b" style="box-shadow:0 4px 12px rgba(0,0,0,0.14)"></div><div class="lbl">--shadow-2<br>cards</div></div>
+    <div class="col"><div class="b" style="box-shadow:0 8px 32px rgba(0,0,0,0.22)"></div><div class="lbl">--shadow-3<br>dialogs</div></div>
+    <div class="col"><div class="b" style="box-shadow:inset 0 1px 2px rgba(0,0,0,0.18); background:var(--surface-2)"></div><div class="lbl">--shadow-inset<br>wells</div></div>
+  </div>
+</body>
+</html>

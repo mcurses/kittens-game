@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Resource colors</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  body { margin: 0; padding: 16px; background: var(--bg); }
+  .grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
+  .res { display: flex; align-items: center; gap: 8px; padding: 6px 8px; background: var(--surface-1); border: 1px solid var(--border); border-radius: 4px; font-family: var(--font-mono); font-size: 13px;}
+  .dot { width: 14px; height: 14px; border-radius: 2px; box-shadow: inset 0 0 0 1px rgba(0,0,0,.2); }
+  .name { color: var(--ink); flex: 1; }
+  .num { color: var(--ink-2); font-size: 12px; }
+</style>
+</head>
+<body>
+  <div class="grid">
+    <div class="res"><span class="dot" style="background:#5E8B47"></span><span class="name">catnip</span><span class="num">1.24K</span></div>
+    <div class="res"><span class="dot" style="background:#8B5A2B"></span><span class="name">wood</span><span class="num">486</span></div>
+    <div class="res"><span class="dot" style="background:#847266"></span><span class="name">minerals</span><span class="num">2.1K</span></div>
+    <div class="res"><span class="dot" style="background:#1A1A1A"></span><span class="name">coal</span><span class="num">73</span></div>
+    <div class="res"><span class="dot" style="background:#6E6155"></span><span class="name">iron</span><span class="num">152</span></div>
+    <div class="res"><span class="dot" style="background:#D9A441"></span><span class="name">gold</span><span class="num">8</span></div>
+    <div class="res"><span class="dot" style="background:#C23574"></span><span class="name">faith</span><span class="num">340.0</span></div>
+    <div class="res"><span class="dot" style="background:#7A9DC2"></span><span class="name">science</span><span class="num">12.4K</span></div>
+    <div class="res"><span class="dot" style="background:#14F0D8"></span><span class="name">antimatter</span><span class="num">3</span></div>
+    <div class="res"><span class="dot" style="background:#B45A8E"></span><span class="name">unobtainium</span><span class="num">0.42</span></div>
+  </div>
+</body>
+</html>

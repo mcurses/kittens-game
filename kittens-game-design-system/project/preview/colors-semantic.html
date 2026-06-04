@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Semantic colors</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  body { margin: 0; padding: 16px; background: var(--bg); }
+  .grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+  .swatch { border: 1px solid var(--border); border-radius: 6px; padding: 10px; background: var(--surface-1); }
+  .chip { width: 100%; height: 36px; border-radius: 4px; }
+  .lbl { font-family: var(--font-mono); font-size: 13px; margin-top: 6px; color: var(--ink); }
+  .hex { font-family: var(--font-mono); font-size: 11px; color: var(--ink-3); }
+</style>
+</head>
+<body>
+  <div class="grid">
+    <div class="swatch"><div class="chip" style="background:#35C283"></div><div class="lbl">--ok</div><div class="hex">#35C283</div></div>
+    <div class="swatch"><div class="chip" style="background:#F4691A"></div><div class="lbl">--warn</div><div class="hex">#F4691A</div></div>
+    <div class="swatch"><div class="chip" style="background:#EA152C"></div><div class="lbl">--danger</div><div class="hex">#EA152C</div></div>
+    <div class="swatch"><div class="chip" style="background:#1B9CC2"></div><div class="lbl">--info</div><div class="hex">#1B9CC2</div></div>
+    <div class="swatch"><div class="chip" style="background:#C23574"></div><div class="lbl">--sacred</div><div class="hex">#C23574</div></div>
+  </div>
+</body>
+</html>

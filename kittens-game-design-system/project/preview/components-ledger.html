@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Resource ledger</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  body { margin: 0; padding: 16px; background: var(--bg); }
+  .ledger { background: var(--surface-1); border: 1px solid var(--border); border-radius: 6px; padding: 8px 10px; font-family: var(--font-mono); font-size: 15px; width: 320px; }
+  .row { display: grid; grid-template-columns: 90px 1fr 70px; gap: 8px; padding: 2px 0; align-items: center; }
+  .row:hover { background: rgba(0,0,0,0.04); border-radius: 3px; }
+  .name { color: var(--ink); }
+  .val { color: var(--ink); text-align: right; }
+  .max { color: var(--ink-3); }
+  .rate { color: var(--ok); font-size: 13px; }
+  .rate.neg { color: var(--danger); }
+</style>
+</head>
+<body>
+  <div class="ledger">
+    <div class="row"><span class="name" style="color:#5E8B47">catnip</span><span class="val">1.24K <span class="max">/ 5K</span></span><span class="rate">(+0.42)</span></div>
+    <div class="row"><span class="name" style="color:#8B5A2B">wood</span><span class="val">486 <span class="max">/ 2K</span></span><span class="rate">(+0.12)</span></div>
+    <div class="row"><span class="name" style="color:#847266">minerals</span><span class="val">2.10K <span class="max">/ 5K</span></span><span class="rate">(+0.05)</span></div>
+    <div class="row"><span class="name" style="color:#6E6155">iron</span><span class="val">152</span><span class="rate neg">(-0.02)</span></div>
+    <div class="row"><span class="name" style="color:#D9A441">gold</span><span class="val">8</span><span class="rate">(+0.01)</span></div>
+    <div class="row"><span class="name" style="color:#C23574">faith</span><span class="val">340.00</span><span class="rate">(+0.18)</span></div>
+  </div>
+</body>
+</html>

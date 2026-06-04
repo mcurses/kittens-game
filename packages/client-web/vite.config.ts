@@ -15,6 +15,11 @@ export default defineConfig(({ mode }) => {
           target: `http://localhost:${serverPort}`,
           changeOrigin: true,
         },
+        "/ws": {
+          target: `ws://localhost:${serverPort}`,
+          ws: true,
+          changeOrigin: true,
+        },
       },
     },
     resolve: {
