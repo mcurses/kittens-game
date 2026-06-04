@@ -66,9 +66,47 @@ Status legend: `planned` (prompt written, no draft yet) · `generated` (raw outp
 
 ## Characters (`character` variant, 1:1)
 
-| Asset | Prompt | Loop beats | Status |
+### Composer template (runtime-generated prompts)
+
+| Asset | Spec | Loop beats | Status |
 |---|---|---|---|
-| Kitten (base portrait) | [character-kitten-base.md](prompts/character-kitten-base.md) | settlement onwards | planned |
+| Kitten composer (layered) | [character-kitten-composer.md](prompts/character-kitten-composer.md) | settlement onwards | active — TS composer in `packages/engine/src/kittens/portraitPrompt.ts` |
+
+### Per-job fallback portraits (v2 — re-generated 2026-06-04 with Anchor + Reference-Chain)
+
+v1 was inconsistent (mono-breed tabby, framing drift between bust/half/full-body, varying pixel density). v2 fixes this:
+- **Anchor + Reference-Chain**: One canonical anchor portrait (full-body tabby) generated first, then all 15 follow-ups use `medias[{role:"image"}]` pointing to the anchor URL → Higgsfield applies the anchor's style/pose/pixel-density as a hard constraint.
+- **Stricter framing prompts**: `FULL-BODY ear-tips to paw-pads, three-quarter view, 80% canvas height, 8% margin, no cropping, feet on invisible ground line at lower third`.
+- **Pixel-density anchor**: `effective native resolution exactly 48 pixels along longest dimension`.
+- **Uniform background**: `flat warm-cream (#F5E8D0), one paw-print motif upper-right only`.
+- **Breed variation**: each fallback uses a different breed (tabby, maine-coon, siamese, smoke-grey, black-shorthair, ginger, heilige-birma, tortoiseshell, white-fluffy).
+
+| Asset | Breed | Status |
+|---|---|---|
+| Farmer | tabby (athletic) | generated v2 |
+| Woodcutter | maine-coon (muscular) | generated v2 |
+| Scholar | siamese (slim) | generated v2 |
+| Hunter | smoke-grey (athletic) | generated v2 |
+| Miner | black-shorthair (plump) | generated v2 |
+| Geologist | ginger (slim) | generated v2 |
+| Priest | heilige-birma (fluffy) | generated v2 |
+| Engineer | tortoiseshell (athletic) | generated v2 |
+| Idle (unassigned) | white-fluffy (plump) | generated v2 |
+| Anchor (reference, kept in exports/characters/anchor-v2.webp) | tabby (athletic) | generated v2 |
+
+### Per-kitten unique portraits
+
+Generated on-demand from the composer. Each kitten gets one portrait keyed by `kittenId`. Place finished assets at `assets/exports/characters/k{id}.webp` and dispatch `SET_KITTEN_PORTRAIT` to wire them up. See the composer spec for layer rules.
+
+| Asset | Status |
+|---|---|
+| (queue populated by `packages/cli/src/generate-kitten-prompts.ts`) | planned |
+
+### Legacy template
+
+| Asset | Prompt | Status |
+|---|---|---|
+| Kitten (base portrait, deprecated by composer) | [character-kitten-base.md](prompts/character-kitten-base.md) | superseded by composer |
 
 ## See also
 

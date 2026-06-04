@@ -56,6 +56,20 @@ cwebp -lossless -q 100 /tmp/pixelated-512.png -o assets/exports/<category>/<asse
 
 **Sips default scaling is "nearest-like" for downsampling**, which is what we want for pixelation. Do not use cwebp's `-resize` (it uses smooth scaling) — always resize with sips first, then encode with cwebp.
 
+### Village-Ausnahme (2026-06-04)
+
+Für die Village-Stage-Assets — Buildings `hut-{s,m,l}`, `logHouse-{s,m,l}`, `mansion-{s,m,l}` sowie alle `village-*`-Maps — wird der NN-Pixelation-Pass **übersprungen**. Direkter Pfad:
+
+```bash
+cwebp -lossless -q 100 raw.png -o assets/exports/<category>/<asset>.webp
+```
+
+Resultat: Buildings 1024×1024, Maps 1376×768 (native Higgsfield-Raw-Auflösung).
+
+**Grund**: Der `-Z 256 → -Z 512` Round-Trip + zusätzliche 2:1 Reduktion auf 512² zerstörte bei den Village-Building-Cards (Retina × `large`-Mode ≈ 376 phys-px) sichtbare Outline-Details — die User las das als „pixelig/matschig". Bei größeren native-Sources (1024 Buildings, 1376 Maps) liefert Browser-Bicubic-Downscale auf Card-Größe einen schärferen Look, ohne dass der Pixel-Art-Charakter (der im Higgsfield-Output bereits gemalt ist) verloren geht. CSS dafür angepasst: `.placeholder-image__img { image-rendering: auto }` + `--card-grid-min: 320px` für `large`.
+
+Für andere Stages (forest, industry, cosmos) bleibt der dokumentierte 512²-Pixelation-Pass aktiv — dort hat die kleinere native-Auflösung den gewünschten chunky Look erzeugt.
+
 ---
 
 ## UNIVERSAL NEGATIVE (carried inside each prompt's Style anchors, not the stack itself)

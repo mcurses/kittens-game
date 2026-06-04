@@ -2,8 +2,9 @@
 import type { GameStateResponse } from "@kittens/api-spec";
 import { deriveUiVisibility } from "@kittens/engine";
 import React, { useState } from "react";
-import type { JobEntity } from "./InspectorContext.js";
+import type { JobEntity, KittenEntity } from "./InspectorContext.js";
 import { useInspector } from "./InspectorContext.js";
+import { kittenAvatarPath } from "./kittenAvatar.js";
 import { PlaceholderImage } from "./PlaceholderImage.js";
 import { useSlot } from "./SlotContext.js";
 import { ResourceIcon } from "./ui/index.js";
@@ -64,6 +65,35 @@ interface CensusKitten {
   exp: number;
   isFavorite: boolean;
   isLeader: boolean;
+  // Lore fields — present on new saves and back-filled on migration in the engine.
+  birthYear?: number;
+  appearance?: { breed: string; body: string; eyes: string; accessory: string | null };
+  originStory?: string;
+  traitFlavor?: string;
+  lifeEvents?: Array<{ year: number; kind: string; text: string }>;
+  portraitPath?: string | null;
+}
+
+function buildKittenEntity(k: CensusKitten): KittenEntity {
+  return {
+    kind: "kitten",
+    id: k.id,
+    name: k.name,
+    surname: k.surname,
+    age: k.age,
+    birthYear: k.birthYear ?? 0,
+    trait: k.trait,
+    job: k.job,
+    rank: k.rank,
+    exp: k.exp,
+    isFavorite: k.isFavorite,
+    isLeader: k.isLeader,
+    appearance: k.appearance ?? { breed: "tabby", body: "slim", eyes: "large-amber", accessory: null },
+    originStory: k.originStory ?? "",
+    traitFlavor: k.traitFlavor ?? "",
+    lifeEvents: k.lifeEvents ?? [],
+    portraitPath: k.portraitPath ?? null,
+  };
 }
 
 const CENSUS_PAGE_SIZE = 10;
@@ -122,7 +152,7 @@ function topSkills(skills: Record<string, number>, count: number): Array<{ name:
 export function JobsPanel({ state }: Props): React.ReactElement {
   const slot = useSlot();
   const { mutate, isPending } = useGameAction(slot);
-  const { setInspected, clearInspected } = useInspector();
+  const { setInspected, clearInspected, setPinned } = useInspector();
   const [censusPage, setCensusPage] = useState(0);
   const [censusJobFilter, setCensusJobFilter] = useState("all");
   const [censusTraitFilter, setCensusTraitFilter] = useState("all");
@@ -274,10 +304,27 @@ export function JobsPanel({ state }: Props): React.ReactElement {
               </select>
             </div>
             <ul data-testid="census-list" className="item-list census-list">
-              {pageKittens.map((k) => (
-                <li key={k.id} data-testid={`census-kitten-${k.id}`} className="census-card" tabIndex={0}>
+              {pageKittens.map((k) => {
+                const kittenEntity = buildKittenEntity(k);
+                return (
+                <li
+                  key={k.id}
+                  data-testid={`census-kitten-${k.id}`}
+                  className="census-card"
+                  tabIndex={0}
+                  onMouseEnter={() => setInspected(kittenEntity)}
+                  onMouseLeave={clearInspected}
+                  onFocus={() => setInspected(kittenEntity)}
+                  onBlur={clearInspected}
+                  onClick={(e) => {
+                    const t = e.target as HTMLElement;
+                    if (t.closest("button, input, select, a, [data-no-pin]")) return;
+                    setPinned(kittenEntity);
+                  }}
+                >
                   <PlaceholderImage
                     variant="character"
+                    src={kittenAvatarPath(k)}
                     alt={`${k.name} ${k.surname}`}
                     className="census-card__portrait"
                   />
@@ -323,7 +370,8 @@ export function JobsPanel({ state }: Props): React.ReactElement {
                     </button>
                   </div>
                 </li>
-              ))}
+                );
+              })}
             </ul>
             {totalPages > 1 && (
               <div className="census-pagination">

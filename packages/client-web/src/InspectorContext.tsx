@@ -68,6 +68,7 @@ export interface UpgradeEntity {
   effects: Record<string, number>;
   prices: Array<{ name: string; val: number }>;
   resources: Record<string, ResourceSnapshot>;
+  iconPath?: string;
 }
 
 export interface TechEntity {
@@ -79,6 +80,7 @@ export interface TechEntity {
   effects: Record<string, number>;
   prices: Array<{ name: string; val: number }>;
   resources: Record<string, ResourceSnapshot>;
+  iconPath?: string;
 }
 
 export interface ZigguratUpgradeEntity {
@@ -149,6 +151,41 @@ export interface PerkEntity {
   resources: Record<string, ResourceSnapshot>;
 }
 
+export interface KittenLifeEventView {
+  year: number;
+  kind: string;
+  text: string;
+}
+
+export interface KittenAppearanceView {
+  breed: string;
+  body: string;
+  eyes: string;
+  accessory: string | null;
+}
+
+export interface KittenEntity {
+  kind: "kitten";
+  /** Stable kitten id used for identity comparisons. Displayed as inspector "name". */
+  id: string;
+  /** Full display name (e.g. "Mittens Smoke"). */
+  name: string;
+  surname: string;
+  age: number;
+  birthYear: number;
+  trait: string;
+  job: string | null;
+  rank: number;
+  exp: number;
+  isFavorite: boolean;
+  isLeader: boolean;
+  appearance: KittenAppearanceView;
+  originStory: string;
+  traitFlavor: string;
+  lifeEvents: KittenLifeEventView[];
+  portraitPath: string | null;
+}
+
 export type InspectorEntity =
   | HappinessEntity
   | ResourceEntity
@@ -161,7 +198,8 @@ export type InspectorEntity =
   | CraftShortcutEntity
   | JobEntity
   | PolicyEntity
-  | PerkEntity;
+  | PerkEntity
+  | KittenEntity;
 
 // ── Context ───────────────────────────────────────────────────────────────────
 //
@@ -260,6 +298,8 @@ export function isSameEntity(
 ): boolean {
   if (a === null || b === null) return a === b;
   if (a.kind !== b.kind) return false;
+  // Kittens have non-unique names — use id for identity.
+  if (a.kind === "kitten" && b.kind === "kitten") return a.id === b.id;
   if ("name" in a && "name" in b) return a.name === b.name;
   return false;
 }

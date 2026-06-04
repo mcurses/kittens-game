@@ -410,7 +410,8 @@ export function deserialize(data: SerializedGameState): GameState {
     const happiness = typeof savedVillage.happiness === "number" ? savedVillage.happiness : 1.0;
     const sim = Array.isArray(savedVillage.sim) ? savedVillage.sim as unknown as VillageState["sim"] : [];
     const leader = typeof savedVillage.leader === "string" ? savedVillage.leader : null;
-    village = { kittens, kittenProgress, jobs, sim, deadKittens, happiness, leader };
+    const villageName = typeof savedVillage.name === "string" ? savedVillage.name : "Bonfire";
+    village = { name: villageName, kittens, kittenProgress, jobs, sim, deadKittens, happiness, leader };
   }
 
   const savedCalendar = data.calendar;

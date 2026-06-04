@@ -8,6 +8,7 @@ import {
   type HappinessEntity,
   type InspectorEntity,
   type JobEntity,
+  type KittenEntity,
   type PerkEntity,
   type PolicyEntity,
   type ReligionUpgradeEntity,
@@ -18,6 +19,7 @@ import {
   type ZigguratUpgradeEntity,
   useInspector,
 } from "./InspectorContext.js";
+import { kittenAvatarPath } from "./kittenAvatar.js";
 import { formatDuration, isStorageLimited } from "./utils.js";
 
 const TICKS_PER_SECOND = 5;
@@ -80,7 +82,83 @@ function EntityDetail({ entity }: { entity: InspectorEntity }): React.ReactEleme
       return <PolicyDetail entity={entity} elapsedSeconds={elapsedSeconds} />;
     case "perk":
       return <PerkDetail entity={entity} elapsedSeconds={elapsedSeconds} />;
+    case "kitten":
+      return <KittenDetail entity={entity} />;
   }
+}
+
+function KittenDetail({ entity }: { entity: KittenEntity }): React.ReactElement {
+  const fullName = `${entity.name} ${entity.surname}`.trim();
+  const avatar = kittenAvatarPath(entity);
+  const events = [...entity.lifeEvents].sort((a, b) => b.year - a.year);
+  return (
+    <div className="inspector-entity">
+      <img
+        className="inspector-icon kitten-detail__portrait"
+        src={avatar}
+        alt=""
+        onError={(e) => {
+          // Graceful fallback: hide if asset is missing — keeps panel readable.
+          e.currentTarget.style.display = "none";
+        }}
+      />
+      <div className="inspector-name">
+        {fullName}
+        {entity.isLeader && <span className="kitten-detail__leader" title="Anführer">★</span>}
+        {entity.isFavorite && <span className="kitten-detail__favorite" title="Favorit">♥</span>}
+      </div>
+      <div className="inspector-kind">
+        Kitten · Alter {entity.age} (geboren Jahr {entity.birthYear})
+      </div>
+
+      <dl className="inspector-stats">
+        <div className="inspector-stat-row">
+          <dt>Job</dt>
+          <dd>{entity.job ?? "—"}</dd>
+        </div>
+        <div className="inspector-stat-row">
+          <dt>Charakter</dt>
+          <dd>{entity.trait === "none" ? "keiner" : entity.trait}</dd>
+        </div>
+        <div className="inspector-stat-row">
+          <dt>Rang</dt>
+          <dd>{entity.rank}</dd>
+        </div>
+        <div className="inspector-stat-row">
+          <dt>Erfahrung</dt>
+          <dd>{entity.exp.toFixed(0)}</dd>
+        </div>
+      </dl>
+
+      {entity.originStory && (
+        <div className="inspector-section kitten-detail__bio">
+          <div className="inspector-section-label">Herkunft</div>
+          <p className="inspector-description">{entity.originStory}</p>
+        </div>
+      )}
+
+      {entity.traitFlavor && (
+        <div className="inspector-section kitten-detail__bio">
+          <div className="inspector-section-label">Wesensart</div>
+          <p className="inspector-description">{entity.traitFlavor}</p>
+        </div>
+      )}
+
+      {events.length > 0 && (
+        <div className="inspector-section kitten-detail__timeline">
+          <div className="inspector-section-label">Was bisher geschah</div>
+          <ul className="kitten-detail__events">
+            {events.map((e, i) => (
+              <li key={`${e.year}-${e.kind}-${i}`} className={`kitten-detail__event kitten-detail__event--${e.kind}`}>
+                <span className="kitten-detail__event-year">{e.year}</span>
+                <span className="kitten-detail__event-text">{e.text}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
+  );
 }
 
 function HappinessDetail({ entity }: { entity: HappinessEntity }): React.ReactElement {
@@ -349,6 +427,14 @@ function UpgradeDetail({
 }): React.ReactElement {
   return (
     <div className="inspector-entity">
+      {entity.iconPath && (
+        <img
+          className="inspector-icon"
+          src={entity.iconPath}
+          alt=""
+          onError={(e) => { e.currentTarget.style.display = "none"; }}
+        />
+      )}
       <div className="inspector-name">{entity.name}</div>
       <div className="inspector-kind">
         Workshop Upgrade{entity.researched ? " · Purchased" : ""}
@@ -384,6 +470,14 @@ function TechDetail({
 }): React.ReactElement {
   return (
     <div className="inspector-entity">
+      {entity.iconPath && (
+        <img
+          className="inspector-icon"
+          src={entity.iconPath}
+          alt=""
+          onError={(e) => { e.currentTarget.style.display = "none"; }}
+        />
+      )}
       <div className="inspector-name">{entity.name}</div>
       <div className="inspector-kind">
         Technology{entity.researched ? " · Researched" : ""}

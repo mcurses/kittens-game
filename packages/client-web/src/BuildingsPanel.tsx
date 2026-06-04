@@ -411,65 +411,74 @@ function renderCountControls(
   isPending: boolean,
   mutate: ReturnType<typeof useGameAction>["mutate"],
 ): React.ReactNode {
+  const offCount = building.on <= 0;
+  const fullCount = building.on >= building.val;
   return (
-    <>
-      <button
-        type="button"
-        data-testid={`building-${building.name}-disable-1`}
-        className="btn btn--sm btn--secondary"
-        disabled={isPending || building.on <= 0}
-        onClick={() => mutate({ type: "DISABLE_BUILDING", name: building.name, amount: 1 })}
-      >
-        -
-      </button>
-      <button
-        type="button"
-        data-testid={`building-${building.name}-disable-25`}
-        className="btn btn--sm btn--secondary"
-        disabled={isPending || building.on <= 0}
-        onClick={() => mutate({ type: "DISABLE_BUILDING", name: building.name, amount: 25 })}
-      >
-        -25
-      </button>
-      <button
-        type="button"
-        data-testid={`building-${building.name}-disable-all`}
-        className="btn btn--sm btn--secondary"
-        disabled={isPending || building.on <= 0}
-        onClick={() => mutate({ type: "DISABLE_BUILDING", name: building.name, amount: building.on })}
-      >
-        -All
-      </button>
-      <button
-        type="button"
-        data-testid={`building-${building.name}-enable-1`}
-        className="btn btn--sm btn--secondary"
-        disabled={isPending || building.on >= building.val}
-        onClick={() => mutate({ type: "ENABLE_BUILDING", name: building.name, amount: 1 })}
-      >
-        +
-      </button>
-      <button
-        type="button"
-        data-testid={`building-${building.name}-enable-25`}
-        className="btn btn--sm btn--secondary"
-        disabled={isPending || building.on >= building.val}
-        onClick={() => mutate({ type: "ENABLE_BUILDING", name: building.name, amount: 25 })}
-      >
-        +25
-      </button>
-      <button
-        type="button"
-        data-testid={`building-${building.name}-enable-all`}
-        className="btn btn--sm btn--secondary"
-        disabled={isPending || building.on >= building.val}
-        onClick={() =>
-          mutate({ type: "ENABLE_BUILDING", name: building.name, amount: building.val - building.on })
-        }
-      >
-        +All
-      </button>
-    </>
+    <div className="stage-counter">
+      <div className="stage-counter__group stage-counter__group--down">
+        <button
+          type="button"
+          data-testid={`building-${building.name}-disable-all`}
+          className="btn btn--xs btn--secondary"
+          disabled={isPending || offCount}
+          onClick={() => mutate({ type: "DISABLE_BUILDING", name: building.name, amount: building.on })}
+          aria-label={`Disable all ${building.name}`}
+        >
+          −All
+        </button>
+        <button
+          type="button"
+          data-testid={`building-${building.name}-disable-25`}
+          className="btn btn--xs btn--secondary"
+          disabled={isPending || offCount}
+          onClick={() => mutate({ type: "DISABLE_BUILDING", name: building.name, amount: 25 })}
+        >
+          −25
+        </button>
+        <button
+          type="button"
+          data-testid={`building-${building.name}-disable-1`}
+          className="btn btn--xs btn--secondary"
+          disabled={isPending || offCount}
+          onClick={() => mutate({ type: "DISABLE_BUILDING", name: building.name, amount: 1 })}
+        >
+          −
+        </button>
+      </div>
+      <span className="stage-counter__readout">{building.on}/{building.val}</span>
+      <div className="stage-counter__group stage-counter__group--up">
+        <button
+          type="button"
+          data-testid={`building-${building.name}-enable-1`}
+          className="btn btn--xs btn--secondary"
+          disabled={isPending || fullCount}
+          onClick={() => mutate({ type: "ENABLE_BUILDING", name: building.name, amount: 1 })}
+        >
+          +
+        </button>
+        <button
+          type="button"
+          data-testid={`building-${building.name}-enable-25`}
+          className="btn btn--xs btn--secondary"
+          disabled={isPending || fullCount}
+          onClick={() => mutate({ type: "ENABLE_BUILDING", name: building.name, amount: 25 })}
+        >
+          +25
+        </button>
+        <button
+          type="button"
+          data-testid={`building-${building.name}-enable-all`}
+          className="btn btn--xs btn--secondary"
+          disabled={isPending || fullCount}
+          onClick={() =>
+            mutate({ type: "ENABLE_BUILDING", name: building.name, amount: building.val - building.on })
+          }
+          aria-label={`Enable all ${building.name}`}
+        >
+          +All
+        </button>
+      </div>
+    </div>
   );
 }
 

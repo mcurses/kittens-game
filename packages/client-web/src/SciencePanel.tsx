@@ -180,6 +180,7 @@ export function SciencePanel({ state }: Props): React.ReactElement {
                     effects: def?.effects ?? {},
                     prices: [...prices],
                     resources,
+                    iconPath: def?.iconPath,
                   });
                 }}
                 onMouseEnter={() =>
@@ -192,6 +193,7 @@ export function SciencePanel({ state }: Props): React.ReactElement {
                     effects: def?.effects ?? {},
                     prices: [...prices],
                     resources,
+                    iconPath: def?.iconPath,
                   })
                 }
                 onMouseLeave={clearInspected}
@@ -205,6 +207,7 @@ export function SciencePanel({ state }: Props): React.ReactElement {
                     effects: def?.effects ?? {},
                     prices: [...prices],
                     resources,
+                    iconPath: def?.iconPath,
                   })
                 }
                 onBlur={clearInspected}

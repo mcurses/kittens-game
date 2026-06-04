@@ -4,6 +4,26 @@ import type { Manager } from "./manager.js";
 import { DAYS_PER_SEASON, SEASONS_PER_YEAR } from "./calendar.js";
 import { calcResourcePerTick } from "./resources.js";
 import type { GameState } from "./state.js";
+import {
+  type Accessory,
+  type Appearance,
+  type Body,
+  type Breed,
+  type Eyes,
+  generateAppearance,
+  hashString,
+  mulberry32,
+} from "./kittens/appearance.js";
+import {
+  describeJobChange,
+  describeLeaderAppointment,
+  describeLeaderRemoval,
+  describePromote,
+  describeSpawn,
+  generateOrigin,
+  generateTraitFlavor,
+  generateYearlyEvent,
+} from "./kittens/loreTemplates.js";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -24,6 +44,16 @@ export interface JobEntry {
 /** Kitten trait names matching legacy */
 export type KittenTrait = "scientist" | "manager" | "engineer" | "merchant" | "wise" | "metallurgist" | "chemist" | "none";
 
+/** Kinds of events that can land in a kitten's life timeline. */
+export type LifeEventKind = "spawn" | "promote" | "jobChange" | "leader" | "leaderRemoved" | "yearly";
+
+/** One entry in a kitten's life-events timeline. Chronological by year. */
+export interface LifeEvent {
+  readonly year: number;
+  readonly kind: LifeEventKind;
+  readonly text: string;
+}
+
 /** Individual kitten tracked by the village simulation */
 export interface Kitten {
   readonly id: string;
@@ -37,6 +67,18 @@ export interface Kitten {
   readonly exp: number;
   readonly isFavorite: boolean;
   readonly isLeader: boolean;
+  /** In-game year this kitten was born (may be negative for older arrivals when game started). */
+  readonly birthYear: number;
+  /** Deterministic appearance traits (breed, body, eyes, accessory) used for portrait generation. */
+  readonly appearance: Appearance;
+  /** Backstory generated deterministically from id at spawn (2–3 sentences). */
+  readonly originStory: string;
+  /** One-line trait flavor; deterministic from id + trait. */
+  readonly traitFlavor: string;
+  /** Chronological life events. Spawn is always first. */
+  readonly lifeEvents: readonly LifeEvent[];
+  /** Path to unique portrait WEBP (e.g. "/assets/characters/k5.webp") or null → falls back to job-generic. */
+  readonly portraitPath: string | null;
 }
 
 /** Village state slice */
@@ -100,8 +142,15 @@ const KITTEN_TRAITS: readonly KittenTrait[] = [
 
 let nextKittenId = 0;
 
-/** Generate a new kitten with random name, surname, trait, and starting age. */
-export function generateKitten(): Kitten {
+function isPersistedAppearance(v: unknown): v is Appearance {
+  if (!v || typeof v !== "object") return false;
+  const a = v as Record<string, unknown>;
+  return typeof a.breed === "string" && typeof a.body === "string" && typeof a.eyes === "string"
+    && (a.accessory === null || typeof a.accessory === "string");
+}
+
+/** Generate a new kitten with random name/trait/age plus deterministic lore + appearance. */
+export function generateKitten(currentYear: number = 0): Kitten {
   const name = KITTEN_NAMES[Math.floor(Math.random() * KITTEN_NAMES.length)] ?? "Unknown";
   const surname = KITTEN_SURNAMES[Math.floor(Math.random() * KITTEN_SURNAMES.length)] ?? "Unknown";
   const trait = KITTEN_TRAITS[Math.floor(Math.random() * KITTEN_TRAITS.length)] ?? "none";
@@ -109,7 +158,21 @@ export function generateKitten(): Kitten {
   let age = 5 + Math.floor(Math.random() * 10);
   if (Math.random() < 0.3) age += Math.floor(Math.random() * 30);
   const id = `k${++nextKittenId}`;
-  return { id, name, surname, age, trait, job: null, skills: {}, rank: 0, exp: 0, isFavorite: false, isLeader: false };
+  const birthYear = currentYear - age;
+  const appearance = generateAppearance(id);
+  const originStory = generateOrigin(id, age);
+  const traitFlavor = generateTraitFlavor(id, trait);
+  const lifeEvents: LifeEvent[] = [{ year: birthYear, kind: "spawn", text: describeSpawn(age) }];
+  return {
+    id, name, surname, age, trait, job: null, skills: {}, rank: 0, exp: 0,
+    isFavorite: false, isLeader: false,
+    birthYear, appearance, originStory, traitFlavor, lifeEvents, portraitPath: null,
+  };
+}
+
+/** Append a life event to a kitten's timeline. Returns a new Kitten (pure). */
+export function appendLifeEvent(k: Kitten, event: LifeEvent): Kitten {
+  return { ...k, lifeEvents: [...k.lifeEvents, event] };
 }
 
 // ── Luxury resource constants ─────────────────────────────────────────────────
@@ -337,7 +400,7 @@ export class VillageManager implements Manager {
       if (kittenProgress >= 1) {
         kittens += 1;
         kittenProgress -= 1;
-        sim.push(generateKitten());
+        sim.push(generateKitten(state.calendar.year));
         if (kittens >= maxKittens) {
           kittenProgress = 0;
         }
@@ -447,6 +510,8 @@ export class VillageManager implements Manager {
     return state.village as unknown as Serializable;
   }
 
+
+
   load(saved: Serializable, state: GameState): GameState {
     if (!saved || typeof saved !== "object" || Array.isArray(saved)) {
       return { ...state, village: createInitialVillage() };
@@ -476,24 +541,51 @@ export class VillageManager implements Manager {
     const deadKittens = typeof raw.deadKittens === "number" ? raw.deadKittens : 0;
     const happiness = typeof raw.happiness === "number" ? raw.happiness : 1.0;
 
-    // Deserialize individual kittens
+    // Deserialize individual kittens. New lore/appearance fields are migrated
+    // for old saves: when missing, derive deterministically from id so the same
+    // kitten always gets the same backstory + appearance across loads.
+    const currentYear = state.calendar?.year ?? 0;
     let sim: Kitten[] = [];
     if (Array.isArray(raw.sim)) {
       sim = (raw.sim as unknown[]).filter((k): k is Record<string, unknown> => k != null && typeof k === "object")
-        .map((k) => ({
-          id: typeof k.id === "string" ? k.id : `k${++nextKittenId}`,
-          name: typeof k.name === "string" ? k.name : "Unknown",
-          surname: typeof k.surname === "string" ? k.surname : "Unknown",
-          age: typeof k.age === "number" ? k.age : 0,
-          trait: (typeof k.trait === "string" ? k.trait : "none") as KittenTrait,
-          job: typeof k.job === "string" ? k.job : null,
-          skills: (k.skills && typeof k.skills === "object" && !Array.isArray(k.skills))
-            ? k.skills as Record<string, number> : {},
-          rank: typeof k.rank === "number" ? k.rank : 0,
-          exp: typeof k.exp === "number" ? k.exp : 0,
-          isFavorite: k.isFavorite === true,
-          isLeader: k.isLeader === true,
-        }));
+        .map((k) => {
+          const id = typeof k.id === "string" ? k.id : `k${++nextKittenId}`;
+          const age = typeof k.age === "number" ? k.age : 0;
+          const trait = (typeof k.trait === "string" ? k.trait : "none") as KittenTrait;
+
+          const birthYear = typeof k.birthYear === "number" ? k.birthYear : currentYear - age;
+          const appearance = isPersistedAppearance(k.appearance)
+            ? (k.appearance as Appearance)
+            : generateAppearance(id);
+          const originStory = typeof k.originStory === "string" ? k.originStory : generateOrigin(id, age);
+          const traitFlavor = typeof k.traitFlavor === "string" ? k.traitFlavor : generateTraitFlavor(id, trait);
+          const lifeEvents: readonly LifeEvent[] = Array.isArray(k.lifeEvents)
+            ? (k.lifeEvents as unknown[])
+                .filter((e): e is Record<string, unknown> => e != null && typeof e === "object")
+                .map((e) => ({
+                  year: typeof e.year === "number" ? e.year : 0,
+                  kind: (typeof e.kind === "string" ? e.kind : "spawn") as LifeEventKind,
+                  text: typeof e.text === "string" ? e.text : "",
+                }))
+            : [{ year: birthYear, kind: "spawn", text: describeSpawn(age) }];
+          const portraitPath = typeof k.portraitPath === "string" ? k.portraitPath : null;
+
+          return {
+            id,
+            name: typeof k.name === "string" ? k.name : "Unknown",
+            surname: typeof k.surname === "string" ? k.surname : "Unknown",
+            age,
+            trait,
+            job: typeof k.job === "string" ? k.job : null,
+            skills: (k.skills && typeof k.skills === "object" && !Array.isArray(k.skills))
+              ? k.skills as Record<string, number> : {},
+            rank: typeof k.rank === "number" ? k.rank : 0,
+            exp: typeof k.exp === "number" ? k.exp : 0,
+            isFavorite: k.isFavorite === true,
+            isLeader: k.isLeader === true,
+            birthYear, appearance, originStory, traitFlavor, lifeEvents, portraitPath,
+          };
+        });
     }
 
     const leader = typeof saved.leader === "string" ? saved.leader as string : null;
@@ -509,7 +601,16 @@ export class VillageManager implements Manager {
 
   /** Age all kittens by 1 year. Called from calendar year tick. */
   static ageKittens(state: GameState): GameState {
-    const sim = state.village.sim.map((k) => ({ ...k, age: k.age + 1 }));
+    const newYear = state.calendar.year;
+    const sim = state.village.sim.map((k) => {
+      // 25% chance to append a yearly snippet — deterministic per (kittenId, year)
+      // so replaying the same save doesn't drift.
+      const eventRng = mulberry32(hashString(`yearly-roll:${k.id}:${newYear}`));
+      const events: readonly LifeEvent[] = eventRng() < 0.25
+        ? [...k.lifeEvents, { year: newYear, kind: "yearly", text: generateYearlyEvent(k.id, newYear, k.job) }]
+        : k.lifeEvents;
+      return { ...k, age: k.age + 1, lifeEvents: events };
+    });
     return { ...state, village: { ...state.village, sim } };
   }
 }
@@ -626,12 +727,26 @@ export function applySetLeader(state: GameState, kittenId: string): GameState {
   const idx = state.village.sim.findIndex((k) => k.id === kittenId);
   if (idx < 0) return state;
 
+  const year = state.calendar.year;
   return produce(state, (draft) => {
-    // Clear previous leader
+    // Clear previous leader and log demotion event
     for (const k of draft.village.sim) {
-      if (k.isLeader) (k as { isLeader: boolean }).isLeader = false;
+      if (k.isLeader && k.id !== kittenId) {
+        (k as { isLeader: boolean }).isLeader = false;
+        (k as { lifeEvents: LifeEvent[] }).lifeEvents = [
+          ...k.lifeEvents,
+          { year, kind: "leaderRemoved", text: describeLeaderRemoval() },
+        ];
+      }
     }
-    (draft.village.sim[idx] as { isLeader: boolean }).isLeader = true;
+    const k = draft.village.sim[idx]!;
+    if (!k.isLeader) {
+      (k as { isLeader: boolean }).isLeader = true;
+      (k as { lifeEvents: LifeEvent[] }).lifeEvents = [
+        ...k.lifeEvents,
+        { year, kind: "leader", text: describeLeaderAppointment() },
+      ];
+    }
     (draft.village as { leader: string | null }).leader = kittenId;
   });
 }
@@ -639,9 +754,16 @@ export function applySetLeader(state: GameState, kittenId: string): GameState {
 export function applyRemoveLeader(state: GameState): GameState {
   if (state.village.leader === null) return state;
 
+  const year = state.calendar.year;
   return produce(state, (draft) => {
     for (const k of draft.village.sim) {
-      if (k.isLeader) (k as { isLeader: boolean }).isLeader = false;
+      if (k.isLeader) {
+        (k as { isLeader: boolean }).isLeader = false;
+        (k as { lifeEvents: LifeEvent[] }).lifeEvents = [
+          ...k.lifeEvents,
+          { year, kind: "leaderRemoved", text: describeLeaderRemoval() },
+        ];
+      }
     }
     (draft.village as { leader: string | null }).leader = null;
   });
@@ -664,10 +786,16 @@ export function applyPromoteKitten(state: GameState, kittenId: string): GameStat
   if (kitten.exp < expCost) return state;
   if ((state.resources.gold?.value ?? 0) < goldCost) return state;
 
+  const year = state.calendar.year;
+  const newRank = kitten.rank + 1;
   return produce(state, (draft) => {
     const k = draft.village.sim[idx]!;
-    (k as { rank: number }).rank += 1;
+    (k as { rank: number }).rank = newRank;
     (k as { exp: number }).exp -= expCost;
+    (k as { lifeEvents: LifeEvent[] }).lifeEvents = [
+      ...k.lifeEvents,
+      { year, kind: "promote", text: describePromote(newRank) },
+    ];
     const gold = draft.resources.gold;
     if (gold) gold.value -= goldCost;
   });
@@ -680,6 +808,27 @@ export function applyToggleFavorite(state: GameState, kittenId: string): GameSta
   return produce(state, (draft) => {
     const k = draft.village.sim[idx]!;
     (k as { isFavorite: boolean }).isFavorite = !k.isFavorite;
+  });
+}
+
+/**
+ * Set a kitten's unique portrait path. The path must point under
+ * `/assets/characters/` and end with `.webp` to prevent injection of arbitrary
+ * URLs into the UI.
+ */
+export function applySetKittenPortrait(
+  state: GameState,
+  kittenId: string,
+  path: string | null,
+): GameState {
+  const idx = state.village.sim.findIndex((k) => k.id === kittenId);
+  if (idx < 0) return state;
+  if (path !== null) {
+    if (!path.startsWith("/assets/characters/") || !path.endsWith(".webp")) return state;
+  }
+  return produce(state, (draft) => {
+    const k = draft.village.sim[idx]!;
+    (k as { portraitPath: string | null }).portraitPath = path;
   });
 }
 

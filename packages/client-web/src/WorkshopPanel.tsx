@@ -189,6 +189,7 @@ export function WorkshopPanel({ state }: Props): React.ReactElement {
               effects: def?.effects ?? {},
               prices: [...prices],
               resources,
+              iconPath: def?.iconPath,
             });
             const inspect = () => setInspected(upgradeEntity());
             const isPinnedHere = pinned?.kind === "upgrade" && pinned.name === u.name;
@@ -212,6 +213,7 @@ export function WorkshopPanel({ state }: Props): React.ReactElement {
               >
                 <PlaceholderImage
                   variant="character"
+                  src={def?.iconPath}
                   alt={u.name}
                   className="upgrade-card__image"
                 />

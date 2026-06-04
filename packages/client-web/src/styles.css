@@ -1036,6 +1036,11 @@ body {
   display: flex;
   flex-wrap: wrap;
   gap: var(--sp-4);
+  row-gap: var(--sp-6);
+}
+
+.building-groups .panel-section + .panel-section {
+  margin-top: 0;
 }
 
 .panel-section {
@@ -1076,7 +1081,7 @@ body {
 .placeholder-image--character  { aspect-ratio: 1 / 1; height: auto; max-height: var(--placeholder-size, 72px); }
 .placeholder-image--book       { aspect-ratio: 2 / 3; height: auto; max-height: calc(var(--placeholder-size, 96px) * 1.5); }
 .placeholder-image--job        { aspect-ratio: 1 / 1; height: 40px; width: 40px; max-height: 40px; flex: 0 0 40px; }
-.placeholder-image--map        { aspect-ratio: 16 / 9; height: auto; max-height: 320px; width: 100%; }
+.placeholder-image--map        { aspect-ratio: 16 / 9; height: auto; width: 100%; }
 
 .placeholder-image__img {
   position: absolute;
@@ -1084,47 +1089,50 @@ body {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  image-rendering: pixelated;
+  image-rendering: auto;
   display: block;
 }
 
 /* Default card-size variables (overridden by data-card-size on <html>) */
 :root {
-  --placeholder-size: 64px;
-  --card-grid-min: 130px;
+  --placeholder-size: clamp(56px, 8vw, 96px);
+  --card-grid-min: clamp(140px, 18vw, 220px);
 }
 
 html[data-card-size="compact"] {
-  --placeholder-size: 56px;
-  --card-grid-min: 130px;
+  --placeholder-size: clamp(48px, 6vw, 72px);
+  --card-grid-min: clamp(120px, 14vw, 160px);
 }
 
 html[data-card-size="large"] {
-  --placeholder-size: 160px;
-  --card-grid-min: 180px;
+  --placeholder-size: clamp(96px, 12vw, 160px);
+  --card-grid-min: clamp(220px, 26vw, 340px);
 }
 
 /* ── Card Grid (Buildings) ───────────────────────────────── */
 .card-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(var(--card-grid-min, 168px), 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(var(--card-grid-min, 168px), 100%), 1fr));
   gap: var(--sp-3);
 }
 
-/* Per-card image slot — full-card background, footer stacks on top */
+/* Per-card image slot — flex-child taking remaining card space above footer */
 .item-card__image {
-  position: absolute;
-  inset: 0;
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
   margin: 0;
   border-radius: 0;
-  height: 100%;
   max-height: none;
+  overflow: hidden;
 }
 
 .item-card__image .placeholder-image__img {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  object-position: 50% 100%;
 }
 
 /* Force the .placeholder-image base block to fill its parent absolutely */
@@ -1133,22 +1141,22 @@ html[data-card-size="large"] {
   height: 100%;
 }
 
-/* Overlay on top of the image — name (left) + count (right) with dark gradient */
+/* Overlay on top of the image — name (left) + count (right) with parchment wash */
 .item-card__overlay-top {
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
   padding: var(--sp-2) var(--sp-3);
-  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.7) 0%, rgba(0, 0, 0, 0) 100%);
+  background: linear-gradient(to bottom, rgba(242, 230, 207, 0.8) 0%, rgba(242, 230, 207, 0) 100%);
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
   gap: var(--sp-2);
-  color: #f7efdb;
+  color: var(--ink, #2B221A);
   z-index: 1;
   pointer-events: none;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.7);
+  text-shadow: 0 1px 0 rgba(242, 230, 207, 0.9);
 }
 
 .item-card__overlay-top .item-name {
@@ -1157,9 +1165,9 @@ html[data-card-size="large"] {
 }
 
 .item-card__overlay-top .item-count {
-  background: rgba(0, 0, 0, 0.55);
-  color: #f7efdb;
-  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: var(--surface);
+  color: var(--ink);
+  border: 1px solid var(--border);
   pointer-events: auto;
 }
 
@@ -1192,33 +1200,16 @@ html[data-card-size="large"] {
   .item-card__stage-controls { opacity: 1; }
 }
 
-/* Bottom gradient scrim — softens the image → footer transition so pixel-art doesn't appear hard-clipped */
-.item-card::after {
-  content: '';
-  position: absolute;
-  inset: auto 0 0 0;
-  height: 55%;
-  background: linear-gradient(
-    to top,
-    var(--surface) 0%,
-    var(--surface) 35%,
-    transparent 100%
-  );
-  pointer-events: none;
-  z-index: 0;
-}
-
-/* Bottom footer with prices + actions; sits ON the scrim, no opaque background */
+/* Bottom footer with prices + actions; solid surface strip directly under the image */
 .item-card__footer {
   position: relative;
   z-index: 1;
   margin-top: auto;
-  background: transparent;
+  background: var(--surface);
   padding: var(--sp-2) var(--sp-3);
   display: flex;
   flex-direction: column;
   gap: var(--sp-1);
-  border-top: 1px solid var(--border-subtle);
 }
 
 .item-card__footer-primary {
@@ -1250,6 +1241,78 @@ html[data-card-size="large"] {
   border-top: 1px solid var(--border-subtle);
 }
 
+/* Compact stage-counter row: [−All −25 −]  N/M  [+ +25 +All]
+   Adapts via container-queries on .item-card:
+   - Default (card ≥ 230px): all 6 buttons in one row
+   - card < 230px: macro-steps (-All, -25, +25, +All) hidden → [−] N/M [+]
+   - card < 160px: counter stacks vertically (group above, readout, group below)
+*/
+.stage-counter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-1);
+  flex: 1 1 100%;
+  flex-wrap: nowrap;
+  min-width: 0;
+}
+.stage-counter__group {
+  display: flex;
+  gap: 2px;
+  flex-shrink: 0;
+  min-width: 0;
+}
+.stage-counter .btn {
+  padding-inline: var(--sp-1);
+  font-size: var(--text-2xs);
+  min-width: 0;
+  white-space: nowrap;
+}
+.stage-counter__group--down .btn {
+  background: color-mix(in srgb, var(--danger, #C9A38B) 14%, transparent);
+}
+.stage-counter__group--up .btn {
+  background: color-mix(in srgb, var(--accent-2, #7A9A6E) 14%, transparent);
+}
+.stage-counter__readout {
+  font-variant-numeric: tabular-nums;
+  font-size: var(--text-sm);
+  color: var(--t2);
+  min-width: 3.5ch;
+  text-align: center;
+  font-weight: 500;
+  flex-shrink: 0;
+}
+
+@container card (max-width: 230px) {
+  .stage-counter__group--down .btn:not(:last-child),
+  .stage-counter__group--up .btn:not(:first-child) {
+    display: none;
+  }
+  .stage-counter__readout {
+    min-width: 2ch;
+    font-size: var(--text-2xs);
+  }
+}
+
+@container card (max-width: 160px) {
+  .stage-counter {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--sp-0);
+  }
+  .stage-counter__group {
+    justify-content: center;
+  }
+}
+
+@container card (max-width: 180px) {
+  .item-card__footer-primary .item-prices {
+    font-size: 9px;
+    line-height: 1.2;
+  }
+}
+
 .item-card__footer .item-prices {
   font-size: var(--text-2xs);
   color: var(--t2);
@@ -1258,8 +1321,8 @@ html[data-card-size="large"] {
 /* ── Census Cards (kittens) ──────────────────────────────── */
 .census-list {
   display: grid !important;
-  grid-template-columns: repeat(auto-fill, minmax(var(--card-grid-min, 220px), 1fr));
-  gap: var(--sp-3);
+  grid-template-columns: repeat(auto-fill, minmax(min(clamp(110px, 11vw, 150px), 100%), 1fr));
+  gap: var(--sp-2);
 }
 
 .census-card {
@@ -1841,7 +1904,8 @@ html[data-card-size="large"] {
   flex-direction: column;
   gap: 0;
   overflow: hidden;
-  aspect-ratio: 1 / 1;
+  aspect-ratio: 4 / 5;
+  container: card / inline-size;
 }
 
 .item-card:hover {
@@ -2430,6 +2494,87 @@ span.resource-icon--lg { font-size: 40px; }
   font-family: var(--ff-mono);
   border-top: 1px solid rgba(255,255,255,.05);
   padding-top: var(--sp-1);
+}
+
+/* ── Kitten Inspector Detail ───────────────────────────────── */
+
+.kitten-detail__portrait {
+  /* Inspector-Slot ist 240px → 1024×1024 Quelle skaliert via Browser-Bicubic
+     sauber runter. Pixelated würde bei diesem Faktor wieder zerstören. */
+  image-rendering: auto;
+}
+
+.kitten-detail__leader,
+.kitten-detail__favorite {
+  display: inline-block;
+  margin-left: var(--sp-1);
+  font-size: var(--text-sm);
+  color: var(--accent);
+  vertical-align: 1px;
+}
+
+.kitten-detail__favorite {
+  color: #e07070;
+}
+
+.kitten-detail__bio .inspector-description {
+  font-style: normal;  /* Backstory liest sich besser ohne Kursivierung */
+  color: rgba(220, 208, 182, 0.85);
+  border-top: none;
+  padding-top: 0;
+}
+
+.kitten-detail__timeline .kitten-detail__events {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-1);
+}
+
+.kitten-detail__event {
+  display: grid;
+  grid-template-columns: 40px 1fr;
+  gap: var(--sp-2);
+  align-items: baseline;
+  font-size: var(--text-xs);
+  line-height: 1.45;
+  padding: var(--sp-1) 0;
+  border-top: 1px dashed rgba(255, 255, 255, 0.04);
+}
+
+.kitten-detail__event:first-child {
+  border-top: none;
+}
+
+.kitten-detail__event-year {
+  font-family: var(--ff-mono);
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.4);
+  text-align: right;
+}
+
+.kitten-detail__event-text {
+  color: rgba(220, 208, 182, 0.8);
+}
+
+/* Event-Kind-Akzente: leichte Farbtönung pro Kategorie */
+.kitten-detail__event--spawn .kitten-detail__event-text { color: rgba(220, 208, 182, 0.55); font-style: italic; }
+.kitten-detail__event--promote .kitten-detail__event-text { color: #b8d99f; }
+.kitten-detail__event--leader .kitten-detail__event-text { color: #f0d27a; }
+.kitten-detail__event--leaderRemoved .kitten-detail__event-text { color: rgba(220, 208, 182, 0.5); }
+.kitten-detail__event--jobChange .kitten-detail__event-text { color: #c8b9d4; }
+.kitten-detail__event--yearly .kitten-detail__event-text { color: rgba(220, 208, 182, 0.75); }
+
+/* Census-card cursor: clearly clickable */
+.census-card {
+  cursor: pointer;
+}
+
+.census-card[data-pinned="true"] {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
 }
 
 .inspector-notice--warn {

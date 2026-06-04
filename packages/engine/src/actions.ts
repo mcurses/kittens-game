@@ -20,7 +20,8 @@ import { applySendEmbassy, applyTrade } from "./diplomacy.js";
 import { applyBuySpaceBuilding, applyLaunchMission } from "./space.js";
 import { applyBuyCfu, applyBuyVsu, applyShatterTc } from "./time.js";
 import type { GameState } from "./state.js";
-import { JOB_DEFS, applyHunt, applyHoldFestival, applyPromoteKitten, applyRemoveLeader, applySetLeader, applyToggleFavorite, applyUnassignKitten, sanitizeVillageName, totalAssignedKittens } from "./village.js";
+import { JOB_DEFS, applyHunt, applyHoldFestival, applyPromoteKitten, applyRemoveLeader, applySetKittenPortrait, applySetLeader, applyToggleFavorite, applyUnassignKitten, sanitizeVillageName, totalAssignedKittens } from "./village.js";
+import { describeJobChange } from "./kittens/loreTemplates.js";
 import { applyAssignCraftEngineer, applyCraft, applyPurchaseUpgrade, applyUnassignCraftEngineer, getAssignedCraftEngineers } from "./workshop.js";
 
 /** Discriminated union of all possible game actions */
@@ -68,6 +69,7 @@ export type GameAction =
   | { readonly type: "UNASSIGN_KITTEN"; readonly kittenId: string }
   | { readonly type: "SET_LEADER"; readonly kittenId: string }
   | { readonly type: "REMOVE_LEADER" }
+  | { readonly type: "SET_KITTEN_PORTRAIT"; readonly kittenId: string; readonly path: string | null }
   | { readonly type: "UPGRADE_BUILDING_STAGE"; readonly name: string }
   | { readonly type: "DOWNGRADE_BUILDING_STAGE"; readonly name: string }
   | { readonly type: "TOGGLE_RESOURCE_VISIBILITY"; readonly name: string }
@@ -185,16 +187,21 @@ export function applyAction(
       const count = Math.min(action.count ?? 1, freeKittens);
       if (count <= 0) return state;
 
+      const year = state.calendar.year;
       return produce(state, (draft) => {
         const job = draft.village.jobs[action.job] ?? { value: 0 };
         job.value += count;
         draft.village.jobs[action.job] = job;
-        // Assign individual kittens
+        // Assign individual kittens and log a job-change life event for each.
         let remaining = count;
         for (const k of draft.village.sim) {
           if (remaining <= 0) break;
           if (k.job === null) {
             k.job = action.job;
+            (k as { lifeEvents: { year: number; kind: string; text: string }[] }).lifeEvents = [
+              ...k.lifeEvents,
+              { year, kind: "jobChange", text: describeJobChange(action.job) },
+            ];
             remaining--;
           }
         }
@@ -331,6 +338,9 @@ export function applyAction(
     }
     case "REMOVE_LEADER": {
       return applyRemoveLeader(state);
+    }
+    case "SET_KITTEN_PORTRAIT": {
+      return applySetKittenPortrait(state, action.kittenId, action.path);
     }
     case "UPGRADE_BUILDING_STAGE": {
       return applyUpgradeBuildingStage(state, action.name);
