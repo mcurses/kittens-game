@@ -156,6 +156,19 @@ function groupBuildings(buildings: readonly BuildingEntry[]): Array<{
 
 type BuildingFilter = "all" | "available" | "enabled" | "togglable";
 
+/**
+ * Buildings rendered with the alternative wide-card layout (image left, info right).
+ * Used for buildings whose multi-resource cost crowds the default footer-strip.
+ * Keep this list small — it's a visual A/B for now, not a default style.
+ */
+const WIDE_LAYOUT_BUILDINGS = new Set<string>([
+  "logHouse",
+  "academy",
+  "lumberMill",
+  "smelter",
+  "workshop",
+]);
+
 const FILTER_TABS: { key: BuildingFilter; label: string }[] = [
   { key: "all", label: "All" },
   { key: "available", label: "Available" },
@@ -225,7 +238,7 @@ export function BuildingsPanel({ state }: Props): React.ReactElement {
             <section
               key={category.slug}
               data-testid={`building-category-${category.slug}`}
-              className={`panel-section${category.buildings.length <= 2 ? " panel-section--compact" : ""}`}
+              className="panel-section"
             >
               <h3 className="panel-subheading">{category.label}</h3>
               <ul className="card-grid" style={{ listStyle: "none" }}>
@@ -241,12 +254,14 @@ export function BuildingsPanel({ state }: Props): React.ReactElement {
                   const canDowngrade = hasStages && currentStage > 0;
 
                   const isPinnedHere = pinned?.kind === "building" && pinned.name === b.name;
+                  const isWide = WIDE_LAYOUT_BUILDINGS.has(b.name);
                   return (
                     <li
                       key={b.name}
                       data-testid={`building-${b.name}`}
                       className="item-card"
                       data-pinned={isPinnedHere ? "true" : "false"}
+                      data-layout={isWide ? "wide" : "default"}
                       onClick={(e) => {
                         const t = e.target as HTMLElement;
                         if (t.closest("button, input, select, a, [data-no-pin]")) return;
@@ -335,6 +350,37 @@ export function BuildingsPanel({ state }: Props): React.ReactElement {
                               ^
                             </button>
                           )}
+                        </div>
+                      )}
+
+                      {isWide && (
+                        <div className="item-card__info-wide">
+                          {prices.length > 0 && (
+                            <ul className="item-prices-wide">
+                              {prices.map((p) => {
+                                const have = resources[p.name]?.value ?? 0;
+                                const ok = have >= p.val;
+                                return (
+                                  <li className="item-price-row" key={p.name}>
+                                    <ResourceIcon name={p.name} size="xs" />
+                                    <span className="item-price-row__name">{p.name}</span>
+                                    <span className={`item-price-row__val ${ok ? "stat-pos" : "stat-neg"}`}>
+                                      {p.val.toFixed(0)}
+                                    </span>
+                                  </li>
+                                );
+                              })}
+                            </ul>
+                          )}
+                          <button
+                            type="button"
+                            data-testid={`building-${b.name}-buy-wide`}
+                            className={`btn btn--sm item-card__wide-buy${affordable ? " btn--primary" : " btn--secondary"}${storageLimited ? " btn--limited" : ""}`}
+                            disabled={isPending || !affordable}
+                            onClick={() => mutate({ type: "BUY_BUILDING", name: b.name })}
+                          >
+                            Buy
+                          </button>
                         </div>
                       )}
 

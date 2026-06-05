@@ -211,32 +211,34 @@ export function WorkshopPanel({ state }: Props): React.ReactElement {
                 onBlur={clearInspected}
                 tabIndex={0}
               >
-                <PlaceholderImage
-                  variant="character"
-                  src={def?.iconPath}
-                  alt={u.name}
-                  className="upgrade-card__image"
-                />
-                <div className="upgrade-card__strip">
-                  <span className="upgrade-card__name">{prettifyName(u.name)}</span>
-                  {!u.researched && costLabel && (
-                    <span className="upgrade-card__cost">{costLabel}</span>
-                  )}
+                <div className="upgrade-card__image-wrap">
+                  <PlaceholderImage
+                    variant="character"
+                    src={def?.iconPath}
+                    alt={u.name}
+                    className="upgrade-card__image"
+                  />
                   {!u.researched && (
                     <button
                       type="button"
                       data-testid={`upgrade-${u.name}-purchase`}
-                      className={`btn btn--sm${affordable ? " btn--primary" : " btn--secondary"}${storageLimited ? " btn--limited" : ""}`}
+                      className={`btn btn--xs upgrade-card__buy${affordable ? " btn--primary" : " btn--secondary"}${storageLimited ? " btn--limited" : ""}`}
                       disabled={isPending || !affordable}
                       onClick={() => mutate({ type: "PURCHASE_UPGRADE", name: u.name })}
                     >
-                      Purchase
+                      Buy
                     </button>
                   )}
+                  {u.researched && (
+                    <span className="upgrade-card__done-badge">✓ Done</span>
+                  )}
                 </div>
-                {u.researched && (
-                  <span className="upgrade-card__done-badge">✓ Done</span>
-                )}
+                <div className="upgrade-card__footer">
+                  <span className="upgrade-card__name">{prettifyName(u.name)}</span>
+                  {!u.researched && costLabel && (
+                    <span className="upgrade-card__cost">{costLabel}</span>
+                  )}
+                </div>
               </li>
             );
           })}

@@ -38,7 +38,7 @@ export interface TechDef {
   readonly unlocks?: TechUnlocks;
   /**
    * Optional absolute URL for a book-cover style hover/card image
-   * (e.g. "/assets/techs/calendar.webp"). Renderers must fall back
+   * (e.g. "/assets/books/calendar.webp"). Renderers must fall back
    * gracefully when missing or 404. See assets/README.md.
    */
   readonly iconPath?: string;
@@ -92,14 +92,14 @@ export const TECH_DEFS: readonly TechDef[] = [
   {
     name: "calendar",
     description: "Establishes the calendar system, unlocking agriculture and the time tab.",
-    iconPath: "/assets/techs/calendar.webp",
+    iconPath: "/assets/books/calendar.webp",
     prices: [{ name: "science", val: 30 }],
     unlocks: { tech: ["agriculture"], tabs: ["time"] },
   },
   {
     name: "agriculture",
     description: "Founds organised farming, unlocking barns, farmers, and further research.",
-    iconPath: "/assets/techs/agriculture.webp",
+    iconPath: "/assets/books/agriculture.webp",
     prices: [{ name: "science", val: 100 }],
     unlocks: {
       buildings: ["barn"],
@@ -110,7 +110,7 @@ export const TECH_DEFS: readonly TechDef[] = [
   },
   {
     name: "archery",
-    iconPath: "/assets/techs/archery.webp",
+    iconPath: "/assets/books/archery.webp",
     description: "Develops bow-and-arrow techniques, unlocking hunters and zebra outposts.",
     prices: [{ name: "science", val: 300 }],
     unlocks: {
@@ -121,7 +121,7 @@ export const TECH_DEFS: readonly TechDef[] = [
   },
   {
     name: "mining",
-    iconPath: "/assets/techs/mining.webp",
+    iconPath: "/assets/books/mining.webp",
     description: "Deep excavation methods, unlocking mines and the workshop.",
     prices: [{ name: "science", val: 500 }],
     unlocks: {
@@ -132,14 +132,14 @@ export const TECH_DEFS: readonly TechDef[] = [
   },
   {
     name: "metal",
-    iconPath: "/assets/techs/metal.webp",
+    iconPath: "/assets/books/metal.webp",
     description: "Basic metallurgy enabling smelters and iron tools.",
     prices: [{ name: "science", val: 900 }],
     unlocks: { buildings: ["smelter"], upgrades: ["huntingArmor"] },
   },
   {
     name: "animal",
-    iconPath: "/assets/techs/animal.webp",
+    iconPath: "/assets/books/animal.webp",
     description: "Domestication of animals, unlocking pastures and unicorn herding.",
     prices: [{ name: "science", val: 500 }],
     unlocks: {
@@ -155,14 +155,14 @@ export const TECH_DEFS: readonly TechDef[] = [
   },
   {
     name: "civil",
-    iconPath: "/assets/techs/civil.webp",
+    iconPath: "/assets/books/civil.webp",
     description: "Civil organisation enabling advanced social structures.",
     prices: [{ name: "science", val: 1500 }],
     unlocks: { tech: ["currency"] },
   },
   {
     name: "math",
-    iconPath: "/assets/techs/math.webp",
+    iconPath: "/assets/books/math.webp",
     description: "Mathematical foundations enabling academic research and celestial mechanics.",
     prices: [{ name: "science", val: 1000 }],
     unlocks: {
@@ -173,7 +173,7 @@ export const TECH_DEFS: readonly TechDef[] = [
   },
   {
     name: "construction",
-    iconPath: "/assets/techs/construction.webp",
+    iconPath: "/assets/books/construction.webp",
     description: "Masonry and carpentry unlocking log houses, warehouses, and lumber mills.",
     prices: [{ name: "science", val: 1300 }],
     effects: { queueCap: 1 },
@@ -195,7 +195,7 @@ export const TECH_DEFS: readonly TechDef[] = [
   },
   {
     name: "currency",
-    iconPath: "/assets/techs/currency.webp",
+    iconPath: "/assets/books/currency.webp",
     description: "Monetary system enabling trade posts and diplomacy.",
     prices: [{ name: "science", val: 2200 }],
     unlocks: {
@@ -206,7 +206,7 @@ export const TECH_DEFS: readonly TechDef[] = [
   },
   {
     name: "writing",
-    iconPath: "/assets/techs/writing.webp",
+    iconPath: "/assets/books/writing.webp",
     description: "Written language enabling amphitheatres and long-form knowledge storage.",
     prices: [{ name: "science", val: 3600 }],
     unlocks: {
@@ -255,7 +255,7 @@ export const TECH_DEFS: readonly TechDef[] = [
   },
   {
     name: "theology",
-    iconPath: "/assets/techs/theology.webp",
+    iconPath: "/assets/books/theology.webp",
     description: "Religious scholarship unlocking priests and celestial studies.",
     prices: [
       { name: "science", val: 20000 },

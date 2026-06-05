@@ -322,7 +322,7 @@ describe("UI Parity Audit: Workshop Panel", () => {
   it("renders unlocked upgrades with purchase buttons", () => {
     render(<Wrap><WorkshopPanel state={lateGameState()} /></Wrap>);
     expect(screen.getByTestId("upgrade-ironAxes")).toBeTruthy();
-    expect(screen.getAllByRole("button", { name: /purchase/i }).length).toBeGreaterThan(0);
+    expect(screen.getAllByRole("button", { name: /buy/i }).length).toBeGreaterThan(0);
   });
 
   it("shows Done badge for researched upgrades", () => {
