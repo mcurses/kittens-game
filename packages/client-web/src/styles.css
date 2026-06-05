@@ -65,9 +65,9 @@
   --header-dim:      #6e6050;
 
   /* Text hierarchy */
-  --t1:   #1e180f;   /* primary */
-  --t2:   #6a5c48;   /* secondary */
-  --t3:   #9a8c78;   /* tertiary / label */
+  --t1:   #1e180f;   /* primary — ~12:1 on surface */
+  --t2:   #5a4a30;   /* secondary — ~5.5:1 on surface, WCAG AA pass */
+  --t3:   #6f6048;   /* tertiary / label — ~4.6:1 on surface, WCAG AA pass */
 
   /* Accent — burnished amber */
   --accent:          #c06a20;
@@ -90,13 +90,25 @@
   --ff-body:    'JetBrains Mono', ui-monospace, monospace;
   --ff-mono:    'JetBrains Mono', ui-monospace, monospace;
 
-  /* Type scale (legacy --text-*, kept in use) */
-  --text-2xs: 10px;
-  --text-xs:  11px;
-  --text-sm:  12px;
-  --text-md:  13px;
-  --text-base:14px;
-  --text-lg:  16px;
+  /* ── Semantic type scale (single source of truth) ──
+     Six roles, every component CSS should reference these by name.
+     11px is the floor — never set font-size below var(--type-micro). */
+  --type-display: 16px;  /* page titles, hero text (DePixel display) */
+  --type-heading: 14px;  /* panel labels, section heads */
+  --type-body:    13px;  /* default body, descriptions */
+  --type-label:   12px;  /* card titles, form labels */
+  --type-caption: 11px;  /* meta info, badges, counts */
+  --type-micro:   11px;  /* MINIMUM — values, costs (never below 11px) */
+
+  /* Legacy --text-* aliases — keep existing call-sites working but route
+     them through the semantic scale. --text-2xs used to be 10px (sub-11px)
+     and now folds up to caption (11px) for readability. */
+  --text-2xs: var(--type-caption);
+  --text-xs:  var(--type-caption);
+  --text-sm:  var(--type-label);
+  --text-md:  var(--type-body);
+  --text-base: var(--type-heading);
+  --text-lg:  var(--type-display);
   --text-xl:  18px;
   --text-2xl: 22px;
   --text-3xl: 28px;
@@ -212,7 +224,7 @@ body {
 
 .app-title {
   font-family: var(--ff-display);
-  font-size: 15px;
+  font-size: var(--type-display);
   font-weight: 600;
   letter-spacing: 0.10em;
   color: var(--header-text);
@@ -602,7 +614,7 @@ body {
 
 .btn:active:not(:disabled)  { transform: scale(0.96); }
 .btn:disabled {
-  opacity: 0.38;
+  opacity: 0.55;
   cursor: not-allowed;
   transform: none !important;
 }
@@ -1392,7 +1404,8 @@ html[data-card-size="large"] {
 
 @container card (max-width: 180px) {
   .item-card__footer-primary .item-prices {
-    font-size: 9px;
+    /* No font-size override here — keep at var(--type-caption, 11px) for legibility.
+       Tighten line-height + letter-spacing instead if more compactness is needed. */
     line-height: 1.2;
   }
 }
@@ -1857,7 +1870,7 @@ html[data-card-size="large"] {
 }
 
 .tech-card__cost {
-  font-size: 10px;
+  font-size: var(--type-caption);
   color: var(--t2);
   line-height: 1.3;
 }
@@ -1944,7 +1957,7 @@ html[data-card-size="large"] {
   word-break: break-word;
 }
 .upgrade-card__cost {
-  font-size: 10px;
+  font-size: var(--type-caption);
   color: var(--t2);
   line-height: 1.3;
 }
@@ -2573,13 +2586,13 @@ span.resource-icon--lg { font-size: 40px; }
 .inspector-stat-row dd.stat-neg { color: #e07070; }
 
 .inspector-effect-key {
-  font-size: 10px !important;
-  opacity: 0.9;
+  font-size: var(--type-caption);
+  color: var(--t2);
 }
 
 .inspector-notice {
   font-size: var(--text-xs);
-  color: rgba(220,208,182,.5);
+  color: var(--t2);
   font-family: var(--ff-mono);
   border-top: 1px solid rgba(255,255,255,.05);
   padding-top: var(--sp-1);
@@ -2745,8 +2758,8 @@ span.resource-icon--lg { font-size: 40px; }
 
 .log-entry {
   font-family: var(--ff-mono);
-  font-size: 11px;
-  color: rgba(220,208,182,.55);
+  font-size: var(--type-caption);
+  color: var(--t2);
   line-height: 1.5;
   padding: 1px 0;
   animation: logIn 180ms ease-out;
@@ -3136,4 +3149,33 @@ span.resource-icon--lg { font-size: 40px; }
 .toolbar-sorrow.max {
   color: #e74c3c;
   font-weight: bold;
+}
+
+/* ── Reduced-motion preference ────────────────────────────────────────────
+   Respects user's OS-level "reduce motion" setting (Settings → Accessibility
+   → Reduce motion). Disables transitions and animations across the board so
+   nothing animates unexpectedly for vestibular-sensitive users. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ── Focus-visible safety net ─────────────────────────────────────────────
+   Most interactive elements have explicit :focus-visible rules already
+   (.btn, .btn-select, .village-info__name). This catch-all ensures inputs,
+   selects, textareas, anchors and any [tabindex]'d element show the same
+   accent ring when keyboard-focused, without affecting mouse-click focus. */
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+a:focus-visible,
+[tabindex]:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-ring-offset);
 }

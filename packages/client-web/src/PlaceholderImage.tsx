@@ -38,12 +38,19 @@ export function PlaceholderImage({
 
   const showImage = src !== undefined && !imgFailed;
 
+  // Decorative image (no caller-supplied alt): mark as presentational so
+  // screen readers skip it. With an alt, expose it as content.
+  const isDecorative = alt === "";
+  const imgA11y = isDecorative
+    ? ({ alt: "", role: "presentation" as const })
+    : ({ alt });
+
   return (
     <div className={classes} data-testid="placeholder-image" data-variant={variant}>
       {showImage && (
         <img
           src={src}
-          alt={alt}
+          {...imgA11y}
           className="placeholder-image__img"
           onError={() => setImgFailed(true)}
           data-testid="placeholder-image-img"

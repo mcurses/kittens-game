@@ -437,10 +437,23 @@ function ResourceItem({
 
   const itemClass = getItemClass(resource.name, highlightMap, affectedSet);
 
+  const ariaLabel = (() => {
+    const parts: string[] = [`${resource.name}: ${formatValue(resource.value)}`];
+    if (resource.maxValue !== undefined && resource.maxValue > 0) {
+      parts.push(`of ${formatValue(resource.maxValue)} maximum`);
+    }
+    if (resource.perTick !== undefined && resource.perTick !== 0) {
+      const sign = resource.perTick > 0 ? "+" : "";
+      parts.push(`${sign}${resource.perTick.toFixed(3)} per tick`);
+    }
+    return parts.join(", ");
+  })();
+
   return (
     <li
       data-testid={`resource-${resource.name}`}
       className={itemClass}
+      aria-label={ariaLabel}
       onMouseEnter={handleInspect}
       onMouseLeave={clearInspected}
       onFocus={handleInspect}
