@@ -251,6 +251,94 @@ export function JobsPanel({ state }: Props): React.ReactElement {
           <div className="panel-sublabel">Management</div>
         </div>
       )}
+      <div className="panel-label">Job Assignments</div>
+      {!visibility.village.jobsVisible || visibleJobs.length === 0 ? (
+        <p className="panel-empty">No jobs available.</p>
+      ) : (
+        <ul className="item-list">
+          {visibleJobs.map((j) => (
+            <li key={j.name} data-testid={`job-${j.name}`} className="item-row job-row"
+              onMouseEnter={() => setInspected(buildJobEntity(j.name))}
+              onMouseLeave={clearInspected}
+            >
+              <div className="job-row__head">
+                <ResourceIcon name={j.name} size="lg" className="job-row__icon" aria-label={j.name} />
+                <div className="job-row__title">
+                  <span className="item-row-name job-name">{j.name}</span>
+                  {JOB_FLAVOR[j.name] && (
+                    <span className="job-flavor">{JOB_FLAVOR[j.name]}</span>
+                  )}
+                </div>
+              </div>
+              <div className="job-row__controls">
+                <div className="job-stepper">
+                <button
+                  type="button"
+                  className="btn btn--secondary btn--xs"
+                  data-testid={`job-${j.name}-unassign-all`}
+                  disabled={isPending || j.value <= 0}
+                  onClick={() => mutate({ type: "UNASSIGN_JOB", job: j.name, count: j.value })}
+                  aria-label={`Remove all kittens from ${j.name}`}
+                >
+                  −All
+                </button>
+                <button
+                  type="button"
+                  className="btn btn--secondary btn--xs"
+                  data-testid={`job-${j.name}-unassign-5`}
+                  disabled={isPending || j.value <= 0}
+                  onClick={() => mutate({ type: "UNASSIGN_JOB", job: j.name, count: Math.min(5, j.value) })}
+                  aria-label={`Remove 5 kittens from ${j.name}`}
+                >
+                  −5
+                </button>
+                <button
+                  type="button"
+                  className="btn btn--secondary btn--icon"
+                  data-testid={`job-${j.name}-unassign`}
+                  disabled={isPending || j.value <= 0}
+                  onClick={() => mutate({ type: "UNASSIGN_JOB", job: j.name })}
+                  aria-label={`Remove kittens from ${j.name}`}
+                >
+                  −
+                </button>
+                <span className="job-count-display job-count">{j.value}</span>
+                <button
+                  type="button"
+                  className="btn btn--secondary btn--icon"
+                  data-testid={`job-${j.name}-assign`}
+                  disabled={isPending || freeKittens <= 0}
+                  onClick={(e) => mutate({ type: "ASSIGN_JOB", job: j.name, ...(e.shiftKey ? { count: freeKittens } : {}) })}
+                  aria-label={`Assign kittens to ${j.name}`}
+                >
+                  +
+                </button>
+                <button
+                  type="button"
+                  className="btn btn--secondary btn--xs"
+                  data-testid={`job-${j.name}-assign-5`}
+                  disabled={isPending || freeKittens <= 0}
+                  onClick={() => mutate({ type: "ASSIGN_JOB", job: j.name, count: Math.min(5, freeKittens) })}
+                  aria-label={`Assign 5 kittens to ${j.name}`}
+                >
+                  +5
+                </button>
+                <button
+                  type="button"
+                  className="btn btn--secondary btn--xs"
+                  data-testid={`job-${j.name}-assign-all`}
+                  disabled={isPending || freeKittens <= 0}
+                  onClick={() => mutate({ type: "ASSIGN_JOB", job: j.name, count: freeKittens })}
+                  aria-label={`Assign all free kittens to ${j.name}`}
+                >
+                  +All
+                </button>
+                </div>
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
       {visibility.village.censusVisible && (() => {
         const sim = extractSim(state);
         // Filter
@@ -389,85 +477,6 @@ export function JobsPanel({ state }: Props): React.ReactElement {
           </div>
         );
       })()}
-      <div className="panel-label">Job Assignments</div>
-      {!visibility.village.jobsVisible || visibleJobs.length === 0 ? (
-        <p className="panel-empty">No jobs available.</p>
-      ) : (
-        <ul className="item-list">
-          {visibleJobs.map((j) => (
-            <li key={j.name} data-testid={`job-${j.name}`} className="item-row job-row"
-              onMouseEnter={() => setInspected(buildJobEntity(j.name))}
-              onMouseLeave={clearInspected}
-            >
-              <ResourceIcon name={j.name} size="md" className="job-row__icon" aria-label={j.name} />
-              <span className="item-row-name job-name">{j.name}</span>
-              <div className="job-stepper">
-                <button
-                  type="button"
-                  className="btn btn--secondary btn--xs"
-                  data-testid={`job-${j.name}-unassign-all`}
-                  disabled={isPending || j.value <= 0}
-                  onClick={() => mutate({ type: "UNASSIGN_JOB", job: j.name, count: j.value })}
-                  aria-label={`Remove all kittens from ${j.name}`}
-                >
-                  −All
-                </button>
-                <button
-                  type="button"
-                  className="btn btn--secondary btn--xs"
-                  data-testid={`job-${j.name}-unassign-5`}
-                  disabled={isPending || j.value <= 0}
-                  onClick={() => mutate({ type: "UNASSIGN_JOB", job: j.name, count: Math.min(5, j.value) })}
-                  aria-label={`Remove 5 kittens from ${j.name}`}
-                >
-                  −5
-                </button>
-                <button
-                  type="button"
-                  className="btn btn--secondary btn--icon"
-                  data-testid={`job-${j.name}-unassign`}
-                  disabled={isPending || j.value <= 0}
-                  onClick={() => mutate({ type: "UNASSIGN_JOB", job: j.name })}
-                  aria-label={`Remove kittens from ${j.name}`}
-                >
-                  −
-                </button>
-                <span className="job-count-display job-count">{j.value}</span>
-                <button
-                  type="button"
-                  className="btn btn--secondary btn--icon"
-                  data-testid={`job-${j.name}-assign`}
-                  disabled={isPending || freeKittens <= 0}
-                  onClick={(e) => mutate({ type: "ASSIGN_JOB", job: j.name, ...(e.shiftKey ? { count: freeKittens } : {}) })}
-                  aria-label={`Assign kittens to ${j.name}`}
-                >
-                  +
-                </button>
-                <button
-                  type="button"
-                  className="btn btn--secondary btn--xs"
-                  data-testid={`job-${j.name}-assign-5`}
-                  disabled={isPending || freeKittens <= 0}
-                  onClick={() => mutate({ type: "ASSIGN_JOB", job: j.name, count: Math.min(5, freeKittens) })}
-                  aria-label={`Assign 5 kittens to ${j.name}`}
-                >
-                  +5
-                </button>
-                <button
-                  type="button"
-                  className="btn btn--secondary btn--xs"
-                  data-testid={`job-${j.name}-assign-all`}
-                  disabled={isPending || freeKittens <= 0}
-                  onClick={() => mutate({ type: "ASSIGN_JOB", job: j.name, count: freeKittens })}
-                  aria-label={`Assign all free kittens to ${j.name}`}
-                >
-                  +All
-                </button>
-              </div>
-            </li>
-          ))}
-        </ul>
-      )}
     </div>
   );
 }

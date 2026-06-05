@@ -285,12 +285,29 @@ body {
   background: var(--surface);
 }
 
-.resource-panel-header {
+/* Shared header layout for panel tops with a heading on the left and a
+   control (toggle, button) on the right. ResourcePanel uses the base class;
+   Science/Workshop add --titled to inherit the .panel-label underline. */
+.panel-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: var(--sp-3);
   padding: var(--sp-3) var(--sp-3) var(--sp-2);
   flex-shrink: 0;
+}
+
+/* Variant: tab-level header that takes over the .panel-label's underline so
+   the separator spans the full row, not just the heading text. */
+.panel-header--titled {
+  padding: 0 0 var(--sp-2);
+  margin-bottom: var(--sp-4);
+  border-bottom: 1px solid var(--border);
+}
+.panel-header--titled > .panel-label {
+  margin: 0;
+  padding: 0;
+  border-bottom: none;
 }
 
 .resource-panel-label {
@@ -1186,23 +1203,19 @@ html[data-card-size="large"] {
   grid-template-columns: 18px 1fr auto;
   gap: var(--sp-2);
   align-items: center;
-  font-size: var(--text-sm);
-  font-family: var(--ff-mono);
-  color: var(--header-text, #c9b88c);
+  font-size: var(--text-2xs);
+  color: var(--t2);
+  line-height: 1.3;
   min-width: 0;
 }
 .item-price-row__name {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-family: var(--ff-display);
-  text-transform: capitalize;
-  font-size: var(--text-xs);
-  letter-spacing: 0.04em;
-  color: rgba(220, 208, 182, 0.65);
 }
 .item-price-row__val {
   text-align: right;
+  font-variant-numeric: tabular-nums;
 }
 .item-price-row__val.stat-pos { color: #6fc98a; }
 .item-price-row__val.stat-neg { color: #e07070; }
@@ -1563,11 +1576,16 @@ html[data-card-size="large"] {
 .village-info {
   position: relative;
   width: 100%;
+  /* Cap the 16:9 hero at 50vh tall so it never dominates the tab on high
+     viewports. max-width = corresponding width at 50vh keeps margin-inline:auto
+     centering effective when the parent is wider than that ceiling. */
+  max-width: calc(50vh * 16 / 9);
   aspect-ratio: 16 / 9;
+  margin-inline: auto;
+  margin-bottom: var(--sp-4);
   border-radius: var(--r-lg);
   border: 1px solid var(--border-subtle);
   overflow: hidden;
-  margin-bottom: var(--sp-4);
   background: var(--surface);
 }
 .village-info__map {
@@ -2190,6 +2208,51 @@ html[data-card-size="large"] {
 }
 
 /* ── Jobs Panel ──────────────────────────────────────────── */
+/* Job rows override the default flex layout from .item-row with a two-track
+   grid: [head: icon + title + flavor] | [controls: stepper]. */
+.item-row.job-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: var(--sp-3);
+  align-items: center;
+}
+
+.job-row__head {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  min-width: 0;
+}
+
+.job-row__title {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.job-row .job-name {
+  /* span sits inside .job-row__title now; cancel the flex:1 inherited from
+     .item-row-name so it width-shrinks instead of stretching the title column. */
+  flex: none;
+}
+
+.job-flavor {
+  font-size: var(--text-2xs);
+  color: var(--t3);
+  font-style: italic;
+  line-height: 1.3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.job-row__controls {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
 .job-stepper {
   display: flex;
   align-items: center;
@@ -2199,9 +2262,15 @@ html[data-card-size="large"] {
   justify-content: flex-end;
 }
 
-/* On narrow viewports, hide the ±All chips so the core stepper still fits.
-   The rest of the buttons (−5, −, count, +, +5) stay reachable. */
+/* On narrow viewports, stack controls under the title block and hide the ±All
+   chips so the core stepper still fits. */
 @media (max-width: 768px) {
+  .item-row.job-row {
+    grid-template-columns: 1fr;
+  }
+  .job-row__controls {
+    justify-content: flex-end;
+  }
   .job-stepper > button[data-testid$="-unassign-all"],
   .job-stepper > button[data-testid$="-assign-all"] {
     display: none;

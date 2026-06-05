@@ -192,7 +192,7 @@ export function ResourcePanel({ state }: Props): React.ReactElement {
 
   return (
     <>
-      <div className="resource-panel-header">
+      <div className="panel-header">
         <span className="resource-panel-label">Resources</span>
         <button
           type="button"

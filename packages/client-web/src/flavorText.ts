@@ -96,6 +96,11 @@ export const JOB_FLAVOR: Record<string, string> = {
   hunter: "We're so cute we purr at our prey until it dies",
   miner: "I don't really understand how can I hold a pick with my paws",
   woodcutter: "Must. Not. Scratch.",
+  farmer: "Cultivates catnip with whiskered patience",
+  scholar: "Reads the book, naps on it after",
+  geologist: "Sniffs out coal seams; ignores the rocks",
+  priest: "Whisker-prayers for tomorrow's tuna",
+  engineer: "Operates the machines that operate the kittens",
 };
 
 export const POLICY_FLAVOR: Record<string, string> = {

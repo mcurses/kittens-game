@@ -157,16 +157,18 @@ export function WorkshopPanel({ state }: Props): React.ReactElement {
 
   return (
     <div data-testid="workshop-panel">
-      <div className="panel-label">Upgrades</div>
-      <label className="toggle-label" data-testid="workshop-hide-researched-label">
-        <input
-          type="checkbox"
-          data-testid="workshop-hide-researched"
-          checked={hideResearched}
-          onChange={(e) => setHideResearched(e.target.checked)}
-        />
-        {" Hide researched"}
-      </label>
+      <div className="panel-header panel-header--titled">
+        <span className="panel-label">Upgrades</span>
+        <label className="toggle-label" data-testid="workshop-hide-researched-label">
+          <input
+            type="checkbox"
+            data-testid="workshop-hide-researched"
+            checked={hideResearched}
+            onChange={(e) => setHideResearched(e.target.checked)}
+          />
+          {" Hide researched"}
+        </label>
+      </div>
       {visibleUpgrades.length === 0 ? (
         <p className="panel-empty">No upgrades available.</p>
       ) : (

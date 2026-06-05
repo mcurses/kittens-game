@@ -137,16 +137,18 @@ export function SciencePanel({ state }: Props): React.ReactElement {
   return (
     <div data-testid="science-panel">
       {/* ── Technologies ── */}
-      <div className="panel-label">Technologies</div>
-      <label className="toggle-label" data-testid="science-hide-researched-label">
-        <input
-          type="checkbox"
-          data-testid="science-hide-researched"
-          checked={hideResearched}
-          onChange={(e) => setHideResearched(e.target.checked)}
-        />
-        {" Hide researched"}
-      </label>
+      <div className="panel-header panel-header--titled">
+        <span className="panel-label">Technologies</span>
+        <label className="toggle-label" data-testid="science-hide-researched-label">
+          <input
+            type="checkbox"
+            data-testid="science-hide-researched"
+            checked={hideResearched}
+            onChange={(e) => setHideResearched(e.target.checked)}
+          />
+          {" Hide researched"}
+        </label>
+      </div>
       {visibleTechs.length === 0 ? (
         <p className="panel-empty">No technologies available.</p>
       ) : (
