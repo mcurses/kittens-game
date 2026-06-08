@@ -11,7 +11,8 @@
   "scripts": {
     "build": "tsc --project tsconfig.json",
     "test": "vitest --run --reporter=verbose src",
-    "dev": "bun run bin/kittens.ts"
+    "dev": "bun run bin/kittens.ts",
+    "gen:asset": "bun --env-file=../../.env src/generate-asset-gemini.ts"
   },
   "dependencies": {
     "commander": "^11.1.0",

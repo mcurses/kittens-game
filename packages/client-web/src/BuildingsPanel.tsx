@@ -156,18 +156,12 @@ function groupBuildings(buildings: readonly BuildingEntry[]): Array<{
 
 type BuildingFilter = "all" | "available" | "enabled" | "togglable";
 
-/**
- * Buildings rendered with the alternative wide-card layout (image left, info right).
- * Used for buildings whose multi-resource cost crowds the default footer-strip.
- * Keep this list small — it's a visual A/B for now, not a default style.
- */
-const WIDE_LAYOUT_BUILDINGS = new Set<string>([
-  "logHouse",
-  "academy",
-  "lumberMill",
-  "smelter",
-  "workshop",
-]);
+/** Compose an aria-label summarising the price list so screen readers still
+ *  hear the numbers even though the footer renders only icons. */
+function pricesAriaLabel(prices: readonly { name: string; val: number }[]): string {
+  if (prices.length === 0) return "";
+  return "Cost: " + prices.map((p) => `${p.val.toFixed(0)} ${p.name}`).join(", ");
+}
 
 const FILTER_TABS: { key: BuildingFilter; label: string }[] = [
   { key: "all", label: "All" },
@@ -254,14 +248,12 @@ export function BuildingsPanel({ state }: Props): React.ReactElement {
                   const canDowngrade = hasStages && currentStage > 0;
 
                   const isPinnedHere = pinned?.kind === "building" && pinned.name === b.name;
-                  const isWide = WIDE_LAYOUT_BUILDINGS.has(b.name);
                   return (
                     <li
                       key={b.name}
                       data-testid={`building-${b.name}`}
                       className="item-card"
                       data-pinned={isPinnedHere ? "true" : "false"}
-                      data-layout={isWide ? "wide" : "default"}
                       onClick={(e) => {
                         const t = e.target as HTMLElement;
                         if (t.closest("button, input, select, a, [data-no-pin]")) return;
@@ -353,46 +345,15 @@ export function BuildingsPanel({ state }: Props): React.ReactElement {
                         </div>
                       )}
 
-                      {isWide && (
-                        <div className="item-card__info-wide">
-                          {prices.length > 0 && (
-                            <ul className="item-prices-wide">
-                              {prices.map((p) => {
-                                const have = resources[p.name]?.value ?? 0;
-                                const ok = have >= p.val;
-                                return (
-                                  <li className="item-price-row" key={p.name}>
-                                    <ResourceIcon name={p.name} size="xs" />
-                                    <span className="item-price-row__name">{p.name}</span>
-                                    <span className={`item-price-row__val ${ok ? "stat-pos" : "stat-neg"}`}>
-                                      {p.val.toFixed(0)}
-                                    </span>
-                                  </li>
-                                );
-                              })}
-                            </ul>
-                          )}
-                          <button
-                            type="button"
-                            data-testid={`building-${b.name}-buy-wide`}
-                            className={`btn btn--sm item-card__wide-buy${affordable ? " btn--primary" : " btn--secondary"}${storageLimited ? " btn--limited" : ""}`}
-                            disabled={isPending || !affordable}
-                            onClick={() => mutate({ type: "BUY_BUILDING", name: b.name })}
-                          >
-                            Buy
-                          </button>
-                        </div>
-                      )}
-
                       <div className="item-card__footer">
                         <div className="item-card__footer-primary">
                           {prices.length > 0 && (
-                            <div className="item-prices building-prices">
-                              {prices.map((p, i) => (
-                                <span key={p.name}>
-                                  {i > 0 ? " · " : ""}
-                                  <ResourceIcon name={p.name} size="xs" /> {p.name} {p.val.toFixed(0)}
-                                </span>
+                            <div
+                              className="item-prices building-prices"
+                              aria-label={pricesAriaLabel(prices)}
+                            >
+                              {prices.map((p) => (
+                                <ResourceIcon key={p.name} name={p.name} size="xs" />
                               ))}
                             </div>
                           )}

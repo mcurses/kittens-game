@@ -1139,90 +1139,6 @@ html[data-card-size="large"] {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(min(var(--card-grid-min, 168px), 100%), 1fr));
   gap: var(--sp-3);
-  /* `dense` lets wide-cards (grid-column: span 2) snap into rows without leaving
-     trailing empty slots — the browser pulls following 1-col cards forward. */
-  grid-auto-flow: dense;
-}
-
-/* ── Wide-card layout (data-layout="wide") ─────────────────────────────────
-   Used by buildings whose multi-resource cost crowds the default footer-strip.
-   Image fills the left half full-height; info panel right half stacks
-   resource rows vertically with the Buy button pinned at the bottom. */
-.item-card[data-layout="wide"] {
-  grid-column: span 2;
-  aspect-ratio: 8 / 5;   /* width: 2 cols × cell-aspect 4:5 → row-height matches normal cards */
-  flex-direction: row;
-}
-
-.item-card[data-layout="wide"] .item-card__image {
-  flex: 0 0 50%;
-  height: auto;
-  align-self: stretch;
-}
-.item-card[data-layout="wide"] .item-card__image .placeholder-image__img {
-  object-position: 50% 50%;  /* centered, not bottom-pinned */
-}
-
-/* Title-overlay still sits on the image but only spans the left half. */
-.item-card[data-layout="wide"] .item-card__overlay-top {
-  right: 50%;
-}
-
-/* Hide the default footer in wide mode; the wide info panel replaces it. */
-.item-card[data-layout="wide"] .item-card__footer {
-  display: none;
-}
-
-.item-card__info-wide {
-  display: none;  /* hidden by default; only the wide-card variant shows it */
-}
-
-.item-card[data-layout="wide"] .item-card__info-wide {
-  display: flex;
-  flex: 1 1 50%;
-  flex-direction: column;
-  padding: var(--sp-3);
-  gap: var(--sp-2);
-  background: var(--card-bg, rgba(245, 232, 208, 0.06));
-  border-left: 1px solid rgba(0, 0, 0, 0.15);
-  min-width: 0;
-}
-
-.item-prices-wide {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: var(--sp-1);
-  min-width: 0;
-}
-
-.item-price-row {
-  display: grid;
-  grid-template-columns: 18px 1fr auto;
-  gap: var(--sp-2);
-  align-items: center;
-  font-size: var(--text-2xs);
-  color: var(--t2);
-  line-height: 1.3;
-  min-width: 0;
-}
-.item-price-row__name {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.item-price-row__val {
-  text-align: right;
-  font-variant-numeric: tabular-nums;
-}
-.item-price-row__val.stat-pos { color: #6fc98a; }
-.item-price-row__val.stat-neg { color: #e07070; }
-
-.item-card__wide-buy {
-  margin-top: auto;
-  width: 100%;
 }
 
 /* Per-card image slot — flex-child taking remaining card space above footer */
@@ -1426,6 +1342,279 @@ html[data-card-size="large"] {
 .item-card__footer .item-prices {
   font-size: var(--text-2xs);
   color: var(--t2);
+}
+
+/* ── Census section header ───────────────────────────────── */
+.census-count {
+  display: inline-block;
+  margin-left: var(--sp-1);
+  font-size: var(--type-caption);
+  font-family: var(--ff-mono);
+  color: var(--t3);
+  font-weight: 400;
+  letter-spacing: 0.04em;
+}
+
+/* ── Featured Citizens top-strip (compact-mode only) ─────── */
+.featured-strip {
+  margin: var(--sp-2) 0 var(--sp-3);
+  padding: var(--sp-2) var(--sp-3);
+  background: rgba(196, 130, 50, 0.06);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--r-md);
+}
+.featured-strip__label {
+  font-family: var(--ff-display);
+  font-size: var(--type-caption);
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--t2);
+  margin-bottom: var(--sp-2);
+}
+.featured-strip__row {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  gap: var(--sp-2);
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+.featured-citizen {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: var(--sp-1) var(--sp-2);
+  min-width: 0;
+  flex: 0 0 auto;
+  background: var(--surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--r-sm);
+  cursor: pointer;
+  transition: border-color var(--ease-mid), box-shadow var(--ease-mid);
+}
+.featured-citizen:hover,
+.featured-citizen:focus-within {
+  border-color: var(--accent);
+  box-shadow: var(--card-elevation-hover);
+}
+.featured-citizen__avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--r-sm);
+  object-fit: cover;
+  image-rendering: pixelated;
+  flex: 0 0 36px;
+}
+.featured-citizen__meta {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.featured-citizen__name {
+  font-family: var(--ff-display);
+  font-size: var(--type-label);
+  font-weight: 600;
+  color: var(--t1);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 14ch;
+}
+.featured-citizen__job {
+  font-size: var(--type-caption);
+  color: var(--t3);
+}
+
+/* ── Census quick-filter pills (compact-mode only) ───────── */
+.census-pills {
+  display: flex;
+  gap: var(--sp-1);
+  flex-wrap: wrap;
+  margin: var(--sp-2) 0;
+}
+.census-pill {
+  font-family: var(--ff-display);
+  font-size: var(--type-caption);
+  letter-spacing: 0.06em;
+  padding: var(--sp-1) var(--sp-2);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--r-full);
+  background: var(--surface);
+  color: var(--t2);
+  cursor: pointer;
+  transition: border-color var(--ease-mid), background var(--ease-mid), color var(--ease-mid);
+}
+.census-pill:hover {
+  border-color: var(--accent);
+  color: var(--t1);
+}
+.census-pill--active {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--accent-fg, var(--t1));
+}
+.census-pill:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-ring-offset);
+}
+
+/* ── Compact rows (Census ≥ CENSUS_COMPACT_THRESHOLD) ────── */
+.census-rows {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  /* Each row is its own container query scope so we can hide columns
+     based on the row's own width rather than the viewport. */
+}
+.census-row {
+  container: row / inline-size;
+  display: grid;
+  grid-template-columns:
+    28px                       /* avatar */
+    minmax(100px, 1.4fr)       /* name */
+    minmax(60px, 0.8fr)        /* job */
+    minmax(60px, 0.8fr)        /* trait */
+    44px                       /* rank */
+    56px                       /* xp */
+    minmax(0, 2fr)             /* story-hint (collapses first) */
+    32px;                      /* actions menu */
+  column-gap: var(--sp-2);
+  align-items: center;
+  padding: var(--sp-1) var(--sp-2);
+  background: var(--surface);
+  border: 1px solid transparent;
+  border-radius: var(--r-sm);
+  font-size: var(--type-caption);
+  color: var(--t2);
+  cursor: pointer;
+  transition: background var(--ease-mid), border-color var(--ease-mid);
+  min-height: 36px;
+}
+.census-row:hover,
+.census-row:focus-within {
+  background: var(--surface-hover, var(--surface));
+  border-color: var(--border-subtle);
+}
+.census-row[data-pinned="true"] {
+  border-color: var(--accent);
+}
+.census-row--leader { box-shadow: inset 3px 0 0 0 var(--accent); }
+.census-row--fav { box-shadow: inset 3px 0 0 0 #e07070; }
+.census-row--leader.census-row--fav {
+  box-shadow: inset 3px 0 0 0 var(--accent), inset 6px 0 0 0 #e07070;
+}
+
+.census-row__avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: var(--r-sm);
+  object-fit: cover;
+  image-rendering: pixelated;
+}
+.census-row__name {
+  font-family: var(--ff-display);
+  font-size: var(--type-label);
+  color: var(--t1);
+  display: flex;
+  align-items: baseline;
+  gap: var(--sp-1);
+  min-width: 0;
+}
+.census-row__name-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.census-row__leader-mark { color: var(--accent); font-size: var(--type-caption); }
+.census-row__fav-mark { color: #e07070; font-size: var(--type-caption); }
+
+.census-row__job {
+  font-family: var(--ff-mono);
+  color: var(--t2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.census-row__trait {
+  font-family: var(--ff-mono);
+  color: var(--t3);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.census-row__rank,
+.census-row__xp {
+  font-family: var(--ff-mono);
+  color: var(--t2);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.census-row__story {
+  font-style: italic;
+  color: var(--t3);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Row-internal container query: drop columns as the row narrows. */
+@container row (max-width: 720px) { .census-row__story { display: none; } }
+@container row (max-width: 560px) { .census-row__xp { display: none; } }
+@container row (max-width: 480px) { .census-row__rank { display: none; } }
+@container row (max-width: 400px) { .census-row__trait { display: none; } }
+@container row (max-width: 340px) { .census-row__job { display: none; } }
+
+.census-row__actions {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+.census-row__menu-btn {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  font-size: var(--type-display);
+  line-height: 1;
+  color: var(--t2);
+}
+.census-row__menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  z-index: 10;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  box-shadow: var(--card-elevation-hover);
+  min-width: 140px;
+  padding: var(--sp-1) 0;
+  display: flex;
+  flex-direction: column;
+}
+.census-row__menu-item {
+  background: none;
+  border: none;
+  text-align: left;
+  padding: var(--sp-1) var(--sp-2);
+  font-family: var(--ff-display);
+  font-size: var(--type-caption);
+  color: var(--t1);
+  cursor: pointer;
+}
+.census-row__menu-item:hover,
+.census-row__menu-item:focus-visible {
+  background: var(--accent-soft);
+}
+.census-row__menu-item:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
 }
 
 /* ── Census Cards (kittens) ──────────────────────────────── */
@@ -2067,6 +2256,13 @@ html[data-card-size="large"] {
   color: var(--t3);
   line-height: 1.6;
   flex: 1;
+  /* Footer shows only resource icons now (no labels, no numbers). The
+     gap keeps them visually distinct; numeric details live in the
+     Inspector when the card is hovered or pinned. */
+  display: flex;
+  align-items: center;
+  gap: var(--sp-1);
+  flex-wrap: wrap;
 }
 
 /* ── List Layout (Science, Workshop, etc.) ───────────────── */
