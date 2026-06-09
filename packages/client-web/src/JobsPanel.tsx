@@ -72,9 +72,11 @@ interface CensusKitten {
   traitFlavor?: string;
   lifeEvents?: Array<{ year: number; kind: string; text: string }>;
   portraitPath?: string | null;
+  motherId?: string | null;
+  fatherId?: string | null;
 }
 
-function buildKittenEntity(k: CensusKitten): KittenEntity {
+function buildKittenEntity(k: CensusKitten, kittenNameById?: Record<string, string>): KittenEntity {
   return {
     kind: "kitten",
     id: k.id,
@@ -93,6 +95,9 @@ function buildKittenEntity(k: CensusKitten): KittenEntity {
     traitFlavor: k.traitFlavor ?? "",
     lifeEvents: k.lifeEvents ?? [],
     portraitPath: k.portraitPath ?? null,
+    motherId: k.motherId ?? null,
+    fatherId: k.fatherId ?? null,
+    ...(kittenNameById ? { kittenNameById } : {}),
   };
 }
 
@@ -323,7 +328,7 @@ export function JobsPanel({ state }: Props): React.ReactElement {
               onMouseLeave={clearInspected}
             >
               <div className="job-row__head">
-                <ResourceIcon name={j.name} size="lg" className="job-row__icon" aria-label={j.name} />
+                <ResourceIcon name={j.name} size="xl" className="job-row__icon" aria-label={j.name} />
                 <div className="job-row__title">
                   <span className="item-row-name job-name">{j.name}</span>
                   {JOB_FLAVOR[j.name] && (
@@ -522,6 +527,12 @@ function CensusSection(props: CensusSectionProps): React.ReactElement {
     [sim],
   );
   const traitsInPop = React.useMemo(() => [...new Set(sim.map((k) => k.trait))].sort(), [sim]);
+  // Lookup for clickable parent links in the inspector.
+  const kittenNameById = React.useMemo(() => {
+    const out: Record<string, string> = {};
+    for (const k of sim) out[k.id] = `${k.name} ${k.surname}`.trim();
+    return out;
+  }, [sim]);
 
   return (
     <div data-testid="village-census" className="panel-subsection">
@@ -535,6 +546,7 @@ function CensusSection(props: CensusSectionProps): React.ReactElement {
           setInspected={setInspected}
           clearInspected={clearInspected}
           setPinned={setPinned}
+          kittenNameById={kittenNameById}
         />
       )}
 
@@ -587,6 +599,7 @@ function CensusSection(props: CensusSectionProps): React.ReactElement {
               setPinned={setPinned}
               mutate={mutate}
               isPending={isPending}
+              kittenNameById={kittenNameById}
             />
           ))}
         </ul>
@@ -601,6 +614,7 @@ function CensusSection(props: CensusSectionProps): React.ReactElement {
               setPinned={setPinned}
               mutate={mutate}
               isPending={isPending}
+              kittenNameById={kittenNameById}
             />
           ))}
         </ul>
@@ -630,10 +644,11 @@ interface KittenItemProps {
   setPinned: (entity: KittenEntity | null) => void;
   mutate: ReturnType<typeof useGameAction>["mutate"];
   isPending: boolean;
+  kittenNameById?: Record<string, string>;
 }
 
-function CensusCard({ k, setInspected, clearInspected, setPinned, mutate, isPending }: KittenItemProps): React.ReactElement {
-  const kittenEntity = buildKittenEntity(k);
+function CensusCard({ k, setInspected, clearInspected, setPinned, mutate, isPending, kittenNameById }: KittenItemProps): React.ReactElement {
+  const kittenEntity = buildKittenEntity(k, kittenNameById);
   return (
     <li
       data-testid={`census-kitten-${k.id}`}
@@ -695,8 +710,8 @@ function CensusCard({ k, setInspected, clearInspected, setPinned, mutate, isPend
   );
 }
 
-function CompactKittenRow({ k, setInspected, clearInspected, setPinned, mutate, isPending }: KittenItemProps): React.ReactElement {
-  const kittenEntity = buildKittenEntity(k);
+function CompactKittenRow({ k, setInspected, clearInspected, setPinned, mutate, isPending, kittenNameById }: KittenItemProps): React.ReactElement {
+  const kittenEntity = buildKittenEntity(k, kittenNameById);
   const [menuOpen, setMenuOpen] = React.useState(false);
   const storyHint = newestLifeEventText(k) ?? originShorthand(k);
 
@@ -774,15 +789,16 @@ interface FeaturedStripProps {
   setInspected: (entity: KittenEntity) => void;
   clearInspected: () => void;
   setPinned: (entity: KittenEntity | null) => void;
+  kittenNameById?: Record<string, string>;
 }
 
-function FeaturedCitizensStrip({ featured, setInspected, clearInspected, setPinned }: FeaturedStripProps): React.ReactElement {
+function FeaturedCitizensStrip({ featured, setInspected, clearInspected, setPinned, kittenNameById }: FeaturedStripProps): React.ReactElement {
   return (
     <div className="featured-strip" data-testid="featured-citizens">
       <div className="featured-strip__label">Featured Citizens</div>
       <ul className="featured-strip__row">
         {featured.map((k) => {
-          const entity = buildKittenEntity(k);
+          const entity = buildKittenEntity(k, kittenNameById);
           return (
             <li
               key={k.id}

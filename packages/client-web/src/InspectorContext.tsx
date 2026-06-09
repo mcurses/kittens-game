@@ -184,6 +184,12 @@ export interface KittenEntity {
   traitFlavor: string;
   lifeEvents: KittenLifeEventView[];
   portraitPath: string | null;
+  /** Mother's kitten id, or null if seed/legacy. */
+  motherId: string | null;
+  /** Father's kitten id, or null if seed/legacy. */
+  fatherId: string | null;
+  /** Optional lookup table {kittenId → name+surname} for clickable parent links. Built by caller from village.sim. */
+  kittenNameById?: Record<string, string>;
 }
 
 export type InspectorEntity =

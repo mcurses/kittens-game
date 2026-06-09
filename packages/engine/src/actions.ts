@@ -20,8 +20,38 @@ import { applySendEmbassy, applyTrade } from "./diplomacy.js";
 import { applyBuySpaceBuilding, applyLaunchMission } from "./space.js";
 import { applyBuyCfu, applyBuyVsu, applyShatterTc } from "./time.js";
 import type { GameState } from "./state.js";
-import { JOB_DEFS, applyHunt, applyHoldFestival, applyPromoteKitten, applyRemoveLeader, applySetKittenPortrait, applySetLeader, applyToggleFavorite, applyUnassignKitten, sanitizeVillageName, totalAssignedKittens } from "./village.js";
-import { describeJobChange } from "./kittens/loreTemplates.js";
+import { JOB_DEFS, applyHunt, applyHoldFestival, applyMilestoneWitnesses, applyPromoteKitten, applyRemoveLeader, applySetKittenPortrait, applySetLeader, applyToggleFavorite, applyUnassignKitten, pickKittensForJob, sanitizeVillageName, totalAssignedKittens } from "./village.js";
+import type { KittenTrait } from "./village.js";
+import { describeJobAssigned, describeJobLeft, describeMilestoneBuilding, describeMilestoneResearch } from "./kittens/loreTemplates.js";
+
+/**
+ * Per-building trait affinity for milestone witness selection. The first
+ * matching trait carries the building's vocation — kittens with this trait
+ * are 2× weighted when picking who remembers the first time it was built.
+ * Buildings without an entry use an empty array (no preference).
+ */
+const BUILDING_MILESTONE_TRAITS: Record<string, readonly KittenTrait[]> = {
+  library: ["scientist"],
+  academy: ["scientist"],
+  observatory: ["scientist"],
+  bioLab: ["scientist", "chemist"],
+  smelter: ["metallurgist"],
+  calciner: ["metallurgist", "chemist"],
+  factory: ["engineer"],
+  steamworks: ["engineer"],
+  magneto: ["engineer"],
+  reactor: ["engineer", "chemist"],
+  aiCore: ["engineer", "scientist"],
+  mine: ["metallurgist"],
+  quarry: ["metallurgist"],
+  oilWell: ["engineer"],
+  amphitheatre: ["wise", "merchant"],
+  chapel: ["wise"],
+  temple: ["wise"],
+  ziggurat: ["wise"],
+  tradepost: ["merchant"],
+  mint: ["merchant"],
+};
 import { applyAssignCraftEngineer, applyCraft, applyPurchaseUpgrade, applyUnassignCraftEngineer, getAssignedCraftEngineers } from "./workshop.js";
 
 /** Discriminated union of all possible game actions */
@@ -117,7 +147,10 @@ export function applyAction(
 
       if (!canAfford(prices, state.resources)) return state;
 
-      return produce(state, (draft) => {
+      // First-time milestone marker: snapshot before increment.
+      const wasFirstEver = building.val === 0;
+
+      const next = produce(state, (draft) => {
         // Deduct resources
         for (const price of prices) {
           const entry = draft.resources[price.name];
@@ -131,6 +164,19 @@ export function applyAction(
         b.on += 1;
         draft.buildings[action.name] = b;
       });
+
+      // Witness-event only on the very first build, never on repeats —
+      // keeps the log meaningful instead of spammy.
+      if (wasFirstEver) {
+        return applyMilestoneWitnesses(
+          next,
+          `building:${action.name}`,
+          describeMilestoneBuilding,
+          BUILDING_MILESTONE_TRAITS[action.name] ?? [],
+          action.name,
+        );
+      }
+      return next;
     }
     case "ENABLE_BUILDING": {
       if (!BUILDING_DEFS.some((b) => b.name === action.name)) return state;
@@ -187,23 +233,27 @@ export function applyAction(
       const count = Math.min(action.count ?? 1, freeKittens);
       if (count <= 0) return state;
 
+      // Trait-affinity-aware pick: matched kittens first, then by skill.
+      // Each gets a lore line that reflects *why* they were chosen.
+      const picks = pickKittensForJob(state.village.sim, action.job, count);
+      const pickById = new Map(picks.map((p) => [p.id, p.score] as const));
+
       const year = state.calendar.year;
       return produce(state, (draft) => {
         const job = draft.village.jobs[action.job] ?? { value: 0 };
+        // Counter increments by full `count` to stay consistent with legacy state
+        // where `village.kittens` may exceed `sim.length` (older saves / tests).
         job.value += count;
         draft.village.jobs[action.job] = job;
-        // Assign individual kittens and log a job-change life event for each.
-        let remaining = count;
         for (const k of draft.village.sim) {
-          if (remaining <= 0) break;
-          if (k.job === null) {
-            k.job = action.job;
-            (k as { lifeEvents: { year: number; kind: string; text: string }[] }).lifeEvents = [
-              ...k.lifeEvents,
-              { year, kind: "jobChange", text: describeJobChange(action.job) },
-            ];
-            remaining--;
-          }
+          const score = pickById.get(k.id);
+          if (score === undefined) continue;
+          k.job = action.job;
+          const reason = score >= 1 ? "matchedTrait" : "reassigned";
+          (k as { lifeEvents: { year: number; kind: string; text: string }[] }).lifeEvents = [
+            ...k.lifeEvents,
+            { year, kind: "jobChange", text: describeJobAssigned(action.job, reason) },
+          ];
         }
       });
     }
@@ -220,6 +270,7 @@ export function applyAction(
         if (nextValue < getAssignedCraftEngineers(state)) return state;
       }
 
+      const year = state.calendar.year;
       return produce(state, (draft) => {
         const j = draft.village.jobs[action.job] ?? { value: 0 };
         j.value -= count;
@@ -227,15 +278,36 @@ export function applyAction(
         // Unassign individual kittens (from end, lowest skill first isn't implemented yet)
         let remaining = count;
         for (let i = draft.village.sim.length - 1; i >= 0 && remaining > 0; i--) {
-          if (draft.village.sim[i]!.job === action.job) {
-            draft.village.sim[i]!.job = null;
+          const k = draft.village.sim[i]!;
+          if (k.job === action.job) {
+            k.job = null;
+            (k as { lifeEvents: { year: number; kind: string; text: string }[] }).lifeEvents = [
+              ...k.lifeEvents,
+              { year, kind: "jobLeft", text: describeJobLeft(action.job, "quotaCut") },
+            ];
             remaining--;
           }
         }
       });
     }
     case "RESEARCH": {
-      return applyResearch(state, action.name);
+      const before = state.science.techs[action.name];
+      const next = applyResearch(state, action.name);
+      // Witness only when research actually completed this call (transition
+      // false → true). applyResearch is a no-op if already researched / not
+      // unlocked / unaffordable, so identity comparison is the cheapest gate.
+      if (next === state) return next;
+      const after = next.science.techs[action.name];
+      if (!before?.researched && after?.researched) {
+        return applyMilestoneWitnesses(
+          next,
+          `research:${action.name}`,
+          describeMilestoneResearch,
+          [], // No trait preference for now — scientific moments belong to whole village
+          action.name,
+        );
+      }
+      return next;
     }
     case "RESEARCH_POLICY": {
       return applyResearchPolicy(state, action.name);

@@ -35,11 +35,15 @@ export {
 export type { JobDef, JobEntry, Kitten, KittenTrait, VillageState } from "./village.js";
 export {
   JOB_DEFS,
+  TRAIT_JOB_AFFINITY,
   VillageManager,
   computeHappiness,
   createInitialVillage,
   generateKitten,
+  getFavoriteContributions,
+  getJobAffinityScore,
   getLeaderBonus,
+  pickKittensForJob,
   totalAssignedKittens,
 } from "./village.js";
 export type { CalendarState, SeasonDef } from "./calendar.js";

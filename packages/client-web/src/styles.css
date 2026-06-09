@@ -1258,12 +1258,13 @@ html[data-card-size="large"] {
 
 .item-card__footer .item-actions {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: var(--sp-1);
   justify-content: flex-end;
   margin-top: var(--sp-1);
   padding-top: var(--sp-1);
   border-top: 1px solid var(--border-subtle);
+  min-width: 0;
 }
 
 /* Compact stage-counter row: [−All −25 −]  N/M  [+ +25 +All]
@@ -1320,16 +1321,8 @@ html[data-card-size="large"] {
   }
 }
 
-@container card (max-width: 160px) {
-  .stage-counter {
-    flex-direction: column;
-    align-items: stretch;
-    gap: var(--sp-0);
-  }
-  .stage-counter__group {
-    justify-content: center;
-  }
-}
+/* Vertical stacking removed: stage-counter must stay horizontal at all card widths.
+   At narrow widths the macro buttons are already hidden via the 230px query above. */
 
 @container card (max-width: 180px) {
   .item-card__footer-primary .item-prices {
@@ -2167,6 +2160,19 @@ html[data-card-size="large"] {
   font-size: var(--type-caption);
   color: var(--t2);
   line-height: 1.3;
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-1);
+}
+.upgrade-card__cost-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-variant-numeric: tabular-nums;
+}
+.upgrade-card__cost-sep {
+  color: var(--t3);
 }
 
 /* Done badge mirrors .tech-card__done-badge for a calm, minimal look:
@@ -2504,6 +2510,7 @@ html[data-card-size="large"] {
 .resource-icon--sm { width: 20px; height: 20px; }
 .resource-icon--md { width: 32px; height: 32px; }
 .resource-icon--lg { width: 48px; height: 48px; }
+.resource-icon--xl { width: 64px; height: 64px; }
 img.resource-icon {
   object-fit: contain;
   image-rendering: pixelated;
@@ -2519,6 +2526,7 @@ span.resource-icon--xs { font-size: 12px; }
 span.resource-icon--sm { font-size: 16px; }
 span.resource-icon--md { font-size: 24px; }
 span.resource-icon--lg { font-size: 40px; }
+span.resource-icon--xl { font-size: 52px; }
 
 /* Craft-row composes with .item-row; .craft-row reserves layout adjustments
    (compose, no overrides for now — the icon column shifts the rest naturally). */
@@ -2882,6 +2890,51 @@ span.resource-icon--lg { font-size: 40px; }
 
 .kitten-detail__favorite {
   color: #e07070;
+}
+
+.kitten-detail__affinity {
+  display: inline-block;
+  margin-left: var(--sp-1);
+  font-size: var(--text-xs);
+  color: var(--accent-2, #7A9A6E);
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+
+.kitten-detail__lineage {
+  font-size: var(--text-xs);
+  color: var(--t2);
+}
+.kitten-detail__parent {
+  font-style: italic;
+}
+.kitten-detail__parent-sep {
+  color: var(--t3);
+}
+
+/* Per-event-kind accents — keep the lifeEvent log readable but visually
+   distinguish death / festival / parenthood / etc. Border-left tint instead
+   of a heavy background so the timeline stays calm. */
+.kitten-detail__event--died {
+  border-left: 2px solid #8b6f9e;
+  padding-left: var(--sp-2);
+}
+.kitten-detail__event--bereavement {
+  border-left: 2px solid #b09cb8;
+  padding-left: var(--sp-2);
+  color: rgba(220, 208, 182, 0.72);
+}
+.kitten-detail__event--festival {
+  border-left: 2px solid #d99c66;
+  padding-left: var(--sp-2);
+}
+.kitten-detail__event--milestone {
+  border-left: 2px solid #c8b66c;
+  padding-left: var(--sp-2);
+}
+.kitten-detail__event--parenthood {
+  border-left: 2px solid #d49aaf;
+  padding-left: var(--sp-2);
 }
 
 .kitten-detail__bio .inspector-description {

@@ -109,40 +109,118 @@ const YEARLY_GENERIC = [
   "half einer Streunerin durch die kalte Jahreszeit",
   "war fast einen ganzen Sommer lang verschwunden — kehrte schmaler aber zufrieden zurück",
   "rettete einen jungen Catnip-Setzling vor dem Schneefall",
+  "fand im Herbst eine ungewöhnlich rote Kastanie und hütet sie seitdem",
+  "sammelte den ganzen Sommer Federn, ohne jemandem den Grund zu nennen",
+  "schlief drei Tage am Stück, nachdem die Kirschblüten gefallen waren",
+  "verbrachte eine Nacht im Glockenturm und kam mit Staub im Pelz zurück",
+  "fing eine Maus, ließ sie wieder frei und sah ihr lange nach",
+  "lernte, wie man Pfifferlinge von giftigen Pilzen unterscheidet",
+  "wurde von einer Krähe verfolgt und schwört, sie wieder zu erkennen",
+  "fand im Schnee eine Spur, der niemand sonst folgen wollte",
+  "verbrannte sich die Pfote am Lagerfeuer und erzählte die Geschichte ein Jahr lang",
+  "schenkte einer alten Kätzin den ersten Apfel der Ernte",
+  "tanzte zur Mittsommernacht, bis die Sterne verblassten",
+  "fand einen Brief in einer Flasche am Bach — die Tinte war verwischt",
+  "sprach drei Tage lang nicht, ohne dass jemand wusste warum",
+  "lehrte einem jungen Kätzchen, wie man auf den Mehlbaum klettert",
+  "begegnete im Nebel einer Gestalt, die niemand sonst gesehen hat",
+  "trug einen Stein über das ganze Feld, nur um zu sehen, ob es geht",
+  "sah einmal den Mond bei Tag und nahm es als Vorzeichen",
+  "verlor im Wettrennen gegen ein Eichhörnchen, mit Würde",
 ];
 
 const YEARLY_JOB_TINTED: Record<string, readonly string[]> = {
   farmer: [
     "brachte die größte Catnip-Ernte des Jahrzehnts ein",
     "rettete das Feld vor einem Mäuse-Vorfall mit nichts als Geduld",
+    "lehrte einem Kätzchen, Saatgut nach Mond zu legen",
+    "pflanzte heimlich Sonnenblumen am Rand des Acker — niemand wusste warum",
   ],
   woodcutter: [
     "fällte den dicksten Baum am Rande des Forsts",
     "verlor fast eine Pranke an einer hinterhältigen Astgabel — kam mit einer Narbe davon",
+    "fand im Stamm einer alten Eiche einen Vogelschwarm aus Bernstein",
+    "ließ ein Beil im Wald liegen und brachte es ein Jahr später als Geschichte zurück",
   ],
   scholar: [
     "fügte ein dickes Buch der Dorfbibliothek hinzu",
     "verbrachte einen ganzen Sommer mit einer einzigen Gleichung",
+    "übersetzte einen verschwommenen Text aus den Klippen — niemand wagt, ihn zu lesen",
+    "behauptete, ein Komet sei für genau dieses Dorf bestimmt gewesen",
   ],
   hunter: [
     "kam mit Fellen für den ganzen Winter zurück",
     "verfehlte das Einhorn um Pfotenbreite — niemand glaubt die Geschichte",
+    "spurte einen Wolf bis zum Fluss und ließ ihn gehen",
+    "schenkte den jüngsten Kätzchen die ersten geübten Bögen",
   ],
   miner: [
     "fand eine Ader Eisen, von der das Dorf nichts wusste",
     "wurde verschüttet und mit einem Lachen wieder ausgegraben",
+    "hörte Stimmen im Stollen, kehrte aber zurück und sprach nicht darüber",
+    "schlug eine glitzernde Stelle ab und gab sie dem ältesten Dorfkätzchen",
   ],
   geologist: [
     "kartierte einen ganzen Hügel an Mineralien",
     "behauptete, die Steine würden mit den Jahreszeiten singen",
+    "fand einen Stein, der nach Regen klingt",
+    "verbrachte einen Frühling damit, jedem Hügel einen Namen zu geben",
   ],
   priest: [
     "leitete ein Sonnwendfest, an das sich noch alle erinnern",
     "verschwand für eine Woche zur Meditation und brachte eine seltsame Ruhe mit",
+    "predigte einer einzigen Katze stundenlang auf dem Hügel",
+    "entzündete im Winter Feuer, die das ganze Dorf wärmten",
   ],
   engineer: [
     "baute eine Maschine, die niemand verstand, die aber half",
     "verbrachte einen Monat damit, eine Tür zu reparieren, die niemand mehr nutzt",
+    "konstruierte einen Vogelhäuschen-Aufzug aus Holz und Bindfaden",
+    "erfand einen Mausefallen-Mechanismus, den die Mäuse weiterhin überlistet haben",
+  ],
+};
+
+/** Trait-tinted yearly snippets — selected before job-tinted with lower probability. */
+const YEARLY_TRAIT_TINTED: Record<string, readonly string[]> = {
+  scientist: [
+    "verlor sich in den Sternen, bis die Pfoten kalt wurden",
+    "schrieb eine Hypothese auf die Hauswand — sie wurde erst im Frühjahr überstrichen",
+    "behauptete, eine neue Konstellation entdeckt zu haben, und benannte sie nach Catnip",
+  ],
+  engineer: [
+    "zerlegte eine Sense in dreißig Teile und baute neunundzwanzig wieder zusammen",
+    "fand heraus, wie man den Brunnen schneller einkurbelt — alle waren mäßig beeindruckt",
+    "erfand ein Werkzeug, dessen Zweck niemand erfragen wollte",
+  ],
+  merchant: [
+    "tauschte ein altes Halsband gegen drei Krüge Met und kam vorne weg",
+    "verhandelte das ganze Jahr über Tauschkurse — niemand verstand das System",
+    "brachte aus einer fernen Stadt einen Beutel Salz mit, der noch immer reicht",
+  ],
+  metallurgist: [
+    "hörte im Ofen eine Melodie, die nur sie verstand",
+    "schmolz einen verbeulten Eimer wieder zu einem brauchbaren Werkzeug",
+    "fand eine Glühfarbe, der sie einen eigenen Namen gab",
+  ],
+  chemist: [
+    "mischte etwas in einem Krug, das eine Woche lang summte",
+    "rettete die Ziegen mit einem Tee aus Rinde und Honig",
+    "verbrannte sich beim Experimentieren die Schnurrhaare — wuchsen schöner nach",
+  ],
+  wise: [
+    "saß einen ganzen Tag am Ufer und kam mit einer Wahrheit zurück",
+    "erinnerte sich an einen Winter, den niemand sonst erlebt hatte",
+    "sagte einen einzigen Satz beim Festmahl, und alle waren still",
+  ],
+  manager: [
+    "schlichtete einen Streit zwischen den Fischern und den Jägern mit einer Liste",
+    "organisierte die Vorratskammer so, dass niemand sie mehr versteht außer ihr selbst",
+    "wusste vor dem Sturm, wer wo schlafen sollte",
+  ],
+  none: [
+    "fand ein warmes Plätzchen, das niemand sonst gesehen hatte",
+    "verbrachte den ganzen Sommer barfuß und glücklich",
+    "wurde einfach ein Jahr älter, ohne Aufhebens",
   ],
 };
 
@@ -150,12 +228,24 @@ export function generateYearlyEvent(
   kittenId: string,
   year: number,
   job: string | null,
+  trait: KittenTrait | null = null,
 ): string {
   const rng = mulberry32(hashString(`yearly:${kittenId}:${year}`));
-  // 40% chance to use a job-tinted line if we have one for the kitten's job.
+  // Priority: 25% trait → 35% job → rest generic. Probabilities are mutually
+  // exclusive in the order rolled, so distribution is roughly 0.25 / 0.26 /
+  // 0.49 when both pools exist. RNG seed unchanged — replays produce identical
+  // events for any (kittenId, year).
+  const traitLines = trait && trait !== "none" ? YEARLY_TRAIT_TINTED[trait] : undefined;
   const jobLines = job ? YEARLY_JOB_TINTED[job] : undefined;
-  const useJobLine = jobLines && rng() < 0.4;
-  const action = useJobLine ? pick(rng, jobLines) : pick(rng, YEARLY_GENERIC);
+  const roll = rng();
+  let action: string;
+  if (traitLines && roll < 0.25) {
+    action = pick(rng, traitLines);
+  } else if (jobLines && roll < 0.6) {
+    action = pick(rng, jobLines);
+  } else {
+    action = pick(rng, YEARLY_GENERIC);
+  }
   return `Im Jahr ${year} ${action}.`;
 }
 
@@ -169,6 +259,30 @@ export function describeJobChange(jobName: string): string {
   return `Begann als ${jobName} zu arbeiten.`;
 }
 
+export type JobAssignedReason = "matchedTrait" | "reassigned";
+
+/**
+ * Lore line for a new job assignment. "matchedTrait" carries the lore weight:
+ * the kitten was chosen *for* this work because of their nature. "reassigned"
+ * is the fallback when no trait match was available — still meaningful, but
+ * pragmatic rather than vocational.
+ */
+export function describeJobAssigned(jobName: string, reason: JobAssignedReason): string {
+  if (reason === "matchedTrait") {
+    return `Wurde zum ${jobName} berufen — ihre Anlagen passten wie das Schloss zum Schlüssel.`;
+  }
+  return `Wurde dem ${jobName}-Posten zugewiesen.`;
+}
+
+export type JobLeftReason = "unassigned" | "quotaCut";
+
+export function describeJobLeft(prevJob: string, reason: JobLeftReason): string {
+  if (reason === "quotaCut") {
+    return `Wurde vom ${prevJob}-Posten abgezogen — die Quote wurde reduziert.`;
+  }
+  return `Verließ den ${prevJob}-Posten.`;
+}
+
 export function describeLeaderAppointment(): string {
   return "Wurde zur Anführerin des Dorfes ernannt.";
 }
@@ -177,7 +291,147 @@ export function describeLeaderRemoval(): string {
   return "Trat als Anführerin zurück.";
 }
 
-export function describeSpawn(age: number): string {
-  if (age <= 0) return "Geboren im Dorf — der Anfang einer langen Geschichte.";
+export function describeSpawn(
+  age: number,
+  parents?: { motherName?: string; fatherName?: string },
+): string {
+  if (age <= 0) {
+    if (parents?.motherName && parents.fatherName) {
+      return `Geboren im Dorf als Kind von ${parents.motherName} und ${parents.fatherName} — der Anfang einer langen Geschichte.`;
+    }
+    if (parents?.motherName) {
+      return `Geboren im Dorf, Kind von ${parents.motherName} — der Anfang einer langen Geschichte.`;
+    }
+    return "Geboren im Dorf — der Anfang einer langen Geschichte.";
+  }
   return `Kam vor ${age} Jahren ins Dorf — wurde ins Dorfleben aufgenommen.`;
+}
+
+// ── Death & bereavement (Paket F) ────────────────────────────────────────────
+
+const DEATH_TEMPLATES_BY_SEASON: Record<string, readonly string[]> = {
+  spring: [
+    "Erlag im Frühling der Schwäche — die Knospen waren gerade aufgegangen.",
+    "Schloss die Augen, als die ersten Schwalben zurückkamen.",
+  ],
+  summer: [
+    "Verstarb in einem heißen Sommer, als selbst die Schatten dünn wurden.",
+    "Ging in einer langen Sommernacht, ohne Klage.",
+  ],
+  autumn: [
+    "Trug das letzte Laub mit sich davon — fiel mit ihm.",
+    "Verstarb, als die ersten Nebel über die Felder zogen.",
+  ],
+  winter: [
+    "Verhungerte in einem bitteren Winter — die Vorräte reichten nicht.",
+    "Schlief im tiefsten Frost ein und wachte nicht mehr auf.",
+  ],
+};
+
+const DEATH_TEMPLATES_GENERIC = [
+  "Verstarb still — das Dorf bemerkte es erst am Abend.",
+  "Wurde am Ende sehr klein und sehr leicht.",
+  "Erlag der Hunger-Zeit, mit Würde bis zuletzt.",
+];
+
+export function describeDeath(victimAge: number, season: string): string {
+  const seasonTemplates = DEATH_TEMPLATES_BY_SEASON[season];
+  const candidates = seasonTemplates ?? DEATH_TEMPLATES_GENERIC;
+  // Deterministic per (victim age + season) so replays match.
+  const rng = mulberry32(hashString(`death:${victimAge}:${season}`));
+  const baseLine = pick(rng, candidates);
+  if (victimAge >= 30) {
+    return `Lebte ${victimAge} Jahre im Dorf. ${baseLine}`;
+  }
+  return baseLine;
+}
+
+const BEREAVEMENT_BY_CONTEXT: Record<string, readonly string[]> = {
+  job: [
+    "Trauerte um {name}, den Arbeitsplatz neben sich — die Schicht fühlt sich nun leer an.",
+    "Verlor mit {name} eine Stimme aus den Werkstunden, die sie schmerzlich vermisst.",
+    "Hat {name} bei der Arbeit am letzten Tag noch lachen hören — das Lachen ist verstummt.",
+  ],
+  leader: [
+    "Trauerte um {name}, das Dorf-Oberhaupt — niemand wusste, wer nun den Ton setzt.",
+    "Hatte {name} als Führung respektiert; deren Stimme fehlt nun an jeder Versammlung.",
+  ],
+  general: [
+    "Trauerte um {name}, das ihr Nachbar war — die Hütte daneben bleibt nun still.",
+    "Verlor {name} aus dem Dorf — und mit ihr ein Lächeln, das sie täglich gegrüßt hatte.",
+    "Brachte {name} die letzte Decke noch in der Nacht — am Morgen war sie nicht mehr da.",
+    "Hat {name} oft im Catnip-Feld gesehen; nun streift sie dort allein.",
+  ],
+};
+
+export type BereavementContext = "job" | "leader" | "general";
+
+export function describeBereavement(victimName: string, context: BereavementContext): string {
+  const pool = BEREAVEMENT_BY_CONTEXT[context] ?? BEREAVEMENT_BY_CONTEXT.general!;
+  // Deterministic per (victim name + context) so the same death generates the
+  // same bereavement line in each survivor's log on replay.
+  const rng = mulberry32(hashString(`bereavement:${victimName}:${context}`));
+  return pick(rng, pool).replace("{name}", victimName);
+}
+
+// ── Parenthood (Paket G) ─────────────────────────────────────────────────────
+
+const PARENTHOOD_TEMPLATES: Record<"mother" | "father", readonly string[]> = {
+  mother: [
+    "Wurde Mutter von {child}.",
+    "Hielt {child} zum ersten Mal — und wusste, dass sich nun alles ändert.",
+    "Schenkte dem Dorf {child} — eine kleine, neue Stimme im Chor der Hütten.",
+  ],
+  father: [
+    "Wurde Vater von {child}.",
+    "Hielt {child} zum ersten Mal in den Pfoten und konnte nicht aufhören zu schauen.",
+    "Schwor sich, {child} alles beizubringen, was er weiß.",
+  ],
+};
+
+export function describeParenthood(childName: string, role: "mother" | "father"): string {
+  const rng = mulberry32(hashString(`parenthood:${childName}:${role}`));
+  return pick(rng, PARENTHOOD_TEMPLATES[role]).replace("{child}", childName);
+}
+
+// ── Festival & milestone (Paket H) ───────────────────────────────────────────
+
+const FESTIVAL_TEMPLATES = [
+  "Genoss das Sonnwendfest — die Trommeln hallten bis spät in die Nacht.",
+  "Tanzte beim Festumzug, bis die Pfoten schmerzten.",
+  "Trug zum Fest ihre besten Federn und ein neues Halsband.",
+  "Aß beim Festmahl mehr Trockenfisch, als sie zugeben würde.",
+  "Stand beim Schluss-Feuerwerk lange still und sagte nichts.",
+  "Half mit, die Festtafeln aufzubauen — und blieb dann beim Sternegucken.",
+  "Hörte einer fremden Karawane beim Fest singen und summt das Lied seitdem.",
+  "Verlor ihr Festabzeichen im Catnip-Feld — fand es im nächsten Frühjahr wieder.",
+];
+
+export function describeFestival(kittenId: string, year: number): string {
+  const rng = mulberry32(hashString(`festival:${kittenId}:${year}`));
+  return pick(rng, FESTIVAL_TEMPLATES);
+}
+
+const MILESTONE_BUILDING_TEMPLATES = [
+  "Stand dabei, als das erste {building} im Dorf errichtet wurde — sah jeden Balken anlegen.",
+  "Half mit, das erste {building} aufzubauen — und ist noch heute stolz darauf.",
+  "Schlug den ersten Nagel ins erste {building} — die Pfote tut bei Regen noch weh.",
+  "Sah als Erste, wie das erste {building} im Morgenlicht stand — ein neuer Tag im Dorf.",
+];
+
+const MILESTONE_RESEARCH_TEMPLATES = [
+  "Saß dabei, als das Dorf das Wissen um {research} zum ersten Mal aussprach.",
+  "Half mit, {research} zu entdecken — schrieb die ersten Notizen mit.",
+  "Erlebte den Tag, an dem das Dorf {research} verstand — alles fühlte sich danach weiter an.",
+  "Trug das Wissen um {research} als Erste hinaus aufs Feld.",
+];
+
+export function describeMilestoneBuilding(kittenId: string, year: number, buildingName: string): string {
+  const rng = mulberry32(hashString(`milestone-b:${kittenId}:${year}:${buildingName}`));
+  return pick(rng, MILESTONE_BUILDING_TEMPLATES).replace("{building}", buildingName);
+}
+
+export function describeMilestoneResearch(kittenId: string, year: number, researchName: string): string {
+  const rng = mulberry32(hashString(`milestone-r:${kittenId}:${year}:${researchName}`));
+  return pick(rng, MILESTONE_RESEARCH_TEMPLATES).replace("{research}", researchName);
 }

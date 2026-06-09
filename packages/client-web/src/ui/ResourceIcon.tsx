@@ -11,7 +11,7 @@ import React from "react";
 import { RESOURCE_SPRITES } from "../resourceSprites.js";
 import { JOB_SPRITES } from "../jobSprites.js";
 
-export type ResourceIconSize = "xs" | "sm" | "md" | "lg";
+export type ResourceIconSize = "xs" | "sm" | "md" | "lg" | "xl";
 
 interface Props {
   name: string;

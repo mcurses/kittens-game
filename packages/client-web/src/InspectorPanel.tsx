@@ -1,5 +1,6 @@
 // InspectorPanel — persistent detail view, updated on hover
-import { RESOURCE_NAMES } from "@kittens/engine";
+import { RESOURCE_NAMES, getJobAffinityScore } from "@kittens/engine";
+import type { KittenTrait } from "@kittens/engine";
 import React from "react";
 import {
   type BuildingEntity,
@@ -23,6 +24,19 @@ import { kittenAvatarPath } from "./kittenAvatar.js";
 import { formatDuration, isStorageLimited } from "./utils.js";
 
 const TICKS_PER_SECOND = 5;
+
+/**
+ * Map (trait, job) → short lore badge for the Kitten inspector.
+ *   ★ Berufung   = primary trait match (e.g. metallurgist on miner)
+ *   ◇ Passend    = secondary match (e.g. metallurgist on geologist)
+ *   ""           = no affinity (no badge shown)
+ */
+function jobAffinityLabel(trait: string, jobName: string): string {
+  const score = getJobAffinityScore(trait as KittenTrait, jobName);
+  if (score === 2) return "★ Berufung";
+  if (score === 1) return "◇ Passend";
+  return "";
+}
 
 export function InspectorPanel(): React.ReactElement {
   const { inspected, isPinned, setPinned } = useInspector();
@@ -91,6 +105,12 @@ function KittenDetail({ entity }: { entity: KittenEntity }): React.ReactElement 
   const fullName = `${entity.name} ${entity.surname}`.trim();
   const avatar = kittenAvatarPath(entity);
   const events = [...entity.lifeEvents].sort((a, b) => b.year - a.year);
+  // Lineage: parent names resolved via the lookup that JobsPanel injects.
+  // Inspector is read-only for parents — the user can filter the Census to
+  // jump to them. Clickable links would require feeding full parent entities
+  // through; current scope keeps it visual.
+  const motherName = entity.motherId ? entity.kittenNameById?.[entity.motherId] : undefined;
+  const fatherName = entity.fatherId ? entity.kittenNameById?.[entity.fatherId] : undefined;
   return (
     <div className="inspector-entity">
       <img
@@ -114,7 +134,14 @@ function KittenDetail({ entity }: { entity: KittenEntity }): React.ReactElement 
       <dl className="inspector-stats">
         <div className="inspector-stat-row">
           <dt>Job</dt>
-          <dd>{entity.job ?? "—"}</dd>
+          <dd>
+            {entity.job ?? "—"}
+            {entity.job && jobAffinityLabel(entity.trait, entity.job) && (
+              <span className="kitten-detail__affinity" title="Trait passt zum Job">
+                {" "}{jobAffinityLabel(entity.trait, entity.job)}
+              </span>
+            )}
+          </dd>
         </div>
         <div className="inspector-stat-row">
           <dt>Charakter</dt>
@@ -128,6 +155,16 @@ function KittenDetail({ entity }: { entity: KittenEntity }): React.ReactElement 
           <dt>Erfahrung</dt>
           <dd>{entity.exp.toFixed(0)}</dd>
         </div>
+        {(motherName || fatherName) && (
+          <div className="inspector-stat-row">
+            <dt>Eltern</dt>
+            <dd className="kitten-detail__lineage">
+              {motherName && <span className="kitten-detail__parent">♀ {motherName}</span>}
+              {motherName && fatherName && <span className="kitten-detail__parent-sep"> · </span>}
+              {fatherName && <span className="kitten-detail__parent">♂ {fatherName}</span>}
+            </dd>
+          </div>
+        )}
       </dl>
 
       {entity.originStory && (

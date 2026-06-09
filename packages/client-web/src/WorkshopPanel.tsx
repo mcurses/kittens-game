@@ -178,9 +178,9 @@ export function WorkshopPanel({ state }: Props): React.ReactElement {
             const prices = def?.prices ?? [];
             const affordable = canAfford(prices, resources);
             const storageLimited = isStorageLimited(prices, resources);
-            const costLabel =
+            const costAriaLabel =
               prices.length > 0
-                ? prices.map((p) => `${p.val} ${p.name}`).join(" · ")
+                ? "Cost: " + prices.map((p) => `${p.val} ${p.name}`).join(", ")
                 : "";
             const upgradeEntity = () => ({
               kind: "upgrade" as const,
@@ -237,8 +237,18 @@ export function WorkshopPanel({ state }: Props): React.ReactElement {
                 </div>
                 <div className="upgrade-card__footer">
                   <span className="upgrade-card__name">{prettifyName(u.name)}</span>
-                  {!u.researched && costLabel && (
-                    <span className="upgrade-card__cost">{costLabel}</span>
+                  {!u.researched && prices.length > 0 && (
+                    <span className="upgrade-card__cost" aria-label={costAriaLabel}>
+                      {prices.map((p, i) => (
+                        <React.Fragment key={p.name}>
+                          {i > 0 && <span className="upgrade-card__cost-sep"> · </span>}
+                          <span className="upgrade-card__cost-item">
+                            {p.val}
+                            <ResourceIcon name={p.name} size="xs" aria-label={p.name} />
+                          </span>
+                        </React.Fragment>
+                      ))}
+                    </span>
                   )}
                 </div>
               </li>
@@ -314,10 +324,13 @@ export function WorkshopPanel({ state }: Props): React.ReactElement {
                   <div className="craft-row__content">
                     <span className="item-row-name craft-name">{prettifyName(c.name)}</span>
                     {inputPrice && (
-                      <span className="craft-row__cost" data-testid={`craft-${c.name}-cost`}>
+                      <span
+                        className="craft-row__cost"
+                        data-testid={`craft-${c.name}-cost`}
+                        aria-label={`Cost: ${inputPrice.val} ${inputPrice.name}`}
+                      >
                         for {inputPrice.val}{" "}
-                        <ResourceIcon name={inputPrice.name} size="xs" />{" "}
-                        {prettifyName(inputPrice.name)}
+                        <ResourceIcon name={inputPrice.name} size="xs" aria-label={inputPrice.name} />
                       </span>
                     )}
                   </div>
