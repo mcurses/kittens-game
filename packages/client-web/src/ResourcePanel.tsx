@@ -96,6 +96,23 @@ function extractUnlockedCraftNames(state: GameStateResponse): Set<string> {
   return result;
 }
 
+/** Engineers per craft (workshop assignment). Used by the inspector recipe section. */
+function extractCraftEngineers(state: GameStateResponse): Record<string, number> {
+  const raw = state as unknown as Record<string, unknown>;
+  const workshop = raw.workshop;
+  if (typeof workshop !== "object" || workshop === null) return {};
+  const crafts = (workshop as Record<string, unknown>).crafts;
+  if (typeof crafts !== "object" || crafts === null) return {};
+  const out: Record<string, number> = {};
+  for (const [name, entry] of Object.entries(crafts as Record<string, unknown>)) {
+    if (typeof entry === "object" && entry !== null) {
+      const e = entry as Record<string, unknown>;
+      if (typeof e.engineers === "number") out[name] = e.engineers;
+    }
+  }
+  return out;
+}
+
 /** Compute adaptive craft shortcut amounts matching legacy left.jsx logic. */
 function computeCraftShortcuts(
   craftName: string,
@@ -153,6 +170,7 @@ export function ResourcePanel({ state }: Props): React.ReactElement {
   const effectCache = extractEffectCache(state);
   const visibility = deriveUiVisibility(state);
   const craftableNames = extractUnlockedCraftNames(state);
+  const craftEngineers = extractCraftEngineers(state);
   const craftRatio = effectCache.craftRatio ?? 0;
 
   const hiddenResources = extractHiddenResources(state);
@@ -221,6 +239,7 @@ export function ResourcePanel({ state }: Props): React.ReactElement {
               highlightMap={highlightMap}
               affectedSet={affectedSet}
               craftable={craftableNames.has(r.name)}
+              craftEngineers={craftEngineers[r.name] ?? 0}
               allResources={resources}
               craftRatio={craftRatio}
               attribution={attributionMap.get(r.name)}
@@ -375,6 +394,7 @@ function ResourceItem({
   highlightMap,
   affectedSet,
   craftable,
+  craftEngineers,
   allResources,
   craftRatio,
   attribution,
@@ -389,6 +409,7 @@ function ResourceItem({
   highlightMap: Map<string, IngredientNode> | null;
   affectedSet: Set<string> | null;
   craftable: boolean;
+  craftEngineers: number;
   allResources: ResourceEntry[];
   craftRatio: number;
   attribution?: ResourceAttributionEntry[];
@@ -432,6 +453,27 @@ function ResourceItem({
       breakdown,
       attribution,
     };
+    if (craftable) {
+      const def = CRAFT_DEFS.find((d) => d.name === resource.name);
+      if (def) {
+        const bonus = def.ignoreBonuses ? 1 : 1 + craftRatio;
+        entity.craftRecipe = {
+          prices: def.prices.map((p) => ({ name: p.name, val: p.val })),
+          output: bonus,
+          resources: Object.fromEntries(
+            allResources.map((r) => [
+              r.name,
+              {
+                value: r.value,
+                ...(r.maxValue !== undefined ? { maxValue: r.maxValue } : {}),
+                ...(r.perTick !== undefined ? { perTick: r.perTick } : {}),
+              },
+            ]),
+          ),
+          engineers: craftEngineers,
+        };
+      }
+    }
     setInspected(entity);
   };
 

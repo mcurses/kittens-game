@@ -22,6 +22,17 @@ export interface ResourceEntity {
     consumption: number;
   };
   attribution?: ResourceAttributionEntry[];
+  /**
+   * Set when the resource is produced through a Workshop craft recipe (beam,
+   * slab, manuscript, …). The inspector renders a "Wird gecraftet aus"
+   * section so the user understands they don't gather it directly.
+   */
+  craftRecipe?: {
+    prices: Array<{ name: string; val: number }>;
+    output: number;
+    resources: Record<string, ResourceSnapshot>;
+    engineers: number;
+  };
 }
 
 export interface ResourceSnapshot {

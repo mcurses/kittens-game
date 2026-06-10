@@ -340,6 +340,14 @@ function ResourceDetail({
 
       <AttributionSection attribution={entity.attribution} />
 
+      {entity.craftRecipe && (
+        <CraftRecipeSection
+          resourceName={name}
+          recipe={entity.craftRecipe}
+          elapsedSeconds={elapsedSeconds}
+        />
+      )}
+
       {perTick !== undefined && perTick < 0 && value > 0 && (
         <div className="inspector-notice inspector-notice--warn">
           Time to zero: {formatDuration(value / (-perTick * TICKS_PER_SECOND) - elapsedSeconds)}
@@ -354,6 +362,44 @@ function ResourceDetail({
             {formatDuration((maxValue - value) / (perTick * TICKS_PER_SECOND) - elapsedSeconds)}
           </div>
         )}
+    </div>
+  );
+}
+
+// ── Craft recipe section ─────────────────────────────────────────────────────
+
+function CraftRecipeSection({
+  resourceName,
+  recipe,
+  elapsedSeconds,
+}: {
+  resourceName: string;
+  recipe: NonNullable<ResourceEntity["craftRecipe"]>;
+  elapsedSeconds: number;
+}): React.ReactElement {
+  const outputLabel = recipe.output === 1
+    ? `1 ${resourceName}`
+    : `${recipe.output % 1 === 0 ? recipe.output.toFixed(0) : recipe.output.toFixed(2)} ${resourceName}`;
+  return (
+    <div className="inspector-section" data-testid="inspector-craft-recipe">
+      <div className="inspector-section-label">
+        Wird im Workshop gecraftet → {outputLabel}
+      </div>
+      <PricesSection
+        prices={recipe.prices}
+        label="Zutaten (1×)"
+        resources={recipe.resources}
+        elapsedSeconds={elapsedSeconds}
+      />
+      {recipe.engineers > 0 ? (
+        <div className="inspector-notice">
+          {recipe.engineers} Engineer{recipe.engineers === 1 ? "" : "s"} craftet automatisch.
+        </div>
+      ) : (
+        <div className="inspector-notice inspector-notice--warn">
+          Keine Engineers zugewiesen — manuell im Workshop craften oder Engineers zuweisen.
+        </div>
+      )}
     </div>
   );
 }

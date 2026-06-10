@@ -348,6 +348,28 @@ body {
 
 .resource-item:hover { background: var(--surface-hover); }
 
+.resource-craft-shortcuts {
+  display: flex;
+  gap: var(--sp-0);
+  margin-top: var(--sp-1);
+  padding-top: var(--sp-1);
+  border-top: 1px dashed var(--border);
+  opacity: 0.7;
+  transition: opacity var(--ease-snap);
+}
+
+.resource-item:hover .resource-craft-shortcuts,
+.resource-item:focus-within .resource-craft-shortcuts {
+  opacity: 1;
+}
+
+.resource-craft-shortcuts .btn {
+  flex: 1;
+  min-width: 0;
+  font-family: var(--ff-mono);
+  letter-spacing: -0.03em;
+}
+
 .resource-item-main {
   display: flex;
   align-items: baseline;
