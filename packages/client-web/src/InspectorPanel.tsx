@@ -186,7 +186,11 @@ function KittenDetail({ entity }: { entity: KittenEntity }): React.ReactElement 
           <div className="inspector-section-label">Was bisher geschah</div>
           <ul className="kitten-detail__events">
             {events.map((e, i) => (
-              <li key={`${e.year}-${e.kind}-${i}`} className={`kitten-detail__event kitten-detail__event--${e.kind}`}>
+              <li
+                key={`${e.year}-${e.kind}-${i}`}
+                className={`kitten-detail__event kitten-detail__event--${e.kind}${e.relatedKittenId ? " kitten-detail__event--linked" : ""}`}
+                {...(e.relatedKittenId ? { "data-related-kitten": e.relatedKittenId } : {})}
+              >
                 <span className="kitten-detail__event-year">{e.year}</span>
                 <span className="kitten-detail__event-text">{e.text}</span>
               </li>

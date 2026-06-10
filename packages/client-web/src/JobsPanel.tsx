@@ -70,7 +70,7 @@ interface CensusKitten {
   appearance?: { breed: string; body: string; eyes: string; accessory: string | null };
   originStory?: string;
   traitFlavor?: string;
-  lifeEvents?: Array<{ year: number; kind: string; text: string }>;
+  lifeEvents?: Array<{ year: number; kind: string; text: string; relatedKittenId?: string }>;
   portraitPath?: string | null;
   motherId?: string | null;
   fatherId?: string | null;

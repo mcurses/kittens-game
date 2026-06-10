@@ -166,6 +166,8 @@ export interface KittenLifeEventView {
   year: number;
   kind: string;
   text: string;
+  /** Optional kitten-id reference (Romance / Coworker-Bond). */
+  relatedKittenId?: string;
 }
 
 export interface KittenAppearanceView {

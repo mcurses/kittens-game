@@ -224,29 +224,134 @@ const YEARLY_TRAIT_TINTED: Record<string, readonly string[]> = {
   ],
 };
 
+// ── Romance, vacation, coworker-bond pools (catchall yearly variants) ────────
+
+const ROMANCE_TEMPLATES = [
+  "verliebte sich in {partner} — niemand im Dorf war überrascht",
+  "und {partner} wurden in jenem Jahr unzertrennlich",
+  "verbrachte unzählige Abende mit {partner} am Lagerfeuer",
+  "tauschte mit {partner} ein selbstgemachtes Halsband",
+  "wachte häufiger neben {partner} auf als allein",
+];
+
+const VACATION_WARM = [
+  "verbrachte den Sommer am Fluss-Ufer und kam mit sonnengebleichtem Pelz zurück",
+  "machte eine lange Wanderung durchs Tal und schwört, einen Wasserfall gefunden zu haben",
+  "erkundete im Frühling die Wälder hinter dem Hügel — drei Tage Catnip im Pelz",
+  "schlief eine ganze Mittsommer-Woche unter freiem Himmel",
+  "zog mit einer Karawane bis zur nächsten Stadt — und kam mit fremden Liedern zurück",
+];
+
+const VACATION_COLD = [
+  "kuschelte sich durch einen langen Winter, schrieb mehr als sonst",
+  "sammelte im Herbst Pilze und Beeren, bis die Kammer voll war",
+  "verbrachte die kalte Jahreszeit am Ofen, las alle Bücher der Bibliothek zweimal",
+  "lief im ersten Schnee bis zur Klippe und zurück, einfach nur weil",
+];
+
+const BOND_TEMPLATES = [
+  "war oft mit {partner} ({job}) unterwegs",
+  "lernte viel von {partner}, die schon länger als {job} arbeitet",
+  "arbeitete Seite an Seite mit {partner} — die Schicht ging immer schneller",
+  "teilte das Mittagsbrot mit {partner} im {job}-Schuppen",
+  "ließ {partner} bei jeder Mühe nicht hängen, und umgekehrt genauso",
+];
+
+/** Minimal peer-shape for Romance/Bond selection. Engine passes Kitten[]. */
+export interface YearlyPeer {
+  readonly id: string;
+  readonly name: string;
+  readonly surname: string;
+  readonly age: number;
+}
+
+function fullName(p: YearlyPeer): string {
+  return `${p.name} ${p.surname}`.trim();
+}
+
+export function generateRomance(
+  selfId: string,
+  selfAge: number,
+  year: number,
+  peers: readonly YearlyPeer[],
+): { text: string; relatedKittenId: string } | null {
+  const candidates = peers.filter((p) => p.id !== selfId && Math.abs(p.age - selfAge) <= 8);
+  if (candidates.length === 0) return null;
+  const rng = mulberry32(hashString(`romance:${selfId}:${year}`));
+  const partner = candidates[Math.floor(rng() * candidates.length)]!;
+  const tmpl = pick(rng, ROMANCE_TEMPLATES);
+  const text = `Im Jahr ${year} ${tmpl.replace("{partner}", fullName(partner))}.`;
+  return { text, relatedKittenId: partner.id };
+}
+
+export function generateVacation(kittenId: string, year: number, season: string): string {
+  const rng = mulberry32(hashString(`vacation:${kittenId}:${year}:${season}`));
+  const pool = season === "summer" || season === "spring" ? VACATION_WARM : VACATION_COLD;
+  return `Im Jahr ${year} ${pick(rng, pool)}.`;
+}
+
+export function generateCoworkerBond(
+  selfId: string,
+  year: number,
+  job: string,
+  sameJobKittens: readonly YearlyPeer[],
+): { text: string; relatedKittenId: string } | null {
+  if (sameJobKittens.length === 0) return null;
+  const rng = mulberry32(hashString(`bond:${selfId}:${year}:${job}`));
+  const partner = sameJobKittens[Math.floor(rng() * sameJobKittens.length)]!;
+  const tmpl = pick(rng, BOND_TEMPLATES);
+  const text =
+    `Im Jahr ${year} ` +
+    tmpl.replace("{partner}", fullName(partner)).replace("{job}", job) +
+    ".";
+  return { text, relatedKittenId: partner.id };
+}
+
+/**
+ * One narrative slice of life for a kitten in a given year. Deterministic via
+ * mulberry32 — replays produce identical text for any (kittenId, year).
+ *
+ * The router picks a category based on a single roll, then falls through to
+ * the next available pool if the chosen category has no candidates (e.g.
+ * Romance with zero peers, Bond without coworkers). Final fallback is the
+ * generic pool, so this always returns something.
+ *
+ * Probabilities (when all pools available):
+ *   15% Romance · 10% Vacation · 20% Coworker-Bond · 20% Trait · 20% Job · 15% Generic
+ */
 export function generateYearlyEvent(
   kittenId: string,
   year: number,
   job: string | null,
   trait: KittenTrait | null = null,
-): string {
+  season: string = "summer",
+  peers: readonly YearlyPeer[] = [],
+  sameJobKittens: readonly YearlyPeer[] = [],
+  selfAge: number = 0,
+): { text: string; relatedKittenId?: string } {
   const rng = mulberry32(hashString(`yearly:${kittenId}:${year}`));
-  // Priority: 25% trait → 35% job → rest generic. Probabilities are mutually
-  // exclusive in the order rolled, so distribution is roughly 0.25 / 0.26 /
-  // 0.49 when both pools exist. RNG seed unchanged — replays produce identical
-  // events for any (kittenId, year).
-  const traitLines = trait && trait !== "none" ? YEARLY_TRAIT_TINTED[trait] : undefined;
-  const jobLines = job ? YEARLY_JOB_TINTED[job] : undefined;
   const roll = rng();
-  let action: string;
-  if (traitLines && roll < 0.25) {
-    action = pick(rng, traitLines);
-  } else if (jobLines && roll < 0.6) {
-    action = pick(rng, jobLines);
-  } else {
-    action = pick(rng, YEARLY_GENERIC);
+
+  if (roll < 0.15) {
+    const r = generateRomance(kittenId, selfAge, year, peers);
+    if (r) return r;
   }
-  return `Im Jahr ${year} ${action}.`;
+  if (roll < 0.25) {
+    return { text: generateVacation(kittenId, year, season) };
+  }
+  if (roll < 0.45 && job && sameJobKittens.length > 0) {
+    const b = generateCoworkerBond(kittenId, year, job, sameJobKittens);
+    if (b) return b;
+  }
+  const traitLines = trait && trait !== "none" ? YEARLY_TRAIT_TINTED[trait] : undefined;
+  if (roll < 0.65 && traitLines) {
+    return { text: `Im Jahr ${year} ${pick(rng, traitLines)}.` };
+  }
+  const jobLines = job ? YEARLY_JOB_TINTED[job] : undefined;
+  if (roll < 0.85 && jobLines) {
+    return { text: `Im Jahr ${year} ${pick(rng, jobLines)}.` };
+  }
+  return { text: `Im Jahr ${year} ${pick(rng, YEARLY_GENERIC)}.` };
 }
 
 // ── Helpers for event-text generation (called from action handlers) ──────────

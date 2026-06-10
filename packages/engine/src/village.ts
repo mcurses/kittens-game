@@ -16,6 +16,7 @@ import {
 } from "./kittens/appearance.js";
 import {
   type BereavementContext,
+  type YearlyPeer,
   describeBereavement,
   describeDeath,
   describeFestival,
@@ -69,6 +70,12 @@ export interface LifeEvent {
   readonly year: number;
   readonly kind: LifeEventKind;
   readonly text: string;
+  /**
+   * Partner-Kitten bei Romance / Coworker-Bond. Inspector löst den Namen live
+   * via `kittenNameById` auf — der Text enthält den Namen aber schon statisch,
+   * falls der Lookup nicht klappt (z.B. weil das Partner-Kitten gestorben ist).
+   */
+  readonly relatedKittenId?: string;
 }
 
 /** Individual kitten tracked by the village simulation */
@@ -264,6 +271,47 @@ export function generateKitten(
 /** Append a life event to a kitten's timeline. Returns a new Kitten (pure). */
 export function appendLifeEvent(k: Kitten, event: LifeEvent): Kitten {
   return { ...k, lifeEvents: [...k.lifeEvents, event] };
+}
+
+/**
+ * For each kitten with only a spawn-event (legacy or first-load) and age ≥ 3,
+ * generate 1–4 deterministic narrative events spread across their life so the
+ * Inspector timeline carries the "was bisher geschah" feel the user expects.
+ *
+ * Deterministic via `mulberry32(hashString(kittenId))` → same kitten → same
+ * backfilled story across loads. Idempotent: kittens with ≥ 2 events skip.
+ *
+ * Season is inferred deterministically per (kittenId, year) since legacy saves
+ * don't record per-event season.
+ */
+function backfillBackstory(sim: readonly Kitten[], currentYear: number): Kitten[] {
+  const peers: YearlyPeer[] = sim.map((k) => ({ id: k.id, name: k.name, surname: k.surname, age: k.age }));
+  return sim.map((k) => {
+    if (k.lifeEvents.length > 1) return k as Kitten;
+    if (k.age < 3) return k as Kitten;
+    const eventCount = Math.min(4, Math.floor(k.age / 3));
+    if (eventCount <= 0) return k as Kitten;
+    const earliest = k.birthYear + 2;
+    const latest = Math.max(earliest, currentYear - 1);
+    const span = Math.max(1, latest - earliest);
+    const otherPeers = peers.filter((p) => p.id !== k.id);
+    const sameJob = k.job ? otherPeers.filter((p) => {
+      const peerKitten = sim.find((s) => s.id === p.id);
+      return peerKitten?.job === k.job;
+    }) : [];
+    const added: LifeEvent[] = [];
+    for (let i = 0; i < eventCount; i++) {
+      const year = earliest + Math.floor((span * (i + 1)) / (eventCount + 1));
+      const seasonIdx = Math.abs(hashString(`${k.id}:${year}`)) % SEASON_DEFS.length;
+      const seasonName = SEASON_DEFS[seasonIdx]!.name;
+      const ev = generateYearlyEvent(k.id, year, k.job, k.trait, seasonName, otherPeers, sameJob, k.age);
+      const e: LifeEvent = ev.relatedKittenId
+        ? { year, kind: "yearly", text: ev.text, relatedKittenId: ev.relatedKittenId }
+        : { year, kind: "yearly", text: ev.text };
+      added.push(e);
+    }
+    return { ...k, lifeEvents: [...k.lifeEvents, ...added].sort((a, b) => a.year - b.year) };
+  });
 }
 
 // ── Luxury resource constants ─────────────────────────────────────────────────
@@ -758,11 +806,16 @@ export class VillageManager implements Manager {
           const lifeEvents: readonly LifeEvent[] = Array.isArray(k.lifeEvents)
             ? (k.lifeEvents as unknown[])
                 .filter((e): e is Record<string, unknown> => e != null && typeof e === "object")
-                .map((e) => ({
-                  year: typeof e.year === "number" ? e.year : 0,
-                  kind: (typeof e.kind === "string" ? e.kind : "spawn") as LifeEventKind,
-                  text: typeof e.text === "string" ? e.text : "",
-                }))
+                .map((e) => {
+                  const base = {
+                    year: typeof e.year === "number" ? e.year : 0,
+                    kind: (typeof e.kind === "string" ? e.kind : "spawn") as LifeEventKind,
+                    text: typeof e.text === "string" ? e.text : "",
+                  };
+                  return typeof e.relatedKittenId === "string"
+                    ? { ...base, relatedKittenId: e.relatedKittenId }
+                    : base;
+                })
             : [{ year: birthYear, kind: "spawn", text: describeSpawn(age) }];
           const portraitPath = typeof k.portraitPath === "string" ? k.portraitPath : null;
 
@@ -795,7 +848,14 @@ export class VillageManager implements Manager {
     const name = typeof raw.name === "string" && sanitizeVillageName(raw.name)
       ? (sanitizeVillageName(raw.name) as string)
       : initial.name;
-    return { ...state, village: { name, kittens, kittenProgress, jobs, sim, deadKittens, happiness, leader } };
+
+    // Retrofit lore: kittens with only a spawn-event and age ≥ 3 get 1–4
+    // deterministic backstory events distributed across their life so the
+    // Inspector timeline doesn't feel empty for legacy saves. Idempotent —
+    // once events exist, this loop is a no-op on subsequent loads.
+    const filledSim = backfillBackstory(sim, currentYear);
+
+    return { ...state, village: { name, kittens, kittenProgress, jobs, sim: filledSim, deadKittens, happiness, leader } };
   }
 
   resetState(state: GameState): GameState {
@@ -805,14 +865,21 @@ export class VillageManager implements Manager {
   /** Age all kittens by 1 year. Called from calendar year tick. */
   static ageKittens(state: GameState): GameState {
     const newYear = state.calendar.year;
+    const seasonName = SEASON_DEFS[state.calendar.season]?.name ?? "summer";
     const sim = state.village.sim.map((k) => {
       // 25% chance to append a yearly snippet — deterministic per (kittenId, year)
       // so replaying the same save doesn't drift.
       const eventRng = mulberry32(hashString(`yearly-roll:${k.id}:${newYear}`));
-      const events: readonly LifeEvent[] = eventRng() < 0.25
-        ? [...k.lifeEvents, { year: newYear, kind: "yearly", text: generateYearlyEvent(k.id, newYear, k.job, k.trait) }]
-        : k.lifeEvents;
-      return { ...k, age: k.age + 1, lifeEvents: events };
+      if (eventRng() >= 0.25) {
+        return { ...k, age: k.age + 1 };
+      }
+      const peers = state.village.sim.filter((p) => p.id !== k.id);
+      const sameJob = k.job ? peers.filter((p) => p.job === k.job) : [];
+      const ev = generateYearlyEvent(k.id, newYear, k.job, k.trait, seasonName, peers, sameJob, k.age);
+      const newEvent: LifeEvent = ev.relatedKittenId
+        ? { year: newYear, kind: "yearly", text: ev.text, relatedKittenId: ev.relatedKittenId }
+        : { year: newYear, kind: "yearly", text: ev.text };
+      return { ...k, age: k.age + 1, lifeEvents: [...k.lifeEvents, newEvent] };
     });
     return { ...state, village: { ...state.village, sim } };
   }

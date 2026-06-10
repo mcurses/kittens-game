@@ -778,6 +778,92 @@ describe("Story 48-04: Individual kitten state", () => {
   });
 });
 
+// ── Story: Backstory-Fill on load (reichere Census-Timeline) ─────────────────
+
+describe("backstory fill on load", () => {
+  /** Build a save-shaped object with one kitten whose lifeEvents are only the spawn-event. */
+  function singleKittenSave(age: number): unknown {
+    return {
+      kittens: 1,
+      kittenProgress: 0,
+      jobs: {},
+      happiness: 1,
+      deadKittens: 0,
+      leader: null,
+      sim: [{
+        id: "kfix", name: "Mittens", surname: "Smoke",
+        age, trait: "scientist", job: "scholar",
+        skills: {}, rank: 0, exp: 0,
+        isFavorite: false, isLeader: false,
+        birthYear: 0,
+        appearance: { breed: "tabby", body: "slim", eyes: "large-amber", accessory: null },
+        originStory: "spawned for test", traitFlavor: "test flavor",
+        lifeEvents: [{ year: 0, kind: "spawn", text: "Geboren im Dorf." }],
+        portraitPath: null,
+        motherId: null, fatherId: null, childIds: [],
+      }],
+    };
+  }
+
+  it("fills 1–4 backstory events for an old kitten with only a spawn-event", () => {
+    const base = createInitialState();
+    const initial = { ...base, calendar: { ...base.calendar, year: 20 } };
+    const loaded = new VillageManager().load(singleKittenSave(20), initial);
+    const k = loaded.village.sim[0]!;
+    expect(k.lifeEvents.length).toBeGreaterThan(1);
+    expect(k.lifeEvents.length).toBeLessThanOrEqual(5); // spawn + up to 4
+    expect(k.lifeEvents.every((e) => /^Im Jahr \d+/.test(e.text) || e.kind === "spawn")).toBe(true);
+  });
+
+  it("is deterministic — same save loads to identical events", () => {
+    const base = createInitialState();
+    const initial = { ...base, calendar: { ...base.calendar, year: 20 } };
+    const save = singleKittenSave(20);
+    const a = new VillageManager().load(save, initial);
+    const b = new VillageManager().load(save, initial);
+    expect(a.village.sim[0]!.lifeEvents).toEqual(b.village.sim[0]!.lifeEvents);
+  });
+
+  it("skips kittens younger than 3 years", () => {
+    const base = createInitialState();
+    const initial = { ...base, calendar: { ...base.calendar, year: 2 } };
+    const loaded = new VillageManager().load(singleKittenSave(2), initial);
+    const k = loaded.village.sim[0]!;
+    expect(k.lifeEvents.length).toBe(1); // only spawn
+  });
+
+  it("idempotent — re-loading a previously filled save adds nothing", () => {
+    const base = createInitialState();
+    const initial = { ...base, calendar: { ...base.calendar, year: 20 } };
+    const onceLoaded = new VillageManager().load(singleKittenSave(20), initial);
+    const reSaved = new VillageManager().save(onceLoaded);
+    const twiceLoaded = new VillageManager().load(reSaved, initial);
+    expect(twiceLoaded.village.sim[0]!.lifeEvents).toEqual(onceLoaded.village.sim[0]!.lifeEvents);
+  });
+
+  it("round-trips relatedKittenId through save/load", () => {
+    const base = createInitialState();
+    const k1: Kitten = {
+      id: "k1", name: "A", surname: "S", age: 10, trait: "none", job: null,
+      skills: {}, rank: 0, exp: 0, isFavorite: false, isLeader: false,
+      birthYear: 0,
+      appearance: { breed: "tabby", body: "slim", eyes: "large-amber", accessory: null },
+      originStory: "", traitFlavor: "",
+      lifeEvents: [
+        { year: 0, kind: "spawn", text: "geboren" },
+        { year: 5, kind: "yearly", text: "verliebte sich in B", relatedKittenId: "k2" },
+      ],
+      portraitPath: null, motherId: null, fatherId: null, childIds: [],
+    };
+    const state = { ...base, village: { ...base.village, kittens: 1, sim: [k1] } };
+    const manager = new VillageManager();
+    const loaded = manager.load(manager.save(state), createInitialState());
+    const ev = loaded.village.sim[0]!.lifeEvents.find((e) => e.relatedKittenId === "k2");
+    expect(ev).toBeDefined();
+    expect(ev!.text).toContain("verliebte sich in B");
+  });
+});
+
 // ── Story 48-03: Bulk hunt shortcuts ─────────────────────────────────────────
 
 describe("Story 48-03: Bulk hunt with amount", () => {
