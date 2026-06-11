@@ -244,7 +244,9 @@ function getJobVisibility(state: SerializableStateLike): Record<string, UiJobVis
     },
     hunter: { visible: isTechResearched(state, "archery") },
     miner: { visible: isTechResearched(state, "mining") },
-    priest: { visible: isTechResearched(state, "theology") && !isChallengeActive(state, "atheism") },
+    priest: {
+      visible: isTechResearched(state, "theology") && !isChallengeActive(state, "atheism"),
+    },
     geologist: { visible: isTechResearched(state, "archeology") },
     engineer: { visible: isTechResearched(state, "mechanization") },
   };
@@ -264,14 +266,19 @@ function getResourceVisibility(state: SerializableStateLike): Record<string, UiR
   for (const [name, rawEntry] of Object.entries(resources)) {
     const entry = asRecord(rawEntry);
     result[name] = {
-      visible: getBoolean(entry, "unlocked") || getNumber(entry, "value") > 0 || isResourceUnlocked(state, name),
+      visible:
+        getBoolean(entry, "unlocked") ||
+        getNumber(entry, "value") > 0 ||
+        isResourceUnlocked(state, name),
     };
   }
 
   return result;
 }
 
-function getBuildingControlsVisibility(state: SerializableStateLike): Record<string, UiBuildingControlsVisibility> {
+function getBuildingControlsVisibility(
+  state: SerializableStateLike,
+): Record<string, UiBuildingControlsVisibility> {
   const buildings = asRecord(asRecord(state).buildings);
   const ecology = isTechResearched(state, "ecology");
   const pumpjack = isUpgradeResearched(state, "pumpjack");
@@ -381,7 +388,8 @@ export function deriveUiVisibility(state: SerializableStateLike): DerivedUiVisib
     challenges: {
       id: "challenges",
       label: TAB_LABELS.challenges,
-      visible: isPerkResearched(state, "adjustmentBureau") || isPerkReserved(state, "adjustmentBureau"),
+      visible:
+        isPerkResearched(state, "adjustmentBureau") || isPerkReserved(state, "adjustmentBureau"),
     },
   };
 
@@ -390,7 +398,10 @@ export function deriveUiVisibility(state: SerializableStateLike): DerivedUiVisib
     buildings: getBuildingControlsVisibility(state),
     village: {
       jobsVisible: !isChallengeActive(state, "ironWill") || getVillageKittens(state) > 0,
-      managementVisible: getVillageKittens(state) >= 5 || getResourceValue(state, "zebras") > 0 || getRaceUnlocked(state, "zebras"),
+      managementVisible:
+        getVillageKittens(state) >= 5 ||
+        getResourceValue(state, "zebras") > 0 ||
+        getRaceUnlocked(state, "zebras"),
       censusVisible: isTechResearched(state, "civil"),
       mapVisible: isTechResearched(state, "archery"),
       festivalVisible: isTechResearched(state, "drama"),

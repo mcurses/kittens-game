@@ -11,13 +11,12 @@ import {
 } from "@kittens/api-spec";
 import type { SerializedGameState } from "@kittens/engine";
 import { migrateLegacySave } from "@kittens/engine";
-import LZString from "lz-string";
 // Hono app factory — creates the HTTP + WS app given a SessionRegistry
 import { Hono } from "hono";
-import { cors } from "hono/cors";
 import type { Context } from "hono";
-import { DEFAULT_SLOT, isValidSlot, type GameStateStore, SessionRegistry } from "./store.js";
-import type { SlotMeta } from "./db.js";
+import { cors } from "hono/cors";
+import LZString from "lz-string";
+import { DEFAULT_SLOT, type GameStateStore, type SessionRegistry, isValidSlot } from "./store.js";
 
 const VERSION = "0.1.0";
 
@@ -36,10 +35,7 @@ function getSlotParam(c: Context): string | null {
 }
 
 /** Get the store for the request's slot, or return a 400 error response. */
-function resolveStore(
-  c: Context,
-  registry: SessionRegistry,
-): { store: GameStateStore } | Response {
+function resolveStore(c: Context, registry: SessionRegistry): { store: GameStateStore } | Response {
   const slot = getSlotParam(c);
   if (slot === null) {
     return c.json({ ok: false, error: "Invalid slot name" }, 400) as unknown as Response;

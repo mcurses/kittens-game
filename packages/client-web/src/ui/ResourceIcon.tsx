@@ -8,8 +8,8 @@
 // Falling back to a glyph keeps the UI working while we generate the WEBPs
 // incrementally; no flash of empty space when assets are 404.
 import React from "react";
-import { RESOURCE_SPRITES } from "../resourceSprites.js";
 import { JOB_SPRITES } from "../jobSprites.js";
+import { RESOURCE_SPRITES } from "../resourceSprites.js";
 
 export type ResourceIconSize = "xs" | "sm" | "md" | "lg" | "xl";
 
@@ -37,7 +37,7 @@ export function ResourceIcon({
   if (useImg) {
     return (
       <img
-        src={sprite!.iconPath}
+        src={sprite?.iconPath}
         alt=""
         aria-hidden={ariaLabel ? undefined : true}
         aria-label={ariaLabel}

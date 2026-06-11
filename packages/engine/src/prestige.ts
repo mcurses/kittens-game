@@ -2,8 +2,8 @@ import type { Serializable } from "@kittens/shared";
 import { produce } from "immer";
 import { getLimitedDR } from "./effects.js";
 import type { Manager } from "./manager.js";
-import { resetState } from "./tick.js";
 import type { GameState } from "./state.js";
+import { resetState } from "./tick.js";
 
 // ── PerkDef ───────────────────────────────────────────────────────────────────
 
@@ -452,14 +452,14 @@ export class PrestigeManager implements Manager {
     const initial = createInitialPrestige();
     const perks = { ...initial.perks };
 
-    const savedPerks = d["perks"];
+    const savedPerks = d.perks;
     if (savedPerks && typeof savedPerks === "object") {
       for (const [name, entry] of Object.entries(savedPerks as Record<string, unknown>)) {
         if (entry && typeof entry === "object") {
           const e = entry as Record<string, unknown>;
           const unlocked =
-            typeof e["unlocked"] === "boolean" ? e["unlocked"] : (perks[name]?.unlocked ?? false);
-          const researched = typeof e["researched"] === "boolean" ? e["researched"] : false;
+            typeof e.unlocked === "boolean" ? e.unlocked : (perks[name]?.unlocked ?? false);
+          const researched = typeof e.researched === "boolean" ? e.researched : false;
           perks[name] = { unlocked, researched };
         }
       }
@@ -530,7 +530,10 @@ export function applyBurnParagon(state: GameState): GameState {
  * Preserves: prestige.perks, resources.paragon, resources.burnedParagon
  * Resets: everything else (resources, buildings, village, calendar, science, workshop, religion)
  */
-export function applySoftReset(state: GameState, managers: readonly import("./manager.js").Manager[]): GameState {
+export function applySoftReset(
+  state: GameState,
+  managers: readonly import("./manager.js").Manager[],
+): GameState {
   // Save prestige perks and paragon before reset
   const savedPrestige = state.prestige;
   const paragonValue = state.resources.paragon?.value ?? 0;
@@ -538,9 +541,16 @@ export function applySoftReset(state: GameState, managers: readonly import("./ma
 
   // Save challenge completion state before reset (on/researched/unlocked persist across soft resets)
   // Inline to avoid circular import (challenges.ts → state.ts → prestige.ts)
-  const savedChallengeCompletions: Record<string, { on: number; researched: boolean; unlocked: boolean }> = {};
+  const savedChallengeCompletions: Record<
+    string,
+    { on: number; researched: boolean; unlocked: boolean }
+  > = {};
   for (const [name, entry] of Object.entries(state.challenges.challenges)) {
-    savedChallengeCompletions[name] = { on: entry.on, researched: entry.researched, unlocked: entry.unlocked };
+    savedChallengeCompletions[name] = {
+      on: entry.on,
+      researched: entry.researched,
+      unlocked: entry.unlocked,
+    };
   }
 
   // Reset all state
@@ -550,7 +560,10 @@ export function applySoftReset(state: GameState, managers: readonly import("./ma
   newState = { ...newState, prestige: savedPrestige };
 
   // Apply challenge soft-reset: restore on/researched/unlocked, cancel active/pending
-  const softResetChallenges: Record<string, { unlocked: boolean; active: boolean; researched: boolean; on: number; pending: boolean }> = {};
+  const softResetChallenges: Record<
+    string,
+    { unlocked: boolean; active: boolean; researched: boolean; on: number; pending: boolean }
+  > = {};
   for (const [name, entry] of Object.entries(newState.challenges.challenges)) {
     const saved = savedChallengeCompletions[name];
     softResetChallenges[name] = {

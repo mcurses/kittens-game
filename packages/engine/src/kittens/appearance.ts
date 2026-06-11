@@ -42,13 +42,7 @@ export const BREEDS = [
   "smoke-grey",
 ] as const;
 
-export const BODIES = [
-  "slim",
-  "plump",
-  "athletic",
-  "muscular",
-  "fluffy",
-] as const;
+export const BODIES = ["slim", "plump", "athletic", "muscular", "fluffy"] as const;
 
 export const EYES = [
   "large-amber",

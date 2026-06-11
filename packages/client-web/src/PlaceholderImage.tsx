@@ -28,11 +28,7 @@ export function PlaceholderImage({
 }: PlaceholderImageProps): React.ReactElement {
   const [imgFailed, setImgFailed] = React.useState(false);
 
-  const classes = [
-    "placeholder-image",
-    `placeholder-image--${variant}`,
-    className,
-  ]
+  const classes = ["placeholder-image", `placeholder-image--${variant}`, className]
     .filter(Boolean)
     .join(" ");
 
@@ -41,21 +37,28 @@ export function PlaceholderImage({
   // Decorative image (no caller-supplied alt): mark as presentational so
   // screen readers skip it. With an alt, expose it as content.
   const isDecorative = alt === "";
-  const imgA11y = isDecorative
-    ? ({ alt: "", role: "presentation" as const })
-    : ({ alt });
 
   return (
     <div className={classes} data-testid="placeholder-image" data-variant={variant}>
-      {showImage && (
-        <img
-          src={src}
-          {...imgA11y}
-          className="placeholder-image__img"
-          onError={() => setImgFailed(true)}
-          data-testid="placeholder-image-img"
-        />
-      )}
+      {showImage &&
+        (isDecorative ? (
+          <img
+            src={src}
+            alt=""
+            aria-hidden="true"
+            className="placeholder-image__img"
+            onError={() => setImgFailed(true)}
+            data-testid="placeholder-image-img"
+          />
+        ) : (
+          <img
+            src={src}
+            alt={alt}
+            className="placeholder-image__img"
+            onError={() => setImgFailed(true)}
+            data-testid="placeholder-image-img"
+          />
+        ))}
     </div>
   );
 }

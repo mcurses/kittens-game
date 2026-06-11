@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { deserialize } from "./state.js";
 import { migrateLegacySave } from "./legacy-migration.js";
+import { deserialize } from "./state.js";
 
 // ── Fixtures ──────────────────────────────────────────────────────────────────
 
@@ -13,7 +13,15 @@ const minimalLegacySave = {
     { name: "manpower", value: 300, maxValue: 500 }, // should become catpower
   ],
   buildings: [
-    { name: "field", val: 3, on: 3, unlocked: true, stage: 0, jammed: false, isAutomationEnabled: false },
+    {
+      name: "field",
+      val: 3,
+      on: 3,
+      unlocked: true,
+      stage: 0,
+      jammed: false,
+      isAutomationEnabled: false,
+    },
     { name: "hut", val: 2, on: 2, unlocked: true },
   ],
   village: {
@@ -33,20 +41,12 @@ const minimalLegacySave = {
       { name: "calendar", unlocked: true, researched: true },
       { name: "mining", unlocked: true, researched: false },
     ],
-    policies: [
-      { name: "authocracy", unlocked: true, blocked: false, researched: false },
-    ],
+    policies: [{ name: "authocracy", unlocked: true, blocked: false, researched: false }],
   },
   workshop: {
-    upgrades: [
-      { name: "mineralHoes", unlocked: true, researched: true },
-    ],
-    crafts: [
-      { name: "beam", unlocked: true, value: 5, progress: 0.3 },
-    ],
-    zebraUpgrades: [
-      { name: "zebraUpgrade1", unlocked: false, researched: false },
-    ],
+    upgrades: [{ name: "mineralHoes", unlocked: true, researched: true }],
+    crafts: [{ name: "beam", unlocked: true, value: 5, progress: 0.3 }],
+    zebraUpgrades: [{ name: "zebraUpgrade1", unlocked: false, researched: false }],
   },
 };
 
@@ -85,7 +85,12 @@ describe("migrateLegacySave", () => {
 
   it("converts buildings array to Record", () => {
     const result = migrateLegacySave(minimalLegacySave);
-    expect(result.buildings.field).toEqual({ val: 3, on: 3, unlocked: true, automationEnabled: false });
+    expect(result.buildings.field).toEqual({
+      val: 3,
+      on: 3,
+      unlocked: true,
+      automationEnabled: false,
+    });
     expect(result.buildings.hut).toEqual({ val: 2, on: 2, unlocked: true });
   });
 
@@ -264,7 +269,15 @@ describe("migrateLegacySave", () => {
       ...minimalLegacySave,
       diplomacy: {
         races: [
-          { name: "lizards", unlocked: true, embassyLevel: 3, collapsed: false, energy: 0, duration: 0, pinned: false },
+          {
+            name: "lizards",
+            unlocked: true,
+            embassyLevel: 3,
+            collapsed: false,
+            energy: 0,
+            duration: 0,
+            pinned: false,
+          },
         ],
       },
     };
@@ -306,11 +319,13 @@ describe("migrateLegacySave", () => {
     const save = {
       ...minimalLegacySave,
       time: {
-        heat: 0, flux: 0, isAccelerated: false,
+        heat: 0,
+        flux: 0,
+        isAccelerated: false,
         cfu: [],
         vsu: [
-          { name: "voidHoover", val: 4, on: 4 },  // no unlocked field
-          { name: "voidRift", val: 0, on: 0 },     // val:0 → still false
+          { name: "voidHoover", val: 4, on: 4 }, // no unlocked field
+          { name: "voidRift", val: 0, on: 0 }, // val:0 → still false
         ],
       },
     };
@@ -323,7 +338,9 @@ describe("migrateLegacySave", () => {
     const save = {
       ...minimalLegacySave,
       time: {
-        heat: 0, flux: 0, isAccelerated: false,
+        heat: 0,
+        flux: 0,
+        isAccelerated: false,
         cfu: [
           { name: "blastFurnace", val: 3, on: 2, heat: 1 }, // no unlocked field
           { name: "temporalAccelerator", val: 0, on: 0, heat: 0 },
@@ -340,7 +357,9 @@ describe("migrateLegacySave", () => {
     const save = {
       ...minimalLegacySave,
       time: {
-        heat: 0, flux: 0, isAccelerated: false,
+        heat: 0,
+        flux: 0,
+        isAccelerated: false,
         cfu: [{ name: "blastFurnace", val: 0, on: 0, unlocked: false, heat: 0 }],
         vsu: [{ name: "voidHoover", val: 0, on: 0, unlocked: false }],
       },
@@ -355,9 +374,7 @@ describe("migrateLegacySave", () => {
   it("converts achievements and badges", () => {
     const save = {
       ...minimalLegacySave,
-      achievements: [
-        { name: "kittenMother", unlocked: true, starUnlocked: false },
-      ],
+      achievements: [{ name: "kittenMother", unlocked: true, starUnlocked: false }],
       ach: {
         badgesUnlocked: true,
         badges: [{ name: "hoarder", unlocked: true }],

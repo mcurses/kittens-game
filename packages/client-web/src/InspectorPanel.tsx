@@ -115,8 +115,16 @@ function KittenDetail({ entity }: { entity: KittenEntity }): React.ReactElement 
       />
       <div className="inspector-name">
         {fullName}
-        {entity.isLeader && <span className="kitten-detail__leader" title="Anführer">★</span>}
-        {entity.isFavorite && <span className="kitten-detail__favorite" title="Favorit">♥</span>}
+        {entity.isLeader && (
+          <span className="kitten-detail__leader" title="Anführer">
+            ★
+          </span>
+        )}
+        {entity.isFavorite && (
+          <span className="kitten-detail__favorite" title="Favorit">
+            ♥
+          </span>
+        )}
       </div>
       <div className="inspector-kind">
         Kitten · Alter {entity.age} (geboren Jahr {entity.birthYear})
@@ -129,7 +137,8 @@ function KittenDetail({ entity }: { entity: KittenEntity }): React.ReactElement 
             {entity.job ?? "—"}
             {entity.job && jobAffinityLabel(entity.trait, entity.job) && (
               <span className="kitten-detail__affinity" title="Trait passt zum Job">
-                {" "}{jobAffinityLabel(entity.trait, entity.job)}
+                {" "}
+                {jobAffinityLabel(entity.trait, entity.job)}
               </span>
             )}
           </dd>
@@ -274,7 +283,10 @@ function ResourceDetail({
 }): React.ReactElement {
   const { name, value, maxValue, perTick, breakdown } = entity;
   const showBreakdown =
-    breakdown.base !== 0 || breakdown.ratio !== 0 || breakdown.direct !== 0 || breakdown.consumption !== 0;
+    breakdown.base !== 0 ||
+    breakdown.ratio !== 0 ||
+    breakdown.direct !== 0 ||
+    breakdown.consumption !== 0;
 
   return (
     <div className="inspector-entity">
@@ -292,9 +304,7 @@ function ResourceDetail({
         {perTick !== undefined && perTick !== 0 && (
           <div className="inspector-stat-row">
             <dt>Net income</dt>
-            <dd className={perTick > 0 ? "stat-pos" : "stat-neg"}>
-              {formatRate(perTick)}
-            </dd>
+            <dd className={perTick > 0 ? "stat-pos" : "stat-neg"}>{formatRate(perTick)}</dd>
           </div>
         )}
       </dl>
@@ -348,15 +358,12 @@ function ResourceDetail({
           Time to zero: {formatDuration(value / (-perTick * TICKS_PER_SECOND) - elapsedSeconds)}
         </div>
       )}
-      {perTick !== undefined &&
-        perTick > 0 &&
-        maxValue !== undefined &&
-        maxValue > value && (
-          <div className="inspector-notice">
-            Time to cap:{" "}
-            {formatDuration((maxValue - value) / (perTick * TICKS_PER_SECOND) - elapsedSeconds)}
-          </div>
-        )}
+      {perTick !== undefined && perTick > 0 && maxValue !== undefined && maxValue > value && (
+        <div className="inspector-notice">
+          Time to cap:{" "}
+          {formatDuration((maxValue - value) / (perTick * TICKS_PER_SECOND) - elapsedSeconds)}
+        </div>
+      )}
     </div>
   );
 }
@@ -372,14 +379,13 @@ function CraftRecipeSection({
   recipe: NonNullable<ResourceEntity["craftRecipe"]>;
   elapsedSeconds: number;
 }): React.ReactElement {
-  const outputLabel = recipe.output === 1
-    ? `1 ${resourceName}`
-    : `${recipe.output % 1 === 0 ? recipe.output.toFixed(0) : recipe.output.toFixed(2)} ${resourceName}`;
+  const outputLabel =
+    recipe.output === 1
+      ? `1 ${resourceName}`
+      : `${recipe.output % 1 === 0 ? recipe.output.toFixed(0) : recipe.output.toFixed(2)} ${resourceName}`;
   return (
     <div className="inspector-section" data-testid="inspector-craft-recipe">
-      <div className="inspector-section-label">
-        Wird im Workshop gecraftet → {outputLabel}
-      </div>
+      <div className="inspector-section-label">Wird im Workshop gecraftet → {outputLabel}</div>
       <PricesSection
         prices={recipe.prices}
         label="Zutaten (1×)"
@@ -408,7 +414,9 @@ function AttributionSection({
 }): React.ReactElement | null {
   if (!attribution || attribution.length === 0) return null;
 
-  const production = attribution.filter((a) => a.channel !== "consumption" && a.channel !== "ratio");
+  const production = attribution.filter(
+    (a) => a.channel !== "consumption" && a.channel !== "ratio",
+  );
   const ratios = attribution.filter((a) => a.channel === "ratio");
   const consumption = attribution.filter((a) => a.channel === "consumption");
 
@@ -466,9 +474,7 @@ function BuildingDetail({
         Building · {entity.val} built
         {entity.on !== undefined && entity.on < entity.val && ` (${entity.on} on)`}
       </div>
-      {entity.description && (
-        <p className="inspector-description">{entity.description}</p>
-      )}
+      {entity.description && <p className="inspector-description">{entity.description}</p>}
       {entity.automationEnabled !== undefined && (
         <div className="inspector-notice" data-testid="inspector-automation">
           Automation: {entity.automationEnabled ? "ON" : "OFF"}
@@ -486,9 +492,15 @@ function BuildingDetail({
         resources={entity.resources}
         elapsedSeconds={elapsedSeconds}
       />
-      <AffectedResourcesSection effects={entity.effects} prices={entity.prices} resources={entity.resources} />
+      <AffectedResourcesSection
+        effects={entity.effects}
+        prices={entity.prices}
+        resources={entity.resources}
+      />
       {entity.flavor && (
-        <p className="inspector-flavor" data-testid="inspector-flavor">{entity.flavor}</p>
+        <p className="inspector-flavor" data-testid="inspector-flavor">
+          {entity.flavor}
+        </p>
       )}
     </div>
   );
@@ -510,16 +522,16 @@ function UpgradeDetail({
           className="inspector-icon"
           src={entity.iconPath}
           alt=""
-          onError={(e) => { e.currentTarget.style.display = "none"; }}
+          onError={(e) => {
+            e.currentTarget.style.display = "none";
+          }}
         />
       )}
       <div className="inspector-name">{entity.name}</div>
       <div className="inspector-kind">
         Workshop Upgrade{entity.researched ? " · Purchased" : ""}
       </div>
-      {entity.description && (
-        <p className="inspector-description">{entity.description}</p>
-      )}
+      {entity.description && <p className="inspector-description">{entity.description}</p>}
       <EffectsSection effects={entity.effects} />
       {!entity.researched && (
         <PricesSection
@@ -529,9 +541,15 @@ function UpgradeDetail({
           elapsedSeconds={elapsedSeconds}
         />
       )}
-      <AffectedResourcesSection effects={entity.effects} prices={entity.prices} resources={entity.resources} />
+      <AffectedResourcesSection
+        effects={entity.effects}
+        prices={entity.prices}
+        resources={entity.resources}
+      />
       {entity.flavor && (
-        <p className="inspector-flavor" data-testid="inspector-flavor">{entity.flavor}</p>
+        <p className="inspector-flavor" data-testid="inspector-flavor">
+          {entity.flavor}
+        </p>
       )}
     </div>
   );
@@ -553,16 +571,14 @@ function TechDetail({
           className="inspector-icon"
           src={entity.iconPath}
           alt=""
-          onError={(e) => { e.currentTarget.style.display = "none"; }}
+          onError={(e) => {
+            e.currentTarget.style.display = "none";
+          }}
         />
       )}
       <div className="inspector-name">{entity.name}</div>
-      <div className="inspector-kind">
-        Technology{entity.researched ? " · Researched" : ""}
-      </div>
-      {entity.description && (
-        <p className="inspector-description">{entity.description}</p>
-      )}
+      <div className="inspector-kind">Technology{entity.researched ? " · Researched" : ""}</div>
+      {entity.description && <p className="inspector-description">{entity.description}</p>}
       <EffectsSection effects={entity.effects} />
       {!entity.researched && (
         <PricesSection
@@ -572,9 +588,15 @@ function TechDetail({
           elapsedSeconds={elapsedSeconds}
         />
       )}
-      <AffectedResourcesSection effects={entity.effects} prices={entity.prices} resources={entity.resources} />
+      <AffectedResourcesSection
+        effects={entity.effects}
+        prices={entity.prices}
+        resources={entity.resources}
+      />
       {entity.flavor && (
-        <p className="inspector-flavor" data-testid="inspector-flavor">{entity.flavor}</p>
+        <p className="inspector-flavor" data-testid="inspector-flavor">
+          {entity.flavor}
+        </p>
       )}
     </div>
   );
@@ -595,9 +617,7 @@ function PolicyDetail({
       <div className="inspector-kind">
         Policy{entity.researched ? " · Adopted" : entity.blocked ? " · Blocked" : ""}
       </div>
-      {entity.description && (
-        <p className="inspector-description">{entity.description}</p>
-      )}
+      {entity.description && <p className="inspector-description">{entity.description}</p>}
       <EffectsSection effects={entity.effects} />
       {!entity.researched && !entity.blocked && (
         <PricesSection
@@ -607,9 +627,15 @@ function PolicyDetail({
           elapsedSeconds={elapsedSeconds}
         />
       )}
-      <AffectedResourcesSection effects={entity.effects} prices={entity.prices} resources={entity.resources} />
+      <AffectedResourcesSection
+        effects={entity.effects}
+        prices={entity.prices}
+        resources={entity.resources}
+      />
       {entity.flavor && (
-        <p className="inspector-flavor" data-testid="inspector-flavor">{entity.flavor}</p>
+        <p className="inspector-flavor" data-testid="inspector-flavor">
+          {entity.flavor}
+        </p>
       )}
     </div>
   );
@@ -630,9 +656,7 @@ function PerkDetail({
       <div className="inspector-kind">
         Metaphysics Perk{entity.researched ? " · Purchased" : ""}
       </div>
-      {entity.description && (
-        <p className="inspector-description">{entity.description}</p>
-      )}
+      {entity.description && <p className="inspector-description">{entity.description}</p>}
       <EffectsSection effects={entity.effects} />
       {!entity.researched && (
         <PricesSection
@@ -642,9 +666,15 @@ function PerkDetail({
           elapsedSeconds={elapsedSeconds}
         />
       )}
-      <AffectedResourcesSection effects={entity.effects} prices={entity.prices} resources={entity.resources} />
+      <AffectedResourcesSection
+        effects={entity.effects}
+        prices={entity.prices}
+        resources={entity.resources}
+      />
       {entity.flavor && (
-        <p className="inspector-flavor" data-testid="inspector-flavor">{entity.flavor}</p>
+        <p className="inspector-flavor" data-testid="inspector-flavor">
+          {entity.flavor}
+        </p>
       )}
     </div>
   );
@@ -663,9 +693,7 @@ function ZigguratUpgradeDetail({
     <div className="inspector-entity">
       <div className="inspector-name">{entity.name}</div>
       <div className="inspector-kind">Ziggurat Upgrade · ×{entity.val}</div>
-      {entity.description && (
-        <p className="inspector-description">{entity.description}</p>
-      )}
+      {entity.description && <p className="inspector-description">{entity.description}</p>}
       <EffectsSection effects={entity.effects} />
       <PricesSection
         prices={entity.prices}
@@ -673,7 +701,11 @@ function ZigguratUpgradeDetail({
         resources={entity.resources}
         elapsedSeconds={elapsedSeconds}
       />
-      <AffectedResourcesSection effects={entity.effects} prices={entity.prices} resources={entity.resources} />
+      <AffectedResourcesSection
+        effects={entity.effects}
+        prices={entity.prices}
+        resources={entity.resources}
+      />
     </div>
   );
 }
@@ -691,9 +723,7 @@ function ReligionUpgradeDetail({
     <div className="inspector-entity">
       <div className="inspector-name">{entity.name}</div>
       <div className="inspector-kind">Religion Upgrade · ×{entity.val}</div>
-      {entity.description && (
-        <p className="inspector-description">{entity.description}</p>
-      )}
+      {entity.description && <p className="inspector-description">{entity.description}</p>}
       <EffectsSection effects={entity.effects} />
       <PricesSection
         prices={entity.prices}
@@ -701,7 +731,11 @@ function ReligionUpgradeDetail({
         resources={entity.resources}
         elapsedSeconds={elapsedSeconds}
       />
-      <AffectedResourcesSection effects={entity.effects} prices={entity.prices} resources={entity.resources} />
+      <AffectedResourcesSection
+        effects={entity.effects}
+        prices={entity.prices}
+        resources={entity.resources}
+      />
     </div>
   );
 }
@@ -725,7 +759,9 @@ function CraftDetail({
         </div>
       )}
       {entity.flavor && (
-        <p className="inspector-flavor" data-testid="inspector-flavor">{entity.flavor}</p>
+        <p className="inspector-flavor" data-testid="inspector-flavor">
+          {entity.flavor}
+        </p>
       )}
     </div>
   );
@@ -741,7 +777,9 @@ function CraftShortcutDetail({
   return (
     <div className="inspector-entity">
       <div className="inspector-name">{entity.name}</div>
-      <div className="inspector-kind">Craft ×{entity.amount} → {entity.output}</div>
+      <div className="inspector-kind">
+        Craft ×{entity.amount} → {entity.output}
+      </div>
       <PricesSection
         prices={entity.prices}
         label="Cost"
@@ -836,9 +874,7 @@ function AffectedResourcesSection({
               <dt>{name}</dt>
               <dd>
                 {rate !== undefined && rate !== 0 ? (
-                  <span className={rate > 0 ? "stat-pos" : "stat-neg"}>
-                    {formatRate(rate)}
-                  </span>
+                  <span className={rate > 0 ? "stat-pos" : "stat-neg"}>{formatRate(rate)}</span>
                 ) : (
                   <span>{formatValue(res?.value ?? 0)}</span>
                 )}
@@ -876,9 +912,7 @@ function PricesSection({
           const storageLimited = isStorageLimited([p], resources);
           const shortfall = need - have;
           const ticksNeeded =
-            !affordable && !storageLimited && perTick && perTick > 0
-              ? shortfall / perTick
-              : null;
+            !affordable && !storageLimited && perTick && perTick > 0 ? shortfall / perTick : null;
           const remainingSeconds =
             ticksNeeded !== null ? ticksNeeded / TICKS_PER_SECOND - elapsedSeconds : null;
 
@@ -890,15 +924,14 @@ function PricesSection({
             >
               <dt className="inspector-price-name">{p.name}</dt>
               <dd className="inspector-price-detail">
-                <span className={affordable ? "stat-pos" : "stat-neg"}>
-                  {formatValue(have)}
-                </span>
+                <span className={affordable ? "stat-pos" : "stat-neg"}>{formatValue(have)}</span>
                 <span className="inspector-price-sep"> / </span>
-                <span>{formatValue(need)}{storageLimited ? "*" : ""}</span>
+                <span>
+                  {formatValue(need)}
+                  {storageLimited ? "*" : ""}
+                </span>
                 {remainingSeconds !== null && (
-                  <span className="inspector-price-eta">
-                    {" "}~{formatDuration(remainingSeconds)}
-                  </span>
+                  <span className="inspector-price-eta"> ~{formatDuration(remainingSeconds)}</span>
                 )}
               </dd>
             </div>
@@ -906,9 +939,7 @@ function PricesSection({
         })}
       </dl>
       {isStorageLimited(prices, resources) && (
-        <div className="inspector-notice inspector-notice--warn">
-          * Limited by current storage
-        </div>
+        <div className="inspector-notice inspector-notice--warn">* Limited by current storage</div>
       )}
     </div>
   );
@@ -990,7 +1021,9 @@ function JobDetail({ entity }: { entity: JobEntity }): React.ReactElement {
   const { name, description, flavor, modifiers } = entity;
   return (
     <div className="inspector-entity">
-      <div className="inspector-name" data-testid="inspector-job-name">{prettifyName(name)}</div>
+      <div className="inspector-name" data-testid="inspector-job-name">
+        {prettifyName(name)}
+      </div>
       <div className="inspector-kind">Job</div>
       {description && <div className="inspector-description">{description}</div>}
       {modifiers.length > 0 && (
@@ -1000,7 +1033,10 @@ function JobDetail({ entity }: { entity: JobEntity }): React.ReactElement {
             {modifiers.map((m) => (
               <div key={m.resource} className="inspector-stat-row">
                 <dt>{prettifyName(m.resource)}</dt>
-                <dd>{m.perTick > 0 ? "+" : ""}{m.perTick}/tick</dd>
+                <dd>
+                  {m.perTick > 0 ? "+" : ""}
+                  {m.perTick}/tick
+                </dd>
               </div>
             ))}
           </dl>

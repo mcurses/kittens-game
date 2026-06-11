@@ -1,5 +1,4 @@
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
-import React from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { TimePanel } from "./TimePanel.js";
 
@@ -29,7 +28,10 @@ function makeState(
       vsus: time.vsus ?? {},
     },
     resources: Object.fromEntries(
-      Object.entries(resources).map(([k, v]) => [k, { value: v.value, maxValue: v.maxValue ?? 0, perTick: 0 }]),
+      Object.entries(resources).map(([k, v]) => [
+        k,
+        { value: v.value, maxValue: v.maxValue ?? 0, perTick: 0 },
+      ]),
     ),
     workshop: { upgrades: workshop.upgrades ?? {}, crafts: {} },
   } as unknown as import("@kittens/api-spec").GameStateResponse;

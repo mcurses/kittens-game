@@ -498,9 +498,9 @@ describe("GET /api/sessions", () => {
     };
     const slot = body.sessions.find((s) => s.slot === "myslot");
     expect(slot).toBeDefined();
-    expect(slot!.status).toBe("active");
-    expect(typeof slot!.createdAt).toBe("number");
-    expect(typeof slot!.updatedAt).toBe("number");
+    expect(slot?.status).toBe("active");
+    expect(typeof slot?.createdAt).toBe("number");
+    expect(typeof slot?.updatedAt).toBe("number");
   });
 });
 
@@ -839,10 +839,13 @@ describe("Legacy import — derived values parity", () => {
     // This is a real late-game save: Year 10527, Season 2, Day 48
     // Legacy maxKittens: 579 kittens alive
     // Housing: hut (67) * 2 + logHouse (216) * 1 + mansion (192) * 1 = 542 (base housing capacity)
-    const fs = await import("fs");
-    const path = await import("path");
+    const fs = await import("node:fs");
+    const path = await import("node:path");
     const __dirname = path.dirname(new URL(import.meta.url).pathname);
-    const run8FilePath = path.join(__dirname, "../../../agent-docs/example-saves/Kittens Game - Run 8 - Year 10527 - Autumn, day 48.txt");
+    const run8FilePath = path.join(
+      __dirname,
+      "../../../agent-docs/example-saves/Kittens Game - Run 8 - Year 10527 - Autumn, day 48.txt",
+    );
     const run8Compressed = fs.readFileSync(run8FilePath, "utf8");
     const run8Json = LZString.decompressFromBase64(run8Compressed);
     const run8Data = JSON.parse(run8Json) as unknown;
@@ -850,7 +853,7 @@ describe("Legacy import — derived values parity", () => {
     // Check what the legacy save says about maxKittens
     const legacyData = run8Data as Record<string, unknown>;
     const legacyVillage = legacyData.village as Record<string, unknown>;
-    const legacyMaxKittens = legacyVillage?.maxKittens as number | undefined;
+    const _legacyMaxKittens = legacyVillage?.maxKittens as number | undefined;
 
     // No need to log detailed debug info for story completion
     // Legacy maxKittens is now preserved and tested
@@ -887,28 +890,23 @@ describe("Legacy import — derived values parity", () => {
     const hut = (body.buildings?.hut as Record<string, number> | undefined)?.val ?? 0;
     const logHouse = (body.buildings?.logHouse as Record<string, number> | undefined)?.val ?? 0;
     const mansion = (body.buildings?.mansion as Record<string, number> | undefined)?.val ?? 0;
-    const calcHousing = hut * 2 + logHouse * 1 + mansion * 1;
-
+    const _calcHousing = hut * 2 + logHouse * 1 + mansion * 1;
 
     // Check which policies are researched (liberty policy adds maxKittens: 1)
     const policies = body.science?.policies as Record<string, unknown> | undefined;
     if (policies) {
       const libertyPolicy = policies.liberty as Record<string, unknown> | undefined;
       if (libertyPolicy?.researched) {
-        console.log("DEBUG: liberty policy is researched (+1 maxKittens)");
       }
       // Check for fulfillment upgrade
       const fulfillment = policies.fulfillment as Record<string, unknown> | undefined;
       if (fulfillment) {
-        console.log("DEBUG: fulfillment upgrade found, researched:", fulfillment.researched);
       }
 
       // Count ALL policies and check liberty
-      const allPolicies = Object.entries(policies);
-      console.log("DEBUG: Total policies in state:", allPolicies.length);
+      const _allPolicies = Object.entries(policies);
       const liberty = policies.liberty as Record<string, unknown> | undefined;
       if (liberty) {
-        console.log("DEBUG: liberty policy researched:", liberty.researched);
       }
     }
 
@@ -917,26 +915,24 @@ describe("Legacy import — derived values parity", () => {
       const ru = body.religion.ru;
       if (ru) {
         const allReligionUpgrades = Object.entries(ru);
-        console.log("DEBUG: Total religion upgrades:", allReligionUpgrades.length);
         // Check if any have maxKittensRatio
-        allReligionUpgrades.forEach(([name, u]) => {
+        allReligionUpgrades.forEach(([_name, u]) => {
           const uRec = u as Record<string, unknown>;
           if (typeof u === "object" && u !== null && typeof uRec.on === "number" && uRec.on > 0) {
-            console.log("DEBUG: Active religion upgrade:", name, uRec.on);
           }
         });
       }
     }
 
-
-    console.log("DEBUG: Housing contribution: hut(67)*2 + logHouse(216)*1 + mansion(192)*1 = 542");
-    console.log("DEBUG: Actual maxKittens =", body.effectCache.maxKittens, "(" + (body.effectCache.maxKittens - 542) + " bonus)");
-
     // Check which policies might have maxKittens
     if (policies) {
       const withMaxKittens: string[] = [];
       Object.entries(policies).forEach(([name, p]) => {
-        if (typeof p === "object" && p !== null && (p as Record<string, unknown>).researched === true) {
+        if (
+          typeof p === "object" &&
+          p !== null &&
+          (p as Record<string, unknown>).researched === true
+        ) {
           // Check if this is one of the known maxKittens-contributing policies
           if (name === "liberty") {
             withMaxKittens.push(`${name}(+1)`);
@@ -944,7 +940,6 @@ describe("Legacy import — derived values parity", () => {
         }
       });
       if (withMaxKittens.length > 0) {
-        console.log("DEBUG: Policies with maxKittens effects:", withMaxKittens.join(", "));
       }
     }
 
@@ -954,12 +949,11 @@ describe("Legacy import — derived values parity", () => {
       const spaceBuildings = space.spaceBuildings as Record<string, unknown> | undefined;
       if (spaceBuildings && typeof spaceBuildings === "object") {
         // Log all space buildings with on > 0
-        Object.entries(spaceBuildings).forEach(([name, bld]) => {
+        Object.entries(spaceBuildings).forEach(([_name, bld]) => {
           const bldRec = bld as Record<string, unknown>;
           if (bldRec && typeof bldRec === "object") {
             const on = bldRec.on as number | undefined;
             if (typeof on === "number" && on > 0) {
-              console.log(`DEBUG: space building ${name}: on=${on}`);
             }
           }
         });
@@ -967,10 +961,11 @@ describe("Legacy import — derived values parity", () => {
     }
 
     // Check maxKittensRatio in effect cache
-    const maxKittensRatio = (body.effectCache as Record<string, unknown>).maxKittensRatio as number | undefined;
-    const terraformingMaxKittensRatio = (body.effectCache as Record<string, unknown>).terraformingMaxKittensRatio as number | undefined;
-    console.log("DEBUG: maxKittensRatio effect:", maxKittensRatio ?? 0);
-    console.log("DEBUG: terraformingMaxKittensRatio effect:", terraformingMaxKittensRatio ?? 0);
+    const _maxKittensRatio = (body.effectCache as Record<string, unknown>).maxKittensRatio as
+      | number
+      | undefined;
+    const _terraformingMaxKittensRatio = (body.effectCache as Record<string, unknown>)
+      .terraformingMaxKittensRatio as number | undefined;
 
     // Check transcendence upgrades
     const religion = body.religion as Record<string, unknown> | undefined;
@@ -979,7 +974,6 @@ describe("Legacy import — derived values parity", () => {
       if (tu) {
         const holyGenocide = tu.holyGenocide as Record<string, unknown> | undefined;
         if (holyGenocide) {
-          console.log("DEBUG: holyGenocide tu:", JSON.stringify(holyGenocide));
         }
       }
     }
@@ -989,8 +983,8 @@ describe("Legacy import — derived values parity", () => {
     // Story 45-02: derived values should match legacy, ensuring no impossible kitten counts.
 
     // Check if legacy maxKittens was preserved
-    const legacyMaxKittensImported = (body.effectCache as Record<string, unknown>)._legacyMaxKittensImported as number | undefined;
-    console.log("DEBUG: legacyMaxKittensImported in effectCache:", legacyMaxKittensImported);
+    const legacyMaxKittensImported = (body.effectCache as Record<string, unknown>)
+      ._legacyMaxKittensImported as number | undefined;
 
     // At import time, we should use the legacy maxKittens value to maintain parity
     // Story 45-02 AC1: "maxKittens matches legacy so the header does not show 579 / 562 for a legacy 579 / 579 save"
@@ -1007,10 +1001,13 @@ describe("Legacy import — derived values parity", () => {
     const { app } = makeApp();
 
     // Load and import the Run 8 fixture
-    const fs = await import("fs");
-    const path = await import("path");
+    const fs = await import("node:fs");
+    const path = await import("node:path");
     const __dirname = path.dirname(new URL(import.meta.url).pathname);
-    const run8FilePath = path.join(__dirname, "../../../agent-docs/example-saves/Kittens Game - Run 8 - Year 10527 - Autumn, day 48.txt");
+    const run8FilePath = path.join(
+      __dirname,
+      "../../../agent-docs/example-saves/Kittens Game - Run 8 - Year 10527 - Autumn, day 48.txt",
+    );
     const run8Compressed = fs.readFileSync(run8FilePath, "utf8");
     const run8Json = LZString.decompressFromBase64(run8Compressed);
 
@@ -1039,12 +1036,16 @@ describe("Legacy import — derived values parity", () => {
 
     // AC: kitten count and max kittens
     expect(imported.village.kittens).toBe(579);
-    const maxKittens = (imported.effectCache as Record<string, unknown>).maxKittens as number | undefined;
+    const maxKittens = (imported.effectCache as Record<string, unknown>).maxKittens as
+      | number
+      | undefined;
     expect(Math.floor(maxKittens ?? 0)).toBe(579); // effectCache stores raw float; floor matches legacy village.maxKittens
 
     // AC: representative resource values
     // Run 8 has: catnip, wood, minerals, science, faith, antimatter, unobtainium preserved
-    const resources = imported.resources as Record<string, { value: number; maxValue?: number }> | undefined;
+    const resources = imported.resources as
+      | Record<string, { value: number; maxValue?: number }>
+      | undefined;
     if (resources) {
       // Verify we have core resources
       expect(resources.catnip).toBeDefined();
@@ -1073,7 +1074,9 @@ describe("Legacy import — derived values parity", () => {
     }
 
     // AC: representative building counts and on/off state
-    const buildings = imported.buildings as Record<string, { val: number; on?: number }> | undefined;
+    const buildings = imported.buildings as
+      | Record<string, { val: number; on?: number }>
+      | undefined;
     if (buildings) {
       // Housing buildings (should match calculated maxKittens)
       expect(buildings.hut?.val).toBe(67);
@@ -1107,7 +1110,8 @@ describe("Legacy import — derived values parity", () => {
     if (science?.policies) {
       // Should have multiple policies researched
       const researched = Object.entries(science.policies).filter(
-        ([, p]) => typeof p === "object" && p !== null && (p as Record<string, unknown>).researched === true
+        ([, p]) =>
+          typeof p === "object" && p !== null && (p as Record<string, unknown>).researched === true,
       );
       expect(researched.length).toBeGreaterThan(0);
     }
@@ -1133,10 +1137,13 @@ describe("Legacy import — derived values parity", () => {
   it("Story 45-02 AC2: maxKittens stays 579 in live slot after one tick post-import", async () => {
     const { app, store } = makeApp();
 
-    const fs = await import("fs");
-    const path = await import("path");
+    const fs = await import("node:fs");
+    const path = await import("node:path");
     const __dirname = path.dirname(new URL(import.meta.url).pathname);
-    const run8FilePath = path.join(__dirname, "../../../agent-docs/example-saves/Kittens Game - Run 8 - Year 10527 - Autumn, day 48.txt");
+    const run8FilePath = path.join(
+      __dirname,
+      "../../../agent-docs/example-saves/Kittens Game - Run 8 - Year 10527 - Autumn, day 48.txt",
+    );
     const run8Compressed = fs.readFileSync(run8FilePath, "utf8");
     const run8Json = LZString.decompressFromBase64(run8Compressed);
 

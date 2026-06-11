@@ -14,7 +14,6 @@ import {
   ScienceManager,
   type SerializedGameState,
   SpaceManager,
-  syncResourceCaps,
   TimeManager,
   VillageManager,
   WorkshopManager,
@@ -25,6 +24,7 @@ import {
   deserialize,
   resetState,
   serialize,
+  syncResourceCaps,
   tick,
 } from "@kittens/engine";
 import type { SlotMeta, SqliteAdapter } from "./db.js";

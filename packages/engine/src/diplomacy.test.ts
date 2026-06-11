@@ -5,8 +5,8 @@ import { BuildingManager } from "./buildings.js";
 import { CalendarManager } from "./calendar.js";
 import { ChallengeManager } from "./challenges.js";
 import {
-  BASE_GOLD_COST,
   BASE_CATPOWER_COST,
+  BASE_GOLD_COST,
   DiplomacyManager,
   RACE_DEFS,
   applySendEmbassy,
@@ -14,7 +14,6 @@ import {
   calculateTradeYield,
   createInitialDiplomacy,
   getEmbassyCost,
-  getTradeCost,
 } from "./diplomacy.js";
 import { PrestigeManager } from "./prestige.js";
 import { ReligionManager } from "./religion.js";

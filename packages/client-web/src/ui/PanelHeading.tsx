@@ -8,7 +8,7 @@
 // enforceable from the JSX side. The `as` prop lets callers pick a semantic
 // element (`<h2>`, `<h3>`, …) without changing the visual class.
 
-import React from "react";
+import type React from "react";
 
 interface Props {
   level: 2 | 3 | 4;
@@ -34,9 +34,7 @@ export function PanelHeading({
   ...rest
 }: Props): React.ReactElement {
   const Tag = (as ?? "div") as React.ElementType;
-  const classes = className
-    ? `${CLASS_BY_LEVEL[level]} ${className}`
-    : CLASS_BY_LEVEL[level];
+  const classes = className ? `${CLASS_BY_LEVEL[level]} ${className}` : CLASS_BY_LEVEL[level];
   return (
     <Tag className={classes} {...rest}>
       {children}

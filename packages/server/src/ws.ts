@@ -1,3 +1,4 @@
+import { GameActionRequestSchema } from "@kittens/api-spec";
 import type { Hono } from "hono";
 // WebSocket integration — Bun-only. Not imported in tests.
 // Attaches the /ws route to the app using Hono's bun WS helper.
@@ -5,8 +6,7 @@ import { upgradeWebSocket, websocket } from "hono/bun";
 import type { WSContext } from "hono/ws";
 import { DEFAULT_SLOT, isValidSlot } from "./store.js";
 import type { WsClient } from "./store.js";
-import { SessionRegistry } from "./store.js";
-import { GameActionRequestSchema } from "@kittens/api-spec";
+import type { SessionRegistry } from "./store.js";
 
 export { websocket };
 
@@ -59,7 +59,9 @@ export function attachWebSocket(app: Hono, registry: SessionRegistry): void {
           try {
             msg = JSON.parse(event.data as string);
           } catch {
-            wsClient.send(JSON.stringify({ type: "ACTION_ERROR", payload: { error: "Invalid JSON" } }));
+            wsClient.send(
+              JSON.stringify({ type: "ACTION_ERROR", payload: { error: "Invalid JSON" } }),
+            );
             return;
           }
 

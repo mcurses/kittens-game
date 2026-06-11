@@ -1,21 +1,19 @@
 import { describe, expect, it } from "vitest";
 import { applyAction } from "./actions.js";
-import { buildEffectCache } from "./effects.js";
 import {
   CHALLENGE_DEFS,
   ChallengeManager,
   anyChallengeActive,
   applyCompleteChallenge,
-  applyStartChallenge,
   applySoftResetChallenges,
+  applyStartChallenge,
   createInitialChallenges,
   getChallengeEffectValue,
   getCountCompletions,
   getCountUniqueCompletions,
 } from "./challenges.js";
+import { buildEffectCache } from "./effects.js";
 import { getLimitedDR } from "./effects.js";
-import { createInitialState } from "./state.js";
-import { tick } from "./tick.js";
 import {
   BuildingManager,
   CalendarManager,
@@ -27,6 +25,8 @@ import {
   VillageManager,
   WorkshopManager,
 } from "./index.js";
+import { createInitialState } from "./state.js";
+import { tick } from "./tick.js";
 
 // ── Story 1: ChallengeState shape and initial values ──────────────────────────
 
@@ -73,9 +73,9 @@ describe("createInitialChallenges", () => {
 
   it("ironWill, winterIsComing, anarchy are defaultUnlocked", () => {
     const c = createInitialChallenges();
-    expect(c.challenges["ironWill"]?.unlocked).toBe(true);
-    expect(c.challenges["winterIsComing"]?.unlocked).toBe(true);
-    expect(c.challenges["anarchy"]?.unlocked).toBe(true);
+    expect(c.challenges.ironWill?.unlocked).toBe(true);
+    expect(c.challenges.winterIsComing?.unlocked).toBe(true);
+    expect(c.challenges.anarchy?.unlocked).toBe(true);
   });
 });
 
@@ -85,7 +85,7 @@ describe("applyStartChallenge", () => {
   it("sets active: true for an unlocked challenge", () => {
     const s = createInitialState();
     const next = applyStartChallenge(s, "winterIsComing");
-    expect(next.challenges.challenges["winterIsComing"]?.active).toBe(true);
+    expect(next.challenges.challenges.winterIsComing?.active).toBe(true);
   });
 
   it("returns unchanged if challenge not unlocked", () => {
@@ -102,7 +102,7 @@ describe("applyStartChallenge", () => {
       challenges: {
         challenges: {
           ...s.challenges.challenges,
-          winterIsComing: { ...s.challenges.challenges["winterIsComing"]!, active: true },
+          winterIsComing: { ...s.challenges.challenges.winterIsComing!, active: true },
         },
       },
     };
@@ -117,7 +117,7 @@ describe("applyStartChallenge", () => {
       challenges: {
         challenges: {
           ...s.challenges.challenges,
-          anarchy: { ...s.challenges.challenges["anarchy"]!, active: true },
+          anarchy: { ...s.challenges.challenges.anarchy!, active: true },
         },
       },
     };
@@ -129,7 +129,7 @@ describe("applyStartChallenge", () => {
   it("works via applyAction START_CHALLENGE", () => {
     const s = createInitialState();
     const next = applyAction(s, { type: "START_CHALLENGE", name: "winterIsComing" });
-    expect(next.challenges.challenges["winterIsComing"]?.active).toBe(true);
+    expect(next.challenges.challenges.winterIsComing?.active).toBe(true);
   });
 });
 
@@ -143,14 +143,14 @@ describe("applyCompleteChallenge", () => {
       challenges: {
         challenges: {
           ...s.challenges.challenges,
-          winterIsComing: { ...s.challenges.challenges["winterIsComing"]!, active: true },
+          winterIsComing: { ...s.challenges.challenges.winterIsComing!, active: true },
         },
       },
     };
     const next = applyCompleteChallenge(withActive, "winterIsComing");
-    expect(next.challenges.challenges["winterIsComing"]?.researched).toBe(true);
-    expect(next.challenges.challenges["winterIsComing"]?.on).toBe(1);
-    expect(next.challenges.challenges["winterIsComing"]?.active).toBe(false);
+    expect(next.challenges.challenges.winterIsComing?.researched).toBe(true);
+    expect(next.challenges.challenges.winterIsComing?.on).toBe(1);
+    expect(next.challenges.challenges.winterIsComing?.active).toBe(false);
   });
 
   it("returns unchanged if challenge not active", () => {
@@ -166,12 +166,17 @@ describe("applyCompleteChallenge", () => {
       challenges: {
         challenges: {
           ...s.challenges.challenges,
-          anarchy: { ...s.challenges.challenges["anarchy"]!, active: true, on: 3, researched: true },
+          anarchy: {
+            ...s.challenges.challenges.anarchy!,
+            active: true,
+            on: 3,
+            researched: true,
+          },
         },
       },
     };
     state = applyCompleteChallenge(state, "anarchy") as typeof state;
-    expect(state.challenges.challenges["anarchy"]?.on).toBe(4);
+    expect(state.challenges.challenges.anarchy?.on).toBe(4);
   });
 
   it("getCountCompletions returns sum of all on values", () => {
@@ -179,8 +184,8 @@ describe("applyCompleteChallenge", () => {
     const modified = {
       challenges: {
         ...c.challenges,
-        winterIsComing: { ...c.challenges["winterIsComing"]!, on: 5 },
-        anarchy: { ...c.challenges["anarchy"]!, on: 3 },
+        winterIsComing: { ...c.challenges.winterIsComing!, on: 5 },
+        anarchy: { ...c.challenges.anarchy!, on: 3 },
       },
     };
     expect(getCountCompletions(modified)).toBe(8);
@@ -191,8 +196,8 @@ describe("applyCompleteChallenge", () => {
     const modified = {
       challenges: {
         ...c.challenges,
-        winterIsComing: { ...c.challenges["winterIsComing"]!, on: 5, researched: true },
-        anarchy: { ...c.challenges["anarchy"]!, on: 3, researched: true },
+        winterIsComing: { ...c.challenges.winterIsComing!, on: 5, researched: true },
+        anarchy: { ...c.challenges.anarchy!, on: 3, researched: true },
       },
     };
     expect(getCountUniqueCompletions(modified)).toBe(2);
@@ -204,7 +209,7 @@ describe("applyCompleteChallenge", () => {
       ...s.challenges,
       challenges: {
         ...s.challenges.challenges,
-        anarchy: { ...s.challenges.challenges["anarchy"]!, active: true },
+        anarchy: { ...s.challenges.challenges.anarchy!, active: true },
       },
     };
     expect(anyChallengeActive(withActive)).toBe(true);
@@ -217,13 +222,13 @@ describe("applyCompleteChallenge", () => {
       challenges: {
         challenges: {
           ...s.challenges.challenges,
-          anarchy: { ...s.challenges.challenges["anarchy"]!, active: true },
+          anarchy: { ...s.challenges.challenges.anarchy!, active: true },
         },
       },
     };
     const next = applyAction(withActive, { type: "COMPLETE_CHALLENGE", name: "anarchy" });
-    expect(next.challenges.challenges["anarchy"]?.researched).toBe(true);
-    expect(next.challenges.challenges["anarchy"]?.active).toBe(false);
+    expect(next.challenges.challenges.anarchy?.researched).toBe(true);
+    expect(next.challenges.challenges.anarchy?.active).toBe(false);
   });
 });
 
@@ -248,7 +253,7 @@ describe("ChallengeManager.updateEffects", () => {
         challenges: {
           ...s.challenges.challenges,
           winterIsComing: {
-            ...s.challenges.challenges["winterIsComing"]!,
+            ...s.challenges.challenges.winterIsComing!,
             on: 5,
             researched: true,
           },
@@ -257,7 +262,7 @@ describe("ChallengeManager.updateEffects", () => {
     };
     const effects = mgr.updateEffects(withCompletions);
     // springCatnipRatio: 0.05 * 5 = 0.25, LDRLimit: 2 → still 0.25 (well below limit)
-    expect(effects["springCatnipRatio"]).toBeCloseTo(0.25);
+    expect(effects.springCatnipRatio).toBeCloseTo(0.25);
   });
 
   it("passive effects apply LDR when beyond 75% of limit", () => {
@@ -269,7 +274,7 @@ describe("ChallengeManager.updateEffects", () => {
         challenges: {
           ...s.challenges.challenges,
           winterIsComing: {
-            ...s.challenges.challenges["winterIsComing"]!,
+            ...s.challenges.challenges.winterIsComing!,
             on: 100,
             researched: true,
           },
@@ -278,7 +283,7 @@ describe("ChallengeManager.updateEffects", () => {
     };
     const effects = mgr.updateEffects(withCompletions);
     const expected = getLimitedDR(5.0, 2);
-    expect(effects["springCatnipRatio"]).toBeCloseTo(expected);
+    expect(effects.springCatnipRatio).toBeCloseTo(expected);
   });
 
   it("active effects apply penalty values, not stacked", () => {
@@ -289,7 +294,7 @@ describe("ChallengeManager.updateEffects", () => {
         challenges: {
           ...s.challenges.challenges,
           winterIsComing: {
-            ...s.challenges.challenges["winterIsComing"]!,
+            ...s.challenges.challenges.winterIsComing!,
             active: true,
             on: 5,
           },
@@ -298,11 +303,11 @@ describe("ChallengeManager.updateEffects", () => {
     };
     const effects = mgr.updateEffects(withActive);
     // Active: springCatnipRatio = 0 (not stacked)
-    expect(effects["springCatnipRatio"]).toBe(0);
+    expect(effects.springCatnipRatio).toBe(0);
     // Active: coldChance = 0.05
-    expect(effects["coldChance"]).toBeCloseTo(0.05);
+    expect(effects.coldChance).toBeCloseTo(0.05);
     // Active: coldHarshness = -0.02
-    expect(effects["coldHarshness"]).toBeCloseTo(-0.02);
+    expect(effects.coldHarshness).toBeCloseTo(-0.02);
   });
 
   it("anarchy active: kittenLaziness is dynamic (0.5 + getLimitedDR(0.05 * on, 0.25))", () => {
@@ -313,7 +318,7 @@ describe("ChallengeManager.updateEffects", () => {
         challenges: {
           ...s.challenges.challenges,
           anarchy: {
-            ...s.challenges.challenges["anarchy"]!,
+            ...s.challenges.challenges.anarchy!,
             active: true,
             on: 1,
           },
@@ -322,7 +327,7 @@ describe("ChallengeManager.updateEffects", () => {
     };
     const effects = mgr.updateEffects(withActive);
     const expected = 0.5 + getLimitedDR(0.05 * 1, 0.25);
-    expect(effects["kittenLaziness"]).toBeCloseTo(expected);
+    expect(effects.kittenLaziness).toBeCloseTo(expected);
   });
 
   it("anarchy passive: masterSkillMultiplier stacks with LDR limit 4", () => {
@@ -333,7 +338,7 @@ describe("ChallengeManager.updateEffects", () => {
         challenges: {
           ...s.challenges.challenges,
           anarchy: {
-            ...s.challenges.challenges["anarchy"]!,
+            ...s.challenges.challenges.anarchy!,
             on: 20,
             researched: true,
           },
@@ -343,7 +348,7 @@ describe("ChallengeManager.updateEffects", () => {
     const effects = mgr.updateEffects(withCompletions);
     // 0.2 * 20 = 4.0; LDRLimit: 4 → getLimitedDR(4, 4) = 3.25
     const expected = getLimitedDR(4.0, 4);
-    expect(effects["masterSkillMultiplier"]).toBeCloseTo(expected);
+    expect(effects.masterSkillMultiplier).toBeCloseTo(expected);
   });
 });
 
@@ -383,7 +388,9 @@ describe("getChallengeEffectValue", () => {
 
   it("noStack: returns base value directly, ignoring LDRLimit (matches legacy line 14-16)", () => {
     // Legacy: "if (stackOptions.noStack) { return amt; }" — no LDR applied
-    expect(getChallengeEffectValue("x", 0.5, 100, { noStack: true, LDRLimit: 0.25 })).toBeCloseTo(0.5);
+    expect(getChallengeEffectValue("x", 0.5, 100, { noStack: true, LDRLimit: 0.25 })).toBeCloseTo(
+      0.5,
+    );
   });
 });
 
@@ -409,12 +416,12 @@ describe("SOFT_RESET and challenges", () => {
       challenges: {
         challenges: {
           ...s.challenges.challenges,
-          anarchy: { ...s.challenges.challenges["anarchy"]!, active: true },
+          anarchy: { ...s.challenges.challenges.anarchy!, active: true },
         },
       },
     };
     const next = applyAction(withActive, { type: "SOFT_RESET" }, managers);
-    expect(next.challenges.challenges["anarchy"]?.active).toBe(false);
+    expect(next.challenges.challenges.anarchy?.active).toBe(false);
   });
 
   it("SOFT_RESET preserves on and researched", () => {
@@ -425,7 +432,7 @@ describe("SOFT_RESET and challenges", () => {
         challenges: {
           ...s.challenges.challenges,
           winterIsComing: {
-            ...s.challenges.challenges["winterIsComing"]!,
+            ...s.challenges.challenges.winterIsComing!,
             on: 5,
             researched: true,
           },
@@ -433,8 +440,8 @@ describe("SOFT_RESET and challenges", () => {
       },
     };
     const next = applyAction(withCompletions, { type: "SOFT_RESET" }, managers);
-    expect(next.challenges.challenges["winterIsComing"]?.on).toBe(5);
-    expect(next.challenges.challenges["winterIsComing"]?.researched).toBe(true);
+    expect(next.challenges.challenges.winterIsComing?.on).toBe(5);
+    expect(next.challenges.challenges.winterIsComing?.researched).toBe(true);
   });
 
   it("SOFT_RESET sets pending: false", () => {
@@ -444,12 +451,12 @@ describe("SOFT_RESET and challenges", () => {
       challenges: {
         challenges: {
           ...s.challenges.challenges,
-          anarchy: { ...s.challenges.challenges["anarchy"]!, pending: true },
+          anarchy: { ...s.challenges.challenges.anarchy!, pending: true },
         },
       },
     };
     const next = applyAction(withPending, { type: "SOFT_RESET" }, managers);
-    expect(next.challenges.challenges["anarchy"]?.pending).toBe(false);
+    expect(next.challenges.challenges.anarchy?.pending).toBe(false);
   });
 });
 
@@ -473,9 +480,9 @@ describe("ChallengeManager save/load/reset", () => {
       },
     };
     const loaded = mgr.load(data, s);
-    expect(loaded.challenges.challenges["winterIsComing"]?.on).toBe(5);
-    expect(loaded.challenges.challenges["winterIsComing"]?.researched).toBe(true);
-    expect(loaded.challenges.challenges["anarchy"]?.active).toBe(true);
+    expect(loaded.challenges.challenges.winterIsComing?.on).toBe(5);
+    expect(loaded.challenges.challenges.winterIsComing?.researched).toBe(true);
+    expect(loaded.challenges.challenges.anarchy?.active).toBe(true);
   });
 
   it("resetState resets all challenge fields to initial values", () => {
@@ -496,7 +503,7 @@ describe("ChallengeManager save/load/reset", () => {
       },
     };
     const reset = mgr.resetState(withData);
-    expect(reset.challenges.challenges["winterIsComing"]).toEqual({
+    expect(reset.challenges.challenges.winterIsComing).toEqual({
       unlocked: true,
       active: false,
       researched: false,
@@ -508,8 +515,8 @@ describe("ChallengeManager save/load/reset", () => {
   it("load with missing challenges field initializes to defaults", () => {
     const s = createInitialState();
     const loaded = mgr.load({}, s);
-    expect(loaded.challenges.challenges["winterIsComing"]?.on).toBe(0);
-    expect(loaded.challenges.challenges["ironWill"]?.unlocked).toBe(true);
+    expect(loaded.challenges.challenges.winterIsComing?.on).toBe(0);
+    expect(loaded.challenges.challenges.ironWill?.unlocked).toBe(true);
   });
 
   it("softReset method preserves on/researched, cancels active/pending", () => {
@@ -524,10 +531,10 @@ describe("ChallengeManager save/load/reset", () => {
       },
     };
     const reset = applySoftResetChallenges(withData);
-    expect(reset.challenges.challenges["anarchy"]?.on).toBe(7);
-    expect(reset.challenges.challenges["anarchy"]?.researched).toBe(true);
-    expect(reset.challenges.challenges["anarchy"]?.active).toBe(false);
-    expect(reset.challenges.challenges["anarchy"]?.pending).toBe(false);
+    expect(reset.challenges.challenges.anarchy?.on).toBe(7);
+    expect(reset.challenges.challenges.anarchy?.researched).toBe(true);
+    expect(reset.challenges.challenges.anarchy?.active).toBe(false);
+    expect(reset.challenges.challenges.anarchy?.pending).toBe(false);
   });
 
   it("legacy compatibility: researched=true + on=0 → on becomes 1", () => {
@@ -538,7 +545,7 @@ describe("ChallengeManager save/load/reset", () => {
       },
     };
     const loaded = mgr.load(data, s);
-    expect(loaded.challenges.challenges["anarchy"]?.on).toBe(1);
+    expect(loaded.challenges.challenges.anarchy?.on).toBe(1);
   });
 
   it("legacy compatibility: currentChallenge field sets active on that challenge", () => {
@@ -550,7 +557,7 @@ describe("ChallengeManager save/load/reset", () => {
       currentChallenge: "anarchy",
     };
     const loaded = mgr.load(data, s);
-    expect(loaded.challenges.challenges["anarchy"]?.active).toBe(true);
+    expect(loaded.challenges.challenges.anarchy?.active).toBe(true);
   });
 });
 
@@ -582,7 +589,7 @@ describe("ChallengeManager cross-manager integration", () => {
         challenges: {
           ...s.challenges.challenges,
           anarchy: {
-            ...s.challenges.challenges["anarchy"]!,
+            ...s.challenges.challenges.anarchy!,
             active: true,
             on: 1,
           },
@@ -590,7 +597,7 @@ describe("ChallengeManager cross-manager integration", () => {
       },
     };
     const effects = buildEffectCache(managers, withActive);
-    expect(effects["kittenLaziness"]).toBeGreaterThan(0);
+    expect(effects.kittenLaziness).toBeGreaterThan(0);
   });
 
   it("winterIsComing 5 completions → effectCache contains springCatnipRatio", () => {
@@ -601,7 +608,7 @@ describe("ChallengeManager cross-manager integration", () => {
         challenges: {
           ...s.challenges.challenges,
           winterIsComing: {
-            ...s.challenges.challenges["winterIsComing"]!,
+            ...s.challenges.challenges.winterIsComing!,
             on: 5,
             researched: true,
           },
@@ -609,7 +616,7 @@ describe("ChallengeManager cross-manager integration", () => {
       },
     };
     const effects = buildEffectCache(managers, withCompletions);
-    expect(effects["springCatnipRatio"]).toBeCloseTo(0.25); // 0.05 * 5 = 0.25, no LDR at this level
+    expect(effects.springCatnipRatio).toBeCloseTo(0.25); // 0.05 * 5 = 0.25, no LDR at this level
   });
 
   it("SOFT_RESET with active challenge: active becomes false, on preserved", () => {
@@ -620,7 +627,7 @@ describe("ChallengeManager cross-manager integration", () => {
         challenges: {
           ...s.challenges.challenges,
           winterIsComing: {
-            ...s.challenges.challenges["winterIsComing"]!,
+            ...s.challenges.challenges.winterIsComing!,
             active: true,
             on: 3,
             researched: true,
@@ -629,7 +636,7 @@ describe("ChallengeManager cross-manager integration", () => {
       },
     };
     const next = applyAction(withState, { type: "SOFT_RESET" }, managers);
-    expect(next.challenges.challenges["winterIsComing"]?.active).toBe(false);
-    expect(next.challenges.challenges["winterIsComing"]?.on).toBe(3);
+    expect(next.challenges.challenges.winterIsComing?.active).toBe(false);
+    expect(next.challenges.challenges.winterIsComing?.on).toBe(3);
   });
 });

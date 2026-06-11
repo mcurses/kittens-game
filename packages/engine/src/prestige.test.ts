@@ -2,6 +2,15 @@ import { describe, expect, it } from "vitest";
 import { applyAction } from "./actions.js";
 import { buildEffectCache } from "./effects.js";
 import {
+  BuildingManager,
+  CalendarManager,
+  ReligionManager,
+  ResourceManager,
+  ScienceManager,
+  VillageManager,
+  WorkshopManager,
+} from "./index.js";
+import {
   PERK_DEFS,
   PrestigeManager,
   applyBurnParagon,
@@ -13,15 +22,6 @@ import {
 } from "./prestige.js";
 import { createInitialState } from "./state.js";
 import { tick } from "./tick.js";
-import {
-  BuildingManager,
-  CalendarManager,
-  ReligionManager,
-  ResourceManager,
-  ScienceManager,
-  VillageManager,
-  WorkshopManager,
-} from "./index.js";
 
 // ── Story 1: PrestigeState shape and initial values ──────────────────────────
 
@@ -34,7 +34,13 @@ describe("createInitialPrestige", () => {
 
   it("defaultUnlocked perks start unlocked: true, researched: false", () => {
     const p = createInitialPrestige();
-    const defaultUnlocked = ["engeneering", "diplomacy", "chronomancy", "carnivals", "adjustmentBureau"];
+    const defaultUnlocked = [
+      "engeneering",
+      "diplomacy",
+      "chronomancy",
+      "carnivals",
+      "adjustmentBureau",
+    ];
     for (const name of defaultUnlocked) {
       expect(p.perks[name]).toEqual({ unlocked: true, researched: false });
     }
@@ -67,7 +73,7 @@ describe("applyPurchasePerk", () => {
       resources: { ...s.resources, paragon: { value: 100, maxValue: 1000 } },
     };
     const next = applyPurchasePerk(withParagon, "engeneering");
-    expect(next.prestige.perks["engeneering"]?.researched).toBe(true);
+    expect(next.prestige.perks.engeneering?.researched).toBe(true);
     expect(next.resources.paragon?.value).toBe(95); // cost is 5
   });
 
@@ -115,9 +121,9 @@ describe("applyPurchasePerk", () => {
       resources: { ...s.resources, paragon: { value: 100, maxValue: 1000 } },
     };
     const next = applyPurchasePerk(withParagon, "engeneering");
-    expect(next.prestige.perks["megalomania"]?.unlocked).toBe(true);
-    expect(next.prestige.perks["goldenRatio"]?.unlocked).toBe(true);
-    expect(next.prestige.perks["codexVox"]?.unlocked).toBe(true);
+    expect(next.prestige.perks.megalomania?.unlocked).toBe(true);
+    expect(next.prestige.perks.goldenRatio?.unlocked).toBe(true);
+    expect(next.prestige.perks.codexVox?.unlocked).toBe(true);
   });
 
   it("works via applyAction PURCHASE_PERK", () => {
@@ -127,7 +133,7 @@ describe("applyPurchasePerk", () => {
       resources: { ...s.resources, paragon: { value: 100, maxValue: 1000 } },
     };
     const next = applyAction(withParagon, { type: "PURCHASE_PERK", name: "engeneering" });
-    expect(next.prestige.perks["engeneering"]?.researched).toBe(true);
+    expect(next.prestige.perks.engeneering?.researched).toBe(true);
   });
 
   it("purchasing megalomania unlocks zigguratUpgrades (marker, blackPyramid)", () => {
@@ -143,10 +149,10 @@ describe("applyPurchasePerk", () => {
       resources: { ...s.resources, paragon: { value: 100, maxValue: 1000 } },
     };
     const next = applyPurchasePerk(withParagon, "megalomania");
-    expect(next.prestige.perks["megalomania"]?.researched).toBe(true);
+    expect(next.prestige.perks.megalomania?.researched).toBe(true);
     // megalomania unlocks ziggurat upgrades: marker and blackPyramid
-    expect(next.religion.zigguratUpgrades["marker"]?.unlocked).toBe(true);
-    expect(next.religion.zigguratUpgrades["blackPyramid"]?.unlocked).toBe(true);
+    expect(next.religion.zigguratUpgrades.marker?.unlocked).toBe(true);
+    expect(next.religion.zigguratUpgrades.blackPyramid?.unlocked).toBe(true);
   });
 });
 
@@ -173,7 +179,7 @@ describe("PrestigeManager.updateEffects", () => {
       },
     };
     const effects = mgr.updateEffects(withPerk);
-    expect(effects["priceRatio"]).toBeCloseTo(-0.01);
+    expect(effects.priceRatio).toBeCloseTo(-0.01);
   });
 
   it("goldenRatio researched → effectCache gains priceRatio and queueCap: 1", () => {
@@ -188,8 +194,8 @@ describe("PrestigeManager.updateEffects", () => {
       },
     };
     const effects = mgr.updateEffects(withPerk);
-    expect(effects["priceRatio"]).toBeCloseTo(-(1 + Math.sqrt(5)) / 200);
-    expect(effects["queueCap"]).toBe(1);
+    expect(effects.priceRatio).toBeCloseTo(-(1 + Math.sqrt(5)) / 200);
+    expect(effects.queueCap).toBe(1);
   });
 
   it("malkuth researched → effectCache gains paragonRatio: 0.05", () => {
@@ -204,7 +210,7 @@ describe("PrestigeManager.updateEffects", () => {
       },
     };
     const effects = mgr.updateEffects(withPerk);
-    expect(effects["paragonRatio"]).toBeCloseTo(0.05);
+    expect(effects.paragonRatio).toBeCloseTo(0.05);
   });
 });
 
@@ -306,7 +312,7 @@ describe("applySoftReset", () => {
       resources: { ...s.resources, paragon: { value: 50, maxValue: 1000 } },
     };
     const next = applySoftReset(withPerk, managers);
-    expect(next.prestige.perks["engeneering"]?.researched).toBe(true);
+    expect(next.prestige.perks.engeneering?.researched).toBe(true);
     expect(next.resources.paragon?.value).toBe(50);
   });
 
@@ -388,8 +394,8 @@ describe("PrestigeManager save/load/reset", () => {
       },
     };
     const loaded = mgr.load(data, s);
-    expect(loaded.prestige.perks["engeneering"]?.researched).toBe(true);
-    expect(loaded.prestige.perks["goldenRatio"]?.researched).toBe(false);
+    expect(loaded.prestige.perks.engeneering?.researched).toBe(true);
+    expect(loaded.prestige.perks.goldenRatio?.researched).toBe(false);
   });
 
   it("resetState resets all perks to initial values", () => {
@@ -405,14 +411,14 @@ describe("PrestigeManager save/load/reset", () => {
       },
     };
     const reset = mgr.resetState(withPerks);
-    expect(reset.prestige.perks["engeneering"]).toEqual({ unlocked: true, researched: false });
-    expect(reset.prestige.perks["goldenRatio"]).toEqual({ unlocked: false, researched: false });
+    expect(reset.prestige.perks.engeneering).toEqual({ unlocked: true, researched: false });
+    expect(reset.prestige.perks.goldenRatio).toEqual({ unlocked: false, researched: false });
   });
 
   it("load with missing prestige field initializes to defaults", () => {
     const s = createInitialState();
     const loaded = mgr.load({}, s);
-    expect(loaded.prestige.perks["engeneering"]).toEqual({ unlocked: true, researched: false });
+    expect(loaded.prestige.perks.engeneering).toEqual({ unlocked: true, researched: false });
   });
 
   it("after load, researched perks unlock their unlock chains", () => {
@@ -424,9 +430,9 @@ describe("PrestigeManager save/load/reset", () => {
     };
     const loaded = mgr.load(data, s);
     // engeneering unlocks megalomania, goldenRatio, codexVox
-    expect(loaded.prestige.perks["megalomania"]?.unlocked).toBe(true);
-    expect(loaded.prestige.perks["goldenRatio"]?.unlocked).toBe(true);
-    expect(loaded.prestige.perks["codexVox"]?.unlocked).toBe(true);
+    expect(loaded.prestige.perks.megalomania?.unlocked).toBe(true);
+    expect(loaded.prestige.perks.goldenRatio?.unlocked).toBe(true);
+    expect(loaded.prestige.perks.codexVox?.unlocked).toBe(true);
   });
 
   it("after load, researched megalomania unlocks ziggurat upgrades via unlock chain", () => {
@@ -437,8 +443,8 @@ describe("PrestigeManager save/load/reset", () => {
       },
     };
     const loaded = mgr.load(data, s);
-    expect(loaded.religion.zigguratUpgrades["marker"]?.unlocked).toBe(true);
-    expect(loaded.religion.zigguratUpgrades["blackPyramid"]?.unlocked).toBe(true);
+    expect(loaded.religion.zigguratUpgrades.marker?.unlocked).toBe(true);
+    expect(loaded.religion.zigguratUpgrades.blackPyramid?.unlocked).toBe(true);
   });
 });
 
@@ -473,7 +479,7 @@ describe("PrestigeManager cross-manager integration", () => {
       },
     };
     const effects = buildEffectCache(managers, withPerk);
-    expect(effects["priceRatio"]).toBeLessThan(0);
+    expect(effects.priceRatio).toBeLessThan(0);
   });
 
   it("SOFT_RESET wipes resources+buildings but preserves prestige perks", () => {
@@ -499,7 +505,7 @@ describe("PrestigeManager cross-manager integration", () => {
     const next = applyAction(withData, { type: "SOFT_RESET" }, managers);
     expect(next.resources.wood?.value).toBe(0);
     expect(next.buildings.hut?.val).toBe(0);
-    expect(next.prestige.perks["engeneering"]?.researched).toBe(true);
+    expect(next.prestige.perks.engeneering?.researched).toBe(true);
     expect(next.resources.paragon?.value).toBe(30);
   });
 });

@@ -2,9 +2,21 @@ import type { GameStateResponse } from "@kittens/api-spec";
 import type { HappinessEntity } from "./InspectorContext.js";
 
 const LUXURY_RESOURCE_NAMES = new Set([
-  "furs", "ivory", "spice",
-  "unicorns", "alicorn", "necrocorn", "tears", "karma",
-  "relic", "void", "elderBox", "wrappingPaper", "blackcoin", "bloodstone", "tMythril",
+  "furs",
+  "ivory",
+  "spice",
+  "unicorns",
+  "alicorn",
+  "necrocorn",
+  "tears",
+  "karma",
+  "relic",
+  "void",
+  "elderBox",
+  "wrappingPaper",
+  "blackcoin",
+  "bloodstone",
+  "tMythril",
 ]);
 
 const UNCOMMON_RESOURCE_NAMES = new Set(["furs", "ivory", "spice"]);
@@ -23,7 +35,10 @@ function getResourceValue(resources: Record<string, unknown> | null, name: strin
   return getNumber(resource?.value, 0);
 }
 
-function getLuxuryBonus(resources: Record<string, unknown> | null, effectCache: Record<string, unknown> | null): number {
+function getLuxuryBonus(
+  resources: Record<string, unknown> | null,
+  effectCache: Record<string, unknown> | null,
+): number {
   const happinessPerLuxury = 10 + getNumber(effectCache?.luxuryHappinessBonus, 0);
   const consumableLuxuryHappiness = getNumber(effectCache?.consumableLuxuryHappiness, 0);
   let total = 0;

@@ -27,17 +27,15 @@ describe("getVisibleMainTabs", () => {
   });
 
   it("shows village when huts are built", () => {
-    const visible = getVisibleMainTabs(
-      makeState({ buildings: { hut: { val: 1, on: 1 } } }),
-    );
+    const visible = getVisibleMainTabs(makeState({ buildings: { hut: { val: 1, on: 1 } } }));
     expect(visible).toContain("jobs");
   });
 
   it("shows workshop only when the workshop building is built", () => {
     expect(getVisibleMainTabs(makeState())).not.toContain("workshop");
-    expect(
-      getVisibleMainTabs(makeState({ buildings: { workshop: { val: 1, on: 1 } } })),
-    ).toContain("workshop");
+    expect(getVisibleMainTabs(makeState({ buildings: { workshop: { val: 1, on: 1 } } }))).toContain(
+      "workshop",
+    );
   });
 
   it("shows religion in atheism when ziggurat exists even with zero faith", () => {
@@ -45,7 +43,9 @@ describe("getVisibleMainTabs", () => {
       makeState({
         buildings: { ziggurat: { val: 1, on: 1 } },
         challenges: {
-          challenges: { atheism: { unlocked: true, active: true, researched: false, on: 0, pending: false } },
+          challenges: {
+            atheism: { unlocked: true, active: true, researched: false, on: 0, pending: false },
+          },
         },
       }),
     );
@@ -203,7 +203,9 @@ describe("deriveUiVisibility", () => {
           policies: {},
         },
         challenges: {
-          challenges: { atheism: { unlocked: true, active: true, researched: false, on: 0, pending: false } },
+          challenges: {
+            atheism: { unlocked: true, active: true, researched: false, on: 0, pending: false },
+          },
         },
       }),
     );
@@ -276,7 +278,9 @@ describe("deriveUiVisibility", () => {
       makeState({
         science: { techs: { archery: { unlocked: true, researched: true } }, policies: {} },
         challenges: {
-          challenges: { pacifism: { unlocked: true, active: true, researched: false, on: 0, pending: false } },
+          challenges: {
+            pacifism: { unlocked: true, active: true, researched: false, on: 0, pending: false },
+          },
         },
       }),
     );
@@ -287,11 +291,16 @@ describe("deriveUiVisibility", () => {
   });
 
   it("shows shatter only after tachyon moderator is researched", () => {
-    const locked = deriveUiVisibility(makeState({ time: { heat: 100, flux: 0, cfus: {}, vsus: {}, isAccelerated: false } }));
+    const locked = deriveUiVisibility(
+      makeState({ time: { heat: 100, flux: 0, cfus: {}, vsus: {}, isAccelerated: false } }),
+    );
     const unlocked = deriveUiVisibility(
       makeState({
         time: { heat: 100, flux: 0, cfus: {}, vsus: {}, isAccelerated: false },
-        workshop: { upgrades: { tachyonModerator: { unlocked: true, researched: true } }, crafts: {} },
+        workshop: {
+          upgrades: { tachyonModerator: { unlocked: true, researched: true } },
+          crafts: {},
+        },
       }),
     );
 

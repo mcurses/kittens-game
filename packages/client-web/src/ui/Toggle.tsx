@@ -1,6 +1,6 @@
 // Toggle — labeled checkbox in the design-system `.toggle-label` style.
 // Use this instead of raw `<label className="toggle-label"><input … /></label>`.
-import React from "react";
+import type React from "react";
 
 interface Props {
   checked: boolean;
@@ -10,15 +10,12 @@ interface Props {
   disabled?: boolean;
 }
 
-export function Toggle({
-  checked,
-  onChange,
-  label,
-  disabled,
-  ...rest
-}: Props): React.ReactElement {
+export function Toggle({ checked, onChange, label, disabled, ...rest }: Props): React.ReactElement {
   return (
-    <label className="toggle-label" data-testid={rest["data-testid"] ? `${rest["data-testid"]}-label` : undefined}>
+    <label
+      className="toggle-label"
+      data-testid={rest["data-testid"] ? `${rest["data-testid"]}-label` : undefined}
+    >
       <input
         type="checkbox"
         checked={checked}

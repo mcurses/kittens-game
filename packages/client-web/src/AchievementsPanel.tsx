@@ -1,15 +1,26 @@
 // AchievementsPanel — display earned achievements and badges with flavor + icon
 import type { GameStateResponse } from "@kittens/api-spec";
-import React from "react";
-import { ACHIEVEMENT_FLAVOR, BADGE_FLAVOR, prettifyName } from "./flavorText.js";
+import type React from "react";
 import { PlaceholderImage } from "./PlaceholderImage.js";
+import { ACHIEVEMENT_FLAVOR, BADGE_FLAVOR, prettifyName } from "./flavorText.js";
 
-interface AchievementEntry { name: string; unlocked: boolean; starUnlocked: boolean; }
-interface BadgeEntry { name: string; unlocked: boolean; }
-interface Props { state: GameStateResponse | null | undefined; }
+interface AchievementEntry {
+  name: string;
+  unlocked: boolean;
+  starUnlocked: boolean;
+}
+interface BadgeEntry {
+  name: string;
+  unlocked: boolean;
+}
+interface Props {
+  state: GameStateResponse | null | undefined;
+}
 
 function extractAchievements(state: GameStateResponse): {
-  achievements: AchievementEntry[]; badges: BadgeEntry[]; badgesUnlocked: boolean;
+  achievements: AchievementEntry[];
+  badges: BadgeEntry[];
+  badgesUnlocked: boolean;
 } {
   const raw = state as unknown as Record<string, unknown>;
   const ach = raw.achievements as Record<string, unknown> | null | undefined;
@@ -28,7 +39,11 @@ function extractAchievements(state: GameStateResponse): {
 
 export function AchievementsPanel({ state }: Props): React.ReactElement {
   if (!state) {
-    return <div className="loading-text" data-testid="achievements-panel-loading">Loading…</div>;
+    return (
+      <div className="loading-text" data-testid="achievements-panel-loading">
+        Loading…
+      </div>
+    );
   }
 
   const { achievements, badges } = extractAchievements(state);
@@ -57,9 +72,7 @@ export function AchievementsPanel({ state }: Props): React.ReactElement {
                   <span className="item-row-name">{prettifyName(a.name)}</span>
                 </div>
                 {ACHIEVEMENT_FLAVOR[a.name] && (
-                  <p className="achievement-row__description">
-                    {ACHIEVEMENT_FLAVOR[a.name]}
-                  </p>
+                  <p className="achievement-row__description">{ACHIEVEMENT_FLAVOR[a.name]}</p>
                 )}
               </div>
               {a.starUnlocked && <span className="done-badge">★ Star</span>}
@@ -73,11 +86,7 @@ export function AchievementsPanel({ state }: Props): React.ReactElement {
           <div className="panel-sublabel">Badges ({badges.length})</div>
           <ul className="item-list">
             {badges.map((b) => (
-              <li
-                key={b.name}
-                data-testid={`badge-${b.name}`}
-                className="item-row achievement-row"
-              >
+              <li key={b.name} data-testid={`badge-${b.name}`} className="item-row achievement-row">
                 <PlaceholderImage
                   variant="character"
                   alt={b.name}
@@ -86,9 +95,7 @@ export function AchievementsPanel({ state }: Props): React.ReactElement {
                 <div className="achievement-row__content">
                   <span className="item-row-name">{prettifyName(b.name)}</span>
                   {BADGE_FLAVOR[b.name] && (
-                    <p className="achievement-row__description">
-                      {BADGE_FLAVOR[b.name]}
-                    </p>
+                    <p className="achievement-row__description">{BADGE_FLAVOR[b.name]}</p>
                   )}
                 </div>
               </li>

@@ -36,7 +36,7 @@ export function generateOrigin(kittenId: string, age: number): string {
   // Younger kittens are more likely to be native-born; older ones probably arrived.
   const nativeProbability = age < 10 ? 0.55 : age < 20 ? 0.3 : 0.15;
   if (rng() < nativeProbability) {
-    return pick(rng, NATIVE_BIRTH) + ".";
+    return `${pick(rng, NATIVE_BIRTH)}.`;
   }
   const place = pick(rng, ORIGIN_PLACES);
   const reason = pick(rng, ARRIVAL_REASONS).replace("{age}", String(Math.max(1, age)));
@@ -300,10 +300,7 @@ export function generateCoworkerBond(
   const rng = mulberry32(hashString(`bond:${selfId}:${year}:${job}`));
   const partner = sameJobKittens[Math.floor(rng() * sameJobKittens.length)]!;
   const tmpl = pick(rng, BOND_TEMPLATES);
-  const text =
-    `Im Jahr ${year} ` +
-    tmpl.replace("{partner}", fullName(partner)).replace("{job}", job) +
-    ".";
+  const text = `Im Jahr ${year} ${tmpl.replace("{partner}", fullName(partner)).replace("{job}", job)}.`;
   return { text, relatedKittenId: partner.id };
 }
 
@@ -324,10 +321,10 @@ export function generateYearlyEvent(
   year: number,
   job: string | null,
   trait: KittenTrait | null = null,
-  season: string = "summer",
+  season = "summer",
   peers: readonly YearlyPeer[] = [],
   sameJobKittens: readonly YearlyPeer[] = [],
-  selfAge: number = 0,
+  selfAge = 0,
 ): { text: string; relatedKittenId?: string } {
   const rng = mulberry32(hashString(`yearly:${kittenId}:${year}`));
   const roll = rng();
@@ -531,12 +528,20 @@ const MILESTONE_RESEARCH_TEMPLATES = [
   "Trug das Wissen um {research} als Erste hinaus aufs Feld.",
 ];
 
-export function describeMilestoneBuilding(kittenId: string, year: number, buildingName: string): string {
+export function describeMilestoneBuilding(
+  kittenId: string,
+  year: number,
+  buildingName: string,
+): string {
   const rng = mulberry32(hashString(`milestone-b:${kittenId}:${year}:${buildingName}`));
   return pick(rng, MILESTONE_BUILDING_TEMPLATES).replace("{building}", buildingName);
 }
 
-export function describeMilestoneResearch(kittenId: string, year: number, researchName: string): string {
+export function describeMilestoneResearch(
+  kittenId: string,
+  year: number,
+  researchName: string,
+): string {
   const rng = mulberry32(hashString(`milestone-r:${kittenId}:${year}:${researchName}`));
   return pick(rng, MILESTONE_RESEARCH_TEMPLATES).replace("{research}", researchName);
 }

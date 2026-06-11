@@ -1,20 +1,29 @@
 // DiplomacyPanel — races, embassies, trade
 import type { GameStateResponse } from "@kittens/api-spec";
 import { RACE_DEFS } from "@kittens/engine";
-import React from "react";
+import type React from "react";
 import { useSlot } from "./SlotContext.js";
 import { useGameAction } from "./useGameAction.js";
 import { extractResources } from "./utils.js";
 
-interface RaceEntry { name: string; unlocked: boolean; embassyLevel: number; }
-interface DiplomacyMeta { baseGoldCost: number; baseCatpowerCost: number; }
+interface RaceEntry {
+  name: string;
+  unlocked: boolean;
+  embassyLevel: number;
+}
+interface DiplomacyMeta {
+  baseGoldCost: number;
+  baseCatpowerCost: number;
+}
 
 function getRelation(standing: number): string {
   if (standing < 0) return "Hostile";
   if (standing > 0) return "Friendly";
   return "Neutral";
 }
-interface Props { state: GameStateResponse | null | undefined; }
+interface Props {
+  state: GameStateResponse | null | undefined;
+}
 
 function extractDiplomacy(state: GameStateResponse): RaceEntry[] {
   const raw = state as unknown as Record<string, unknown>;
@@ -26,10 +35,13 @@ function extractDiplomacy(state: GameStateResponse): RaceEntry[] {
     .map(([name, e]) => {
       if (typeof e !== "object" || e === null) return null;
       const entry = e as Record<string, unknown>;
-      return { name, unlocked: entry.unlocked === true,
-        embassyLevel: typeof entry.embassyLevel === "number" ? entry.embassyLevel : 0 };
+      return {
+        name,
+        unlocked: entry.unlocked === true,
+        embassyLevel: typeof entry.embassyLevel === "number" ? entry.embassyLevel : 0,
+      };
     })
-    .filter((e): e is RaceEntry => e !== null && e.unlocked);
+    .filter((e): e is RaceEntry => e?.unlocked);
 }
 
 function extractDiplomacyMeta(state: GameStateResponse): DiplomacyMeta {
@@ -37,7 +49,8 @@ function extractDiplomacyMeta(state: GameStateResponse): DiplomacyMeta {
   const diplomacy = raw.diplomacy as Record<string, unknown> | null | undefined;
   return {
     baseGoldCost: typeof diplomacy?.baseGoldCost === "number" ? diplomacy.baseGoldCost : 15,
-    baseCatpowerCost: typeof diplomacy?.baseCatpowerCost === "number" ? diplomacy.baseCatpowerCost : 50,
+    baseCatpowerCost:
+      typeof diplomacy?.baseCatpowerCost === "number" ? diplomacy.baseCatpowerCost : 50,
   };
 }
 
@@ -51,7 +64,9 @@ function getMaxTradeAmount(
   if (!buy) return 0;
 
   const goldTrades = Math.floor((resources.gold?.value ?? 0) / Math.max(meta.baseGoldCost, 1));
-  const catpowerTrades = Math.floor((resources.catpower?.value ?? 0) / Math.max(meta.baseCatpowerCost, 1));
+  const catpowerTrades = Math.floor(
+    (resources.catpower?.value ?? 0) / Math.max(meta.baseCatpowerCost, 1),
+  );
   const buyTrades = Math.floor((resources[buy.name]?.value ?? 0) / buy.val);
 
   return Math.max(0, Math.min(goldTrades, catpowerTrades, buyTrades));
@@ -62,7 +77,11 @@ export function DiplomacyPanel({ state }: Props): React.ReactElement {
   const { mutate, isPending } = useGameAction(slot);
 
   if (!state) {
-    return <div className="loading-text" data-testid="diplomacy-panel-loading">Loading…</div>;
+    return (
+      <div className="loading-text" data-testid="diplomacy-panel-loading">
+        Loading…
+      </div>
+    );
   }
 
   const races = extractDiplomacy(state);
@@ -86,7 +105,10 @@ export function DiplomacyPanel({ state }: Props): React.ReactElement {
               <li key={r.name} data-testid={`race-${r.name}`} className="item-row race-row">
                 <div className="race-header">
                   <span className="item-row-name">{r.name}</span>
-                  <span data-testid={`race-${r.name}-relation`} className={`race-relation race-relation--${relation.toLowerCase()}`}>
+                  <span
+                    data-testid={`race-${r.name}-relation`}
+                    className={`race-relation race-relation--${relation.toLowerCase()}`}
+                  >
                     {relation}
                   </span>
                   <span className="item-row-cost">Embassy Lv.{r.embassyLevel}</span>
@@ -102,31 +124,43 @@ export function DiplomacyPanel({ state }: Props): React.ReactElement {
                   </div>
                 )}
                 <div className="item-row-actions">
-                  <button type="button" data-testid={`race-${r.name}-embassy`}
+                  <button
+                    type="button"
+                    data-testid={`race-${r.name}-embassy`}
                     className="btn btn--secondary btn--sm"
                     disabled={isPending}
-                    onClick={() => mutate({ type: "SEND_EMBASSY", name: r.name })}>
+                    onClick={() => mutate({ type: "SEND_EMBASSY", name: r.name })}
+                  >
                     Embassy
                   </button>
-                  <button type="button" data-testid={`race-${r.name}-trade`}
+                  <button
+                    type="button"
+                    data-testid={`race-${r.name}-trade`}
                     className="btn btn--primary btn--sm"
                     disabled={isPending}
-                    onClick={() => mutate({ type: "TRADE", name: r.name })}>
+                    onClick={() => mutate({ type: "TRADE", name: r.name })}
+                  >
                     Trade
                   </button>
                   {maxTradeAmount >= 50 && (
-                    <button type="button" data-testid={`race-${r.name}-trade-half`}
+                    <button
+                      type="button"
+                      data-testid={`race-${r.name}-trade-half`}
                       className="btn btn--primary btn--sm"
                       disabled={isPending || tradeHalf <= 0}
-                      onClick={() => mutate({ type: "TRADE", name: r.name, amount: tradeHalf })}>
+                      onClick={() => mutate({ type: "TRADE", name: r.name, amount: tradeHalf })}
+                    >
                       {`×${tradeHalf}`}
                     </button>
                   )}
                   {maxTradeAmount >= 25 && (
-                    <button type="button" data-testid={`race-${r.name}-trade-fifth`}
+                    <button
+                      type="button"
+                      data-testid={`race-${r.name}-trade-fifth`}
                       className="btn btn--primary btn--sm"
                       disabled={isPending || tradeFifth <= 0}
-                      onClick={() => mutate({ type: "TRADE", name: r.name, amount: tradeFifth })}>
+                      onClick={() => mutate({ type: "TRADE", name: r.name, amount: tradeFifth })}
+                    >
                       {`×${tradeFifth}`}
                     </button>
                   )}

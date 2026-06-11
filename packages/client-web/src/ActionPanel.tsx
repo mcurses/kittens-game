@@ -1,9 +1,9 @@
 // ActionPanel — manual actions in the resource sidebar footer
 import { deriveUiVisibility } from "@kittens/engine";
-import React from "react";
+import type React from "react";
 import { useSlot } from "./SlotContext.js";
-import { useGameAction } from "./useGameAction.js";
 import { ResourceIcon } from "./ui/index.js";
+import { useGameAction } from "./useGameAction.js";
 
 interface ActionPanelState {
   readonly science?: {
@@ -30,7 +30,8 @@ export function ActionPanel({
   const catpower = state?.resources?.catpower?.value ?? 0;
   const huntCost = Math.max(1, 100 - (state?.effectCache?.huntCatpowerDiscount ?? 0));
   const huntSquads = Math.floor(catpower / huntCost);
-  const huntLabel = huntSquads > 0 ? `Hunt (${huntSquads} squad${huntSquads === 1 ? "" : "s"})` : "Hunt";
+  const huntLabel =
+    huntSquads > 0 ? `Hunt (${huntSquads} squad${huntSquads === 1 ? "" : "s"})` : "Hunt";
   const visibility = deriveUiVisibility(state as never);
 
   return (
@@ -76,7 +77,9 @@ export function ActionPanel({
                 className="btn btn--secondary btn--xs"
                 data-testid="btn-hunt-fifth"
                 disabled={isPending}
-                onClick={() => mutate({ type: "HUNT", amount: Math.max(1, Math.floor(huntSquads / 5)) })}
+                onClick={() =>
+                  mutate({ type: "HUNT", amount: Math.max(1, Math.floor(huntSquads / 5)) })
+                }
               >
                 ×⅕
               </button>

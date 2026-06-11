@@ -1,5 +1,4 @@
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
-import React from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { ReligionPanel } from "./ReligionPanel.js";
 
@@ -31,7 +30,10 @@ function makeState(
       tu: religion.tu ?? {},
     },
     resources: Object.fromEntries(
-      Object.entries(resources).map(([k, v]) => [k, { value: v.value, maxValue: v.maxValue ?? 0, perTick: 0 }]),
+      Object.entries(resources).map(([k, v]) => [
+        k,
+        { value: v.value, maxValue: v.maxValue ?? 0, perTick: 0 },
+      ]),
     ),
   } as unknown as import("@kittens/api-spec").GameStateResponse;
 }
@@ -108,10 +110,7 @@ describe("ReligionPanel", () => {
   });
 
   it("dispatches BUY_RELIGION_UPGRADE when religion upgrade buy is clicked", () => {
-    const state = makeState(
-      { ru: { solarchant: { val: 0, on: 0 } } },
-      { faith: { value: 10000 } },
-    );
+    const state = makeState({ ru: { solarchant: { val: 0, on: 0 } } }, { faith: { value: 10000 } });
     render(<ReligionPanel state={state} />);
     const btn = screen.getByTestId("ru-solarchant-buy");
     fireEvent.click(btn);
@@ -157,7 +156,13 @@ describe("ReligionPanel", () => {
 
   it("skips null zu entries gracefully", () => {
     const state = {
-      religion: { worship: 0, faithRatio: 0, transcendenceTier: 0, zu: { bad: null }, ru: { bad: null } },
+      religion: {
+        worship: 0,
+        faithRatio: 0,
+        transcendenceTier: 0,
+        zu: { bad: null },
+        ru: { bad: null },
+      },
     } as never;
     render(<ReligionPanel state={state} />);
     expect(screen.getByTestId("religion-panel")).toBeTruthy();

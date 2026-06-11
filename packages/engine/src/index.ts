@@ -12,7 +12,12 @@ export type { Manager } from "./manager.js";
 export { NullManager } from "./manager.js";
 export { getLimitedDR, buildEffectCache, getEffect } from "./effects.js";
 export { tick, resetState } from "./tick.js";
-export type { ResourceDisplayMeta, ResourceEntry, ResourceState, ResourceType } from "./resources.js";
+export type {
+  ResourceDisplayMeta,
+  ResourceEntry,
+  ResourceState,
+  ResourceType,
+} from "./resources.js";
 export {
   RESOURCE_DISPLAY,
   RESOURCE_NAMES,

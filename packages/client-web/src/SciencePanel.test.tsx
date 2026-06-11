@@ -1,5 +1,5 @@
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
-import React from "react";
+import type React from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { InspectorProvider } from "./InspectorContext.js";
 import { InspectorPanel } from "./InspectorPanel.js";
@@ -24,7 +24,10 @@ function makeState(
     science: { techs, policies: extra?.policies ?? {} },
     prestige: extra?.prestige ?? { perks: {} },
     resources: Object.fromEntries(
-      Object.entries(resources).map(([k, v]) => [k, { value: v.value, maxValue: v.maxValue ?? 0, perTick: 0 }]),
+      Object.entries(resources).map(([k, v]) => [
+        k,
+        { value: v.value, maxValue: v.maxValue ?? 0, perTick: 0 },
+      ]),
     ),
   } as unknown as import("@kittens/api-spec").GameStateResponse;
 }
@@ -46,17 +49,29 @@ afterEach(() => {
 
 describe("SciencePanel", () => {
   it("shows loading placeholder when state is null", () => {
-    render(<WithInspector><SciencePanel state={null} /></WithInspector>);
+    render(
+      <WithInspector>
+        <SciencePanel state={null} />
+      </WithInspector>,
+    );
     expect(screen.getByTestId("science-panel-loading")).toBeTruthy();
   });
 
   it("shows loading placeholder when state is undefined", () => {
-    render(<WithInspector><SciencePanel state={undefined} /></WithInspector>);
+    render(
+      <WithInspector>
+        <SciencePanel state={undefined} />
+      </WithInspector>,
+    );
     expect(screen.getByTestId("science-panel-loading")).toBeTruthy();
   });
 
   it("shows no techs message when science is empty", () => {
-    render(<WithInspector><SciencePanel state={makeState({})} /></WithInspector>);
+    render(
+      <WithInspector>
+        <SciencePanel state={makeState({})} />
+      </WithInspector>,
+    );
     expect(screen.getByText("No technologies available.")).toBeTruthy();
   });
 
@@ -65,7 +80,11 @@ describe("SciencePanel", () => {
       agriculture: { unlocked: false, researched: false },
       archery: { unlocked: true, researched: false },
     });
-    render(<WithInspector><SciencePanel state={state} /></WithInspector>);
+    render(
+      <WithInspector>
+        <SciencePanel state={state} />
+      </WithInspector>,
+    );
     expect(screen.queryByTestId("tech-agriculture")).toBeNull();
     expect(screen.getByTestId("tech-archery")).toBeTruthy();
   });
@@ -76,14 +95,22 @@ describe("SciencePanel", () => {
       { agriculture: { unlocked: true, researched: false } },
       { science: { value: 200 } },
     );
-    render(<WithInspector><SciencePanel state={state} /></WithInspector>);
+    render(
+      <WithInspector>
+        <SciencePanel state={state} />
+      </WithInspector>,
+    );
     expect(screen.getByTestId("tech-agriculture")).toBeTruthy();
     expect(screen.getByRole("button", { name: /research/i })).toBeTruthy();
   });
 
   it("shows researched tech as Done (no button)", () => {
     const state = makeState({ agriculture: { unlocked: true, researched: true } });
-    render(<WithInspector><SciencePanel state={state} /></WithInspector>);
+    render(
+      <WithInspector>
+        <SciencePanel state={state} />
+      </WithInspector>,
+    );
     expect(screen.getByTestId("tech-agriculture")).toBeTruthy();
     expect(screen.queryByRole("button", { name: /research/i })).toBeNull();
     expect(screen.getByText(/done/i)).toBeTruthy();
@@ -95,7 +122,11 @@ describe("SciencePanel", () => {
       { archery: { unlocked: true, researched: false } },
       { science: { value: 1000 } },
     );
-    render(<WithInspector><SciencePanel state={state} /></WithInspector>);
+    render(
+      <WithInspector>
+        <SciencePanel state={state} />
+      </WithInspector>,
+    );
     fireEvent.click(screen.getByRole("button", { name: /research/i }));
     expect(mockMutate).toHaveBeenCalledWith({ type: "RESEARCH", name: "archery" });
   });
@@ -104,7 +135,11 @@ describe("SciencePanel", () => {
   it("shows tech price in Research button text", () => {
     // 'calendar' tech costs 30 science
     const state = makeState({ calendar: { unlocked: true, researched: false } });
-    render(<WithInspector><SciencePanel state={state} /></WithInspector>);
+    render(
+      <WithInspector>
+        <SciencePanel state={state} />
+      </WithInspector>,
+    );
     // button label should include cost info
     expect(screen.getByRole("button", { name: /research/i })).toBeTruthy();
     expect(screen.getByText(/30/)).toBeTruthy();
@@ -116,7 +151,11 @@ describe("SciencePanel", () => {
       { calendar: { unlocked: true, researched: false } },
       { science: { value: 0 } },
     );
-    render(<WithInspector><SciencePanel state={state} /></WithInspector>);
+    render(
+      <WithInspector>
+        <SciencePanel state={state} />
+      </WithInspector>,
+    );
     const btn = screen.getByRole("button", { name: /research/i });
     expect(btn.hasAttribute("disabled")).toBe(true);
   });
@@ -127,7 +166,11 @@ describe("SciencePanel", () => {
       { calendar: { unlocked: true, researched: false } },
       { science: { value: 100 } },
     );
-    render(<WithInspector><SciencePanel state={state} /></WithInspector>);
+    render(
+      <WithInspector>
+        <SciencePanel state={state} />
+      </WithInspector>,
+    );
     const btn = screen.getByRole("button", { name: /research/i });
     expect(btn.hasAttribute("disabled")).toBe(false);
   });
@@ -137,7 +180,11 @@ describe("SciencePanel", () => {
       { archery: { unlocked: true, researched: false } },
       { science: { value: 0, maxValue: 200 } },
     );
-    render(<WithInspector><SciencePanel state={state} /></WithInspector>);
+    render(
+      <WithInspector>
+        <SciencePanel state={state} />
+      </WithInspector>,
+    );
     const btn = screen.getByTestId("tech-archery-research");
     expect(btn.textContent).toBe("Research");
     expect(btn.className).toMatch(/btn--limited/);
@@ -150,7 +197,11 @@ describe("SciencePanel", () => {
       { science: { value: 0, maxValue: 200 } },
     );
     const userEvent = (await import("@testing-library/user-event")).default;
-    render(<WithInspector><SciencePanel state={state} /></WithInspector>);
+    render(
+      <WithInspector>
+        <SciencePanel state={state} />
+      </WithInspector>,
+    );
     await userEvent.hover(screen.getByTestId("tech-archery"));
     expect(screen.getByTestId("inspector-price-science-limited").textContent).toMatch(/\*/);
     expect(screen.getByText(/limited by current storage/i)).toBeTruthy();
@@ -159,7 +210,11 @@ describe("SciencePanel", () => {
   it("shows tech details in inspector on hover", async () => {
     const state = makeState({ agriculture: { unlocked: true, researched: false } });
     const userEvent = (await import("@testing-library/user-event")).default;
-    render(<WithInspector><SciencePanel state={state} /></WithInspector>);
+    render(
+      <WithInspector>
+        <SciencePanel state={state} />
+      </WithInspector>,
+    );
     await userEvent.hover(screen.getByTestId("tech-agriculture"));
     expect(screen.getByTestId("inspector-panel")).toBeTruthy();
     expect(screen.getAllByText(/agriculture/).length).toBeGreaterThan(0);
@@ -171,7 +226,11 @@ describe("SciencePanel", () => {
       archery: { unlocked: true, researched: true },
       calendar: { unlocked: false, researched: false },
     });
-    render(<WithInspector><SciencePanel state={state} /></WithInspector>);
+    render(
+      <WithInspector>
+        <SciencePanel state={state} />
+      </WithInspector>,
+    );
     expect(screen.getByTestId("tech-agriculture")).toBeTruthy();
     expect(screen.getByTestId("tech-archery")).toBeTruthy();
     expect(screen.queryByTestId("tech-calendar")).toBeNull();
@@ -183,7 +242,11 @@ describe("SciencePanel", () => {
 describe("Story 35-03: Science hide-researched toggle", () => {
   it("shows hide-researched checkbox", () => {
     const state = makeState({ calendar: { unlocked: true, researched: false } });
-    render(<WithInspector><SciencePanel state={state} /></WithInspector>);
+    render(
+      <WithInspector>
+        <SciencePanel state={state} />
+      </WithInspector>,
+    );
     expect(screen.getByTestId("science-hide-researched")).toBeTruthy();
   });
 
@@ -192,7 +255,11 @@ describe("Story 35-03: Science hide-researched toggle", () => {
       calendar: { unlocked: true, researched: true },
       archery: { unlocked: true, researched: false },
     });
-    render(<WithInspector><SciencePanel state={state} /></WithInspector>);
+    render(
+      <WithInspector>
+        <SciencePanel state={state} />
+      </WithInspector>,
+    );
     // Initially both visible
     expect(screen.getByTestId("tech-calendar")).toBeTruthy();
     fireEvent.click(screen.getByTestId("science-hide-researched"));
@@ -205,7 +272,11 @@ describe("Story 35-03: Science hide-researched toggle", () => {
     const state = makeState({
       calendar: { unlocked: true, researched: true },
     });
-    render(<WithInspector><SciencePanel state={state} /></WithInspector>);
+    render(
+      <WithInspector>
+        <SciencePanel state={state} />
+      </WithInspector>,
+    );
     const toggle = screen.getByTestId("science-hide-researched");
     fireEvent.click(toggle); // hide
     fireEvent.click(toggle); // show again
@@ -218,7 +289,11 @@ describe("Story 35-03: Science hide-researched toggle", () => {
       calendar: { unlocked: true, researched: true },
       archery: { unlocked: true, researched: false },
     });
-    render(<WithInspector><SciencePanel state={state} /></WithInspector>);
+    render(
+      <WithInspector>
+        <SciencePanel state={state} />
+      </WithInspector>,
+    );
     expect(screen.getByTestId("science-hide-researched")).toBeTruthy();
     expect((screen.getByTestId("science-hide-researched") as HTMLInputElement).checked).toBe(true);
     expect(screen.queryByTestId("tech-calendar")).toBeNull();
@@ -230,35 +305,67 @@ describe("Story 35-03: Science hide-researched toggle", () => {
 
 describe("Story 51-01: Policy panel", () => {
   it("renders Policies section when any policy is unlocked", () => {
-    const state = makeState({}, {}, {
-      policies: { liberty: { unlocked: true, blocked: false, researched: false } },
-    });
-    render(<WithInspector><SciencePanel state={state} /></WithInspector>);
+    const state = makeState(
+      {},
+      {},
+      {
+        policies: { liberty: { unlocked: true, blocked: false, researched: false } },
+      },
+    );
+    render(
+      <WithInspector>
+        <SciencePanel state={state} />
+      </WithInspector>,
+    );
     expect(screen.getByText("Policies")).toBeTruthy();
   });
 
   it("hides Policies section when no policies are unlocked", () => {
-    const state = makeState({}, {}, {
-      policies: { liberty: { unlocked: false, blocked: false, researched: false } },
-    });
-    render(<WithInspector><SciencePanel state={state} /></WithInspector>);
+    const state = makeState(
+      {},
+      {},
+      {
+        policies: { liberty: { unlocked: false, blocked: false, researched: false } },
+      },
+    );
+    render(
+      <WithInspector>
+        <SciencePanel state={state} />
+      </WithInspector>,
+    );
     expect(screen.queryByText("Policies")).toBeNull();
   });
 
   it("shows unlocked policy with Adopt button", () => {
-    const state = makeState({}, { culture: { value: 200 } }, {
-      policies: { liberty: { unlocked: true, blocked: false, researched: false } },
-    });
-    render(<WithInspector><SciencePanel state={state} /></WithInspector>);
+    const state = makeState(
+      {},
+      { culture: { value: 200 } },
+      {
+        policies: { liberty: { unlocked: true, blocked: false, researched: false } },
+      },
+    );
+    render(
+      <WithInspector>
+        <SciencePanel state={state} />
+      </WithInspector>,
+    );
     expect(screen.getByTestId("policy-liberty")).toBeTruthy();
     expect(screen.getByRole("button", { name: /adopt/i })).toBeTruthy();
   });
 
   it("shows adopted policy with Adopted badge", () => {
-    const state = makeState({}, {}, {
-      policies: { liberty: { unlocked: true, blocked: false, researched: true } },
-    });
-    render(<WithInspector><SciencePanel state={state} /></WithInspector>);
+    const state = makeState(
+      {},
+      {},
+      {
+        policies: { liberty: { unlocked: true, blocked: false, researched: true } },
+      },
+    );
+    render(
+      <WithInspector>
+        <SciencePanel state={state} />
+      </WithInspector>,
+    );
     const card = screen.getByTestId("policy-liberty");
     expect(card).toBeTruthy();
     expect(screen.queryByRole("button", { name: /adopt/i })).toBeNull();
@@ -266,40 +373,72 @@ describe("Story 51-01: Policy panel", () => {
   });
 
   it("shows blocked policy as Blocked with disabled button", () => {
-    const state = makeState({}, { culture: { value: 200 } }, {
-      policies: { tradition: { unlocked: true, blocked: true, researched: false } },
-    });
-    render(<WithInspector><SciencePanel state={state} /></WithInspector>);
+    const state = makeState(
+      {},
+      { culture: { value: 200 } },
+      {
+        policies: { tradition: { unlocked: true, blocked: true, researched: false } },
+      },
+    );
+    render(
+      <WithInspector>
+        <SciencePanel state={state} />
+      </WithInspector>,
+    );
     expect(screen.getByTestId("policy-tradition")).toBeTruthy();
     expect(screen.getByText("Blocked")).toBeTruthy();
   });
 
   it("dispatches RESEARCH_POLICY when Adopt is clicked", () => {
-    const state = makeState({}, { culture: { value: 200 } }, {
-      policies: { liberty: { unlocked: true, blocked: false, researched: false } },
-    });
-    render(<WithInspector><SciencePanel state={state} /></WithInspector>);
+    const state = makeState(
+      {},
+      { culture: { value: 200 } },
+      {
+        policies: { liberty: { unlocked: true, blocked: false, researched: false } },
+      },
+    );
+    render(
+      <WithInspector>
+        <SciencePanel state={state} />
+      </WithInspector>,
+    );
     fireEvent.click(screen.getByRole("button", { name: /adopt/i }));
     expect(mockMutate).toHaveBeenCalledWith({ type: "RESEARCH_POLICY", name: "liberty" });
   });
 
   it("disables Adopt button when player cannot afford policy", () => {
-    const state = makeState({}, { culture: { value: 0 } }, {
-      policies: { liberty: { unlocked: true, blocked: false, researched: false } },
-    });
-    render(<WithInspector><SciencePanel state={state} /></WithInspector>);
+    const state = makeState(
+      {},
+      { culture: { value: 0 } },
+      {
+        policies: { liberty: { unlocked: true, blocked: false, researched: false } },
+      },
+    );
+    render(
+      <WithInspector>
+        <SciencePanel state={state} />
+      </WithInspector>,
+    );
     const btn = screen.getByRole("button", { name: /adopt/i });
     expect(btn.hasAttribute("disabled")).toBe(true);
   });
 
   it("hide-researched toggle filters adopted policies", () => {
-    const state = makeState({}, {}, {
-      policies: {
-        liberty: { unlocked: true, blocked: false, researched: true },
-        tradition: { unlocked: true, blocked: false, researched: false },
+    const state = makeState(
+      {},
+      {},
+      {
+        policies: {
+          liberty: { unlocked: true, blocked: false, researched: true },
+          tradition: { unlocked: true, blocked: false, researched: false },
+        },
       },
-    });
-    render(<WithInspector><SciencePanel state={state} /></WithInspector>);
+    );
+    render(
+      <WithInspector>
+        <SciencePanel state={state} />
+      </WithInspector>,
+    );
     expect(screen.getByTestId("policy-liberty")).toBeTruthy();
     fireEvent.click(screen.getByTestId("policy-hide-researched"));
     expect(screen.queryByTestId("policy-liberty")).toBeNull();
@@ -307,13 +446,21 @@ describe("Story 51-01: Policy panel", () => {
   });
 
   it("hide-blocked toggle filters blocked policies", () => {
-    const state = makeState({}, {}, {
-      policies: {
-        liberty: { unlocked: true, blocked: false, researched: false },
-        tradition: { unlocked: true, blocked: true, researched: false },
+    const state = makeState(
+      {},
+      {},
+      {
+        policies: {
+          liberty: { unlocked: true, blocked: false, researched: false },
+          tradition: { unlocked: true, blocked: true, researched: false },
+        },
       },
-    });
-    render(<WithInspector><SciencePanel state={state} /></WithInspector>);
+    );
+    render(
+      <WithInspector>
+        <SciencePanel state={state} />
+      </WithInspector>,
+    );
     expect(screen.getByTestId("policy-tradition")).toBeTruthy();
     fireEvent.click(screen.getByTestId("policy-hide-blocked"));
     expect(screen.queryByTestId("policy-tradition")).toBeNull();
@@ -330,7 +477,11 @@ describe("Story 51-02: Prestige perks panel", () => {
       { paragon: { value: 10 } },
       { prestige: { perks: { engeneering: { unlocked: true, researched: false } } } },
     );
-    render(<WithInspector><SciencePanel state={state} /></WithInspector>);
+    render(
+      <WithInspector>
+        <SciencePanel state={state} />
+      </WithInspector>,
+    );
     expect(screen.getByText("Metaphysics")).toBeTruthy();
   });
 
@@ -340,15 +491,27 @@ describe("Story 51-02: Prestige perks panel", () => {
       {},
       { prestige: { perks: { engeneering: { unlocked: true, researched: true } } } },
     );
-    render(<WithInspector><SciencePanel state={state} /></WithInspector>);
+    render(
+      <WithInspector>
+        <SciencePanel state={state} />
+      </WithInspector>,
+    );
     expect(screen.getByText("Metaphysics")).toBeTruthy();
   });
 
   it("hides Metaphysics section when no qualification", () => {
-    const state = makeState({}, {}, {
-      prestige: { perks: { engeneering: { unlocked: true, researched: false } } },
-    });
-    render(<WithInspector><SciencePanel state={state} /></WithInspector>);
+    const state = makeState(
+      {},
+      {},
+      {
+        prestige: { perks: { engeneering: { unlocked: true, researched: false } } },
+      },
+    );
+    render(
+      <WithInspector>
+        <SciencePanel state={state} />
+      </WithInspector>,
+    );
     expect(screen.queryByText("Metaphysics")).toBeNull();
   });
 
@@ -358,7 +521,11 @@ describe("Story 51-02: Prestige perks panel", () => {
       { paragon: { value: 100 } },
       { prestige: { perks: { engeneering: { unlocked: true, researched: false } } } },
     );
-    render(<WithInspector><SciencePanel state={state} /></WithInspector>);
+    render(
+      <WithInspector>
+        <SciencePanel state={state} />
+      </WithInspector>,
+    );
     expect(screen.getByTestId("perk-engeneering")).toBeTruthy();
     expect(screen.getByRole("button", { name: /purchase/i })).toBeTruthy();
   });
@@ -369,7 +536,11 @@ describe("Story 51-02: Prestige perks panel", () => {
       { paragon: { value: 10 } },
       { prestige: { perks: { engeneering: { unlocked: true, researched: true } } } },
     );
-    render(<WithInspector><SciencePanel state={state} /></WithInspector>);
+    render(
+      <WithInspector>
+        <SciencePanel state={state} />
+      </WithInspector>,
+    );
     expect(screen.getByTestId("perk-engeneering")).toBeTruthy();
     expect(screen.queryByRole("button", { name: /purchase/i })).toBeNull();
   });
@@ -380,7 +551,11 @@ describe("Story 51-02: Prestige perks panel", () => {
       { paragon: { value: 1 } },
       { prestige: { perks: { engeneering: { unlocked: true, researched: false } } } },
     );
-    render(<WithInspector><SciencePanel state={state} /></WithInspector>);
+    render(
+      <WithInspector>
+        <SciencePanel state={state} />
+      </WithInspector>,
+    );
     const btn = screen.getByRole("button", { name: /purchase/i });
     expect(btn.hasAttribute("disabled")).toBe(true);
   });
@@ -391,7 +566,11 @@ describe("Story 51-02: Prestige perks panel", () => {
       { paragon: { value: 100 } },
       { prestige: { perks: { engeneering: { unlocked: true, researched: false } } } },
     );
-    render(<WithInspector><SciencePanel state={state} /></WithInspector>);
+    render(
+      <WithInspector>
+        <SciencePanel state={state} />
+      </WithInspector>,
+    );
     fireEvent.click(screen.getByRole("button", { name: /purchase/i }));
     expect(mockMutate).toHaveBeenCalledWith({ type: "PURCHASE_PERK", name: "engeneering" });
   });
@@ -402,7 +581,11 @@ describe("Story 51-02: Prestige perks panel", () => {
       { paragon: { value: 10 } },
       { prestige: { perks: { engeneering: { unlocked: true, researched: false } } } },
     );
-    render(<WithInspector><SciencePanel state={state} /></WithInspector>);
+    render(
+      <WithInspector>
+        <SciencePanel state={state} />
+      </WithInspector>,
+    );
     expect(screen.getByRole("button", { name: /burn paragon/i })).toBeTruthy();
   });
 
@@ -412,7 +595,11 @@ describe("Story 51-02: Prestige perks panel", () => {
       { paragon: { value: 10 } },
       { prestige: { perks: { engeneering: { unlocked: true, researched: false } } } },
     );
-    render(<WithInspector><SciencePanel state={state} /></WithInspector>);
+    render(
+      <WithInspector>
+        <SciencePanel state={state} />
+      </WithInspector>,
+    );
     fireEvent.click(screen.getByRole("button", { name: /burn paragon/i }));
     expect(mockMutate).toHaveBeenCalledWith({ type: "BURN_PARAGON" });
   });
@@ -422,11 +609,19 @@ describe("Story 51-02: Prestige perks panel", () => {
 
 describe("Story 51-03: Policy and perk flavor text in inspector", () => {
   it("shows policy details in inspector on hover", async () => {
-    const state = makeState({}, { culture: { value: 200 } }, {
-      policies: { liberty: { unlocked: true, blocked: false, researched: false } },
-    });
+    const state = makeState(
+      {},
+      { culture: { value: 200 } },
+      {
+        policies: { liberty: { unlocked: true, blocked: false, researched: false } },
+      },
+    );
     const userEvent = (await import("@testing-library/user-event")).default;
-    render(<WithInspector><SciencePanel state={state} /></WithInspector>);
+    render(
+      <WithInspector>
+        <SciencePanel state={state} />
+      </WithInspector>,
+    );
     await userEvent.hover(screen.getByTestId("policy-liberty"));
     expect(screen.getByTestId("inspector-panel")).toBeTruthy();
     expect(screen.getAllByText(/liberty/).length).toBeGreaterThan(0);
@@ -439,7 +634,11 @@ describe("Story 51-03: Policy and perk flavor text in inspector", () => {
       { prestige: { perks: { engeneering: { unlocked: true, researched: false } } } },
     );
     const userEvent = (await import("@testing-library/user-event")).default;
-    render(<WithInspector><SciencePanel state={state} /></WithInspector>);
+    render(
+      <WithInspector>
+        <SciencePanel state={state} />
+      </WithInspector>,
+    );
     await userEvent.hover(screen.getByTestId("perk-engeneering"));
     expect(screen.getByTestId("inspector-panel")).toBeTruthy();
     expect(screen.getAllByText(/engeneering/).length).toBeGreaterThan(0);

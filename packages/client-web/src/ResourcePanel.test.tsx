@@ -85,19 +85,31 @@ afterEach(() => {
 
 describe("ResourcePanel", () => {
   it("shows loading placeholder when state is null", () => {
-    render(<WithInspector><ResourcePanel state={null} /></WithInspector>);
+    render(
+      <WithInspector>
+        <ResourcePanel state={null} />
+      </WithInspector>,
+    );
     expect(screen.getByTestId("resource-panel-loading")).toBeTruthy();
     expect(screen.getByText("Loading resources...")).toBeTruthy();
   });
 
   it("shows loading placeholder when state is undefined", () => {
-    render(<WithInspector><ResourcePanel state={undefined} /></WithInspector>);
+    render(
+      <WithInspector>
+        <ResourcePanel state={undefined} />
+      </WithInspector>,
+    );
     expect(screen.getByTestId("resource-panel-loading")).toBeTruthy();
   });
 
   it("renders resource name and value", () => {
     const state = makeState({ catnip: { value: 42.5, maxValue: 5000 } });
-    render(<WithInspector><ResourcePanel state={state} /></WithInspector>);
+    render(
+      <WithInspector>
+        <ResourcePanel state={state} />
+      </WithInspector>,
+    );
     expect(screen.getByTestId("resource-catnip")).toBeTruthy();
     expect(screen.getByText(/catnip/)).toBeTruthy();
     expect(screen.getByText(/42\.50/)).toBeTruthy();
@@ -105,19 +117,31 @@ describe("ResourcePanel", () => {
 
   it("shows max value when present", () => {
     const state = makeState({ catnip: { value: 10, maxValue: 5000 } });
-    render(<WithInspector><ResourcePanel state={state} /></WithInspector>);
+    render(
+      <WithInspector>
+        <ResourcePanel state={state} />
+      </WithInspector>,
+    );
     expect(screen.getByText(/5000/)).toBeTruthy();
   });
 
   it("shows positive perTick rate", () => {
     const state = makeState({ catnip: { value: 10, perTick: 1.234 } });
-    render(<WithInspector><ResourcePanel state={state} /></WithInspector>);
+    render(
+      <WithInspector>
+        <ResourcePanel state={state} />
+      </WithInspector>,
+    );
     expect(screen.getByText(/\+1\.234\/tick/)).toBeTruthy();
   });
 
   it("shows negative perTick rate", () => {
     const state = makeState({ catnip: { value: 10, perTick: -0.5 } });
-    render(<WithInspector><ResourcePanel state={state} /></WithInspector>);
+    render(
+      <WithInspector>
+        <ResourcePanel state={state} />
+      </WithInspector>,
+    );
     expect(screen.getByText(/-0\.500\/tick/)).toBeTruthy();
   });
 
@@ -130,7 +154,11 @@ describe("ResourcePanel", () => {
       },
     );
     const userEvent = (await import("@testing-library/user-event")).default;
-    render(<WithInspector><ResourcePanel state={state} /></WithInspector>);
+    render(
+      <WithInspector>
+        <ResourcePanel state={state} />
+      </WithInspector>,
+    );
 
     await userEvent.hover(screen.getByTestId("resource-catnip"));
 
@@ -149,7 +177,11 @@ describe("ResourcePanel", () => {
       },
     );
     const userEvent = (await import("@testing-library/user-event")).default;
-    render(<WithInspector><ResourcePanel state={state} /></WithInspector>);
+    render(
+      <WithInspector>
+        <ResourcePanel state={state} />
+      </WithInspector>,
+    );
 
     await userEvent.hover(screen.getByTestId("resource-catnip"));
 
@@ -159,7 +191,11 @@ describe("ResourcePanel", () => {
   it("clears inspector on mouse leave", async () => {
     const state = makeState({ catnip: { value: 10, perTick: 1 } }, { catnipPerTickBase: 1 });
     const userEvent = (await import("@testing-library/user-event")).default;
-    render(<WithInspector><ResourcePanel state={state} /></WithInspector>);
+    render(
+      <WithInspector>
+        <ResourcePanel state={state} />
+      </WithInspector>,
+    );
 
     await userEvent.hover(screen.getByTestId("resource-catnip"));
     expect(screen.queryByText(/Net income/)).toBeTruthy();
@@ -169,11 +205,12 @@ describe("ResourcePanel", () => {
   });
 
   it("shows inspector on keyboard focus and clears on blur", () => {
-    const state = makeState(
-      { catnip: { value: 10, perTick: 1 } },
-      { catnipPerTickBase: 1 },
+    const state = makeState({ catnip: { value: 10, perTick: 1 } }, { catnipPerTickBase: 1 });
+    render(
+      <WithInspector>
+        <ResourcePanel state={state} />
+      </WithInspector>,
     );
-    render(<WithInspector><ResourcePanel state={state} /></WithInspector>);
 
     fireEvent.focus(screen.getByTestId("resource-catnip"));
     expect(screen.queryByText(/Hover an item to inspect it/)).toBeNull();
@@ -185,7 +222,11 @@ describe("ResourcePanel", () => {
   it("shows per-second gain when switched to /sec mode", async () => {
     const state = makeState({ catnip: { value: 10, perTick: 1.234 } });
     const userEvent = (await import("@testing-library/user-event")).default;
-    render(<WithInspector><ResourcePanel state={state} /></WithInspector>);
+    render(
+      <WithInspector>
+        <ResourcePanel state={state} />
+      </WithInspector>,
+    );
     await userEvent.click(screen.getByRole("button", { name: /show per second/i }));
     expect(screen.getByText(/\+6\.170\/sec/)).toBeTruthy();
   });
@@ -193,7 +234,11 @@ describe("ResourcePanel", () => {
   it("shows negative per-second gain when switched to /sec mode", async () => {
     const state = makeState({ catnip: { value: 10, perTick: -0.5 } });
     const userEvent = (await import("@testing-library/user-event")).default;
-    render(<WithInspector><ResourcePanel state={state} /></WithInspector>);
+    render(
+      <WithInspector>
+        <ResourcePanel state={state} />
+      </WithInspector>,
+    );
     await userEvent.click(screen.getByRole("button", { name: /show per second/i }));
     expect(screen.getByText(/-2\.500\/sec/)).toBeTruthy();
   });
@@ -201,7 +246,11 @@ describe("ResourcePanel", () => {
   it("can switch back to /tick mode after enabling /sec mode", async () => {
     const state = makeState({ catnip: { value: 10, perTick: 1 } });
     const userEvent = (await import("@testing-library/user-event")).default;
-    render(<WithInspector><ResourcePanel state={state} /></WithInspector>);
+    render(
+      <WithInspector>
+        <ResourcePanel state={state} />
+      </WithInspector>,
+    );
     await userEvent.click(screen.getByRole("button", { name: /show per second/i }));
     expect(screen.getByText(/\+5\.000\/sec/)).toBeTruthy();
     await userEvent.click(screen.getByRole("button", { name: /show per tick/i }));
@@ -211,25 +260,41 @@ describe("ResourcePanel", () => {
   it("restores the saved rate unit on remount", async () => {
     const state = makeState({ catnip: { value: 10, perTick: 1 } });
     const userEvent = (await import("@testing-library/user-event")).default;
-    const { unmount } = render(<WithInspector><ResourcePanel state={state} /></WithInspector>);
+    const { unmount } = render(
+      <WithInspector>
+        <ResourcePanel state={state} />
+      </WithInspector>,
+    );
     await userEvent.click(screen.getByRole("button", { name: /show per second/i }));
     expect(window.localStorage.getItem("kittens.ui.resourceRateUnit")).toBe('"perSecond"');
     unmount();
 
-    render(<WithInspector><ResourcePanel state={state} /></WithInspector>);
+    render(
+      <WithInspector>
+        <ResourcePanel state={state} />
+      </WithInspector>,
+    );
     expect(screen.getByRole("button", { name: /show per tick/i })).toBeTruthy();
     expect(screen.getByText(/\+5\.000\/sec/)).toBeTruthy();
   });
 
   it("does not show rate when perTick is 0", () => {
     const state = makeState({ catnip: { value: 10, perTick: 0 } });
-    render(<WithInspector><ResourcePanel state={state} /></WithInspector>);
+    render(
+      <WithInspector>
+        <ResourcePanel state={state} />
+      </WithInspector>,
+    );
     expect(screen.queryByText(/\/tick/)).toBeNull();
   });
 
   it("shows no resources message when resources object is empty", () => {
     const state = makeState({});
-    render(<WithInspector><ResourcePanel state={state} /></WithInspector>);
+    render(
+      <WithInspector>
+        <ResourcePanel state={state} />
+      </WithInspector>,
+    );
     expect(screen.getByText("No resources yet.")).toBeTruthy();
   });
 
@@ -238,7 +303,11 @@ describe("ResourcePanel", () => {
       catnip: { value: 10, perTick: 1 },
       wood: { value: 50, perTick: 0.5 },
     });
-    render(<WithInspector><ResourcePanel state={state} /></WithInspector>);
+    render(
+      <WithInspector>
+        <ResourcePanel state={state} />
+      </WithInspector>,
+    );
     expect(screen.getByTestId("resource-catnip")).toBeTruthy();
     expect(screen.getByTestId("resource-wood")).toBeTruthy();
   });
@@ -248,7 +317,11 @@ describe("ResourcePanel", () => {
       catnip: { value: 0, perTick: 0.5, unlocked: true },
       wood: { value: 50, unlocked: true },
     });
-    render(<WithInspector><ResourcePanel state={state} /></WithInspector>);
+    render(
+      <WithInspector>
+        <ResourcePanel state={state} />
+      </WithInspector>,
+    );
     expect(screen.getByTestId("resource-catnip")).toBeTruthy();
     expect(screen.getByTestId("resource-wood")).toBeTruthy();
   });
@@ -258,7 +331,11 @@ describe("ResourcePanel", () => {
       catnip: { value: 0, unlocked: false },
       wood: { value: 0, unlocked: false },
     });
-    render(<WithInspector><ResourcePanel state={state} /></WithInspector>);
+    render(
+      <WithInspector>
+        <ResourcePanel state={state} />
+      </WithInspector>,
+    );
     expect(screen.getByTestId("resource-catnip")).toBeTruthy();
     expect(screen.queryByTestId("resource-wood")).toBeNull();
   });
@@ -269,7 +346,11 @@ describe("ResourcePanel", () => {
       temporalFlux: { value: 0, unlocked: false },
       minerals: { value: 0.01, unlocked: true },
     });
-    render(<WithInspector><ResourcePanel state={state} /></WithInspector>);
+    render(
+      <WithInspector>
+        <ResourcePanel state={state} />
+      </WithInspector>,
+    );
     expect(screen.getByTestId("resource-catnip")).toBeTruthy();
     expect(screen.queryByTestId("resource-temporalFlux")).toBeNull();
     expect(screen.getByTestId("resource-minerals")).toBeTruthy();
@@ -280,7 +361,11 @@ describe("ResourcePanel", () => {
       catnip: { value: 100, unlocked: true },
       kittens: { value: 6217.28, maxValue: 0, perTick: 0.01, unlocked: true },
     });
-    render(<WithInspector><ResourcePanel state={state} /></WithInspector>);
+    render(
+      <WithInspector>
+        <ResourcePanel state={state} />
+      </WithInspector>,
+    );
     expect(screen.getByTestId("resource-catnip")).toBeTruthy();
     expect(screen.queryByTestId("resource-kittens")).toBeNull();
     expect(screen.queryByText(/^kittens$/i)).toBeNull();
@@ -362,12 +447,19 @@ describe("Story 41-01: Highlight required resources on action hover", () => {
     });
     render(
       <WithInspector>
-        <HoverAction prices={[{ name: "minerals", val: 50 }, { name: "iron", val: 10 }]} />
+        <HoverAction
+          prices={[
+            { name: "minerals", val: 50 },
+            { name: "iron", val: 10 },
+          ]}
+        />
         <ResourcePanel state={state} />
       </WithInspector>,
     );
 
-    expect(screen.getByTestId("resource-minerals").className).toContain("resource-item--highlighted");
+    expect(screen.getByTestId("resource-minerals").className).toContain(
+      "resource-item--highlighted",
+    );
     expect(screen.getByTestId("resource-iron").className).toContain("resource-item--highlighted");
     expect(screen.getByTestId("resource-science").className).toContain("resource-item--dimmed");
   });
@@ -385,9 +477,7 @@ describe("Story 41-02: Show cost target marker on resource progress bar", () => 
       </WithInspector>,
     );
 
-    const marker = screen
-      .getByTestId("resource-wood")
-      .querySelector(".resource-bar-target");
+    const marker = screen.getByTestId("resource-wood").querySelector(".resource-bar-target");
     expect(marker).toBeTruthy();
   });
 
@@ -432,7 +522,9 @@ describe("Story 41-02: Show cost target marker on resource progress bar", () => 
       </WithInspector>,
     );
 
-    const marker = screen.getByTestId("resource-wood").querySelector(".resource-bar-target") as HTMLElement;
+    const marker = screen
+      .getByTestId("resource-wood")
+      .querySelector(".resource-bar-target") as HTMLElement;
     expect(marker?.className).toContain("resource-bar-target--limited");
     expect(marker?.style.left).toBe("100%");
   });
@@ -464,7 +556,9 @@ describe("Story 41-02: Show cost target marker on resource progress bar", () => 
       </WithInspector>,
     );
 
-    const marker = screen.getByTestId("resource-wood").querySelector(".resource-bar-target") as HTMLElement;
+    const marker = screen
+      .getByTestId("resource-wood")
+      .querySelector(".resource-bar-target") as HTMLElement;
     // 200 / 400 = 50%
     expect(marker?.style.left).toBe("50%");
   });
@@ -586,7 +680,9 @@ describe("Story 41-03: Live ETA to reach required amount", () => {
     expect(getEta()).toMatch(/15s/);
 
     // Advance 5 seconds
-    await act(async () => { vi.advanceTimersByTime(5000); });
+    await act(async () => {
+      vi.advanceTimersByTime(5000);
+    });
     expect(getEta()).toMatch(/15s/);
 
     vi.useRealTimers();
@@ -738,7 +834,9 @@ describe("Story 41-07: Hierarchical tree ordering for highlighted resources", ()
     const getIdx = (id: string) => items.findIndex((el) => el.dataset.testid === `resource-${id}`);
 
     // compedium is highlighted (depth 1), manuscript/science/minerals are dimmed
-    expect(screen.getByTestId("resource-compedium").className).toContain("resource-item--highlighted");
+    expect(screen.getByTestId("resource-compedium").className).toContain(
+      "resource-item--highlighted",
+    );
     expect(screen.getByTestId("resource-manuscript").className).toContain("resource-item--dimmed");
     // compedium appears first (highlighted), dimmed resources follow
     expect(getIdx("compedium")).toBeLessThan(getIdx("minerals"));
@@ -749,7 +847,11 @@ describe("Story 41-07: Hierarchical tree ordering for highlighted resources", ()
       catnip: { value: 10, maxValue: 5000 },
       minerals: { value: 5, maxValue: 500 },
     });
-    render(<WithInspector><ResourcePanel state={state} /></WithInspector>);
+    render(
+      <WithInspector>
+        <ResourcePanel state={state} />
+      </WithInspector>,
+    );
 
     const list = screen.getByRole("list", { name: /resources/i });
     const items = Array.from(list.querySelectorAll("li"));
@@ -766,22 +868,31 @@ describe("Story 41-07: Hierarchical tree ordering for highlighted resources", ()
 describe("Story 32-08: Resource maxValue and demand display", () => {
   it("does not show /0 when maxValue is 0 (uncapped resource)", () => {
     const state = makeState({ catnip: { value: 10, maxValue: 0 } });
-    render(<WithInspector><ResourcePanel state={state} /></WithInspector>);
+    render(
+      <WithInspector>
+        <ResourcePanel state={state} />
+      </WithInspector>,
+    );
     expect(screen.queryByText(/\/0/)).toBeNull();
   });
 
   it("shows cap when maxValue is positive", () => {
     const state = makeState({ catnip: { value: 10, maxValue: 5000 } });
-    render(<WithInspector><ResourcePanel state={state} /></WithInspector>);
+    render(
+      <WithInspector>
+        <ResourcePanel state={state} />
+      </WithInspector>,
+    );
     expect(screen.getByText(/5000/)).toBeTruthy();
   });
 
   it("does not show catnip demand reduction in the resource panel", () => {
-    const state = makeState(
-      { catnip: { value: 10 } },
-      { catnipDemandRatio: -0.15 },
+    const state = makeState({ catnip: { value: 10 } }, { catnipDemandRatio: -0.15 });
+    render(
+      <WithInspector>
+        <ResourcePanel state={state} />
+      </WithInspector>,
     );
-    render(<WithInspector><ResourcePanel state={state} /></WithInspector>);
     // Demand ratio badge was removed — should not appear
     expect(screen.getByTestId("resource-catnip").textContent).not.toMatch(/-15%|demand/i);
   });
@@ -792,7 +903,11 @@ describe("Story 32-08: Resource maxValue and demand display", () => {
 describe("resource type color coding", () => {
   it("applies custom color to resource name for colored resources", () => {
     const state = makeState({ uranium: { value: 5, unlocked: true } });
-    render(<WithInspector><ResourcePanel state={state} /></WithInspector>);
+    render(
+      <WithInspector>
+        <ResourcePanel state={state} />
+      </WithInspector>,
+    );
     const row = screen.getByTestId("resource-uranium");
     const nameEl = row.querySelector(".resource-name") as HTMLElement;
     expect(nameEl.style.color).toBe("#4EA24E");
@@ -800,7 +915,11 @@ describe("resource type color coding", () => {
 
   it("applies uncommon type class when no custom color", () => {
     const state = makeState({ furs: { value: 5, unlocked: true } });
-    render(<WithInspector><ResourcePanel state={state} /></WithInspector>);
+    render(
+      <WithInspector>
+        <ResourcePanel state={state} />
+      </WithInspector>,
+    );
     const row = screen.getByTestId("resource-furs");
     const nameEl = row.querySelector(".resource-name") as HTMLElement;
     expect(nameEl.classList.contains("resource-name--uncommon")).toBe(true);
@@ -808,7 +927,11 @@ describe("resource type color coding", () => {
 
   it("applies rare type class with text-shadow when no custom color", () => {
     const state = makeState({ unicorns: { value: 5, unlocked: true } });
-    render(<WithInspector><ResourcePanel state={state} /></WithInspector>);
+    render(
+      <WithInspector>
+        <ResourcePanel state={state} />
+      </WithInspector>,
+    );
     const row = screen.getByTestId("resource-unicorns");
     const nameEl = row.querySelector(".resource-name") as HTMLElement;
     expect(nameEl.classList.contains("resource-name--rare")).toBe(true);
@@ -816,7 +939,11 @@ describe("resource type color coding", () => {
 
   it("does not apply special styling to common resources", () => {
     const state = makeState({ wood: { value: 5, unlocked: true } });
-    render(<WithInspector><ResourcePanel state={state} /></WithInspector>);
+    render(
+      <WithInspector>
+        <ResourcePanel state={state} />
+      </WithInspector>,
+    );
     const row = screen.getByTestId("resource-wood");
     const nameEl = row.querySelector(".resource-name") as HTMLElement;
     expect(nameEl.style.color).toBe("");
@@ -830,7 +957,11 @@ describe("resource type color coding", () => {
 describe("capacity warning colors", () => {
   it("shows orange notice when value > 95% of max", () => {
     const state = makeState({ wood: { value: 960, maxValue: 1000, unlocked: true } });
-    render(<WithInspector><ResourcePanel state={state} /></WithInspector>);
+    render(
+      <WithInspector>
+        <ResourcePanel state={state} />
+      </WithInspector>,
+    );
     const row = screen.getByTestId("resource-wood");
     const valueEl = row.querySelector(".resource-value") as HTMLElement;
     expect(valueEl.classList.contains("resource-value--notice")).toBe(true);
@@ -838,7 +969,11 @@ describe("capacity warning colors", () => {
 
   it("shows coral warning when value > 75% of max but <= 95%", () => {
     const state = makeState({ wood: { value: 800, maxValue: 1000, unlocked: true } });
-    render(<WithInspector><ResourcePanel state={state} /></WithInspector>);
+    render(
+      <WithInspector>
+        <ResourcePanel state={state} />
+      </WithInspector>,
+    );
     const row = screen.getByTestId("resource-wood");
     const valueEl = row.querySelector(".resource-value") as HTMLElement;
     expect(valueEl.classList.contains("resource-value--warn")).toBe(true);
@@ -846,7 +981,11 @@ describe("capacity warning colors", () => {
 
   it("no warning styling when below 75%", () => {
     const state = makeState({ wood: { value: 500, maxValue: 1000, unlocked: true } });
-    render(<WithInspector><ResourcePanel state={state} /></WithInspector>);
+    render(
+      <WithInspector>
+        <ResourcePanel state={state} />
+      </WithInspector>,
+    );
     const row = screen.getByTestId("resource-wood");
     const valueEl = row.querySelector(".resource-value") as HTMLElement;
     expect(valueEl.classList.contains("resource-value--notice")).toBe(false);
@@ -855,7 +994,11 @@ describe("capacity warning colors", () => {
 
   it("no warning when maxValue is 0", () => {
     const state = makeState({ science: { value: 500, maxValue: 0, unlocked: true } });
-    render(<WithInspector><ResourcePanel state={state} /></WithInspector>);
+    render(
+      <WithInspector>
+        <ResourcePanel state={state} />
+      </WithInspector>,
+    );
     const row = screen.getByTestId("resource-science");
     const valueEl = row.querySelector(".resource-value") as HTMLElement;
     expect(valueEl.classList.contains("resource-value--notice")).toBe(false);
@@ -872,7 +1015,11 @@ describe("weather production modifier badge", () => {
       {},
       { calendar: { day: 50, season: 0, year: 1 } }, // spring
     );
-    render(<WithInspector><ResourcePanel state={state} /></WithInspector>);
+    render(
+      <WithInspector>
+        <ResourcePanel state={state} />
+      </WithInspector>,
+    );
     const row = screen.getByTestId("resource-catnip");
     const badge = row.querySelector(".weather-badge") as HTMLElement;
     expect(badge).toBeTruthy();
@@ -886,7 +1033,11 @@ describe("weather production modifier badge", () => {
       {},
       { calendar: { day: 50, season: 3, year: 1 } }, // winter
     );
-    render(<WithInspector><ResourcePanel state={state} /></WithInspector>);
+    render(
+      <WithInspector>
+        <ResourcePanel state={state} />
+      </WithInspector>,
+    );
     const row = screen.getByTestId("resource-catnip");
     const badge = row.querySelector(".weather-badge") as HTMLElement;
     expect(badge).toBeTruthy();
@@ -900,7 +1051,11 @@ describe("weather production modifier badge", () => {
       {},
       { calendar: { day: 50, season: 0, year: 1 } },
     );
-    render(<WithInspector><ResourcePanel state={state} /></WithInspector>);
+    render(
+      <WithInspector>
+        <ResourcePanel state={state} />
+      </WithInspector>,
+    );
     const row = screen.getByTestId("resource-wood");
     expect(row.querySelector(".weather-badge")).toBeNull();
   });
@@ -911,7 +1066,11 @@ describe("weather production modifier badge", () => {
       {},
       { calendar: { day: 50, season: 0, year: 1 } },
     );
-    render(<WithInspector><ResourcePanel state={state} /></WithInspector>);
+    render(
+      <WithInspector>
+        <ResourcePanel state={state} />
+      </WithInspector>,
+    );
     const row = screen.getByTestId("resource-catnip");
     expect(row.querySelector(".weather-badge")).toBeNull();
   });
@@ -929,7 +1088,11 @@ describe("resource visibility toggle", () => {
       {},
       { hiddenResources: ["iron"] },
     );
-    render(<WithInspector><ResourcePanel state={state} /></WithInspector>);
+    render(
+      <WithInspector>
+        <ResourcePanel state={state} />
+      </WithInspector>,
+    );
     expect(screen.getByTestId("resource-wood")).toBeTruthy();
     expect(screen.queryByTestId("resource-iron")).toBeNull();
   });
@@ -951,7 +1114,11 @@ describe("craft shortcut cost tooltips", () => {
       ...state,
       workshop: { crafts: { beam: { unlocked: true } }, upgrades: {} },
     } as unknown as import("@kittens/api-spec").GameStateResponse;
-    render(<WithInspector><ResourcePanel state={stateWithCrafts} /></WithInspector>);
+    render(
+      <WithInspector>
+        <ResourcePanel state={stateWithCrafts} />
+      </WithInspector>,
+    );
     const s1Btn = screen.getByTestId("resource-craft-beam-s1");
     // Tooltip should contain cost info (wood cost for beams)
     expect(s1Btn.getAttribute("title")).toMatch(/wood/i);
@@ -969,7 +1136,11 @@ describe("craft shortcut cost tooltips", () => {
       ...state,
       workshop: { crafts: { beam: { unlocked: true } }, upgrades: {} },
     } as unknown as import("@kittens/api-spec").GameStateResponse;
-    render(<WithInspector><ResourcePanel state={stateWithCrafts} /></WithInspector>);
+    render(
+      <WithInspector>
+        <ResourcePanel state={stateWithCrafts} />
+      </WithInspector>,
+    );
     const allBtn = screen.getByTestId("resource-craft-beam-all");
     // All button should NOT contain ingredient cost breakdown
     expect(allBtn.getAttribute("title")).not.toMatch(/wood.*:/i);

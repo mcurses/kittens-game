@@ -1,3 +1,4 @@
+import type { GameStateResponse } from "@kittens/api-spec";
 /**
  * UI Parity Audit — component-level surface check
  *
@@ -10,18 +11,17 @@
  * Its purpose is to catch "marked complete but actually missing" gaps.
  */
 import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
-import type { GameStateResponse } from "@kittens/api-spec";
-import React from "react";
+import type React from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { BuildingsPanel } from "./BuildingsPanel.js";
+import { DiplomacyPanel } from "./DiplomacyPanel.js";
 import { InspectorProvider } from "./InspectorContext.js";
 import { InspectorPanel } from "./InspectorPanel.js";
-import { ResourcePanel } from "./ResourcePanel.js";
-import { BuildingsPanel } from "./BuildingsPanel.js";
-import { WorkshopPanel } from "./WorkshopPanel.js";
-import { SciencePanel } from "./SciencePanel.js";
 import { JobsPanel } from "./JobsPanel.js";
-import { DiplomacyPanel } from "./DiplomacyPanel.js";
 import { ReligionPanel } from "./ReligionPanel.js";
+import { ResourcePanel } from "./ResourcePanel.js";
+import { SciencePanel } from "./SciencePanel.js";
+import { WorkshopPanel } from "./WorkshopPanel.js";
 
 const mockMutate = vi.fn();
 vi.mock("./useGameAction.js", () => ({
@@ -209,7 +209,11 @@ function lateGameState(): GameStateResponse {
 
 describe("UI Parity Audit: Resource Panel", () => {
   it("renders resource rows with name, value, max, and rate", () => {
-    render(<Wrap><ResourcePanel state={lateGameState()} /></Wrap>);
+    render(
+      <Wrap>
+        <ResourcePanel state={lateGameState()} />
+      </Wrap>,
+    );
     const panel = screen.getByTestId("resource-panel");
 
     // Core resources should be visible
@@ -220,14 +224,22 @@ describe("UI Parity Audit: Resource Panel", () => {
   });
 
   it("has per-tick / per-second toggle", () => {
-    render(<Wrap><ResourcePanel state={lateGameState()} /></Wrap>);
+    render(
+      <Wrap>
+        <ResourcePanel state={lateGameState()} />
+      </Wrap>,
+    );
     expect(screen.getByRole("button", { name: /per second|per tick/i })).toBeTruthy();
   });
 
   it.todo("MISSING: catnip demand ratio badge (legacy shows -X% on the catnip row)");
 
   it("shows inline craft shortcuts on craftable resource rows", () => {
-    render(<Wrap><ResourcePanel state={lateGameState()} /></Wrap>);
+    render(
+      <Wrap>
+        <ResourcePanel state={lateGameState()} />
+      </Wrap>,
+    );
     // beam is a craftable resource with an unlocked craft
     expect(screen.getByTestId("resource-craft-beam")).toBeTruthy();
     expect(screen.getByTestId("resource-craft-beam-s1")).toBeTruthy();
@@ -237,7 +249,11 @@ describe("UI Parity Audit: Resource Panel", () => {
   });
 
   it("does not show craft shortcuts on non-craftable resources", () => {
-    render(<Wrap><ResourcePanel state={lateGameState()} /></Wrap>);
+    render(
+      <Wrap>
+        <ResourcePanel state={lateGameState()} />
+      </Wrap>,
+    );
     // catnip has no craft recipe producing it
     expect(screen.queryByTestId("resource-craft-catnip")).toBeNull();
     // science is not craftable
@@ -252,7 +268,11 @@ describe("UI Parity Audit: Resource Panel", () => {
 
   it("shows per-source production attribution in inspector when hovering a resource", () => {
     const state = lateGameState();
-    render(<Wrap><ResourcePanel state={state} /></Wrap>);
+    render(
+      <Wrap>
+        <ResourcePanel state={state} />
+      </Wrap>,
+    );
     const catnipRow = screen.getByTestId("resource-catnip");
     fireEvent.mouseEnter(catnipRow);
     const inspector = screen.getByTestId("inspector-panel");
@@ -270,7 +290,11 @@ describe("UI Parity Audit: Resource Panel", () => {
 
 describe("UI Parity Audit: Buildings Panel", () => {
   it("renders building rows with name, count, and buy button", () => {
-    render(<Wrap><BuildingsPanel state={lateGameState()} /></Wrap>);
+    render(
+      <Wrap>
+        <BuildingsPanel state={lateGameState()} />
+      </Wrap>,
+    );
 
     // Should find some buildings
     expect(screen.getByTestId("building-field")).toBeTruthy();
@@ -278,7 +302,11 @@ describe("UI Parity Audit: Buildings Panel", () => {
   });
 
   it("shows category grouping", () => {
-    render(<Wrap><BuildingsPanel state={lateGameState()} /></Wrap>);
+    render(
+      <Wrap>
+        <BuildingsPanel state={lateGameState()} />
+      </Wrap>,
+    );
     // Check for category headers
     expect(screen.getByText("Food Production")).toBeTruthy();
     expect(screen.getByText("Population")).toBeTruthy();
@@ -287,8 +315,16 @@ describe("UI Parity Audit: Buildings Panel", () => {
   it("shows on/val count for buildings", () => {
     const state = lateGameState();
     // Make smelter partially on to test on/val display
-    (state as any).buildings.smelter = { val: 3, on: 1, unlocked: true };
-    render(<Wrap><BuildingsPanel state={state} /></Wrap>);
+    (state.buildings as Record<string, { val: number; on: number; unlocked: boolean }>).smelter = {
+      val: 3,
+      on: 1,
+      unlocked: true,
+    };
+    render(
+      <Wrap>
+        <BuildingsPanel state={state} />
+      </Wrap>,
+    );
     // "1/3" appears twice for buildings with count-controls: once in the top-right
     // count badge (read-only at-a-glance), once in the stage-counter readout next to
     // the +/- buttons. Both are intentional.
@@ -302,11 +338,17 @@ describe("UI Parity Audit: Buildings Panel", () => {
   it.todo("MISSING: stage up/down controls for stageable buildings");
 
   it("shows flavor text in inspector when hovering a building", () => {
-    render(<Wrap><BuildingsPanel state={lateGameState()} /></Wrap>);
+    render(
+      <Wrap>
+        <BuildingsPanel state={lateGameState()} />
+      </Wrap>,
+    );
     const fieldRow = screen.getByTestId("building-field");
     fireEvent.mouseEnter(fieldRow);
     expect(screen.getByTestId("inspector-flavor")).toBeTruthy();
-    expect(screen.getByTestId("inspector-flavor").textContent).toContain("Nip as far as the eye can see");
+    expect(screen.getByTestId("inspector-flavor").textContent).toContain(
+      "Nip as far as the eye can see",
+    );
   });
 
   it.todo("MISSING: tooltip automation status ('Automation is ON/OFF')");
@@ -320,25 +362,41 @@ describe("UI Parity Audit: Buildings Panel", () => {
 
 describe("UI Parity Audit: Workshop Panel", () => {
   it("renders unlocked upgrades with purchase buttons", () => {
-    render(<Wrap><WorkshopPanel state={lateGameState()} /></Wrap>);
+    render(
+      <Wrap>
+        <WorkshopPanel state={lateGameState()} />
+      </Wrap>,
+    );
     expect(screen.getByTestId("upgrade-ironAxes")).toBeTruthy();
     expect(screen.getAllByRole("button", { name: /buy/i }).length).toBeGreaterThan(0);
   });
 
   it("shows Done badge for researched upgrades", () => {
-    render(<Wrap><WorkshopPanel state={lateGameState()} /></Wrap>);
+    render(
+      <Wrap>
+        <WorkshopPanel state={lateGameState()} />
+      </Wrap>,
+    );
     // mineralHoes is researched
     const mineralHoesRow = screen.getByTestId("upgrade-mineralHoes");
     expect(within(mineralHoesRow).getByText(/done/i)).toBeTruthy();
   });
 
   it("has hide-researched toggle", () => {
-    render(<Wrap><WorkshopPanel state={lateGameState()} /></Wrap>);
+    render(
+      <Wrap>
+        <WorkshopPanel state={lateGameState()} />
+      </Wrap>,
+    );
     expect(screen.getByRole("checkbox")).toBeTruthy();
   });
 
   it("renders craft shortcut buttons for unlocked crafts", () => {
-    render(<Wrap><WorkshopPanel state={lateGameState()} /></Wrap>);
+    render(
+      <Wrap>
+        <WorkshopPanel state={lateGameState()} />
+      </Wrap>,
+    );
     // Individual crafts have data-testid="craft-<name>"
     expect(screen.getByTestId("craft-beam")).toBeTruthy();
     // Each craft gets 4 shortcut buttons (s1, s2, s3, all)
@@ -347,7 +405,11 @@ describe("UI Parity Audit: Workshop Panel", () => {
   });
 
   it("shows craft effectiveness banner when craftRatio > 0", () => {
-    render(<Wrap><WorkshopPanel state={lateGameState()} /></Wrap>);
+    render(
+      <Wrap>
+        <WorkshopPanel state={lateGameState()} />
+      </Wrap>,
+    );
     expect(screen.getByText(/effectiveness/i)).toBeTruthy();
   });
 
@@ -370,19 +432,31 @@ describe("UI Parity Audit: Workshop Panel", () => {
 
 describe("UI Parity Audit: Science Panel", () => {
   it("renders unlocked techs with research buttons", () => {
-    render(<Wrap><SciencePanel state={lateGameState()} /></Wrap>);
+    render(
+      <Wrap>
+        <SciencePanel state={lateGameState()} />
+      </Wrap>,
+    );
     // drama and theology are unlocked but unresearched
     expect(screen.getAllByRole("button", { name: /research/i }).length).toBeGreaterThan(0);
   });
 
   it("shows Done badge for researched techs", () => {
-    render(<Wrap><SciencePanel state={lateGameState()} /></Wrap>);
+    render(
+      <Wrap>
+        <SciencePanel state={lateGameState()} />
+      </Wrap>,
+    );
     const doneElements = screen.getAllByText(/done/i);
     expect(doneElements.length).toBeGreaterThan(0);
   });
 
   it("has hide-researched toggle", () => {
-    render(<Wrap><SciencePanel state={lateGameState()} /></Wrap>);
+    render(
+      <Wrap>
+        <SciencePanel state={lateGameState()} />
+      </Wrap>,
+    );
     expect(screen.getByRole("checkbox")).toBeTruthy();
   });
 
@@ -399,7 +473,11 @@ describe("UI Parity Audit: Science Panel", () => {
 
 describe("UI Parity Audit: Jobs Panel", () => {
   it("renders job rows with assign/unassign steppers", () => {
-    render(<Wrap><JobsPanel state={lateGameState()} /></Wrap>);
+    render(
+      <Wrap>
+        <JobsPanel state={lateGameState()} />
+      </Wrap>,
+    );
     // Jobs use aria-labels like "Assign kittens to farmer"
     expect(screen.getByTestId("job-farmer-assign")).toBeTruthy();
     expect(screen.getByTestId("job-farmer-unassign")).toBeTruthy();
@@ -407,19 +485,31 @@ describe("UI Parity Audit: Jobs Panel", () => {
   });
 
   it("shows happiness display", () => {
-    render(<Wrap><JobsPanel state={lateGameState()} /></Wrap>);
+    render(
+      <Wrap>
+        <JobsPanel state={lateGameState()} />
+      </Wrap>,
+    );
     expect(screen.getByText(/happiness/i)).toBeTruthy();
   });
 
   it("shows festival duration when active", () => {
-    render(<Wrap><JobsPanel state={lateGameState()} /></Wrap>);
+    render(
+      <Wrap>
+        <JobsPanel state={lateGameState()} />
+      </Wrap>,
+    );
     expect(screen.getByText(/festival/i)).toBeTruthy();
   });
 
   // ── KNOWN GAPS ──────────────────────────────────────────────────────────────
 
   it("shows bulk job assignment buttons (+5, +All, -5, -All)", () => {
-    render(<Wrap><JobsPanel state={lateGameState()} /></Wrap>);
+    render(
+      <Wrap>
+        <JobsPanel state={lateGameState()} />
+      </Wrap>,
+    );
     expect(screen.getByTestId("job-farmer-assign-5")).toBeTruthy();
     expect(screen.getByTestId("job-farmer-assign-all")).toBeTruthy();
     expect(screen.getByTestId("job-farmer-unassign-5")).toBeTruthy();
@@ -443,13 +533,21 @@ describe("UI Parity Audit: Jobs Panel", () => {
 
 describe("UI Parity Audit: Diplomacy Panel", () => {
   it("renders unlocked races with trade controls", () => {
-    render(<Wrap><DiplomacyPanel state={lateGameState()} /></Wrap>);
+    render(
+      <Wrap>
+        <DiplomacyPanel state={lateGameState()} />
+      </Wrap>,
+    );
     expect(screen.getByText(/lizards/i)).toBeTruthy();
     expect(screen.getByText(/sharks/i)).toBeTruthy();
   });
 
   it("shows relationship badges", () => {
-    render(<Wrap><DiplomacyPanel state={lateGameState()} /></Wrap>);
+    render(
+      <Wrap>
+        <DiplomacyPanel state={lateGameState()} />
+      </Wrap>,
+    );
     // Should show relationship status for each race
     const badges = screen.getAllByText(/friendly|neutral|hostile/i);
     expect(badges.length).toBeGreaterThanOrEqual(2);
@@ -464,7 +562,11 @@ describe("UI Parity Audit: Diplomacy Panel", () => {
 
 describe("UI Parity Audit: Religion Panel", () => {
   it("renders praise button", () => {
-    render(<Wrap><ReligionPanel state={lateGameState()} /></Wrap>);
+    render(
+      <Wrap>
+        <ReligionPanel state={lateGameState()} />
+      </Wrap>,
+    );
     expect(screen.getByRole("button", { name: /praise/i })).toBeTruthy();
   });
 
@@ -488,7 +590,11 @@ describe("UI Parity Audit: Toolbar", () => {
 describe("UI Parity Audit: Inspector system", () => {
   it("shows per-source production attribution in resource inspector", () => {
     const state = lateGameState();
-    render(<Wrap><ResourcePanel state={state} /></Wrap>);
+    render(
+      <Wrap>
+        <ResourcePanel state={state} />
+      </Wrap>,
+    );
     // Hover catnip to trigger inspector
     const catnipRow = screen.getByTestId("resource-catnip");
     fireEvent.mouseEnter(catnipRow);

@@ -1,5 +1,6 @@
 // LogPanel — dark terminal-style game event log
-import React, { useEffect, useRef } from "react";
+import type React from "react";
+import { useEffect, useRef } from "react";
 
 interface Props {
   messages: readonly string[];

@@ -1,31 +1,34 @@
-import LZString from 'lz-string';
-import fs from 'fs';
+import fs from "fs";
+import LZString from "lz-string";
 
-const compressed = fs.readFileSync('../../agent-docs/example-saves/Kittens Game - Run 8 - Year 10527 - Autumn, day 48.txt', 'utf8');
+const compressed = fs.readFileSync(
+  "../../agent-docs/example-saves/Kittens Game - Run 8 - Year 10527 - Autumn, day 48.txt",
+  "utf8",
+);
 const json = LZString.decompressFromBase64(compressed);
 const data = JSON.parse(json);
-console.log('Year:', data.calendar.year);
-console.log('Season:', data.calendar.season);
-console.log('Day:', data.calendar.day);
-console.log('Total kittens:', data.village.kittens);
-console.log('');
-console.log('Housing buildings:');
-console.log('  hut:', data.buildings.hut?.val ?? 0);
-console.log('  logHouse:', data.buildings.logHouse?.val ?? 0);
-console.log('  mansion:', data.buildings.mansion?.val ?? 0);
-console.log('');
-console.log('Space buildings:');
-console.log('  spaceStation:', data.buildings.spaceStation?.val ?? 0);
-console.log('  terraformingStation:', data.buildings.terraformingStation?.val ?? 0);
-console.log('');
-console.log('Policies:');
-const hasLiberty = data.science?.researched?.includes('liberty') ?? false;
-console.log('  liberty:', hasLiberty);
-console.log('');
-console.log('VSUs:');
-console.log('  cryochambers:', data.time?.VSU?.cryochambers?.val ?? 0);
-console.log('');
-console.log('Expected maxKittens calculation:');
+console.log("Year:", data.calendar.year);
+console.log("Season:", data.calendar.season);
+console.log("Day:", data.calendar.day);
+console.log("Total kittens:", data.village.kittens);
+console.log("");
+console.log("Housing buildings:");
+console.log("  hut:", data.buildings.hut?.val ?? 0);
+console.log("  logHouse:", data.buildings.logHouse?.val ?? 0);
+console.log("  mansion:", data.buildings.mansion?.val ?? 0);
+console.log("");
+console.log("Space buildings:");
+console.log("  spaceStation:", data.buildings.spaceStation?.val ?? 0);
+console.log("  terraformingStation:", data.buildings.terraformingStation?.val ?? 0);
+console.log("");
+console.log("Policies:");
+const hasLiberty = data.science?.researched?.includes("liberty") ?? false;
+console.log("  liberty:", hasLiberty);
+console.log("");
+console.log("VSUs:");
+console.log("  cryochambers:", data.time?.VSU?.cryochambers?.val ?? 0);
+console.log("");
+console.log("Expected maxKittens calculation:");
 const hut = data.buildings.hut?.val ?? 0;
 const logHouse = data.buildings.logHouse?.val ?? 0;
 const mansion = data.buildings.mansion?.val ?? 0;
@@ -34,12 +37,19 @@ const terraformingStation = data.buildings.terraformingStation?.val ?? 0;
 const cryochambers = data.time?.VSU?.cryochambers?.val ?? 0;
 const libertyBonus = hasLiberty ? 1 : 0;
 
-const total = (hut * 2) + (logHouse * 1) + (mansion * 1) + (spaceStation * 2) + (terraformingStation * 1) + cryochambers + libertyBonus;
-console.log('  hut * 2 =', hut * 2);
-console.log('  logHouse * 1 =', logHouse);
-console.log('  mansion * 1 =', mansion);
-console.log('  spaceStation * 2 =', spaceStation * 2);
-console.log('  terraformingStation * 1 =', terraformingStation);
-console.log('  cryochambers =', cryochambers);
-console.log('  liberty bonus =', libertyBonus);
-console.log('  TOTAL:', total);
+const total =
+  hut * 2 +
+  logHouse * 1 +
+  mansion * 1 +
+  spaceStation * 2 +
+  terraformingStation * 1 +
+  cryochambers +
+  libertyBonus;
+console.log("  hut * 2 =", hut * 2);
+console.log("  logHouse * 1 =", logHouse);
+console.log("  mansion * 1 =", mansion);
+console.log("  spaceStation * 2 =", spaceStation * 2);
+console.log("  terraformingStation * 1 =", terraformingStation);
+console.log("  cryochambers =", cryochambers);
+console.log("  liberty bonus =", libertyBonus);
+console.log("  TOTAL:", total);

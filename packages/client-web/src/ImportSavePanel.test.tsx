@@ -1,6 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
-import React from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ImportSavePanel } from "./ImportSavePanel.js";
 import { SlotProvider } from "./SlotContext.js";
@@ -91,16 +90,12 @@ describe("ImportSavePanel", () => {
     });
     fireEvent.click(screen.getByTestId("import-save-btn"));
 
-    await waitFor(() =>
-      expect(screen.getByTestId("import-save-success")).toBeTruthy(),
-    );
+    await waitFor(() => expect(screen.getByTestId("import-save-success")).toBeTruthy());
     expect(screen.queryByTestId("import-save-error")).toBeNull();
   });
 
   it("shows error message when import fails", async () => {
-    mockFetch.mockResolvedValueOnce(
-      makeResponse({ error: "Failed to decompress save data" }, 400),
-    );
+    mockFetch.mockResolvedValueOnce(makeResponse({ error: "Failed to decompress save data" }, 400));
 
     renderPanel();
     fireEvent.change(screen.getByTestId("import-save-input"), {
@@ -108,12 +103,8 @@ describe("ImportSavePanel", () => {
     });
     fireEvent.click(screen.getByTestId("import-save-btn"));
 
-    await waitFor(() =>
-      expect(screen.getByTestId("import-save-error")).toBeTruthy(),
-    );
-    expect(screen.getByTestId("import-save-error").textContent).toContain(
-      "decompress",
-    );
+    await waitFor(() => expect(screen.getByTestId("import-save-error")).toBeTruthy());
+    expect(screen.getByTestId("import-save-error").textContent).toContain("decompress");
     expect(screen.queryByTestId("import-save-success")).toBeNull();
   });
 

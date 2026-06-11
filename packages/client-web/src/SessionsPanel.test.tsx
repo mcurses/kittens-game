@@ -1,8 +1,8 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { SlotProvider } from "./SlotContext.js";
 import { SessionsPanel } from "./SessionsPanel.js";
+import { SlotProvider } from "./SlotContext.js";
 
 const mockFetch = vi.fn();
 
@@ -163,12 +163,7 @@ describe("SessionsPanel", () => {
 
     const rows = screen.getAllByRole("row").slice(1);
     const order = rows.map((row) => row.getAttribute("data-slot"));
-    expect(order).toEqual([
-      "active-newer",
-      "active-older",
-      "paused-newer",
-      "paused-older",
-    ]);
+    expect(order).toEqual(["active-newer", "active-older", "paused-newer", "paused-older"]);
   });
 
   it("hides archived sessions by default and reveals them when show archived is checked", async () => {
@@ -502,9 +497,7 @@ describe("SessionsPanel", () => {
           ],
         }),
       )
-      .mockResolvedValueOnce(
-        new Response("", { status: 204 }),
-      )
+      .mockResolvedValueOnce(new Response("", { status: 204 }))
       .mockResolvedValueOnce(
         makeResponse({
           sessions: [],
@@ -581,17 +574,13 @@ describe("SessionsPanel", () => {
     fireEvent.click(exportBtn);
 
     await waitFor(() => {
-      expect(mockFetch).toHaveBeenCalledWith(
-        expect.stringContaining("/api/sessions/game1/export"),
-      );
+      expect(mockFetch).toHaveBeenCalledWith(expect.stringContaining("/api/sessions/game1/export"));
     });
   });
 
   it("opens a session by navigating to the game root with the slot query", async () => {
     window.history.replaceState({}, "", "/sessions");
-    const assignSpy = vi
-      .spyOn(window.location, "assign")
-      .mockImplementation(() => undefined);
+    const assignSpy = vi.spyOn(window.location, "assign").mockImplementation(() => undefined);
 
     mockFetch.mockResolvedValueOnce(
       makeResponse({

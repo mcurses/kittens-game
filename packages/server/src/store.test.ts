@@ -120,7 +120,9 @@ describe("GameStateStore", () => {
           ...saved.science,
           techs: {
             ...saved.science.techs,
-            ...Object.fromEntries(slotNewTechs.map((tech) => [tech, { unlocked: true, researched: true }])),
+            ...Object.fromEntries(
+              slotNewTechs.map((tech) => [tech, { unlocked: true, researched: true }]),
+            ),
           },
         },
         workshop: {
@@ -462,7 +464,9 @@ describe("GameStateStore", () => {
       .map((m) => JSON.parse(m) as { type: string; payload: string })
       .filter((m) => m.type === "LOG_MESSAGE");
     expect(logMessages.length).toBeGreaterThanOrEqual(1);
-    const seasonMsg = logMessages.find((m) => /season|spring|summer|autumn|winter/i.test(m.payload));
+    const seasonMsg = logMessages.find((m) =>
+      /season|spring|summer|autumn|winter/i.test(m.payload),
+    );
     expect(seasonMsg).toBeDefined();
   });
 
@@ -478,7 +482,9 @@ describe("GameStateStore", () => {
       village: { ...prevState.village, kittens: 0, kittenProgress: 0.99 },
     };
     store.advanceTick();
-    const envelopes = messages.map((m) => JSON.parse(m) as { type: string; payload: unknown; ts: number });
+    const envelopes = messages.map(
+      (m) => JSON.parse(m) as { type: string; payload: unknown; ts: number },
+    );
     for (const env of envelopes) {
       expect(typeof env.type).toBe("string");
       expect(typeof env.ts).toBe("number");
@@ -518,7 +524,7 @@ describe("SessionRegistry", () => {
     const store = registry.create("test");
     expect(store).toBeDefined();
     expect(store.getSlot()).toBe("test");
-    const meta = registry.listAll().find(m => m.slot === "test");
+    const meta = registry.listAll().find((m) => m.slot === "test");
     expect(meta?.status).toBe("active");
   });
 
@@ -542,7 +548,7 @@ describe("SessionRegistry", () => {
     store.init();
     registry.pause("test");
 
-    const meta = registry.listAll().find(m => m.slot === "test");
+    const meta = registry.listAll().find((m) => m.slot === "test");
     expect(meta?.status).toBe("paused");
   });
 
@@ -556,7 +562,7 @@ describe("SessionRegistry", () => {
     registry.pause("test");
     registry.resume("test");
 
-    const meta = registry.listAll().find(m => m.slot === "test");
+    const meta = registry.listAll().find((m) => m.slot === "test");
     expect(meta?.status).toBe("active");
   });
 
@@ -569,7 +575,7 @@ describe("SessionRegistry", () => {
     store.init();
     registry.archive("test");
 
-    const meta = registry.listAll().find(m => m.slot === "test");
+    const meta = registry.listAll().find((m) => m.slot === "test");
     expect(meta?.status).toBe("archived");
   });
 
@@ -581,7 +587,7 @@ describe("SessionRegistry", () => {
     registry.create("test");
     registry.delete("test");
 
-    expect(registry.listAll().find(m => m.slot === "test")).toBeUndefined();
+    expect(registry.listAll().find((m) => m.slot === "test")).toBeUndefined();
   });
 
   it("delete throws if slot not found", () => {
@@ -595,8 +601,8 @@ describe("SessionRegistry", () => {
 
     const all = registry.listAll();
     expect(all.length).toBeGreaterThanOrEqual(2);
-    const slot1 = all.find(m => m.slot === "slot1");
-    const slot2 = all.find(m => m.slot === "slot2");
+    const slot1 = all.find((m) => m.slot === "slot1");
+    const slot2 = all.find((m) => m.slot === "slot2");
     expect(slot1?.status).toBe("active");
     expect(slot2?.status).toBe("paused");
   });
@@ -638,9 +644,9 @@ describe("SessionRegistry", () => {
 
     // We can't directly check in-memory stores, but verify via listAll
     const all = r2.listAll();
-    expect(all.find(m => m.slot === "active1")?.status).toBe("active");
-    expect(all.find(m => m.slot === "paused1")?.status).toBe("paused");
-    expect(all.find(m => m.slot === "archived1")?.status).toBe("archived");
+    expect(all.find((m) => m.slot === "active1")?.status).toBe("active");
+    expect(all.find((m) => m.slot === "paused1")?.status).toBe("paused");
+    expect(all.find((m) => m.slot === "archived1")?.status).toBe("archived");
   });
 
   it("pause blocks game actions with 409 error when checking via store", () => {

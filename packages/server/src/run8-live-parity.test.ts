@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import { runLiveImportParityAudit } from "./liveParity.js";
 
 describe("run8-live-parity", () => {

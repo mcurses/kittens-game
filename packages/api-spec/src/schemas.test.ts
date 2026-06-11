@@ -68,8 +68,12 @@ describe("GameActionRequestSchema", () => {
   });
 
   it("accepts building on/off actions", () => {
-    expect(GameActionRequestSchema.safeParse({ type: "ENABLE_BUILDING", name: "smelter" }).success).toBe(true);
-    expect(GameActionRequestSchema.safeParse({ type: "DISABLE_BUILDING", name: "smelter" }).success).toBe(true);
+    expect(
+      GameActionRequestSchema.safeParse({ type: "ENABLE_BUILDING", name: "smelter" }).success,
+    ).toBe(true);
+    expect(
+      GameActionRequestSchema.safeParse({ type: "DISABLE_BUILDING", name: "smelter" }).success,
+    ).toBe(true);
   });
 
   it("accepts building on/off actions with optional batch amounts", () => {

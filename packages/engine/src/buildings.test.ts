@@ -9,9 +9,8 @@ import {
   getBuildingDisplayName,
   getBuildingPrice,
 } from "./buildings.js";
-import { getLimitedDR } from "./effects.js";
 import { createInitialResources } from "./resources.js";
-import { createInitialState, serialize, deserialize } from "./state.js";
+import { createInitialState, deserialize, serialize } from "./state.js";
 
 describe("BUILDING_DEFS", () => {
   it("contains field", () => {
@@ -1458,7 +1457,7 @@ describe("Story 31-15: biolab", () => {
     expect(def?.prices.find((p) => p.name === "science")?.val).toBe(1500);
     expect(def?.prices.find((p) => p.name === "slab")?.val).toBe(100);
     expect(def?.prices.find((p) => p.name === "alloy")?.val).toBe(25);
-    expect(def?.priceRatio).toBe(1.10);
+    expect(def?.priceRatio).toBe(1.1);
   });
 
   it("has scienceRatio:0.35, refineRatio:0.1, scienceMax:1500", () => {
@@ -1610,9 +1609,24 @@ describe("Story 31: all new buildings in BUILDING_DEFS and createInitialBuilding
   it("createInitialBuildings includes all new buildings", () => {
     const buildings = createInitialBuildings();
     for (const name of [
-      "chapel", "workshop", "steamworks", "magneto", "tradepost", "harbor",
-      "quarry", "oilWell", "factory", "ziggurat", "chronosphere", "reactor",
-      "biolab", "aiCore", "accelerator", "zebraOutpost", "zebraWorkshop", "zebraForge",
+      "chapel",
+      "workshop",
+      "steamworks",
+      "magneto",
+      "tradepost",
+      "harbor",
+      "quarry",
+      "oilWell",
+      "factory",
+      "ziggurat",
+      "chronosphere",
+      "reactor",
+      "biolab",
+      "aiCore",
+      "accelerator",
+      "zebraOutpost",
+      "zebraWorkshop",
+      "zebraForge",
     ]) {
       expect(buildings[name], `missing in initial state: ${name}`).toBeDefined();
     }
@@ -1646,8 +1660,6 @@ describe("Story 36-01: unlockable seeded from defaultUnlockable", () => {
 });
 
 describe("Story 36-02: applyResearch sets building unlockable", () => {
-  const manager = new BuildingManager();
-
   function makeResearchableState(techName: string, scienceCost: number) {
     return {
       ...createInitialState(),
@@ -1775,7 +1787,7 @@ describe("Story 36-05: regression — end-to-end unlock flow", () => {
   function researchAndReveal(
     techName: string,
     scienceCost: number,
-    buildingName: string,
+    _buildingName: string,
     revealResources: Record<string, number>,
   ) {
     const baseState = {
@@ -1824,9 +1836,7 @@ describe("Story 36-05: regression — end-to-end unlock flow", () => {
     const zigDef = BUILDING_DEFS.find((b) => b.name === "ziggurat");
     expect(zigDef).toBeDefined();
     const ratio = zigDef!.unlockRatio ?? 0.3;
-    const revealResources = Object.fromEntries(
-      zigDef!.prices.map((p) => [p.name, p.val * ratio]),
-    );
+    const revealResources = Object.fromEntries(zigDef!.prices.map((p) => [p.name, p.val * ratio]));
     const result = researchAndReveal("construction", 1300, "ziggurat", revealResources);
     expect(result.buildings.ziggurat?.unlocked).toBe(true);
   });
@@ -1835,9 +1845,7 @@ describe("Story 36-05: regression — end-to-end unlock flow", () => {
     const brewDef = BUILDING_DEFS.find((b) => b.name === "brewery");
     expect(brewDef).toBeDefined();
     const ratio = brewDef!.unlockRatio ?? 0.3;
-    const revealResources = Object.fromEntries(
-      brewDef!.prices.map((p) => [p.name, p.val * ratio]),
-    );
+    const revealResources = Object.fromEntries(brewDef!.prices.map((p) => [p.name, p.val * ratio]));
     const result = researchAndReveal("drama", 90000, "brewery", revealResources);
     expect(result.buildings.brewery?.unlocked).toBe(true);
   });
@@ -2457,24 +2465,43 @@ describe("Story 49-03: Stage effects definitions", () => {
   it("library has stageEffects[0] with science/culture and stageEffects[1] with dataCenter effects", () => {
     const def = BUILDING_DEFS.find((b) => b.name === "library");
     expect(def?.stageEffects?.[0]).toEqual({ scienceRatio: 0.1, scienceMax: 250, cultureMax: 10 });
-    expect(def?.stageEffects?.[1]).toEqual({ scienceMaxCompendia: 1000, cultureMax: 25, energyConsumption: 2 });
+    expect(def?.stageEffects?.[1]).toEqual({
+      scienceMaxCompendia: 1000,
+      cultureMax: 25,
+      energyConsumption: 2,
+    });
   });
 
   it("warehouse has stageEffects[0] with storage and stageEffects[1] with spaceport effects", () => {
     const def = BUILDING_DEFS.find((b) => b.name === "warehouse");
     expect(def?.stageEffects?.[0]).toEqual({
-      woodMax: 150, mineralsMax: 200, coalMax: 30, ironMax: 25, titaniumMax: 10, goldMax: 5,
+      woodMax: 150,
+      mineralsMax: 200,
+      coalMax: 30,
+      ironMax: 25,
+      titaniumMax: 10,
+      goldMax: 5,
     });
     expect(def?.stageEffects?.[1]).toEqual({
-      moonBaseStorageBonus: 0.0085, planetCrackerStorageBonus: 0.0085,
-      cryostationStorageBonus: 0.0085, energyConsumption: 5,
+      moonBaseStorageBonus: 0.0085,
+      planetCrackerStorageBonus: 0.0085,
+      cryostationStorageBonus: 0.0085,
+      energyConsumption: 5,
     });
   });
 
   it("amphitheatre stageEffects are correct", () => {
     const def = BUILDING_DEFS.find((b) => b.name === "amphitheatre");
-    expect(def?.stageEffects?.[0]).toEqual({ culturePerTickBase: 0.005, cultureMax: 50, unhappinessRatio: -0.048 });
-    expect(def?.stageEffects?.[1]).toEqual({ culturePerTickBase: 1, cultureMax: 300, unhappinessRatio: -0.75 });
+    expect(def?.stageEffects?.[0]).toEqual({
+      culturePerTickBase: 0.005,
+      cultureMax: 50,
+      unhappinessRatio: -0.048,
+    });
+    expect(def?.stageEffects?.[1]).toEqual({
+      culturePerTickBase: 1,
+      cultureMax: 300,
+      unhappinessRatio: -0.75,
+    });
   });
 
   it("effect cache uses stage 1 effects when building is at stage 1", () => {

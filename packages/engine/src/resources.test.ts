@@ -367,7 +367,6 @@ describe("ResourceManager", () => {
       expect(reset.resources.catnip?.value).toBe(0);
     });
   });
-
 });
 
 // ── Story 50-01: Resource display metadata ────────────────────────────────────
@@ -377,7 +376,7 @@ describe("RESOURCE_DISPLAY", () => {
     for (const name of RESOURCE_NAMES) {
       const meta = RESOURCE_DISPLAY[name];
       expect(meta).toBeDefined();
-      expect(meta!.type).toMatch(/^(common|uncommon|rare|exotic)$/);
+      expect(meta?.type).toMatch(/^(common|uncommon|rare|exotic)$/);
     }
   });
 

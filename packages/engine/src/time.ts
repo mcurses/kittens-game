@@ -246,14 +246,14 @@ function canAfford(prices: readonly PriceEntry[], resources: ResourceState): boo
 export function getCfuPrice(def: CfuDef, count: number): readonly PriceEntry[] {
   return def.prices.map((p) => ({
     name: p.name,
-    val: p.val * Math.pow(def.priceRatio, count),
+    val: p.val * def.priceRatio ** count,
   }));
 }
 
 export function getVsuPrice(def: VsuDef, count: number): readonly PriceEntry[] {
   return def.prices.map((p) => ({
     name: p.name,
-    val: p.val * Math.pow(def.priceRatio, count),
+    val: p.val * def.priceRatio ** count,
   }));
 }
 
@@ -360,7 +360,10 @@ export function applyShatterTc(state: GameState): GameState {
         const entry = state.resources[name];
         if (entry) {
           // Match legacy: use current value as floor for cap (resource can't lose from shatter)
-          preShatMaxValues[name] = Math.max(entry.value, entry.maxValue > 0 ? entry.maxValue : Number.MAX_VALUE);
+          preShatMaxValues[name] = Math.max(
+            entry.value,
+            entry.maxValue > 0 ? entry.maxValue : Number.MAX_VALUE,
+          );
         }
       }
 
@@ -401,7 +404,8 @@ export class TimeManager implements Manager {
     return produce(state, (draft) => {
       // Transfer heat from global pool to blastFurnace
       if (draft.time.heat > 0) {
-        const baseHeatPerTick = state.effectCache.heatPerTick ?? TIME_EFFECTS_BASE.heatPerTick ?? 0.01;
+        const baseHeatPerTick =
+          state.effectCache.heatPerTick ?? TIME_EFFECTS_BASE.heatPerTick ?? 0.01;
         // Apply heatEfficiency multiplier (legacy: efficiency = 1 + heatEfficiency)
         const efficiency = 1 + (state.effectCache.heatEfficiency ?? 0);
         const effectiveHeatPerTick = baseHeatPerTick * efficiency;
@@ -484,7 +488,8 @@ export class TimeManager implements Manager {
     return produce(state, (draft) => {
       draft.time.heat = typeof data.heat === "number" ? data.heat : 0;
       draft.time.flux = typeof data.flux === "number" ? data.flux : 0;
-      draft.time.isAccelerated = typeof data.isAccelerated === "boolean" ? data.isAccelerated : false;
+      draft.time.isAccelerated =
+        typeof data.isAccelerated === "boolean" ? data.isAccelerated : false;
 
       // Restore CFU values
       if (data.cfus) {

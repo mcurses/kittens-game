@@ -1,6 +1,6 @@
 // Select — styled `<select>` carrying the design-system `.btn-select` class.
 // Use this instead of raw `<select className="btn-select">`.
-import React from "react";
+import type React from "react";
 
 export interface SelectOption {
   value: string;

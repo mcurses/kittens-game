@@ -761,9 +761,20 @@ describe("Epic 46: ScienceManager.load replays workshop unlocks", () => {
     const mgr = new ScienceManager();
     // From agent-docs/epics/46/NOTES.md: the reported slot=new researched techs
     const slotNewTechs = [
-      "calendar", "agriculture", "archery", "mining", "metal",
-      "animal", "civil", "math", "construction", "engineering",
-      "currency", "writing", "philosophy", "steel",
+      "calendar",
+      "agriculture",
+      "archery",
+      "mining",
+      "metal",
+      "animal",
+      "civil",
+      "math",
+      "construction",
+      "engineering",
+      "currency",
+      "writing",
+      "philosophy",
+      "steel",
     ];
     const saved = {
       techs: Object.fromEntries(slotNewTechs.map((t) => [t, { unlocked: true, researched: true }])),
@@ -774,10 +785,20 @@ describe("Epic 46: ScienceManager.load replays workshop unlocks", () => {
 
     // Expected missing upgrades from NOTES.md
     const expectedUpgrades = [
-      "advancedRefinement", "bolas", "celestialMechanics", "coalFurnace",
-      "combustionEngine", "compositeBow", "deepMining", "goldOre",
-      "huntingArmor", "register", "reinforcedSaw", "reinforcedWarehouses",
-      "steelArmor", "steelAxe",
+      "advancedRefinement",
+      "bolas",
+      "celestialMechanics",
+      "coalFurnace",
+      "combustionEngine",
+      "compositeBow",
+      "deepMining",
+      "goldOre",
+      "huntingArmor",
+      "register",
+      "reinforcedSaw",
+      "reinforcedWarehouses",
+      "steelArmor",
+      "steelAxe",
     ];
     const missingUpgrades = expectedUpgrades.filter(
       (u) => !restored.workshop.upgrades[u]?.unlocked,
@@ -786,9 +807,7 @@ describe("Epic 46: ScienceManager.load replays workshop unlocks", () => {
 
     // Expected missing crafts from NOTES.md
     const expectedCrafts = ["compedium", "parchment", "steel"];
-    const missingCrafts = expectedCrafts.filter(
-      (c) => !restored.workshop.crafts[c]?.unlocked,
-    );
+    const missingCrafts = expectedCrafts.filter((c) => !restored.workshop.crafts[c]?.unlocked);
     expect(missingCrafts).toEqual([]);
   });
 

@@ -49,7 +49,8 @@ export const TECH_FLAVOR: Record<string, string> = {
   biochemistry: "Some of the things that molecules do.",
   genetics: "There's an unbroken thread that stretches from those first cats to us.",
   architecture: "Bigger, better cat towers!",
-  archeology: "Different fossils of giant lizards were discovered. Apparently they all died in a sudden but inevitable betrayal.",
+  archeology:
+    "Different fossils of giant lizards were discovered. Apparently they all died in a sudden but inevitable betrayal.",
   artificialGravity: "The Expawse",
   sattelites: "Spreading cat videos at the speed of light",
 };
@@ -122,7 +123,8 @@ export const POLICY_FLAVOR: Record<string, string> = {
   diplomacy: "Purrlomacy is the art of letting someone else have your way",
   isolationism: "We have everything we need right here",
   militarism: "Si vis pacem, para bellum",
-  mysticism: "The universe is full of magical things patiently waiting for our whiskers to grow sharper",
+  mysticism:
+    "The universe is full of magical things patiently waiting for our whiskers to grow sharper",
   carnivale: "Every day is Caturday!",
   stoicism: "A kitten's worth is measured by their naps, not their meows",
   epicurianism: "Eat, drink, and be furry",
