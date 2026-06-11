@@ -403,21 +403,21 @@ function CraftRecipeSection({
   return (
     <div className="inspector-section" data-testid="inspector-craft-recipe">
       <div className="inspector-section-label">
-        Wird im Workshop gecraftet → {outputLabel}
+        Crafted at the Workshop → {outputLabel}
       </div>
       <PricesSection
         prices={recipe.prices}
-        label="Zutaten (1×)"
+        label="Ingredients (1×)"
         resources={recipe.resources}
         elapsedSeconds={elapsedSeconds}
       />
       {recipe.engineers > 0 ? (
         <div className="inspector-notice">
-          {recipe.engineers} Engineer{recipe.engineers === 1 ? "" : "s"} craftet automatisch.
+          {recipe.engineers} engineer{recipe.engineers === 1 ? "" : "s"} crafting automatically.
         </div>
       ) : (
         <div className="inspector-notice inspector-notice--warn">
-          Keine Engineers zugewiesen — manuell im Workshop craften oder Engineers zuweisen.
+          No engineers assigned. Craft manually at the Workshop, or assign engineers.
         </div>
       )}
     </div>

@@ -293,6 +293,75 @@ export function appendLifeEvent(k: Kitten, event: LifeEvent): Kitten {
 }
 
 /**
+ * Heuristic detector for the German lore strings stored in older saves.
+ * Catches umlauts, ß, and a small set of high-signal German fragments that
+ * appeared in the prior template pools. Cheap and good enough for migration.
+ */
+function looksGerman(text: string): boolean {
+  if (/[äöüÄÖÜß]/.test(text)) return true;
+  return /\b(Im Jahr|Geboren|Stammt|Kam vor|verbrachte|verliebte|Verstarb|Trauerte|Mutter von|Vater von|Genoss das|Tanzte|Erlag|Verhungerte|Schlief|wurde im Dorf|Wurde zum|Wurde dem|Verließ|jüngst|berufen|zugewiesen)\b/.test(text);
+}
+
+/**
+ * Replace any German-looking strings on legacy-saved kittens with freshly
+ * generated English equivalents. originStory and traitFlavor are fully
+ * deterministic from (id, age, trait) so they round-trip cleanly. lifeEvents
+ * are reconstructed kind-by-kind: spawn uses describeSpawn, yearly is
+ * regenerated via generateYearlyEvent (same determinism keyed on
+ * (kittenId, year)), and the rarer kinds fall back to a generic short phrase
+ * since their original arguments aren't stored on the event.
+ */
+function migrateGermanLore(sim: readonly Kitten[]): Kitten[] {
+  const peers: YearlyPeer[] = sim.map((k) => ({ id: k.id, name: k.name, surname: k.surname, age: k.age }));
+  const nameById = new Map<string, string>(sim.map((k) => [k.id, k.name]));
+  return sim.map((k) => {
+    const newOrigin = looksGerman(k.originStory) ? generateOrigin(k.id, k.age) : k.originStory;
+    const newFlavor = looksGerman(k.traitFlavor) ? generateTraitFlavor(k.id, k.trait) : k.traitFlavor;
+    const otherPeers = peers.filter((p) => p.id !== k.id);
+    const sameJob = k.job ? otherPeers.filter((p) => sim.find((s) => s.id === p.id)?.job === k.job) : [];
+    const newEvents: LifeEvent[] = k.lifeEvents.map((e) => {
+      if (!looksGerman(e.text)) return e;
+      if (e.kind === "spawn") {
+        const parents: { motherName?: string; fatherName?: string } = {};
+        const m = k.motherId ? nameById.get(k.motherId) : undefined;
+        const f = k.fatherId ? nameById.get(k.fatherId) : undefined;
+        if (m) parents.motherName = m;
+        if (f) parents.fatherName = f;
+        const hasParent = parents.motherName || parents.fatherName;
+        const text = describeSpawn(k.age, hasParent ? parents : undefined);
+        return { year: e.year, kind: "spawn", text };
+      }
+      if (e.kind === "yearly") {
+        const seasonIdx = Math.abs(hashString(`${k.id}:${e.year}`)) % SEASON_DEFS.length;
+        const seasonName = SEASON_DEFS[seasonIdx]!.name;
+        const ev = generateYearlyEvent(k.id, e.year, k.job, k.trait, seasonName, otherPeers, sameJob, k.age);
+        return ev.relatedKittenId
+          ? { year: e.year, kind: "yearly", text: ev.text, relatedKittenId: ev.relatedKittenId }
+          : { year: e.year, kind: "yearly", text: ev.text };
+      }
+      // Rare kinds (jobChange, jobLeft, parenthood, festival, milestone, died,
+      // bereavement, leader, promote) don't store the original arguments. Drop a
+      // short generic English line that preserves the year + kind so the timeline
+      // stays readable without lying about specifics.
+      const fallback: Record<string, string> = {
+        jobChange: "Took on new work.",
+        jobLeft: "Left the post.",
+        parenthood: "Became a parent.",
+        festival: "Took part in the festival.",
+        milestone: "Witnessed a village milestone.",
+        died: "Passed on.",
+        bereavement: "Grieved for a fellow villager.",
+        leader: "Stepped up as leader.",
+        leaderRemoved: "Stepped down as leader.",
+        promote: "Was promoted.",
+      };
+      return { year: e.year, kind: e.kind, text: fallback[e.kind] ?? "A quiet year." };
+    });
+    return { ...k, originStory: newOrigin, traitFlavor: newFlavor, lifeEvents: newEvents };
+  });
+}
+
+/**
  * For each kitten with only a spawn-event (legacy or first-load) and age ≥ 3,
  * generate 1–4 deterministic narrative events spread across their life so the
  * Inspector timeline carries the "was bisher geschah" feel the user expects.
@@ -868,11 +937,17 @@ export class VillageManager implements Manager {
       ? (sanitizeVillageName(raw.name) as string)
       : initial.name;
 
+    // Migrate German lore strings from older saves before backfill: origin,
+    // trait flavor, and per-event text get regenerated in English when the
+    // heuristic detector flags them. Yearly events stay deterministic across
+    // the migration via generateYearlyEvent keyed on (kittenId, year).
+    const englishSim = migrateGermanLore(sim);
+
     // Retrofit lore: kittens with only a spawn-event and age ≥ 3 get 1–4
     // deterministic backstory events distributed across their life so the
     // Inspector timeline doesn't feel empty for legacy saves. Idempotent:
     // once events exist, this loop is a no-op on subsequent loads.
-    const filledSim = backfillBackstory(sim, currentYear);
+    const filledSim = backfillBackstory(englishSim, currentYear);
 
     return { ...state, village: { name, kittens, kittenProgress, jobs, sim: filledSim, deadKittens, happiness, leader } };
   }
