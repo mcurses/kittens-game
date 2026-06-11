@@ -237,15 +237,15 @@ describe("BuildingsPanel", () => {
   it("renders building prices from BUILDING_DEFS", () => {
     const state = makeState({ field: { val: 1, on: 1, unlocked: true } });
     render(<WithInspector><BuildingsPanel state={state} /></WithInspector>);
-    expect(screen.getByText(/catnip/)).toBeTruthy();
-    expect(screen.getByText(/10/)).toBeTruthy();
+    expect(screen.getByTestId("resource-icon-catnip")).toBeTruthy();
+    expect(screen.getByLabelText(/Cost:.*10.*catnip/)).toBeTruthy();
   });
 
   it("renders multiple prices for a building", () => {
     const state = makeState({ pasture: { val: 2, on: 2, unlocked: true } });
     render(<WithInspector><BuildingsPanel state={state} /></WithInspector>);
-    expect(screen.getByText(/catnip/)).toBeTruthy();
-    expect(screen.getByText(/wood/)).toBeTruthy();
+    expect(screen.getByTestId("resource-icon-catnip")).toBeTruthy();
+    expect(screen.getByTestId("resource-icon-wood")).toBeTruthy();
   });
 
   it("renders a Buy button for each unlocked building", () => {
@@ -597,10 +597,10 @@ describe("Story 49-05: Building filter tabs", () => {
     const state = makeState(baseBuildings, baseResources);
     render(<WithInspector><BuildingsPanel state={state} /></WithInspector>);
     const allTab = screen.getByTestId("building-filter-all");
-    expect(allTab.className).toContain("active");
+    expect(allTab.getAttribute("data-active")).toBe("true");
     fireEvent.click(screen.getByTestId("building-filter-enabled"));
-    expect(screen.getByTestId("building-filter-enabled").className).toContain("active");
-    expect(screen.getByTestId("building-filter-all").className).not.toContain("active");
+    expect(screen.getByTestId("building-filter-enabled").getAttribute("data-active")).toBe("true");
+    expect(screen.getByTestId("building-filter-all").getAttribute("data-active")).toBe("false");
   });
 });
 

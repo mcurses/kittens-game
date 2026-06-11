@@ -289,7 +289,10 @@ describe("UI Parity Audit: Buildings Panel", () => {
     // Make smelter partially on to test on/val display
     (state as any).buildings.smelter = { val: 3, on: 1, unlocked: true };
     render(<Wrap><BuildingsPanel state={state} /></Wrap>);
-    expect(screen.getByText("1/3")).toBeTruthy();
+    // "1/3" appears twice for buildings with count-controls: once in the top-right
+    // count badge (read-only at-a-glance), once in the stage-counter readout next to
+    // the +/- buttons. Both are intentional.
+    expect(screen.getAllByText("1/3").length).toBeGreaterThanOrEqual(1);
   });
 
   // ── KNOWN GAPS ──────────────────────────────────────────────────────────────
@@ -319,7 +322,7 @@ describe("UI Parity Audit: Workshop Panel", () => {
   it("renders unlocked upgrades with purchase buttons", () => {
     render(<Wrap><WorkshopPanel state={lateGameState()} /></Wrap>);
     expect(screen.getByTestId("upgrade-ironAxes")).toBeTruthy();
-    expect(screen.getAllByRole("button", { name: /purchase/i }).length).toBeGreaterThan(0);
+    expect(screen.getAllByRole("button", { name: /buy/i }).length).toBeGreaterThan(0);
   });
 
   it("shows Done badge for researched upgrades", () => {

@@ -257,6 +257,7 @@ export function SessionsPanel(): React.ReactElement {
         />
         <button
           type="button"
+          className="btn btn--sm btn--primary"
           onClick={handleCreateSession}
           disabled={isLoading || !newSlotName.trim()}
         >
@@ -299,7 +300,7 @@ export function SessionsPanel(): React.ReactElement {
                     <button
                       type="button"
                       title="Open session"
-                      className="action-btn open-btn"
+                      className="btn btn--xs btn--success"
                       onClick={() => handleOpenSession(session.slot)}
                     >
                       Open
@@ -307,7 +308,7 @@ export function SessionsPanel(): React.ReactElement {
                     <button
                       type="button"
                       title="Pause session"
-                      className="action-btn pause-btn"
+                      className="btn btn--xs btn--warning"
                       onClick={() => handlePauseSession(session.slot)}
                     >
                       Pause
@@ -320,7 +321,7 @@ export function SessionsPanel(): React.ReactElement {
                     <button
                       type="button"
                       title="Open session (read-only)"
-                      className="action-btn open-btn"
+                      className="btn btn--xs btn--success"
                       onClick={() => handleOpenSession(session.slot)}
                     >
                       Open (R/O)
@@ -328,7 +329,7 @@ export function SessionsPanel(): React.ReactElement {
                     <button
                       type="button"
                       title="Resume session"
-                      className="action-btn resume-btn"
+                      className="btn btn--xs btn--success"
                       onClick={() => handleResumeSession(session.slot)}
                     >
                       Resume
@@ -339,7 +340,7 @@ export function SessionsPanel(): React.ReactElement {
                 <button
                   type="button"
                   title="Archive session"
-                  className="action-btn archive-btn"
+                  className="btn btn--xs btn--warning"
                   onClick={() =>
                     setConfirmAction({ action: "archive", slot: session.slot })
                   }
@@ -350,7 +351,7 @@ export function SessionsPanel(): React.ReactElement {
                 <button
                   type="button"
                   title="Export session"
-                  className="action-btn export-btn"
+                  className="btn btn--xs btn--info"
                   onClick={() => handleExportSession(session.slot)}
                 >
                   Export
@@ -359,7 +360,7 @@ export function SessionsPanel(): React.ReactElement {
                 <button
                   type="button"
                   title="Delete session"
-                  className="action-btn delete-btn"
+                  className="btn btn--xs btn--danger"
                   onClick={() =>
                     setConfirmAction({ action: "delete", slot: session.slot })
                   }
@@ -394,7 +395,7 @@ export function SessionsPanel(): React.ReactElement {
             <div className="confirm-buttons">
               <button
                 type="button"
-                className="confirm-btn confirm"
+                className="btn btn--sm btn--danger btn--solid"
                 onClick={() => {
                   if (confirmAction.action === "archive") {
                     handleArchiveSession(confirmAction.slot);
@@ -407,7 +408,7 @@ export function SessionsPanel(): React.ReactElement {
               </button>
               <button
                 type="button"
-                className="confirm-btn cancel"
+                className="btn btn--sm btn--secondary"
                 onClick={() => setConfirmAction(null)}
               >
                 Cancel

@@ -1,6 +1,8 @@
-// AchievementsPanel — display earned achievements and badges
+// AchievementsPanel — display earned achievements and badges with flavor + icon
 import type { GameStateResponse } from "@kittens/api-spec";
 import React from "react";
+import { ACHIEVEMENT_FLAVOR, BADGE_FLAVOR, prettifyName } from "./flavorText.js";
+import { PlaceholderImage } from "./PlaceholderImage.js";
 
 interface AchievementEntry { name: string; unlocked: boolean; starUnlocked: boolean; }
 interface BadgeEntry { name: string; unlocked: boolean; }
@@ -39,11 +41,27 @@ export function AchievementsPanel({ state }: Props): React.ReactElement {
       ) : (
         <ul className="item-list">
           {achievements.map((a) => (
-            <li key={a.name} data-testid={`achievement-${a.name}`} className="item-row">
-              <span className="item-row-name">
-                {a.starUnlocked && <span style={{ color: "var(--gold)", marginRight: "6px" }}>★</span>}
-                {a.name}
-              </span>
+            <li
+              key={a.name}
+              data-testid={`achievement-${a.name}`}
+              className="item-row achievement-row"
+            >
+              <PlaceholderImage
+                variant="character"
+                alt={a.name}
+                className="achievement-row__icon"
+              />
+              <div className="achievement-row__content">
+                <div className="achievement-row__title">
+                  {a.starUnlocked && <span className="achievement-star">★</span>}
+                  <span className="item-row-name">{prettifyName(a.name)}</span>
+                </div>
+                {ACHIEVEMENT_FLAVOR[a.name] && (
+                  <p className="achievement-row__description">
+                    {ACHIEVEMENT_FLAVOR[a.name]}
+                  </p>
+                )}
+              </div>
               {a.starUnlocked && <span className="done-badge">★ Star</span>}
             </li>
           ))}
@@ -55,8 +73,24 @@ export function AchievementsPanel({ state }: Props): React.ReactElement {
           <div className="panel-sublabel">Badges ({badges.length})</div>
           <ul className="item-list">
             {badges.map((b) => (
-              <li key={b.name} data-testid={`badge-${b.name}`} className="item-row">
-                <span className="item-row-name">{b.name}</span>
+              <li
+                key={b.name}
+                data-testid={`badge-${b.name}`}
+                className="item-row achievement-row"
+              >
+                <PlaceholderImage
+                  variant="character"
+                  alt={b.name}
+                  className="achievement-row__icon"
+                />
+                <div className="achievement-row__content">
+                  <span className="item-row-name">{prettifyName(b.name)}</span>
+                  {BADGE_FLAVOR[b.name] && (
+                    <p className="achievement-row__description">
+                      {BADGE_FLAVOR[b.name]}
+                    </p>
+                  )}
+                </div>
               </li>
             ))}
           </ul>

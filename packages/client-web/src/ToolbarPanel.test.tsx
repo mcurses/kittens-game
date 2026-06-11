@@ -36,9 +36,12 @@ afterEach(() => {
 // ── Story 52-01: Energy display ───────────────────────────────────────────────
 
 describe("Story 52-01: Energy display", () => {
-  it("renders nothing when state is null", () => {
+  it("renders only the card-size toggle when state is null", () => {
     const { container } = render(<ToolbarPanel state={null} />);
-    expect(container.textContent).toBe("");
+    // No energy / sorrow indicators, but the card-size toggle is always present.
+    expect(container.querySelector('[data-testid="toolbar-energy"]')).toBeNull();
+    expect(container.querySelector('[data-testid="toolbar-sorrow"]')).toBeNull();
+    expect(container.querySelector('[data-testid="toolbar-card-size"]')).not.toBeNull();
   });
 
   it("hides energy when electricity tech not researched", () => {

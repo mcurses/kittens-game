@@ -3,6 +3,7 @@ import { deriveUiVisibility } from "@kittens/engine";
 import React from "react";
 import { useSlot } from "./SlotContext.js";
 import { useGameAction } from "./useGameAction.js";
+import { ResourceIcon } from "./ui/index.js";
 
 interface ActionPanelState {
   readonly science?: {
@@ -46,7 +47,7 @@ export function ActionPanel({
         disabled={isPending}
         onClick={() => mutate({ type: "GATHER_CATNIP" })}
       >
-        Gather Catnip
+        <ResourceIcon name="catnip" size="sm" /> Gather Catnip
       </button>
       {visibility.actions.huntVisible && (
         <div className="hunt-actions">
@@ -57,7 +58,7 @@ export function ActionPanel({
             disabled={isPending || huntSquads < 1}
             onClick={() => mutate({ type: "HUNT" })}
           >
-            {huntLabel}
+            <ResourceIcon name="catpower" size="sm" /> {huntLabel}
           </button>
           {huntSquads >= 2 && (
             <div className="hunt-shortcuts">

@@ -302,7 +302,7 @@ describe("Story 48-05: Census Panel", () => {
     }
   });
 
-  it("renders kitten name, age, trait, job, and rank in census row", () => {
+  it("renders kitten name and job in census card (age/trait/rank deferred to inspector)", () => {
     const k = makeKitten({
       id: "k1",
       name: "Mittens",
@@ -319,24 +319,10 @@ describe("Story 48-05: Census Panel", () => {
     const row = screen.getByTestId("census-kitten-k1");
     expect(row).toBeTruthy();
     expect(row.textContent).toContain("Mittens");
-    expect(row.textContent).toContain("15");
-    expect(row.textContent).toContain("scientist");
+    expect(row.textContent).toContain("Whiskers");
     expect(row.textContent).toContain("scholar");
-    expect(row.textContent).toContain("2"); // rank
-  });
-
-  it("shows top 3 skills sorted by level", () => {
-    const k = makeKitten({
-      skills: { scholar: 5.5, farmer: 1.2, miner: 3.0, woodcutter: 8.1 },
-    });
-    const state = makeCensusState([k]);
-    render(<JobsPanel state={state} />);
-
-    const row = screen.getByTestId("census-kitten-k1");
-    // Should show woodcutter (8.1), scholar (5.5), miner (3.0) — top 3
-    expect(row.textContent).toContain("woodcutter");
-    expect(row.textContent).toContain("scholar");
-    expect(row.textContent).toContain("miner");
+    // age / trait / rank / skills are intentionally NOT on the card any more —
+    // they live in the inspector now (rendered on hover).
   });
 
   it("shows 'Free' when kitten has no job", () => {

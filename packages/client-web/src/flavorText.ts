@@ -96,6 +96,11 @@ export const JOB_FLAVOR: Record<string, string> = {
   hunter: "We're so cute we purr at our prey until it dies",
   miner: "I don't really understand how can I hold a pick with my paws",
   woodcutter: "Must. Not. Scratch.",
+  farmer: "Cultivates catnip with whiskered patience",
+  scholar: "Reads the book, naps on it after",
+  geologist: "Sniffs out coal seams; ignores the rocks",
+  priest: "Whisker-prayers for tomorrow's tuna",
+  engineer: "Operates the machines that operate the kittens",
 };
 
 export const POLICY_FLAVOR: Record<string, string> = {
@@ -122,6 +127,73 @@ export const POLICY_FLAVOR: Record<string, string> = {
   stoicism: "A kitten's worth is measured by their naps, not their meows",
   epicurianism: "Eat, drink, and be furry",
   rationing: "One fish, two fish, no more fish",
+};
+
+/** Split camelCase to Title Case: "unicornConspiracy" → "Unicorn Conspiracy" */
+export function prettifyName(name: string): string {
+  return name
+    .replace(/([A-Z])/g, " $1")
+    .replace(/^./, (c) => c.toUpperCase())
+    .trim();
+}
+
+export const ACHIEVEMENT_FLAVOR: Record<string, string> = {
+  unicornConspiracy: "First unicorn obtained. The cult of the horn begins.",
+  uniception: "Tears of unicorns harvested. Empathy not included.",
+  sinsOfEmpire: "Alicorns crystallised — the dark side of the cute side.",
+  anachronox: "Time crystals farmed. Tomorrow is so yesterday.",
+  deadSpace: "Antimatter stockpiled. Don't think too hard about it.",
+  sadnessAbyss: "Sorrow has reached unhealthy levels. Bring tea.",
+  ironWill: "Survived the no-kittens challenge. Lonely but mighty.",
+  uberkatzhen: "Population beyond reasonable cat-care ratios.",
+  hundredYearsSolitude: "A hundred in-game years lived. The legacy grows.",
+  soilUptuned: "Catnip-field saturation has reshaped the landscape.",
+  atlasUnmeowed: "Multiple paragons of progress carry the world on their shoulders.",
+  meowMeowRevolution: "Society restructured under a new policy.",
+  spaceOddity: "First spacecraft launched. Major Tom would approve.",
+  jupiterAscending: "Jupiter colony established. The gas giant smells.",
+  veryLargeArray: "Telescope arrays scan the void for whisker signals.",
+  shadowOfTheColossus: "Massive structures dot the horizon now.",
+  sunGod: "Solar revolutions complete. The sky knows your name.",
+  heartOfDarkness: "Necrocorns generated. Probably shouldn't have done that.",
+  winterIsComing: "Survived a long winter. Knit a sweater.",
+  youMonster: "Sacrificed too many kittens to the cause. Reflection recommended.",
+  superUnethicalClimax: "Crossed a line you didn't know was there.",
+  systemShock: "Singularity reached. The machine purrs.",
+  lotusMachine: "Cryochamber engaged. Time loses meaning.",
+  serenity: "Peace through repetition. Inner calm achieved.",
+  utopiaProject: "The vision of paradise nears completion.",
+  deathStranding: "Connections forged across the void.",
+  cathammer: "Forged in iron, sharpened in coal.",
+  eternalBacchanalia: "Festival never ends. Hangover not included.",
+  challenger: "Completed a challenge run. Hard mode survivor.",
+  lotus: "Long meditation rewarded. Patience is power.",
+  ivoryTower: "Knowledge stacked high above the masses.",
+  useless: "Achievement requirements: do absolutely nothing.",
+  beta: "Early adopter. Wore the test fur.",
+  silentHill: "Foggy decisions, lasting consequences.",
+  evergreen: "Multiple resets, each faster than the last.",
+  reginaNoctis: "Queen of the long night.",
+  ghostInTheMachine: "AI core hums with feline consciousness.",
+  abOwo: "Cute trait spotted. UwU detected.",
+  cleanPaws: "No unethical actions taken. Saint mode.",
+  sequenceBreak: "Achieved a goal out of order. Speedrunner.",
+  fantasticFurColor: "Rare coat genetics emerged.",
+  whatYearIsIt: "Time drift detected. The calendar is confused.",
+  tardis: "Bigger on the inside.",
+  wheredThisComeFrom: "Resource appeared unexpectedly. Carry on.",
+  lostDates: "Important events fell off the calendar.",
+  buffet: "Stockpiles overflowing. Eat well.",
+  newHome: "First hut raised. Welcome home.",
+  betterSafeThanSorry: "Storage built before crisis hit. Wise.",
+};
+
+export const BADGE_FLAVOR: Record<string, string> = {
+  earlyBird: "Reached a milestone fast.",
+  speedrunner: "Even faster than that.",
+  efficient: "Did more with less.",
+  pacifist: "No hunts, no embassies, just vibes.",
+  warmonger: "Hunts and embassies in abundance.",
 };
 
 export const PERK_FLAVOR: Record<string, string> = {

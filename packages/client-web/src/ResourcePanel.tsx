@@ -7,6 +7,7 @@ import { useSlot } from "./SlotContext.js";
 import { type IngredientNode, expandCraftCosts } from "./expandCraftCosts.js";
 import { useGameAction } from "./useGameAction.js";
 import { usePersistentUiState } from "./usePersistentUiState.js";
+import { ResourceIcon } from "./ui/index.js";
 import { formatDuration } from "./utils.js";
 
 const TICKS_PER_SECOND = 5;
@@ -95,6 +96,23 @@ function extractUnlockedCraftNames(state: GameStateResponse): Set<string> {
   return result;
 }
 
+/** Engineers per craft (workshop assignment). Used by the inspector recipe section. */
+function extractCraftEngineers(state: GameStateResponse): Record<string, number> {
+  const raw = state as unknown as Record<string, unknown>;
+  const workshop = raw.workshop;
+  if (typeof workshop !== "object" || workshop === null) return {};
+  const crafts = (workshop as Record<string, unknown>).crafts;
+  if (typeof crafts !== "object" || crafts === null) return {};
+  const out: Record<string, number> = {};
+  for (const [name, entry] of Object.entries(crafts as Record<string, unknown>)) {
+    if (typeof entry === "object" && entry !== null) {
+      const e = entry as Record<string, unknown>;
+      if (typeof e.engineers === "number") out[name] = e.engineers;
+    }
+  }
+  return out;
+}
+
 /** Compute adaptive craft shortcut amounts matching legacy left.jsx logic. */
 function computeCraftShortcuts(
   craftName: string,
@@ -152,6 +170,7 @@ export function ResourcePanel({ state }: Props): React.ReactElement {
   const effectCache = extractEffectCache(state);
   const visibility = deriveUiVisibility(state);
   const craftableNames = extractUnlockedCraftNames(state);
+  const craftEngineers = extractCraftEngineers(state);
   const craftRatio = effectCache.craftRatio ?? 0;
 
   const hiddenResources = extractHiddenResources(state);
@@ -191,11 +210,11 @@ export function ResourcePanel({ state }: Props): React.ReactElement {
 
   return (
     <>
-      <div className="resource-panel-header">
+      <div className="panel-header">
         <span className="resource-panel-label">Resources</span>
         <button
           type="button"
-          className="rate-toggle"
+          className="btn btn--xs btn--toggle"
           onClick={() => setRateUnit(showPerSecond ? "perTick" : "perSecond")}
           aria-pressed={showPerSecond}
         >
@@ -220,6 +239,7 @@ export function ResourcePanel({ state }: Props): React.ReactElement {
               highlightMap={highlightMap}
               affectedSet={affectedSet}
               craftable={craftableNames.has(r.name)}
+              craftEngineers={craftEngineers[r.name] ?? 0}
               allResources={resources}
               craftRatio={craftRatio}
               attribution={attributionMap.get(r.name)}
@@ -374,6 +394,7 @@ function ResourceItem({
   highlightMap,
   affectedSet,
   craftable,
+  craftEngineers,
   allResources,
   craftRatio,
   attribution,
@@ -388,6 +409,7 @@ function ResourceItem({
   highlightMap: Map<string, IngredientNode> | null;
   affectedSet: Set<string> | null;
   craftable: boolean;
+  craftEngineers: number;
   allResources: ResourceEntry[];
   craftRatio: number;
   attribution?: ResourceAttributionEntry[];
@@ -431,15 +453,49 @@ function ResourceItem({
       breakdown,
       attribution,
     };
+    if (craftable) {
+      const def = CRAFT_DEFS.find((d) => d.name === resource.name);
+      if (def) {
+        const bonus = def.ignoreBonuses ? 1 : 1 + craftRatio;
+        entity.craftRecipe = {
+          prices: def.prices.map((p) => ({ name: p.name, val: p.val })),
+          output: bonus,
+          resources: Object.fromEntries(
+            allResources.map((r) => [
+              r.name,
+              {
+                value: r.value,
+                ...(r.maxValue !== undefined ? { maxValue: r.maxValue } : {}),
+                ...(r.perTick !== undefined ? { perTick: r.perTick } : {}),
+              },
+            ]),
+          ),
+          engineers: craftEngineers,
+        };
+      }
+    }
     setInspected(entity);
   };
 
   const itemClass = getItemClass(resource.name, highlightMap, affectedSet);
 
+  const ariaLabel = (() => {
+    const parts: string[] = [`${resource.name}: ${formatValue(resource.value)}`];
+    if (resource.maxValue !== undefined && resource.maxValue > 0) {
+      parts.push(`of ${formatValue(resource.maxValue)} maximum`);
+    }
+    if (resource.perTick !== undefined && resource.perTick !== 0) {
+      const sign = resource.perTick > 0 ? "+" : "";
+      parts.push(`${sign}${resource.perTick.toFixed(3)} per tick`);
+    }
+    return parts.join(", ");
+  })();
+
   return (
     <li
       data-testid={`resource-${resource.name}`}
       className={itemClass}
+      aria-label={ariaLabel}
       onMouseEnter={handleInspect}
       onMouseLeave={clearInspected}
       onFocus={handleInspect}
@@ -448,6 +504,7 @@ function ResourceItem({
     >
       {/* Name + value row */}
       <div className="resource-item-main">
+        <ResourceIcon name={resource.name} size="xs" />
         <span
           className={getResourceNameClass(resource.name)}
           style={getResourceNameStyle(resource.name)}

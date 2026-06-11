@@ -75,13 +75,13 @@ describe("WorkshopPanel", () => {
     );
     render(<WithInspector><WorkshopPanel state={state} /></WithInspector>);
     expect(screen.getByTestId("upgrade-mineralHoes")).toBeTruthy();
-    expect(screen.getByRole("button", { name: /purchase/i })).toBeTruthy();
+    expect(screen.getByRole("button", { name: /buy/i })).toBeTruthy();
   });
 
   it("shows purchased upgrade as Done", () => {
     const state = makeState({ mineralHoes: { unlocked: true, researched: true } });
     render(<WithInspector><WorkshopPanel state={state} /></WithInspector>);
-    expect(screen.queryByRole("button", { name: /purchase/i })).toBeNull();
+    expect(screen.queryByRole("button", { name: /buy/i })).toBeNull();
     expect(screen.getByText(/done/i)).toBeTruthy();
   });
 
@@ -92,7 +92,7 @@ describe("WorkshopPanel", () => {
       { minerals: { value: 500 }, science: { value: 200 } },
     );
     render(<WithInspector><WorkshopPanel state={state} /></WithInspector>);
-    fireEvent.click(screen.getByRole("button", { name: /purchase/i }));
+    fireEvent.click(screen.getByRole("button", { name: /buy/i }));
     expect(mockMutate).toHaveBeenCalledWith({ type: "PURCHASE_UPGRADE", name: "mineralHoes" });
   });
 
@@ -115,7 +115,7 @@ describe("WorkshopPanel", () => {
       { minerals: { value: 0 }, science: { value: 0 } },
     );
     render(<WithInspector><WorkshopPanel state={state} /></WithInspector>);
-    const btn = screen.getByRole("button", { name: /purchase/i });
+    const btn = screen.getByRole("button", { name: /buy/i });
     expect(btn.hasAttribute("disabled")).toBe(true);
   });
 
@@ -126,7 +126,7 @@ describe("WorkshopPanel", () => {
       { minerals: { value: 500 }, science: { value: 200 } },
     );
     render(<WithInspector><WorkshopPanel state={state} /></WithInspector>);
-    const btn = screen.getByRole("button", { name: /purchase/i });
+    const btn = screen.getByRole("button", { name: /buy/i });
     expect(btn.hasAttribute("disabled")).toBe(false);
   });
 
@@ -138,7 +138,7 @@ describe("WorkshopPanel", () => {
     );
     render(<WithInspector><WorkshopPanel state={state} /></WithInspector>);
     const btn = screen.getByTestId("upgrade-mineralHoes-purchase");
-    expect(btn.textContent).toBe("Purchase");
+    expect(btn.textContent).toBe("Buy");
     expect(btn.className).toMatch(/btn--limited/);
     expect(btn.hasAttribute("disabled")).toBe(true);
   });
@@ -329,10 +329,12 @@ describe("Story 47-02: Craft cost tooltips in inspector", () => {
     render(<WithInspector><WorkshopPanel state={state} /></WithInspector>);
     const s1Btn = screen.getByTestId("craft-beam-s1");
     fireEvent.mouseEnter(s1Btn);
-    // Inspector should show craft info with cost
-    expect(screen.getByTestId("inspector-panel")).toBeTruthy();
-    expect(screen.getByText(/wood/i)).toBeTruthy();
-    expect(screen.getByText(/175/)).toBeTruthy();
+    // Inspector should show craft info with cost. The new craft row also
+    // renders the cost in a subline, so scope the assertion to the inspector.
+    const inspector = screen.getByTestId("inspector-panel");
+    expect(inspector).toBeTruthy();
+    expect(inspector.textContent).toMatch(/wood/i);
+    expect(inspector.textContent).toMatch(/175/);
   });
 
   it("hovering craft All button shows total cost in inspector", () => {
