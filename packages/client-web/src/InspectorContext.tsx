@@ -201,6 +201,8 @@ export interface KittenEntity {
   motherId: string | null;
   /** Father's kitten id, or null if seed/legacy. */
   fatherId: string | null;
+  /** Children of this kitten (resolved against current sim — dead kittens may be missing). */
+  childIds?: readonly string[];
   /** Optional lookup table {kittenId → name+surname} for clickable parent links. Built by caller from village.sim. */
   kittenNameById?: Record<string, string>;
 }

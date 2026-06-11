@@ -175,7 +175,7 @@ export const BUILDING_DEFS: readonly BuildingDef[] = [
   },
   {
     name: "mansion",
-    description: "Opulent estate crafted from advanced materials — the pinnacle of kitten housing.",
+    description: "Opulent estate crafted from advanced materials. The pinnacle of kitten housing.",
     prices: [
       { name: "titanium", val: 25 },
       { name: "slab", val: 185 },

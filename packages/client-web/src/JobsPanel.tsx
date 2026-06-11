@@ -74,6 +74,7 @@ interface CensusKitten {
   portraitPath?: string | null;
   motherId?: string | null;
   fatherId?: string | null;
+  childIds?: readonly string[];
 }
 
 function buildKittenEntity(k: CensusKitten, kittenNameById?: Record<string, string>): KittenEntity {
@@ -97,6 +98,7 @@ function buildKittenEntity(k: CensusKitten, kittenNameById?: Record<string, stri
     portraitPath: k.portraitPath ?? null,
     motherId: k.motherId ?? null,
     fatherId: k.fatherId ?? null,
+    ...(k.childIds && k.childIds.length > 0 ? { childIds: k.childIds } : {}),
     ...(kittenNameById ? { kittenNameById } : {}),
   };
 }

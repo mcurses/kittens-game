@@ -71,9 +71,10 @@ export interface LifeEvent {
   readonly kind: LifeEventKind;
   readonly text: string;
   /**
-   * Partner-Kitten bei Romance / Coworker-Bond. Inspector löst den Namen live
-   * via `kittenNameById` auf — der Text enthält den Namen aber schon statisch,
-   * falls der Lookup nicht klappt (z.B. weil das Partner-Kitten gestorben ist).
+   * Partner kitten id for Romance / Coworker-Bond events. The Inspector
+   * resolves the name live via `kittenNameById`. The text already embeds the
+   * name statically as a fallback when the partner is no longer in the sim
+   * (e.g. died).
    */
   readonly relatedKittenId?: string;
 }
@@ -224,16 +225,34 @@ export function generateKitten(
     else inheritedTrait = "none";
   }
 
-  const name = KITTEN_NAMES[Math.floor(Math.random() * KITTEN_NAMES.length)] ?? "Unknown";
-  const surname = canHaveParents && parentCandidates
-    // Children inherit their father's surname for now — simple, lore-friendly,
-    // matches the dorf-name conventions in KITTEN_SURNAMES (Smoke, Dust …).
-    ? (parentCandidates.find((k) => k.id === fatherId)?.surname
-       ?? KITTEN_SURNAMES[Math.floor(Math.random() * KITTEN_SURNAMES.length)]
-       ?? "Unknown")
-    : (KITTEN_SURNAMES[Math.floor(Math.random() * KITTEN_SURNAMES.length)] ?? "Unknown");
+  const name = KITTEN_NAMES[Math.floor(seededRng() * KITTEN_NAMES.length)] ?? "Unknown";
+
+  // Surname pick: bias fresh-pick away from surnames already used in the village
+  // so a small village does not collapse to two families. With parents, roll
+  // 60% father / 25% mother / 15% fresh (kitten "chose own name"). Without
+  // parents (seed-pop), always fresh.
+  const usedSurnames = new Set<string>((parentCandidates ?? []).map((k) => k.surname));
+  const unusedPool = KITTEN_SURNAMES.filter((s) => !usedSurnames.has(s));
+  const freshPool = unusedPool.length > 0 ? unusedPool : KITTEN_SURNAMES;
+  const freshSurname = freshPool[Math.floor(seededRng() * freshPool.length)] ?? "Unknown";
+  let surname: string;
+  if (canHaveParents && parentCandidates) {
+    const surnameRoll = seededRng();
+    const fatherSurname = parentCandidates.find((k) => k.id === fatherId)?.surname;
+    const motherSurname = parentCandidates.find((k) => k.id === motherId)?.surname;
+    if (surnameRoll < 0.60 && fatherSurname) {
+      surname = fatherSurname;
+    } else if (surnameRoll < 0.85 && motherSurname) {
+      surname = motherSurname;
+    } else {
+      surname = freshSurname;
+    }
+  } else {
+    surname = freshSurname;
+  }
+
   const trait = inheritedTrait
-    ?? KITTEN_TRAITS[Math.floor(Math.random() * KITTEN_TRAITS.length)]
+    ?? KITTEN_TRAITS[Math.floor(seededRng() * KITTEN_TRAITS.length)]
     ?? "none";
 
   // Native-born (parents present): age 0 + currentYear birth. Legacy seed-pop
@@ -579,7 +598,7 @@ export class VillageManager implements Manager {
       if (kittenProgress >= 1) {
         kittens += 1;
         kittenProgress -= 1;
-        // Pass current sim as parent candidates — when ≥2 adults exist the
+        // Pass current sim as parent candidates: when ≥2 adults exist the
         // newborn gets parents and the parents get a "parenthood" lifeEvent.
         const newborn = generateKitten(state.calendar.year, sim);
         if (newborn.motherId || newborn.fatherId) {
@@ -819,7 +838,7 @@ export class VillageManager implements Manager {
             : [{ year: birthYear, kind: "spawn", text: describeSpawn(age) }];
           const portraitPath = typeof k.portraitPath === "string" ? k.portraitPath : null;
 
-          // Family lineage (Paket G). Old saves lack these — default to null/[].
+          // Family lineage (Paket G). Old saves lack these, default to null/[].
           const motherId = typeof k.motherId === "string" ? k.motherId : null;
           const fatherId = typeof k.fatherId === "string" ? k.fatherId : null;
           const childIds: readonly string[] = Array.isArray(k.childIds)
@@ -851,7 +870,7 @@ export class VillageManager implements Manager {
 
     // Retrofit lore: kittens with only a spawn-event and age ≥ 3 get 1–4
     // deterministic backstory events distributed across their life so the
-    // Inspector timeline doesn't feel empty for legacy saves. Idempotent —
+    // Inspector timeline doesn't feel empty for legacy saves. Idempotent:
     // once events exist, this loop is a no-op on subsequent loads.
     const filledSim = backfillBackstory(sim, currentYear);
 
@@ -867,7 +886,7 @@ export class VillageManager implements Manager {
     const newYear = state.calendar.year;
     const seasonName = SEASON_DEFS[state.calendar.season]?.name ?? "summer";
     const sim = state.village.sim.map((k) => {
-      // 25% chance to append a yearly snippet — deterministic per (kittenId, year)
+      // 25% chance to append a yearly snippet, deterministic per (kittenId, year)
       // so replaying the same save doesn't drift.
       const eventRng = mulberry32(hashString(`yearly-roll:${k.id}:${newYear}`));
       if (eventRng() >= 0.25) {
@@ -990,7 +1009,7 @@ const LEADER_TRAIT_BONUSES: Record<string, { type: string; base: number }> = {
  * Trait → preferred jobs, ordered: primary first, then secondary.
  * Used by `pickKittensForJob` to assign trait-matched kittens before fungible ones,
  * and by the UI to surface a "perfect match" indicator. Empty array = no affinity
- * (falls back to skill / order). All lore-driven — kittens become individuals
+ * (falls back to skill / order). All lore-driven: kittens become individuals
  * with vocations rather than fungible labor slots.
  */
 export const TRAIT_JOB_AFFINITY: Record<KittenTrait, readonly string[]> = {
@@ -1014,7 +1033,7 @@ export function getJobAffinityScore(trait: KittenTrait, jobName: string): 0 | 1 
 
 /**
  * Pick up to `count` unassigned kittens to fill `jobName`, preferring trait
- * affinity, then skill, then stable order. Returns kitten ids only — callers
+ * affinity, then skill, then stable order. Returns kitten ids only. Callers
  * apply the assignment + lore lifeEvent themselves.
  */
 export function pickKittensForJob(
@@ -1043,7 +1062,7 @@ export function getLeaderBonus(kitten: Kitten): LeaderBonus | null {
 
 /**
  * Per-trait contributions from favorite (non-leader) kittens. Each trait
- * counts at most once — the highest-ranked favorite of that trait wins,
+ * counts at most once: the highest-ranked favorite of that trait wins,
  * with id as deterministic tiebreak. Bonus is half the leader value so
  * favorites feel meaningful but don't replace leader strategy.
  */
@@ -1218,7 +1237,7 @@ export function applyHoldFestival(state: GameState): GameState {
     } else {
       draft.calendar.festivalDays = festivalLength;
     }
-    // Every kitten in the village remembers the festival — deterministic per
+    // Every kitten in the village remembers the festival, deterministic per
     // (kittenId, year) so replays produce identical lifeEvent text.
     for (const k of draft.village.sim) {
       (k as { lifeEvents: LifeEvent[] }).lifeEvents = [

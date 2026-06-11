@@ -105,12 +105,15 @@ function KittenDetail({ entity }: { entity: KittenEntity }): React.ReactElement 
   const fullName = `${entity.name} ${entity.surname}`.trim();
   const avatar = kittenAvatarPath(entity);
   const events = [...entity.lifeEvents].sort((a, b) => b.year - a.year);
-  // Lineage: parent names resolved via the lookup that JobsPanel injects.
-  // Inspector is read-only for parents — the user can filter the Census to
-  // jump to them. Clickable links would require feeding full parent entities
+  // Lineage: parent + child names resolved via the lookup that JobsPanel injects.
+  // Inspector is read-only for now: the user can filter the Census to jump to
+  // any named relative. Clickable links would require feeding full entities
   // through; current scope keeps it visual.
   const motherName = entity.motherId ? entity.kittenNameById?.[entity.motherId] : undefined;
   const fatherName = entity.fatherId ? entity.kittenNameById?.[entity.fatherId] : undefined;
+  const livingChildNames = (entity.childIds ?? [])
+    .map((id) => entity.kittenNameById?.[id])
+    .filter((n): n is string => Boolean(n));
   return (
     <div className="inspector-entity">
       <img
@@ -124,11 +127,11 @@ function KittenDetail({ entity }: { entity: KittenEntity }): React.ReactElement 
       />
       <div className="inspector-name">
         {fullName}
-        {entity.isLeader && <span className="kitten-detail__leader" title="Anführer">★</span>}
-        {entity.isFavorite && <span className="kitten-detail__favorite" title="Favorit">♥</span>}
+        {entity.isLeader && <span className="kitten-detail__leader" title="Leader">★</span>}
+        {entity.isFavorite && <span className="kitten-detail__favorite" title="Favorite">♥</span>}
       </div>
       <div className="inspector-kind">
-        Kitten · Alter {entity.age} (geboren Jahr {entity.birthYear})
+        Kitten · Age {entity.age} (born year {entity.birthYear})
       </div>
 
       <dl className="inspector-stats">
@@ -137,27 +140,27 @@ function KittenDetail({ entity }: { entity: KittenEntity }): React.ReactElement 
           <dd>
             {entity.job ?? "—"}
             {entity.job && jobAffinityLabel(entity.trait, entity.job) && (
-              <span className="kitten-detail__affinity" title="Trait passt zum Job">
+              <span className="kitten-detail__affinity" title="Trait matches the job">
                 {" "}{jobAffinityLabel(entity.trait, entity.job)}
               </span>
             )}
           </dd>
         </div>
         <div className="inspector-stat-row">
-          <dt>Charakter</dt>
-          <dd>{entity.trait === "none" ? "keiner" : entity.trait}</dd>
+          <dt>Trait</dt>
+          <dd>{entity.trait === "none" ? "none" : entity.trait}</dd>
         </div>
         <div className="inspector-stat-row">
-          <dt>Rang</dt>
+          <dt>Rank</dt>
           <dd>{entity.rank}</dd>
         </div>
         <div className="inspector-stat-row">
-          <dt>Erfahrung</dt>
+          <dt>Experience</dt>
           <dd>{entity.exp.toFixed(0)}</dd>
         </div>
         {(motherName || fatherName) && (
           <div className="inspector-stat-row">
-            <dt>Eltern</dt>
+            <dt>Parents</dt>
             <dd className="kitten-detail__lineage">
               {motherName && <span className="kitten-detail__parent">♀ {motherName}</span>}
               {motherName && fatherName && <span className="kitten-detail__parent-sep"> · </span>}
@@ -165,25 +168,38 @@ function KittenDetail({ entity }: { entity: KittenEntity }): React.ReactElement 
             </dd>
           </div>
         )}
+        {livingChildNames.length > 0 && (
+          <div className="inspector-stat-row">
+            <dt>Children</dt>
+            <dd className="kitten-detail__lineage">
+              {livingChildNames.map((n, i) => (
+                <React.Fragment key={`${n}-${i}`}>
+                  {i > 0 && <span className="kitten-detail__parent-sep"> · </span>}
+                  <span className="kitten-detail__parent">{n}</span>
+                </React.Fragment>
+              ))}
+            </dd>
+          </div>
+        )}
       </dl>
 
       {entity.originStory && (
         <div className="inspector-section kitten-detail__bio">
-          <div className="inspector-section-label">Herkunft</div>
+          <div className="inspector-section-label">Origin</div>
           <p className="inspector-description">{entity.originStory}</p>
         </div>
       )}
 
       {entity.traitFlavor && (
         <div className="inspector-section kitten-detail__bio">
-          <div className="inspector-section-label">Wesensart</div>
+          <div className="inspector-section-label">Character</div>
           <p className="inspector-description">{entity.traitFlavor}</p>
         </div>
       )}
 
       {events.length > 0 && (
         <div className="inspector-section kitten-detail__timeline">
-          <div className="inspector-section-label">Was bisher geschah</div>
+          <div className="inspector-section-label">Story so far</div>
           <ul className="kitten-detail__events">
             {events.map((e, i) => (
               <li
