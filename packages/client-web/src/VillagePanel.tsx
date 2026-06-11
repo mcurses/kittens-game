@@ -47,17 +47,18 @@ export function VillagePanel({ state }: Props): React.ReactElement {
     <div className="status-pill" data-testid="village-panel">
       <span className="village-population">{kittens} / {maxKittens} kittens</span>
       <span className="status-pill-label"> — </span>
-      <span
+      <button
+        type="button"
         data-testid="village-happiness"
         className="village-happiness"
         onMouseEnter={() => setInspected(happinessEntity)}
         onMouseLeave={clearInspected}
         onFocus={() => setInspected(happinessEntity)}
         onBlur={clearInspected}
-        tabIndex={0}
+        aria-label={`Village happiness ${happinessPct}% — focus to inspect`}
       >
         {happinessPct}% happy
-      </span>
+      </button>
     </div>
   );
 }

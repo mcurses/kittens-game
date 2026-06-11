@@ -254,14 +254,15 @@ describe("Story 51-01: Policy panel", () => {
     expect(screen.getByRole("button", { name: /adopt/i })).toBeTruthy();
   });
 
-  it("shows adopted policy with Done badge", () => {
+  it("shows adopted policy with Adopted badge", () => {
     const state = makeState({}, {}, {
       policies: { liberty: { unlocked: true, blocked: false, researched: true } },
     });
     render(<WithInspector><SciencePanel state={state} /></WithInspector>);
-    expect(screen.getByTestId("policy-liberty")).toBeTruthy();
+    const card = screen.getByTestId("policy-liberty");
+    expect(card).toBeTruthy();
     expect(screen.queryByRole("button", { name: /adopt/i })).toBeNull();
-    expect(screen.getByText(/done/i)).toBeTruthy();
+    expect(card.textContent?.toLowerCase()).toContain("adopted");
   });
 
   it("shows blocked policy as Blocked with disabled button", () => {

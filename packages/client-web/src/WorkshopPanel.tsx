@@ -5,7 +5,10 @@ import React from "react";
 import { useInspector } from "./InspectorContext.js";
 import { useSlot } from "./SlotContext.js";
 import { useGameAction } from "./useGameAction.js";
-import { CRAFT_FLAVOR, UPGRADE_FLAVOR } from "./flavorText.js";
+import { CRAFT_FLAVOR, UPGRADE_FLAVOR, prettifyName } from "./flavorText.js";
+import { PlaceholderImage } from "./PlaceholderImage.js";
+import { spriteFor } from "./resourceSprites.js";
+import { ResourceIcon } from "./ui/index.js";
 import { usePersistentUiState } from "./usePersistentUiState.js";
 import { type ResourceMap, canAfford, extractEffectCache, extractResources, isStorageLimited } from "./utils.js";
 
@@ -129,7 +132,7 @@ function formatOutput(n: number): string {
 export function WorkshopPanel({ state }: Props): React.ReactElement {
   const slot = useSlot();
   const { mutate, isPending } = useGameAction(slot);
-  const { setInspected, clearInspected } = useInspector();
+  const { setInspected, clearInspected, setPinned, pinned } = useInspector();
   const [hideResearched, setHideResearched] = usePersistentUiState<boolean>(
     "workshop:hideResearched",
     false,
@@ -154,80 +157,98 @@ export function WorkshopPanel({ state }: Props): React.ReactElement {
 
   return (
     <div data-testid="workshop-panel">
-      <div className="panel-label">Upgrades</div>
-      <label className="toggle-label" data-testid="workshop-hide-researched-label">
-        <input
-          type="checkbox"
-          data-testid="workshop-hide-researched"
-          checked={hideResearched}
-          onChange={(e) => setHideResearched(e.target.checked)}
-        />
-        {" Hide researched"}
-      </label>
+      <div className="panel-header panel-header--titled">
+        <span className="panel-label">Upgrades</span>
+        <label className="toggle-label" data-testid="workshop-hide-researched-label">
+          <input
+            type="checkbox"
+            data-testid="workshop-hide-researched"
+            checked={hideResearched}
+            onChange={(e) => setHideResearched(e.target.checked)}
+          />
+          {" Hide researched"}
+        </label>
+      </div>
       {visibleUpgrades.length === 0 ? (
         <p className="panel-empty">No upgrades available.</p>
       ) : (
-        <ul className="item-list">
+        <ul className="card-grid">
           {visibleUpgrades.map((u) => {
             const def = UPGRADE_DEFS.find((d) => d.name === u.name);
             const prices = def?.prices ?? [];
             const affordable = canAfford(prices, resources);
             const storageLimited = isStorageLimited(prices, resources);
-            const costLabel =
+            const costAriaLabel =
               prices.length > 0
-                ? prices.map((p) => `${p.val} ${p.name}`).join(", ")
+                ? "Cost: " + prices.map((p) => `${p.val} ${p.name}`).join(", ")
                 : "";
+            const upgradeEntity = () => ({
+              kind: "upgrade" as const,
+              name: u.name,
+              description: def?.description,
+              flavor: UPGRADE_FLAVOR[u.name],
+              researched: u.researched,
+              effects: def?.effects ?? {},
+              prices: [...prices],
+              resources,
+              iconPath: def?.iconPath,
+            });
+            const inspect = () => setInspected(upgradeEntity());
+            const isPinnedHere = pinned?.kind === "upgrade" && pinned.name === u.name;
 
             return (
               <li
                 key={u.name}
                 data-testid={`upgrade-${u.name}`}
-                className="item-row"
-                onMouseEnter={() =>
-                  setInspected({
-                    kind: "upgrade",
-                    name: u.name,
-                    description: def?.description,
-                    flavor: UPGRADE_FLAVOR[u.name],
-                    researched: u.researched,
-                    effects: def?.effects ?? {},
-                    prices: [...prices],
-                    resources,
-                  })
-                }
+                className={`upgrade-card${u.researched ? " upgrade-card--done" : ""}`}
+                data-pinned={isPinnedHere ? "true" : "false"}
+                onClick={(e) => {
+                  const tgt = e.target as HTMLElement;
+                  if (tgt.closest("button, input, select, a, [data-no-pin]")) return;
+                  setPinned(upgradeEntity());
+                }}
+                onMouseEnter={inspect}
                 onMouseLeave={clearInspected}
-                onFocus={() =>
-                  setInspected({
-                    kind: "upgrade",
-                    name: u.name,
-                    description: def?.description,
-                    flavor: UPGRADE_FLAVOR[u.name],
-                    researched: u.researched,
-                    effects: def?.effects ?? {},
-                    prices: [...prices],
-                    resources,
-                  })
-                }
+                onFocus={inspect}
                 onBlur={clearInspected}
                 tabIndex={0}
               >
-                <span className="item-row-name upgrade-name">{u.name}</span>
-                {costLabel && !u.researched && (
-                  <span className="item-row-cost">{costLabel}</span>
-                )}
-                <div className="item-row-actions">
-                  {u.researched ? (
-                    <span className="done-badge upgrade-done">✓ Done</span>
-                  ) : (
+                <div className="upgrade-card__image-wrap">
+                  <PlaceholderImage
+                    variant="character"
+                    src={def?.iconPath}
+                    alt={u.name}
+                    className="upgrade-card__image"
+                  />
+                  {!u.researched && (
                     <button
                       type="button"
                       data-testid={`upgrade-${u.name}-purchase`}
-                      className={`btn btn--sm${affordable ? " btn--primary" : " btn--secondary"}${storageLimited ? " btn--limited" : ""}`}
+                      className={`btn btn--xs upgrade-card__buy${affordable ? " btn--primary" : " btn--secondary"}${storageLimited ? " btn--limited" : ""}`}
                       disabled={isPending || !affordable}
                       onClick={() => mutate({ type: "PURCHASE_UPGRADE", name: u.name })}
                     >
-                      Purchase
+                      Buy
                     </button>
+                  )}
+                  {u.researched && (
+                    <span className="upgrade-card__done-badge">✓ Done</span>
+                  )}
+                </div>
+                <div className="upgrade-card__footer">
+                  <span className="upgrade-card__name">{prettifyName(u.name)}</span>
+                  {!u.researched && prices.length > 0 && (
+                    <span className="upgrade-card__cost" aria-label={costAriaLabel}>
+                      {prices.map((p, i) => (
+                        <React.Fragment key={p.name}>
+                          {i > 0 && <span className="upgrade-card__cost-sep"> · </span>}
+                          <span className="upgrade-card__cost-item">
+                            {p.val}
+                            <ResourceIcon name={p.name} size="xs" aria-label={p.name} />
+                          </span>
+                        </React.Fragment>
+                      ))}
+                    </span>
                   )}
                 </div>
               </li>
@@ -269,34 +290,50 @@ export function WorkshopPanel({ state }: Props): React.ReactElement {
               const progressStr = progressPct < 10 ? `0${progressPct}` : String(progressPct);
               const showProgress = mechanization && c.engineers > 0;
 
+              const outputSprite = spriteFor(c.name);
+              const inputPrice = def?.prices[0];
+              const inputSprite = inputPrice ? spriteFor(inputPrice.name) : undefined;
+              const craftEntity = () => ({
+                kind: "craft" as const,
+                name: c.name,
+                flavor: CRAFT_FLAVOR[c.name],
+                engineers: c.engineers,
+                progress: c.progress,
+              });
+              const inspect = () => setInspected(craftEntity());
+              const isPinnedHere = pinned?.kind === "craft" && pinned.name === c.name;
+
               return (
                 <li
                   key={c.name}
                   data-testid={`craft-${c.name}`}
-                  className="item-row"
-                  onMouseEnter={() =>
-                    setInspected({
-                      kind: "craft",
-                      name: c.name,
-                      flavor: CRAFT_FLAVOR[c.name],
-                      engineers: c.engineers,
-                      progress: c.progress,
-                    })
-                  }
+                  className="item-row craft-row"
+                  data-pinned={isPinnedHere ? "true" : "false"}
+                  onClick={(e) => {
+                    const tgt = e.target as HTMLElement;
+                    if (tgt.closest("button, input, select, a, [data-no-pin]")) return;
+                    setPinned(craftEntity());
+                  }}
+                  onMouseEnter={inspect}
                   onMouseLeave={clearInspected}
-                  onFocus={() =>
-                    setInspected({
-                      kind: "craft",
-                      name: c.name,
-                      flavor: CRAFT_FLAVOR[c.name],
-                      engineers: c.engineers,
-                      progress: c.progress,
-                    })
-                  }
+                  onFocus={inspect}
                   onBlur={clearInspected}
                   tabIndex={0}
                 >
-                  <span className="item-row-name craft-name">{c.name}</span>
+                  <ResourceIcon name={c.name} size="md" className="craft-row__icon" />
+                  <div className="craft-row__content">
+                    <span className="item-row-name craft-name">{prettifyName(c.name)}</span>
+                    {inputPrice && (
+                      <span
+                        className="craft-row__cost"
+                        data-testid={`craft-${c.name}-cost`}
+                        aria-label={`Cost: ${inputPrice.val} ${inputPrice.name}`}
+                      >
+                        for {inputPrice.val}{" "}
+                        <ResourceIcon name={inputPrice.name} size="xs" aria-label={inputPrice.name} />
+                      </span>
+                    )}
+                  </div>
                   {showProgress && (
                     <span className="craft-progress" data-testid={`craft-${c.name}-progress`}>
                       [{progressStr}%]

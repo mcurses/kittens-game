@@ -3,9 +3,12 @@ import type { GameStateResponse } from "@kittens/api-spec";
 import { BUILDING_DEFS, deriveUiVisibility, getBuildingDisplayName, getBuildingPrice } from "@kittens/engine";
 import React, { useState } from "react";
 import { useInspector } from "./InspectorContext.js";
+import { PlaceholderImage } from "./PlaceholderImage.js";
 import { useSlot } from "./SlotContext.js";
 import { useGameAction } from "./useGameAction.js";
-import { BUILDING_FLAVOR } from "./flavorText.js";
+import { ResourceIcon } from "./ui/index.js";
+import { BUILDING_FLAVOR, prettifyName } from "./flavorText.js";
+import { iconPathFor } from "./buildingIconTier.js";
 import { canAfford, extractEffectCache, extractResources, isStorageLimited } from "./utils.js";
 
 interface BuildingEntry {
@@ -82,14 +85,6 @@ const BUILDING_CATEGORY_INDEX = new Map(
   ),
 );
 
-/** Split camelCase to Title Case: "lumberMill" → "Lumber Mill" */
-function prettifyName(name: string): string {
-  return name
-    .replace(/([A-Z])/g, " $1")
-    .replace(/^./, (c) => c.toUpperCase())
-    .trim();
-}
-
 /** Extract buildings array from serialized game state (duck-typed). Returns only unlocked buildings. */
 function extractBuildings(state: GameStateResponse): BuildingEntry[] {
   const raw = state as unknown as Record<string, unknown>;
@@ -161,6 +156,13 @@ function groupBuildings(buildings: readonly BuildingEntry[]): Array<{
 
 type BuildingFilter = "all" | "available" | "enabled" | "togglable";
 
+/** Compose an aria-label summarising the price list so screen readers still
+ *  hear the numbers even though the footer renders only icons. */
+function pricesAriaLabel(prices: readonly { name: string; val: number }[]): string {
+  if (prices.length === 0) return "";
+  return "Cost: " + prices.map((p) => `${p.val.toFixed(0)} ${p.name}`).join(", ");
+}
+
 const FILTER_TABS: { key: BuildingFilter; label: string }[] = [
   { key: "all", label: "All" },
   { key: "available", label: "Available" },
@@ -171,7 +173,8 @@ const FILTER_TABS: { key: BuildingFilter; label: string }[] = [
 export function BuildingsPanel({ state }: Props): React.ReactElement {
   const slot = useSlot();
   const { mutate, isPending } = useGameAction(slot);
-  const { setInspected, clearInspected } = useInspector();
+  const inspector = useInspector();
+  const { setInspected, clearInspected, setPinned, pinned } = inspector;
   const [activeFilter, setActiveFilter] = useState<BuildingFilter>("all");
 
   if (!state) {
@@ -207,13 +210,14 @@ export function BuildingsPanel({ state }: Props): React.ReactElement {
   return (
     <div data-testid="buildings-panel">
       <div className="panel-label">Structures</div>
-      <div className="building-filters">
+      <div className="panel-controls">
         {FILTER_TABS.map((tab) => (
           <button
             key={tab.key}
             type="button"
             data-testid={`building-filter-${tab.key}`}
-            className={`btn btn--xs btn--filter${activeFilter === tab.key ? " active" : ""}`}
+            data-active={activeFilter === tab.key ? "true" : "false"}
+            className="btn btn--xs btn--filter"
             onClick={() => setActiveFilter(tab.key)}
           >
             {tab.label}
@@ -228,7 +232,7 @@ export function BuildingsPanel({ state }: Props): React.ReactElement {
             <section
               key={category.slug}
               data-testid={`building-category-${category.slug}`}
-              className={`panel-section${category.buildings.length <= 2 ? " panel-section--compact" : ""}`}
+              className="panel-section"
             >
               <h3 className="panel-subheading">{category.label}</h3>
               <ul className="card-grid" style={{ listStyle: "none" }}>
@@ -243,11 +247,30 @@ export function BuildingsPanel({ state }: Props): React.ReactElement {
                   const canUpgrade = hasStages && currentStage < b.stageUnlocked!.length - 1 && b.stageUnlocked![currentStage + 1] === true;
                   const canDowngrade = hasStages && currentStage > 0;
 
+                  const isPinnedHere = pinned?.kind === "building" && pinned.name === b.name;
                   return (
                     <li
                       key={b.name}
                       data-testid={`building-${b.name}`}
                       className="item-card"
+                      data-pinned={isPinnedHere ? "true" : "false"}
+                      onClick={(e) => {
+                        const t = e.target as HTMLElement;
+                        if (t.closest("button, input, select, a, [data-no-pin]")) return;
+                        setPinned({
+                          kind: "building",
+                          name: b.name,
+                          description: def?.description,
+                          flavor: BUILDING_FLAVOR[b.name],
+                          automationEnabled: b.automationEnabled,
+                          val: b.val,
+                          on: b.on,
+                          effects: def?.effects ?? {},
+                          prices,
+                          resources,
+                          iconPath: iconPathFor(b.name, b.val),
+                        });
+                      }}
                       onMouseEnter={() =>
                         setInspected({
                           kind: "building",
@@ -260,6 +283,7 @@ export function BuildingsPanel({ state }: Props): React.ReactElement {
                           effects: def?.effects ?? {},
                           prices,
                           resources,
+                          iconPath: iconPathFor(b.name, b.val),
                         })
                       }
                       onMouseLeave={clearInspected}
@@ -275,87 +299,107 @@ export function BuildingsPanel({ state }: Props): React.ReactElement {
                           effects: def?.effects ?? {},
                           prices,
                           resources,
+                          iconPath: iconPathFor(b.name, b.val),
                         })
                       }
                       onBlur={clearInspected}
                       tabIndex={0}
                     >
-                      <div className="item-card-header">
+                      <PlaceholderImage
+                        variant="building"
+                        src={iconPathFor(b.name, b.val)}
+                        alt={displayName}
+                        className="item-card__image"
+                      />
+                      <div className="item-card__overlay-top">
                         <span className="item-name building-name">{displayName}</span>
                         <span className={`item-count building-count${b.val > 0 ? " item-count--has" : ""}`}>
                           {b.on < b.val ? `${b.on}/${b.val}` : b.val}
                         </span>
                       </div>
 
-                      {prices.length > 0 && (
-                        <div className="item-prices building-prices">
-                          {prices.map((p, i) => (
-                            <span key={p.name}>
-                              {i > 0 ? " · " : ""}
-                              {p.name} {p.val.toFixed(0)}
-                            </span>
-                          ))}
+                      {(canUpgrade || canDowngrade) && (
+                        <div className="item-card__stage-controls">
+                          {canDowngrade && (
+                            <button
+                              type="button"
+                              data-testid={`building-${b.name}-downgrade`}
+                              className="btn btn--xs btn--secondary"
+                              disabled={isPending}
+                              onClick={() => mutate({ type: "DOWNGRADE_BUILDING_STAGE", name: b.name })}
+                            >
+                              v
+                            </button>
+                          )}
+                          {canUpgrade && (
+                            <button
+                              type="button"
+                              data-testid={`building-${b.name}-upgrade`}
+                              className="btn btn--xs btn--secondary"
+                              disabled={isPending}
+                              onClick={() => mutate({ type: "UPGRADE_BUILDING_STAGE", name: b.name })}
+                            >
+                              ^
+                            </button>
+                          )}
                         </div>
                       )}
 
-                      <div className="item-actions">
-                        {canDowngrade && (
+                      <div className="item-card__footer">
+                        <div className="item-card__footer-primary">
+                          {prices.length > 0 && (
+                            <div
+                              className="item-prices building-prices"
+                              aria-label={pricesAriaLabel(prices)}
+                            >
+                              {prices.map((p) => (
+                                <ResourceIcon key={p.name} name={p.name} size="xs" />
+                              ))}
+                            </div>
+                          )}
                           <button
                             type="button"
-                            data-testid={`building-${b.name}-downgrade`}
-                            className="btn btn--xs btn--secondary"
-                            disabled={isPending}
-                            onClick={() => mutate({ type: "DOWNGRADE_BUILDING_STAGE", name: b.name })}
+                            data-testid={`building-${b.name}-buy`}
+                            className={`btn btn--sm${affordable ? " btn--primary" : " btn--secondary"}${storageLimited ? " btn--limited" : ""}`}
+                            disabled={isPending || !affordable}
+                            onClick={() => mutate({ type: "BUY_BUILDING", name: b.name })}
                           >
-                            v
+                            Buy
                           </button>
+                        </div>
+
+                        {b.val > 0 && (
+                          (visibility.buildings[b.name]?.automationVisible ||
+                            visibility.buildings[b.name]?.controlMode === "count" ||
+                            visibility.buildings[b.name]?.controlMode === "binary") && (
+                            <div className="item-actions">
+                              {visibility.buildings[b.name]?.automationVisible && (
+                                <>
+                                  <button
+                                    type="button"
+                                    className="btn btn--xs btn--secondary"
+                                    disabled={isPending || b.automationEnabled === true}
+                                    onClick={() => mutate({ type: "ENABLE_BUILDING_AUTOMATION", name: b.name })}
+                                  >
+                                    Auto On
+                                  </button>
+                                  <button
+                                    type="button"
+                                    className="btn btn--xs btn--secondary"
+                                    disabled={isPending || b.automationEnabled === false}
+                                    onClick={() => mutate({ type: "DISABLE_BUILDING_AUTOMATION", name: b.name })}
+                                  >
+                                    Auto Off
+                                  </button>
+                                </>
+                              )}
+                              {visibility.buildings[b.name]?.controlMode === "count" &&
+                                renderCountControls(b, isPending, mutate)}
+                              {visibility.buildings[b.name]?.controlMode === "binary" &&
+                                renderBinaryControls(b, isPending, mutate)}
+                            </div>
+                          )
                         )}
-                        {canUpgrade && (
-                          <button
-                            type="button"
-                            data-testid={`building-${b.name}-upgrade`}
-                            className="btn btn--xs btn--secondary"
-                            disabled={isPending}
-                            onClick={() => mutate({ type: "UPGRADE_BUILDING_STAGE", name: b.name })}
-                          >
-                            ^
-                          </button>
-                        )}
-                        {b.val > 0 && visibility.buildings[b.name]?.automationVisible && (
-                          <>
-                            <button
-                              type="button"
-                              className="btn btn--sm btn--secondary"
-                              disabled={isPending || b.automationEnabled === true}
-                              onClick={() => mutate({ type: "ENABLE_BUILDING_AUTOMATION", name: b.name })}
-                            >
-                              Auto On
-                            </button>
-                            <button
-                              type="button"
-                              className="btn btn--sm btn--secondary"
-                              disabled={isPending || b.automationEnabled === false}
-                              onClick={() => mutate({ type: "DISABLE_BUILDING_AUTOMATION", name: b.name })}
-                            >
-                              Auto Off
-                            </button>
-                          </>
-                        )}
-                        {b.val > 0 &&
-                          visibility.buildings[b.name]?.controlMode === "count" &&
-                          renderCountControls(b, isPending, mutate)}
-                        {b.val > 0 &&
-                          visibility.buildings[b.name]?.controlMode === "binary" &&
-                          renderBinaryControls(b, isPending, mutate)}
-                        <button
-                          type="button"
-                          data-testid={`building-${b.name}-buy`}
-                          className={`btn btn--sm${affordable ? " btn--primary" : " btn--secondary"}${storageLimited ? " btn--limited" : ""}`}
-                          disabled={isPending || !affordable}
-                          onClick={() => mutate({ type: "BUY_BUILDING", name: b.name })}
-                        >
-                          Buy
-                        </button>
                       </div>
                     </li>
                   );
@@ -374,65 +418,74 @@ function renderCountControls(
   isPending: boolean,
   mutate: ReturnType<typeof useGameAction>["mutate"],
 ): React.ReactNode {
+  const offCount = building.on <= 0;
+  const fullCount = building.on >= building.val;
   return (
-    <>
-      <button
-        type="button"
-        data-testid={`building-${building.name}-disable-1`}
-        className="btn btn--sm btn--secondary"
-        disabled={isPending || building.on <= 0}
-        onClick={() => mutate({ type: "DISABLE_BUILDING", name: building.name, amount: 1 })}
-      >
-        -
-      </button>
-      <button
-        type="button"
-        data-testid={`building-${building.name}-disable-25`}
-        className="btn btn--sm btn--secondary"
-        disabled={isPending || building.on <= 0}
-        onClick={() => mutate({ type: "DISABLE_BUILDING", name: building.name, amount: 25 })}
-      >
-        -25
-      </button>
-      <button
-        type="button"
-        data-testid={`building-${building.name}-disable-all`}
-        className="btn btn--sm btn--secondary"
-        disabled={isPending || building.on <= 0}
-        onClick={() => mutate({ type: "DISABLE_BUILDING", name: building.name, amount: building.on })}
-      >
-        -All
-      </button>
-      <button
-        type="button"
-        data-testid={`building-${building.name}-enable-1`}
-        className="btn btn--sm btn--secondary"
-        disabled={isPending || building.on >= building.val}
-        onClick={() => mutate({ type: "ENABLE_BUILDING", name: building.name, amount: 1 })}
-      >
-        +
-      </button>
-      <button
-        type="button"
-        data-testid={`building-${building.name}-enable-25`}
-        className="btn btn--sm btn--secondary"
-        disabled={isPending || building.on >= building.val}
-        onClick={() => mutate({ type: "ENABLE_BUILDING", name: building.name, amount: 25 })}
-      >
-        +25
-      </button>
-      <button
-        type="button"
-        data-testid={`building-${building.name}-enable-all`}
-        className="btn btn--sm btn--secondary"
-        disabled={isPending || building.on >= building.val}
-        onClick={() =>
-          mutate({ type: "ENABLE_BUILDING", name: building.name, amount: building.val - building.on })
-        }
-      >
-        +All
-      </button>
-    </>
+    <div className="stage-counter">
+      <div className="stage-counter__group stage-counter__group--down">
+        <button
+          type="button"
+          data-testid={`building-${building.name}-disable-all`}
+          className="btn btn--xs btn--secondary"
+          disabled={isPending || offCount}
+          onClick={() => mutate({ type: "DISABLE_BUILDING", name: building.name, amount: building.on })}
+          aria-label={`Disable all ${building.name}`}
+        >
+          −All
+        </button>
+        <button
+          type="button"
+          data-testid={`building-${building.name}-disable-25`}
+          className="btn btn--xs btn--secondary"
+          disabled={isPending || offCount}
+          onClick={() => mutate({ type: "DISABLE_BUILDING", name: building.name, amount: 25 })}
+        >
+          −25
+        </button>
+        <button
+          type="button"
+          data-testid={`building-${building.name}-disable-1`}
+          className="btn btn--xs btn--secondary"
+          disabled={isPending || offCount}
+          onClick={() => mutate({ type: "DISABLE_BUILDING", name: building.name, amount: 1 })}
+        >
+          −
+        </button>
+      </div>
+      <span className="stage-counter__readout">{building.on}/{building.val}</span>
+      <div className="stage-counter__group stage-counter__group--up">
+        <button
+          type="button"
+          data-testid={`building-${building.name}-enable-1`}
+          className="btn btn--xs btn--secondary"
+          disabled={isPending || fullCount}
+          onClick={() => mutate({ type: "ENABLE_BUILDING", name: building.name, amount: 1 })}
+        >
+          +
+        </button>
+        <button
+          type="button"
+          data-testid={`building-${building.name}-enable-25`}
+          className="btn btn--xs btn--secondary"
+          disabled={isPending || fullCount}
+          onClick={() => mutate({ type: "ENABLE_BUILDING", name: building.name, amount: 25 })}
+        >
+          +25
+        </button>
+        <button
+          type="button"
+          data-testid={`building-${building.name}-enable-all`}
+          className="btn btn--xs btn--secondary"
+          disabled={isPending || fullCount}
+          onClick={() =>
+            mutate({ type: "ENABLE_BUILDING", name: building.name, amount: building.val - building.on })
+          }
+          aria-label={`Enable all ${building.name}`}
+        >
+          +All
+        </button>
+      </div>
+    </div>
   );
 }
 

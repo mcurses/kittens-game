@@ -8,6 +8,7 @@ import {
   type HappinessEntity,
   type InspectorEntity,
   type JobEntity,
+  type KittenEntity,
   type PerkEntity,
   type PolicyEntity,
   type ReligionUpgradeEntity,
@@ -18,15 +19,33 @@ import {
   type ZigguratUpgradeEntity,
   useInspector,
 } from "./InspectorContext.js";
+import { kittenAvatarPath } from "./kittenAvatar.js";
 import { formatDuration, isStorageLimited } from "./utils.js";
 
 const TICKS_PER_SECOND = 5;
 
+/** Affinity badges disabled on this branch — trait-aware assignment is not active. */
+function jobAffinityLabel(_trait: string, _jobName: string): string {
+  return "";
+}
+
 export function InspectorPanel(): React.ReactElement {
-  const { inspected } = useInspector();
+  const { inspected, isPinned, setPinned } = useInspector();
 
   return (
     <div data-testid="inspector-panel" className="inspector-panel">
+      {isPinned && (
+        <button
+          type="button"
+          data-testid="inspector-unpin"
+          className="inspector-unpin"
+          onClick={() => setPinned(null)}
+          title="Unpin — double-click anywhere outside the card to release"
+          aria-label="Unpin inspector"
+        >
+          📌 Unpin
+        </button>
+      )}
       {inspected ? <EntityDetail entity={inspected} /> : <InspectorPlaceholder />}
     </div>
   );
@@ -68,7 +87,110 @@ function EntityDetail({ entity }: { entity: InspectorEntity }): React.ReactEleme
       return <PolicyDetail entity={entity} elapsedSeconds={elapsedSeconds} />;
     case "perk":
       return <PerkDetail entity={entity} elapsedSeconds={elapsedSeconds} />;
+    case "kitten":
+      return <KittenDetail entity={entity} />;
   }
+}
+
+function KittenDetail({ entity }: { entity: KittenEntity }): React.ReactElement {
+  const fullName = `${entity.name} ${entity.surname}`.trim();
+  const avatar = kittenAvatarPath(entity);
+  const events = [...entity.lifeEvents].sort((a, b) => b.year - a.year);
+  // Lineage: parent names resolved via the lookup that JobsPanel injects.
+  // Inspector is read-only for parents — the user can filter the Census to
+  // jump to them. Clickable links would require feeding full parent entities
+  // through; current scope keeps it visual.
+  const motherName = entity.motherId ? entity.kittenNameById?.[entity.motherId] : undefined;
+  const fatherName = entity.fatherId ? entity.kittenNameById?.[entity.fatherId] : undefined;
+  return (
+    <div className="inspector-entity">
+      <img
+        className="inspector-icon kitten-detail__portrait"
+        src={avatar}
+        alt=""
+        onError={(e) => {
+          // Graceful fallback: hide if asset is missing — keeps panel readable.
+          e.currentTarget.style.display = "none";
+        }}
+      />
+      <div className="inspector-name">
+        {fullName}
+        {entity.isLeader && <span className="kitten-detail__leader" title="Anführer">★</span>}
+        {entity.isFavorite && <span className="kitten-detail__favorite" title="Favorit">♥</span>}
+      </div>
+      <div className="inspector-kind">
+        Kitten · Alter {entity.age} (geboren Jahr {entity.birthYear})
+      </div>
+
+      <dl className="inspector-stats">
+        <div className="inspector-stat-row">
+          <dt>Job</dt>
+          <dd>
+            {entity.job ?? "—"}
+            {entity.job && jobAffinityLabel(entity.trait, entity.job) && (
+              <span className="kitten-detail__affinity" title="Trait passt zum Job">
+                {" "}{jobAffinityLabel(entity.trait, entity.job)}
+              </span>
+            )}
+          </dd>
+        </div>
+        <div className="inspector-stat-row">
+          <dt>Charakter</dt>
+          <dd>{entity.trait === "none" ? "keiner" : entity.trait}</dd>
+        </div>
+        <div className="inspector-stat-row">
+          <dt>Rang</dt>
+          <dd>{entity.rank}</dd>
+        </div>
+        <div className="inspector-stat-row">
+          <dt>Erfahrung</dt>
+          <dd>{entity.exp.toFixed(0)}</dd>
+        </div>
+        {(motherName || fatherName) && (
+          <div className="inspector-stat-row">
+            <dt>Eltern</dt>
+            <dd className="kitten-detail__lineage">
+              {motherName && <span className="kitten-detail__parent">♀ {motherName}</span>}
+              {motherName && fatherName && <span className="kitten-detail__parent-sep"> · </span>}
+              {fatherName && <span className="kitten-detail__parent">♂ {fatherName}</span>}
+            </dd>
+          </div>
+        )}
+      </dl>
+
+      {entity.originStory && (
+        <div className="inspector-section kitten-detail__bio">
+          <div className="inspector-section-label">Herkunft</div>
+          <p className="inspector-description">{entity.originStory}</p>
+        </div>
+      )}
+
+      {entity.traitFlavor && (
+        <div className="inspector-section kitten-detail__bio">
+          <div className="inspector-section-label">Wesensart</div>
+          <p className="inspector-description">{entity.traitFlavor}</p>
+        </div>
+      )}
+
+      {events.length > 0 && (
+        <div className="inspector-section kitten-detail__timeline">
+          <div className="inspector-section-label">Was bisher geschah</div>
+          <ul className="kitten-detail__events">
+            {events.map((e, i) => (
+              <li
+                key={`${e.year}-${e.kind}-${i}`}
+                className={`kitten-detail__event kitten-detail__event--${e.kind}${e.relatedKittenId ? " kitten-detail__event--linked" : ""}`}
+                {...(e.relatedKittenId ? { "data-related-kitten": e.relatedKittenId } : {})}
+              >
+                <span className="kitten-detail__event-year">{e.year}</span>
+                <span className="kitten-detail__event-text">{e.text}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
+  );
 }
 
 function HappinessDetail({ entity }: { entity: HappinessEntity }): React.ReactElement {
@@ -213,6 +335,14 @@ function ResourceDetail({
 
       <AttributionSection attribution={entity.attribution} />
 
+      {entity.craftRecipe && (
+        <CraftRecipeSection
+          resourceName={name}
+          recipe={entity.craftRecipe}
+          elapsedSeconds={elapsedSeconds}
+        />
+      )}
+
       {perTick !== undefined && perTick < 0 && value > 0 && (
         <div className="inspector-notice inspector-notice--warn">
           Time to zero: {formatDuration(value / (-perTick * TICKS_PER_SECOND) - elapsedSeconds)}
@@ -227,6 +357,44 @@ function ResourceDetail({
             {formatDuration((maxValue - value) / (perTick * TICKS_PER_SECOND) - elapsedSeconds)}
           </div>
         )}
+    </div>
+  );
+}
+
+// ── Craft recipe section ─────────────────────────────────────────────────────
+
+function CraftRecipeSection({
+  resourceName,
+  recipe,
+  elapsedSeconds,
+}: {
+  resourceName: string;
+  recipe: NonNullable<ResourceEntity["craftRecipe"]>;
+  elapsedSeconds: number;
+}): React.ReactElement {
+  const outputLabel = recipe.output === 1
+    ? `1 ${resourceName}`
+    : `${recipe.output % 1 === 0 ? recipe.output.toFixed(0) : recipe.output.toFixed(2)} ${resourceName}`;
+  return (
+    <div className="inspector-section" data-testid="inspector-craft-recipe">
+      <div className="inspector-section-label">
+        Wird im Workshop gecraftet → {outputLabel}
+      </div>
+      <PricesSection
+        prices={recipe.prices}
+        label="Zutaten (1×)"
+        resources={recipe.resources}
+        elapsedSeconds={elapsedSeconds}
+      />
+      {recipe.engineers > 0 ? (
+        <div className="inspector-notice">
+          {recipe.engineers} Engineer{recipe.engineers === 1 ? "" : "s"} craftet automatisch.
+        </div>
+      ) : (
+        <div className="inspector-notice inspector-notice--warn">
+          Keine Engineers zugewiesen — manuell im Workshop craften oder Engineers zuweisen.
+        </div>
+      )}
     </div>
   );
 }
@@ -282,6 +450,17 @@ function BuildingDetail({
 }): React.ReactElement {
   return (
     <div className="inspector-entity">
+      {entity.iconPath && (
+        <img
+          className="inspector-icon"
+          src={entity.iconPath}
+          alt=""
+          onError={(e) => {
+            // Hide the slot when the asset is missing — graceful fallback per assets/README.md.
+            e.currentTarget.style.display = "none";
+          }}
+        />
+      )}
       <div className="inspector-name">{entity.name}</div>
       <div className="inspector-kind">
         Building · {entity.val} built
@@ -326,6 +505,14 @@ function UpgradeDetail({
 }): React.ReactElement {
   return (
     <div className="inspector-entity">
+      {entity.iconPath && (
+        <img
+          className="inspector-icon"
+          src={entity.iconPath}
+          alt=""
+          onError={(e) => { e.currentTarget.style.display = "none"; }}
+        />
+      )}
       <div className="inspector-name">{entity.name}</div>
       <div className="inspector-kind">
         Workshop Upgrade{entity.researched ? " · Purchased" : ""}
@@ -361,6 +548,14 @@ function TechDetail({
 }): React.ReactElement {
   return (
     <div className="inspector-entity">
+      {entity.iconPath && (
+        <img
+          className="inspector-icon"
+          src={entity.iconPath}
+          alt=""
+          onError={(e) => { e.currentTarget.style.display = "none"; }}
+        />
+      )}
       <div className="inspector-name">{entity.name}</div>
       <div className="inspector-kind">
         Technology{entity.researched ? " · Researched" : ""}

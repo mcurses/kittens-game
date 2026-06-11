@@ -108,7 +108,7 @@ export function SpacePanel({ state }: Props): React.ReactElement {
       {spaceBuildings.length > 0 && (
         <div className={programs.length > 0 ? "panel-subsection" : ""}>
           <div className="panel-label">Space Buildings</div>
-          <ul className="card-grid" style={{ listStyle: "none" }}>
+          <ul className="card-grid">
             {spaceBuildings.map((b) => {
               const def = SPACE_BUILDING_DEFS.find((d) => d.name === b.name);
               const prices = def ? def.prices.map((p) => ({

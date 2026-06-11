@@ -42,7 +42,7 @@ export function TabContainer({ state }: Props): React.ReactElement {
             key={tab.id}
             type="button"
             data-active={effectiveTab === tab.id ? "true" : "false"}
-            className="tab-btn"
+            className="btn btn--sm btn--tab"
             onClick={() => setActiveTab(tab.id)}
           >
             {tab.label}
