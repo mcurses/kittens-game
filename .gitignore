@@ -11,3 +11,13 @@ coverage/
 *.db*
 *.bak
 .DS_Store
+
+# Asset generation lives on the design-systems-core branch (and eventually a
+# separate repo). Main ships only the optimized webp exports under
+# assets/exports/ — never the raw generations or the pipeline.
+assets/higgsfield/
+kittens-game-design-system/
+packages/cli/src/generate-asset-gemini.ts
+packages/cli/src/generate-kitten-prompts.ts
+scripts/check-css-coverage.mjs
+.stylelintrc.json
