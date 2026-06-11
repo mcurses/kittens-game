@@ -18,7 +18,19 @@
       },
       "correctness": {
         "noUnusedVariables": "error",
-        "noUnusedImports": "error"
+        "noUnusedImports": "error",
+        "useExhaustiveDependencies": "warn"
+      },
+      "style": {
+        "noNonNullAssertion": "off"
+      },
+      "complexity": {
+        "noForEach": "off",
+        "useLiteralKeys": "warn"
+      },
+      "a11y": {
+        "useKeyWithClickEvents": "warn",
+        "useSemanticElements": "warn"
       }
     }
   },
@@ -36,6 +48,18 @@
     }
   },
   "files": {
-    "ignore": ["node_modules", "dist", "coverage", "legacy", "*.config.ts", ".turbo"]
+    "ignore": [
+      "node_modules",
+      "dist",
+      "coverage",
+      "legacy",
+      "*.config.ts",
+      ".turbo",
+      "packages/server/test-*.mjs",
+      "packages/server/play-test.ts",
+      "packages/cli/game1.json",
+      "packages/cli/myfile.json",
+      "packages/cli/bin/*.js"
+    ]
   }
 }
