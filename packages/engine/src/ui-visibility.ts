@@ -1,4 +1,5 @@
 import type { SerializedGameState } from "./state.js";
+import { CRAFT_DEFS } from "./workshop.js";
 
 export type UiMainTabId =
   | "buildings"
@@ -157,8 +158,16 @@ function isResourceUnlocked(state: SerializableStateLike, name: string): boolean
       const races = asRecord(asRecord(asRecord(state).diplomacy).races);
       return getBoolean(asRecord(races.zebras), "unlocked");
     }
-    default:
-      return false;
+    default: {
+      // Resource is visible once an unlocked craft produces it AND the player
+      // has at least one unit of any input — mirrors the legacy reveal pacing
+      // (wood appears after first catnip, beam after first wood, etc.).
+      const crafts = asRecord(asRecord(asRecord(state).workshop).crafts);
+      if (!getBoolean(asRecord(crafts[name]), "unlocked")) return false;
+      const def = CRAFT_DEFS.find((d) => d.name === name);
+      if (!def) return false;
+      return def.prices.some((p) => getResourceValue(state, p.name) > 0);
+    }
   }
 }
 
@@ -194,7 +203,7 @@ function getVillageFreeKittens(state: SerializableStateLike): number {
   return Math.max(0, getNumber(village, "kittens") - assigned);
 }
 
-function getVillageTitle(kittens: number): string {
+export function getVillageTitle(kittens: number): string {
   if (kittens > 10000) return "Deities";
   if (kittens > 5000) return "Elders";
   if (kittens > 2000) return "Union";

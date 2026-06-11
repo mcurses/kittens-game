@@ -6,7 +6,7 @@ import { createInitialState } from "./state.js";
 import { tick } from "./tick.js";
 import { applyAction } from "./actions.js";
 import type { Kitten } from "./village.js";
-import { JOB_DEFS, LUXURY_RESOURCE_NAMES, UNCOMMON_RESOURCE_NAMES, VillageManager, applyHoldFestival, applyHunt, computePollutionHappines, createInitialVillage, generateKitten, getLeaderBonus, totalAssignedKittens } from "./village.js";
+import { JOB_DEFS, LUXURY_RESOURCE_NAMES, UNCOMMON_RESOURCE_NAMES, VillageManager, applyHoldFestival, applyHunt, computePollutionHappines, createInitialVillage, generateKitten, getFavoriteContributions, getLeaderBonus, totalAssignedKittens } from "./village.js";
 
 describe("JOB_DEFS", () => {
   it("contains all core jobs", () => {
@@ -51,6 +51,35 @@ describe("createInitialVillage", () => {
     for (const def of JOB_DEFS) {
       expect(village.jobs[def.name]?.value).toBe(0);
     }
+  });
+
+  it("starts with the default village name", () => {
+    expect(createInitialVillage().name).toBe("Bonfire");
+  });
+});
+
+describe("RENAME_VILLAGE action — serialize round-trip", () => {
+  it("persists a renamed village across serialize + load", async () => {
+    // The bug we're guarding: state.ts:serialize() once omitted village.name,
+    // so the new name was lost the moment the server persisted state.
+    const { serialize } = await import("./state.js");
+    const initial = { ...createInitialState(), village: createInitialVillage() };
+    const renamed = applyAction(initial, { type: "RENAME_VILLAGE", name: "MyCity" });
+    expect(renamed.village.name).toBe("MyCity");
+
+    const serialized = serialize(renamed);
+    expect(serialized.village.name).toBe("MyCity");
+
+    // load round-trip
+    const manager = new VillageManager();
+    const loaded = manager.load(serialized.village, initial);
+    expect(loaded.village.name).toBe("MyCity");
+  });
+
+  it("rejects invalid names (does not mutate state)", () => {
+    const initial = { ...createInitialState(), village: createInitialVillage() };
+    const renamed = applyAction(initial, { type: "RENAME_VILLAGE", name: "  " });
+    expect(renamed.village.name).toBe("Bonfire");
   });
 });
 
@@ -689,8 +718,8 @@ describe("Story 48-04: Individual kitten state", () => {
 
   it("kitten death removes from sim preferring non-favorite non-leader", () => {
     const base = createInitialState();
-    const k1: Kitten = { id: "k1", name: "A", surname: "S", age: 5, trait: "none", job: null, skills: {}, rank: 0, exp: 0, isFavorite: true, isLeader: false };
-    const k2: Kitten = { id: "k2", name: "B", surname: "S", age: 5, trait: "none", job: null, skills: {}, rank: 0, exp: 0, isFavorite: false, isLeader: false };
+    const k1: Kitten = { id: "k1", name: "A", surname: "S", age: 5, trait: "none", job: null, skills: {}, rank: 0, exp: 0, isFavorite: true, isLeader: false, birthYear: 0, appearance: { breed: "tabby", body: "slim", eyes: "large-amber", accessory: null }, originStory: "", traitFlavor: "", lifeEvents: [], portraitPath: null, motherId: null, fatherId: null, childIds: [] };
+    const k2: Kitten = { id: "k2", name: "B", surname: "S", age: 5, trait: "none", job: null, skills: {}, rank: 0, exp: 0, isFavorite: false, isLeader: false, birthYear: 0, appearance: { breed: "tabby", body: "slim", eyes: "large-amber", accessory: null }, originStory: "", traitFlavor: "", lifeEvents: [], portraitPath: null, motherId: null, fatherId: null, childIds: [] };
     const state = {
       ...base,
       village: { ...base.village, kittens: 2, sim: [k1, k2] },
@@ -707,7 +736,7 @@ describe("Story 48-04: Individual kitten state", () => {
 
   it("job assignment updates kitten.job in sim", () => {
     const base = createInitialState();
-    const k1: Kitten = { id: "k1", name: "A", surname: "S", age: 5, trait: "none", job: null, skills: {}, rank: 0, exp: 0, isFavorite: false, isLeader: false };
+    const k1: Kitten = { id: "k1", name: "A", surname: "S", age: 5, trait: "none", job: null, skills: {}, rank: 0, exp: 0, isFavorite: false, isLeader: false, birthYear: 0, appearance: { breed: "tabby", body: "slim", eyes: "large-amber", accessory: null }, originStory: "", traitFlavor: "", lifeEvents: [], portraitPath: null, motherId: null, fatherId: null, childIds: [] };
     const state = {
       ...base,
       village: { ...base.village, kittens: 1, sim: [k1] },
@@ -719,7 +748,7 @@ describe("Story 48-04: Individual kitten state", () => {
 
   it("skill growth per tick for assigned kittens", () => {
     const base = createInitialState();
-    const k1: Kitten = { id: "k1", name: "A", surname: "S", age: 5, trait: "none", job: "farmer", skills: {}, rank: 0, exp: 0, isFavorite: false, isLeader: false };
+    const k1: Kitten = { id: "k1", name: "A", surname: "S", age: 5, trait: "none", job: "farmer", skills: {}, rank: 0, exp: 0, isFavorite: false, isLeader: false, birthYear: 0, appearance: { breed: "tabby", body: "slim", eyes: "large-amber", accessory: null }, originStory: "", traitFlavor: "", lifeEvents: [], portraitPath: null, motherId: null, fatherId: null, childIds: [] };
     const state = {
       ...base,
       village: { ...base.village, kittens: 1, sim: [k1], jobs: { ...base.village.jobs, farmer: { value: 1 } } },
@@ -732,7 +761,7 @@ describe("Story 48-04: Individual kitten state", () => {
 
   it("save and load round-trips sim array", () => {
     const base = createInitialState();
-    const k1: Kitten = { id: "k1", name: "A", surname: "S", age: 10, trait: "engineer", job: "miner", skills: { miner: 5.5 }, rank: 2, exp: 1000, isFavorite: true, isLeader: false };
+    const k1: Kitten = { id: "k1", name: "A", surname: "S", age: 10, trait: "engineer", job: "miner", skills: { miner: 5.5 }, rank: 2, exp: 1000, isFavorite: true, isLeader: false, birthYear: 0, appearance: { breed: "tabby", body: "slim", eyes: "large-amber", accessory: null }, originStory: "", traitFlavor: "", lifeEvents: [], portraitPath: null, motherId: null, fatherId: null, childIds: [] };
     const state = {
       ...base,
       village: { ...base.village, kittens: 1, sim: [k1] },
@@ -746,6 +775,92 @@ describe("Story 48-04: Individual kitten state", () => {
     expect(loaded.village.sim[0]?.skills.miner).toBe(5.5);
     expect(loaded.village.sim[0]?.rank).toBe(2);
     expect(loaded.village.sim[0]?.isFavorite).toBe(true);
+  });
+});
+
+// ── Story: Backstory-Fill on load (reichere Census-Timeline) ─────────────────
+
+describe("backstory fill on load", () => {
+  /** Build a save-shaped object with one kitten whose lifeEvents are only the spawn-event. */
+  function singleKittenSave(age: number): unknown {
+    return {
+      kittens: 1,
+      kittenProgress: 0,
+      jobs: {},
+      happiness: 1,
+      deadKittens: 0,
+      leader: null,
+      sim: [{
+        id: "kfix", name: "Mittens", surname: "Smoke",
+        age, trait: "scientist", job: "scholar",
+        skills: {}, rank: 0, exp: 0,
+        isFavorite: false, isLeader: false,
+        birthYear: 0,
+        appearance: { breed: "tabby", body: "slim", eyes: "large-amber", accessory: null },
+        originStory: "spawned for test", traitFlavor: "test flavor",
+        lifeEvents: [{ year: 0, kind: "spawn", text: "Geboren im Dorf." }],
+        portraitPath: null,
+        motherId: null, fatherId: null, childIds: [],
+      }],
+    };
+  }
+
+  it("fills 1–4 backstory events for an old kitten with only a spawn-event", () => {
+    const base = createInitialState();
+    const initial = { ...base, calendar: { ...base.calendar, year: 20 } };
+    const loaded = new VillageManager().load(singleKittenSave(20) as import("@kittens/shared").Serializable, initial);
+    const k = loaded.village.sim[0]!;
+    expect(k.lifeEvents.length).toBeGreaterThan(1);
+    expect(k.lifeEvents.length).toBeLessThanOrEqual(5); // spawn + up to 4
+    expect(k.lifeEvents.every((e) => /^Im Jahr \d+/.test(e.text) || e.kind === "spawn")).toBe(true);
+  });
+
+  it("is deterministic — same save loads to identical events", () => {
+    const base = createInitialState();
+    const initial = { ...base, calendar: { ...base.calendar, year: 20 } };
+    const save = singleKittenSave(20) as import("@kittens/shared").Serializable;
+    const a = new VillageManager().load(save, initial);
+    const b = new VillageManager().load(save, initial);
+    expect(a.village.sim[0]!.lifeEvents).toEqual(b.village.sim[0]!.lifeEvents);
+  });
+
+  it("skips kittens younger than 3 years", () => {
+    const base = createInitialState();
+    const initial = { ...base, calendar: { ...base.calendar, year: 2 } };
+    const loaded = new VillageManager().load(singleKittenSave(2) as import("@kittens/shared").Serializable, initial);
+    const k = loaded.village.sim[0]!;
+    expect(k.lifeEvents.length).toBe(1); // only spawn
+  });
+
+  it("idempotent — re-loading a previously filled save adds nothing", () => {
+    const base = createInitialState();
+    const initial = { ...base, calendar: { ...base.calendar, year: 20 } };
+    const onceLoaded = new VillageManager().load(singleKittenSave(20) as import("@kittens/shared").Serializable, initial);
+    const reSaved = new VillageManager().save(onceLoaded);
+    const twiceLoaded = new VillageManager().load(reSaved, initial);
+    expect(twiceLoaded.village.sim[0]!.lifeEvents).toEqual(onceLoaded.village.sim[0]!.lifeEvents);
+  });
+
+  it("round-trips relatedKittenId through save/load", () => {
+    const base = createInitialState();
+    const k1: Kitten = {
+      id: "k1", name: "A", surname: "S", age: 10, trait: "none", job: null,
+      skills: {}, rank: 0, exp: 0, isFavorite: false, isLeader: false,
+      birthYear: 0,
+      appearance: { breed: "tabby", body: "slim", eyes: "large-amber", accessory: null },
+      originStory: "", traitFlavor: "",
+      lifeEvents: [
+        { year: 0, kind: "spawn", text: "geboren" },
+        { year: 5, kind: "yearly", text: "verliebte sich in B", relatedKittenId: "k2" },
+      ],
+      portraitPath: null, motherId: null, fatherId: null, childIds: [],
+    };
+    const state = { ...base, village: { ...base.village, kittens: 1, sim: [k1] } };
+    const manager = new VillageManager();
+    const loaded = manager.load(manager.save(state), createInitialState());
+    const ev = loaded.village.sim[0]!.lifeEvents.find((e) => e.relatedKittenId === "k2");
+    expect(ev).toBeDefined();
+    expect(ev!.text).toContain("verliebte sich in B");
   });
 });
 
@@ -799,7 +914,7 @@ describe("Story 48-03: Bulk hunt with amount", () => {
 describe("Story 48-07: Kitten management actions", () => {
   it("PROMOTE_KITTEN increments rank and deducts gold and exp", () => {
     const base = createInitialState();
-    const k1: Kitten = { id: "k1", name: "A", surname: "S", age: 5, trait: "none", job: "farmer", skills: {}, rank: 0, exp: 600, isFavorite: false, isLeader: false };
+    const k1: Kitten = { id: "k1", name: "A", surname: "S", age: 5, trait: "none", job: "farmer", skills: {}, rank: 0, exp: 600, isFavorite: false, isLeader: false, birthYear: 0, appearance: { breed: "tabby", body: "slim", eyes: "large-amber", accessory: null }, originStory: "", traitFlavor: "", lifeEvents: [], portraitPath: null, motherId: null, fatherId: null, childIds: [] };
     const state = {
       ...base,
       village: { ...base.village, kittens: 1, sim: [k1], jobs: { farmer: { value: 1 } } },
@@ -814,7 +929,7 @@ describe("Story 48-07: Kitten management actions", () => {
 
   it("PROMOTE_KITTEN fails if not enough exp", () => {
     const base = createInitialState();
-    const k1: Kitten = { id: "k1", name: "A", surname: "S", age: 5, trait: "none", job: null, skills: {}, rank: 0, exp: 100, isFavorite: false, isLeader: false };
+    const k1: Kitten = { id: "k1", name: "A", surname: "S", age: 5, trait: "none", job: null, skills: {}, rank: 0, exp: 100, isFavorite: false, isLeader: false, birthYear: 0, appearance: { breed: "tabby", body: "slim", eyes: "large-amber", accessory: null }, originStory: "", traitFlavor: "", lifeEvents: [], portraitPath: null, motherId: null, fatherId: null, childIds: [] };
     const state = {
       ...base,
       village: { ...base.village, kittens: 1, sim: [k1] },
@@ -826,7 +941,7 @@ describe("Story 48-07: Kitten management actions", () => {
 
   it("PROMOTE_KITTEN fails if not enough gold", () => {
     const base = createInitialState();
-    const k1: Kitten = { id: "k1", name: "A", surname: "S", age: 5, trait: "none", job: null, skills: {}, rank: 0, exp: 600, isFavorite: false, isLeader: false };
+    const k1: Kitten = { id: "k1", name: "A", surname: "S", age: 5, trait: "none", job: null, skills: {}, rank: 0, exp: 600, isFavorite: false, isLeader: false, birthYear: 0, appearance: { breed: "tabby", body: "slim", eyes: "large-amber", accessory: null }, originStory: "", traitFlavor: "", lifeEvents: [], portraitPath: null, motherId: null, fatherId: null, childIds: [] };
     const state = {
       ...base,
       village: { ...base.village, kittens: 1, sim: [k1] },
@@ -838,7 +953,7 @@ describe("Story 48-07: Kitten management actions", () => {
 
   it("TOGGLE_FAVORITE flips isFavorite", () => {
     const base = createInitialState();
-    const k1: Kitten = { id: "k1", name: "A", surname: "S", age: 5, trait: "none", job: null, skills: {}, rank: 0, exp: 0, isFavorite: false, isLeader: false };
+    const k1: Kitten = { id: "k1", name: "A", surname: "S", age: 5, trait: "none", job: null, skills: {}, rank: 0, exp: 0, isFavorite: false, isLeader: false, birthYear: 0, appearance: { breed: "tabby", body: "slim", eyes: "large-amber", accessory: null }, originStory: "", traitFlavor: "", lifeEvents: [], portraitPath: null, motherId: null, fatherId: null, childIds: [] };
     const state = {
       ...base,
       village: { ...base.village, kittens: 1, sim: [k1] },
@@ -852,7 +967,7 @@ describe("Story 48-07: Kitten management actions", () => {
 
   it("UNASSIGN_KITTEN removes kitten from job", () => {
     const base = createInitialState();
-    const k1: Kitten = { id: "k1", name: "A", surname: "S", age: 5, trait: "none", job: "farmer", skills: {}, rank: 0, exp: 0, isFavorite: false, isLeader: false };
+    const k1: Kitten = { id: "k1", name: "A", surname: "S", age: 5, trait: "none", job: "farmer", skills: {}, rank: 0, exp: 0, isFavorite: false, isLeader: false, birthYear: 0, appearance: { breed: "tabby", body: "slim", eyes: "large-amber", accessory: null }, originStory: "", traitFlavor: "", lifeEvents: [], portraitPath: null, motherId: null, fatherId: null, childIds: [] };
     const state = {
       ...base,
       village: { ...base.village, kittens: 1, sim: [k1], jobs: { farmer: { value: 1 } } },
@@ -864,7 +979,7 @@ describe("Story 48-07: Kitten management actions", () => {
 
   it("UNASSIGN_KITTEN is no-op if kitten has no job", () => {
     const base = createInitialState();
-    const k1: Kitten = { id: "k1", name: "A", surname: "S", age: 5, trait: "none", job: null, skills: {}, rank: 0, exp: 0, isFavorite: false, isLeader: false };
+    const k1: Kitten = { id: "k1", name: "A", surname: "S", age: 5, trait: "none", job: null, skills: {}, rank: 0, exp: 0, isFavorite: false, isLeader: false, birthYear: 0, appearance: { breed: "tabby", body: "slim", eyes: "large-amber", accessory: null }, originStory: "", traitFlavor: "", lifeEvents: [], portraitPath: null, motherId: null, fatherId: null, childIds: [] };
     const state = {
       ...base,
       village: { ...base.village, kittens: 1, sim: [k1] },
@@ -879,8 +994,8 @@ describe("Story 48-07: Kitten management actions", () => {
 describe("Story 48-08: Leader and government", () => {
   it("SET_LEADER marks a kitten as leader and clears previous leader", () => {
     const base = createInitialState();
-    const k1: Kitten = { id: "k1", name: "A", surname: "S", age: 5, trait: "scientist", job: null, skills: {}, rank: 0, exp: 0, isFavorite: false, isLeader: false };
-    const k2: Kitten = { id: "k2", name: "B", surname: "S", age: 5, trait: "engineer", job: null, skills: {}, rank: 0, exp: 0, isFavorite: false, isLeader: false };
+    const k1: Kitten = { id: "k1", name: "A", surname: "S", age: 5, trait: "scientist", job: null, skills: {}, rank: 0, exp: 0, isFavorite: false, isLeader: false, birthYear: 0, appearance: { breed: "tabby", body: "slim", eyes: "large-amber", accessory: null }, originStory: "", traitFlavor: "", lifeEvents: [], portraitPath: null, motherId: null, fatherId: null, childIds: [] };
+    const k2: Kitten = { id: "k2", name: "B", surname: "S", age: 5, trait: "engineer", job: null, skills: {}, rank: 0, exp: 0, isFavorite: false, isLeader: false, birthYear: 0, appearance: { breed: "tabby", body: "slim", eyes: "large-amber", accessory: null }, originStory: "", traitFlavor: "", lifeEvents: [], portraitPath: null, motherId: null, fatherId: null, childIds: [] };
     const state = {
       ...base,
       village: { ...base.village, kittens: 2, sim: [k1, k2], leader: null },
@@ -898,7 +1013,7 @@ describe("Story 48-08: Leader and government", () => {
 
   it("REMOVE_LEADER demotes the current leader", () => {
     const base = createInitialState();
-    const k1: Kitten = { id: "k1", name: "A", surname: "S", age: 5, trait: "scientist", job: null, skills: {}, rank: 0, exp: 0, isFavorite: false, isLeader: true };
+    const k1: Kitten = { id: "k1", name: "A", surname: "S", age: 5, trait: "scientist", job: null, skills: {}, rank: 0, exp: 0, isFavorite: false, isLeader: true, birthYear: 0, appearance: { breed: "tabby", body: "slim", eyes: "large-amber", accessory: null }, originStory: "", traitFlavor: "", lifeEvents: [], portraitPath: null, motherId: null, fatherId: null, childIds: [] };
     const state = {
       ...base,
       village: { ...base.village, kittens: 1, sim: [k1], leader: "k1" },
@@ -911,7 +1026,7 @@ describe("Story 48-08: Leader and government", () => {
   it("getLeaderBonus returns correct bonus for leader traits", () => {
     // Import the function
 
-    const k: Kitten = { id: "k1", name: "A", surname: "S", age: 5, trait: "scientist", job: null, skills: {}, rank: 2, exp: 0, isFavorite: false, isLeader: true };
+    const k: Kitten = { id: "k1", name: "A", surname: "S", age: 5, trait: "scientist", job: null, skills: {}, rank: 2, exp: 0, isFavorite: false, isLeader: true, birthYear: 0, appearance: { breed: "tabby", body: "slim", eyes: "large-amber", accessory: null }, originStory: "", traitFlavor: "", lifeEvents: [], portraitPath: null, motherId: null, fatherId: null, childIds: [] };
     const bonus = getLeaderBonus(k);
     // scientist +5% science discount, rank 2 → scaling = (2+1)/1.4 ≈ 2.142
     expect(bonus!.type).toBe("scienceDiscount");
@@ -919,7 +1034,7 @@ describe("Story 48-08: Leader and government", () => {
   });
 
   it("getLeaderBonus rank 0 uses scale factor 1.0", () => {
-    const k: Kitten = { id: "k1", name: "A", surname: "S", age: 5, trait: "engineer", job: null, skills: {}, rank: 0, exp: 0, isFavorite: false, isLeader: true };
+    const k: Kitten = { id: "k1", name: "A", surname: "S", age: 5, trait: "engineer", job: null, skills: {}, rank: 0, exp: 0, isFavorite: false, isLeader: true, birthYear: 0, appearance: { breed: "tabby", body: "slim", eyes: "large-amber", accessory: null }, originStory: "", traitFlavor: "", lifeEvents: [], portraitPath: null, motherId: null, fatherId: null, childIds: [] };
     const bonus = getLeaderBonus(k);
     expect(bonus!.type).toBe("craftBonus");
     expect(bonus!.value).toBeCloseTo(0.05);
@@ -927,7 +1042,7 @@ describe("Story 48-08: Leader and government", () => {
 
   it("getLeaderBonus returns null for 'none' trait", () => {
 
-    const k: Kitten = { id: "k1", name: "A", surname: "S", age: 5, trait: "none", job: null, skills: {}, rank: 0, exp: 0, isFavorite: false, isLeader: true };
+    const k: Kitten = { id: "k1", name: "A", surname: "S", age: 5, trait: "none", job: null, skills: {}, rank: 0, exp: 0, isFavorite: false, isLeader: true, birthYear: 0, appearance: { breed: "tabby", body: "slim", eyes: "large-amber", accessory: null }, originStory: "", traitFlavor: "", lifeEvents: [], portraitPath: null, motherId: null, fatherId: null, childIds: [] };
     const bonus = getLeaderBonus(k);
     expect(bonus).toBeNull();
   });
@@ -1638,3 +1753,221 @@ describe("Epic 48: Village multi-tick integration", () => {
     expect(state.village.jobs.farmer!.value).toBe(0);
   });
 });
+
+// ── Trait↔Job-Affinity + Auto-Pick + Favorite-Boost ─────────────────────────
+
+function makeTestKitten(overrides: Partial<Kitten> & Pick<Kitten, "id" | "trait">): Kitten {
+  return {
+    name: overrides.id, surname: "S", age: 5,
+    job: null, skills: {}, rank: 0, exp: 0, isFavorite: false, isLeader: false,
+    birthYear: 0,
+    appearance: { breed: "tabby", body: "slim", eyes: "large-amber", accessory: null },
+    originStory: "", traitFlavor: "", lifeEvents: [], portraitPath: null,
+    motherId: null, fatherId: null, childIds: [],
+    ...overrides,
+  };
+}
+
+describe("UNASSIGN_JOB logs jobLeft lifeEvent", () => {
+  it("appends jobLeft/quotaCut on counter decrement", () => {
+    const base = createInitialState();
+    const k1 = makeTestKitten({ id: "k1", trait: "none", job: "farmer" });
+    const state = {
+      ...base,
+      village: {
+        ...base.village,
+        kittens: 1,
+        sim: [k1],
+        jobs: { ...base.village.jobs, farmer: { value: 1 } },
+      },
+    };
+    const next = applyAction(state, { type: "UNASSIGN_JOB", job: "farmer" });
+    expect(next.village.sim[0]!.job).toBeNull();
+    const events = next.village.sim[0]!.lifeEvents;
+    const last = events[events.length - 1]!;
+    expect(last.kind).toBe("jobLeft");
+    expect(last.text).toMatch(/Quote/);
+  });
+});
+
+describe("getFavoriteContributions", () => {
+  it("returns half-leader bonus for a single favorite", () => {
+    const k = makeTestKitten({ id: "k1", trait: "metallurgist", isFavorite: true });
+    const contrib = getFavoriteContributions([k]);
+    // leader base = 0.10, rank-0 scale = 1.0, halved → 0.05
+    expect(contrib.smelterBonus).toBeCloseTo(0.05, 5);
+  });
+
+  it("caps at one contribution per trait (no exploit via mass-favoriting)", () => {
+    const sim = [
+      makeTestKitten({ id: "k1", trait: "metallurgist", isFavorite: true }),
+      makeTestKitten({ id: "k2", trait: "metallurgist", isFavorite: true }),
+      makeTestKitten({ id: "k3", trait: "metallurgist", isFavorite: true }),
+    ];
+    const contrib = getFavoriteContributions(sim);
+    expect(contrib.smelterBonus).toBeCloseTo(0.05, 5);
+  });
+
+  it("stacks across distinct traits", () => {
+    const sim = [
+      makeTestKitten({ id: "k1", trait: "metallurgist", isFavorite: true }),
+      makeTestKitten({ id: "k2", trait: "scientist", isFavorite: true }),
+    ];
+    const contrib = getFavoriteContributions(sim);
+    expect(contrib.smelterBonus).toBeCloseTo(0.05, 5);
+    expect(contrib.scienceDiscount).toBeCloseTo(0.025, 5);
+  });
+
+  it("skips leader (leader path applies full bonus elsewhere)", () => {
+    const k = makeTestKitten({ id: "k1", trait: "metallurgist", isFavorite: true, isLeader: true });
+    const contrib = getFavoriteContributions([k]);
+    expect(contrib.smelterBonus).toBeUndefined();
+  });
+
+  it("skips trait 'none'", () => {
+    const k = makeTestKitten({ id: "k1", trait: "none", isFavorite: true });
+    const contrib = getFavoriteContributions([k]);
+    expect(Object.keys(contrib)).toHaveLength(0);
+  });
+});
+
+// ── Death & community memory (Paket F) ──────────────────────────────────────
+
+describe("Death-Bereavement community memory", () => {
+  it("logs 'died' on victim and 'bereavement' on 1-3 survivors", () => {
+    const base = createInitialState();
+    const sim = [
+      makeTestKitten({ id: "k1", trait: "none", job: "farmer" }),
+      makeTestKitten({ id: "k2", trait: "none", job: "farmer" }),
+      makeTestKitten({ id: "k3", trait: "none" }),
+      makeTestKitten({ id: "k4", trait: "none" }),
+    ];
+    const state = {
+      ...base,
+      village: { ...base.village, kittens: 4, sim },
+      resources: { ...base.resources, catnip: { value: -1, maxValue: 100 } },
+      effectCache: { ...base.effectCache, maxKittens: 10 },
+    };
+    const next = new VillageManager().update(state);
+    // One kitten removed
+    expect(next.village.sim.length).toBe(3);
+    // Survivors get bereavement events — count ≥1, ≤3
+    const bereaved = next.village.sim.filter((k) =>
+      k.lifeEvents.some((e) => e.kind === "bereavement"),
+    );
+    expect(bereaved.length).toBeGreaterThanOrEqual(1);
+    expect(bereaved.length).toBeLessThanOrEqual(3);
+  });
+
+  it("bereavement text mentions the victim by name", () => {
+    const base = createInitialState();
+    const sim = [
+      makeTestKitten({ id: "k1", name: "Mira", surname: "Smoke", trait: "none", job: "farmer" }),
+      makeTestKitten({ id: "k2", trait: "none", job: "farmer" }),
+      makeTestKitten({ id: "k3", trait: "none" }),
+    ];
+    const state = {
+      ...base,
+      village: { ...base.village, kittens: 3, sim },
+      resources: { ...base.resources, catnip: { value: -1, maxValue: 100 } },
+      effectCache: { ...base.effectCache, maxKittens: 10 },
+    };
+    const next = new VillageManager().update(state);
+    const bereaved = next.village.sim.find((k) =>
+      k.lifeEvents.some((e) => e.kind === "bereavement"),
+    );
+    const event = bereaved?.lifeEvents.find((e) => e.kind === "bereavement");
+    expect(event?.text).toMatch(/Mira/);
+  });
+});
+
+// ── Family lineage (Paket G) ─────────────────────────────────────────────────
+
+describe("generateKitten with parents", () => {
+  it("sets motherId/fatherId when ≥2 adult candidates are supplied", () => {
+    const adults = [
+      makeTestKitten({ id: "kA", trait: "scientist", age: 10 }),
+      makeTestKitten({ id: "kB", trait: "merchant", age: 20 }),
+    ];
+    const child = generateKitten(50, adults);
+    expect(child.motherId).not.toBeNull();
+    expect(child.fatherId).not.toBeNull();
+    // Must reference real ids from the pool, not arbitrary strings
+    expect([adults[0]!.id, adults[1]!.id]).toContain(child.motherId);
+    expect([adults[0]!.id, adults[1]!.id]).toContain(child.fatherId);
+    expect(child.motherId).not.toBe(child.fatherId);
+    expect(child.age).toBe(0);
+    expect(child.birthYear).toBe(50);
+  });
+
+  it("falls back to legacy seed-spawn when <2 adults", () => {
+    const child = generateKitten(0, []);
+    expect(child.motherId).toBeNull();
+    expect(child.fatherId).toBeNull();
+    // Legacy spawn age was 5..14, never 0 — proves the no-parent path
+    expect(child.age).toBeGreaterThanOrEqual(5);
+  });
+
+  it("births log parenthood lifeEvents on both parents", () => {
+    const base = createInitialState();
+    const sim = [
+      makeTestKitten({ id: "kA", trait: "scientist", age: 10 }),
+      makeTestKitten({ id: "kB", trait: "merchant", age: 20 }),
+    ];
+    const state = {
+      ...base,
+      village: { ...base.village, kittens: 2, kittenProgress: 0.99, sim },
+      effectCache: { ...base.effectCache, kittensPerTickBase: 0.02, maxKittens: 10 },
+    };
+    const next = new VillageManager().update(state);
+    expect(next.village.sim.length).toBe(3);
+    const parents = next.village.sim.filter((k) => k.id === "kA" || k.id === "kB");
+    for (const p of parents) {
+      const lastEvent = p.lifeEvents[p.lifeEvents.length - 1];
+      expect(lastEvent?.kind).toBe("parenthood");
+      expect(p.childIds.length).toBeGreaterThan(0);
+    }
+  });
+});
+
+// ── Festival (Paket H) ───────────────────────────────────────────────────────
+
+describe("applyHoldFestival logs festival lifeEvent on every kitten", () => {
+  it("appends festival event to all sim kittens", () => {
+    const base = createInitialState();
+    const sim = [
+      makeTestKitten({ id: "k1", trait: "none" }),
+      makeTestKitten({ id: "k2", trait: "none" }),
+      makeTestKitten({ id: "k3", trait: "none" }),
+    ];
+    const state = {
+      ...base,
+      village: { ...base.village, kittens: 3, sim },
+      resources: {
+        ...base.resources,
+        catpower: { value: 5000, maxValue: 10000 },
+        culture: { value: 10000, maxValue: 20000 },
+        parchment: { value: 5000, maxValue: 10000 },
+      },
+    };
+    const next = applyHoldFestival(state);
+    expect(next.village.sim.length).toBe(3);
+    for (const k of next.village.sim) {
+      const last = k.lifeEvents[k.lifeEvents.length - 1];
+      expect(last?.kind).toBe("festival");
+    }
+  });
+
+  it("is a no-op (no events) when costs aren't met", () => {
+    const base = createInitialState();
+    const sim = [makeTestKitten({ id: "k1", trait: "none" })];
+    const state = {
+      ...base,
+      village: { ...base.village, kittens: 1, sim },
+      resources: { ...base.resources, catpower: { value: 0, maxValue: 100 } },
+    };
+    const next = applyHoldFestival(state);
+    expect(next).toBe(state);
+  });
+});
+

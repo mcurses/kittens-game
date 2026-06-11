@@ -225,6 +225,46 @@ describe("deriveUiVisibility", () => {
     expect(visibility.resources.temporalFlux?.visible).toBe(false);
   });
 
+  it("reveals a craftable resource once an input is held and its craft is unlocked", () => {
+    const visibility = deriveUiVisibility(
+      makeState({
+        resources: {
+          catnip: { value: 1, maxValue: 5000, perTick: 0, unlocked: true },
+          wood: { value: 0, maxValue: 200, perTick: 0, unlocked: false },
+          beam: { value: 0, maxValue: 0, perTick: 0, unlocked: false },
+        },
+        workshop: {
+          upgrades: {},
+          crafts: {
+            wood: { unlocked: true, engineers: 0 },
+            beam: { unlocked: true, engineers: 0 },
+          },
+        },
+      }),
+    );
+
+    expect(visibility.resources.wood?.visible).toBe(true);
+    // beam needs wood > 0 in addition to its craft being unlocked
+    expect(visibility.resources.beam?.visible).toBe(false);
+  });
+
+  it("hides a craftable resource when its craft is still locked", () => {
+    const visibility = deriveUiVisibility(
+      makeState({
+        resources: {
+          catnip: { value: 999, maxValue: 5000, perTick: 0, unlocked: true },
+          wood: { value: 0, maxValue: 200, perTick: 0, unlocked: false },
+        },
+        workshop: {
+          upgrades: {},
+          crafts: { wood: { unlocked: false, engineers: 0 } },
+        },
+      }),
+    );
+
+    expect(visibility.resources.wood?.visible).toBe(false);
+  });
+
   it("only shows the hunt action after archery and outside pacifism", () => {
     const locked = deriveUiVisibility(makeState());
     const unlocked = deriveUiVisibility(
