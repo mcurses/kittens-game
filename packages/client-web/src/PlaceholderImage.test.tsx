@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, cleanup } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
 import { PlaceholderImage } from "./PlaceholderImage";
 
@@ -38,26 +38,18 @@ describe("PlaceholderImage", () => {
     );
 
     rerender(<PlaceholderImage variant="book" />);
-    expect(screen.getByTestId("placeholder-image").className).toContain(
-      "placeholder-image--book",
-    );
+    expect(screen.getByTestId("placeholder-image").className).toContain("placeholder-image--book");
 
     rerender(<PlaceholderImage variant="job" />);
-    expect(screen.getByTestId("placeholder-image").className).toContain(
-      "placeholder-image--job",
-    );
+    expect(screen.getByTestId("placeholder-image").className).toContain("placeholder-image--job");
 
     rerender(<PlaceholderImage variant="map" />);
-    expect(screen.getByTestId("placeholder-image").className).toContain(
-      "placeholder-image--map",
-    );
+    expect(screen.getByTestId("placeholder-image").className).toContain("placeholder-image--map");
   });
 
   it("exposes the variant as a data attribute (for CSS hooks)", () => {
     render(<PlaceholderImage variant="book" />);
-    expect(screen.getByTestId("placeholder-image").getAttribute("data-variant")).toBe(
-      "book",
-    );
+    expect(screen.getByTestId("placeholder-image").getAttribute("data-variant")).toBe("book");
   });
 
   it("merges an extra className", () => {

@@ -85,7 +85,7 @@ export function isStorageLimited(
     const resource = resources[p.name];
     const value = resource?.value ?? 0;
     const maxValue = resource?.maxValue ?? 0;
-    if (p.val === Infinity) return true;
+    if (p.val === Number.POSITIVE_INFINITY) return true;
     return maxValue > 0 && p.val > maxValue && p.val > value;
   });
 }

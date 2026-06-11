@@ -48,9 +48,7 @@ export async function fetchSave(): Promise<SaveExportResponse> {
 }
 
 /** POST /api/game/load */
-export async function postLoad(
-  request: SaveImportRequest,
-): Promise<GameStateResponse> {
+export async function postLoad(request: SaveImportRequest): Promise<GameStateResponse> {
   const res = await fetch(`${BASE_URL}/api/game/load`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -61,9 +59,7 @@ export async function postLoad(
 }
 
 /** POST /api/game/reset */
-export async function postReset(
-  request?: GameResetRequest,
-): Promise<GameStateResponse> {
+export async function postReset(request?: GameResetRequest): Promise<GameStateResponse> {
   const res = await fetch(`${BASE_URL}/api/game/reset`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -74,10 +70,7 @@ export async function postReset(
 }
 
 /** POST /api/game/import-legacy */
-export async function postImportLegacy(
-  data: string,
-  slot = "default",
-): Promise<GameStateResponse> {
+export async function postImportLegacy(data: string, slot = "default"): Promise<GameStateResponse> {
   const suffix = slot !== "default" ? `?slot=${slot}` : "";
   const res = await fetch(`${BASE_URL}/api/game/import-legacy${suffix}`, {
     method: "POST",
@@ -85,7 +78,7 @@ export async function postImportLegacy(
     body: JSON.stringify({ data }),
   });
   if (!res.ok) {
-    const body = await res.json().catch(() => ({})) as { error?: string };
+    const body = (await res.json().catch(() => ({}))) as { error?: string };
     throw new Error(body.error ?? `Import failed: ${res.status}`);
   }
   return res.json() as Promise<GameStateResponse>;

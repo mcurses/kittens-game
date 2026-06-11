@@ -307,7 +307,7 @@ describe("BUY_SPACE_BUILDING", () => {
   });
 
   it("price scales with priceRatio on second purchase", () => {
-    const state = stateWithCathReached();
+    const _state = stateWithCathReached();
     const def = SPACE_BUILDING_DEFS.find((b) => b.name === "spaceStation");
     expect(def).toBeDefined();
     if (!def) return;

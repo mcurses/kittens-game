@@ -4,15 +4,15 @@ import { deriveUiVisibility } from "@kittens/engine";
 import React, { useState } from "react";
 import type { JobEntity, KittenEntity } from "./InspectorContext.js";
 import { useInspector } from "./InspectorContext.js";
-import { kittenAvatarPath } from "./kittenAvatar.js";
 import { PlaceholderImage } from "./PlaceholderImage.js";
+import { RenameVillageDialog } from "./RenameVillageDialog.js";
 import { useSlot } from "./SlotContext.js";
-import { ResourceIcon } from "./ui/index.js";
 import { JOB_FLAVOR } from "./flavorText.js";
 import { buildHappinessEntity } from "./happinessInspector.js";
+import { kittenAvatarPath } from "./kittenAvatar.js";
+import { ResourceIcon } from "./ui/index.js";
 import { useGameAction } from "./useGameAction.js";
 import { deriveVillageStage } from "./villageStage.js";
-import { RenameVillageDialog } from "./RenameVillageDialog.js";
 
 interface JobEntry {
   name: string;
@@ -90,7 +90,12 @@ function buildKittenEntity(k: CensusKitten, kittenNameById?: Record<string, stri
     exp: k.exp,
     isFavorite: k.isFavorite,
     isLeader: k.isLeader,
-    appearance: k.appearance ?? { breed: "tabby", body: "slim", eyes: "large-amber", accessory: null },
+    appearance: k.appearance ?? {
+      breed: "tabby",
+      body: "slim",
+      eyes: "large-amber",
+      accessory: null,
+    },
     originStory: k.originStory ?? "",
     traitFlavor: k.traitFlavor ?? "",
     lifeEvents: k.lifeEvents ?? [],
@@ -124,7 +129,7 @@ function newestLifeEventText(k: CensusKitten): string | null {
 function originShorthand(k: CensusKitten): string | null {
   const origin = k.originStory?.trim();
   if (!origin) return null;
-  return origin.length > 80 ? origin.slice(0, 78).trimEnd() + "…" : origin;
+  return origin.length > 80 ? `${origin.slice(0, 78).trimEnd()}…` : origin;
 }
 
 function extractCurrentYear(state: GameStateResponse): number {
@@ -172,7 +177,8 @@ function extractVillageInfo(state: GameStateResponse): VillageInfo {
   const calendar = raw.calendar as Record<string, unknown> | null | undefined;
   const festivalDays = typeof calendar?.festivalDays === "number" ? calendar.festivalDays : 0;
 
-  if (typeof village !== "object" || village === null) return { jobs: [], happiness: 1, festivalDays };
+  if (typeof village !== "object" || village === null)
+    return { jobs: [], happiness: 1, festivalDays };
   const v = village as Record<string, unknown>;
   const happiness = typeof v.happiness === "number" ? v.happiness : 1;
   const jobs = v.jobs;
@@ -199,13 +205,6 @@ function extractSim(state: GameStateResponse): CensusKitten[] {
   return sim as CensusKitten[];
 }
 
-function topSkills(skills: Record<string, number>, count: number): Array<{ name: string; level: number }> {
-  return Object.entries(skills)
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, count)
-    .map(([name, level]) => ({ name, level }));
-}
-
 export function JobsPanel({ state }: Props): React.ReactElement {
   const slot = useSlot();
   const { mutate, isPending } = useGameAction(slot);
@@ -219,27 +218,37 @@ export function JobsPanel({ state }: Props): React.ReactElement {
   const togglePill = React.useCallback((pill: CensusFilterPill) => {
     setCensusPills((prev) => {
       const next = new Set(prev);
-      if (next.has(pill)) next.delete(pill); else next.add(pill);
+      if (next.has(pill)) next.delete(pill);
+      else next.add(pill);
       return next;
     });
     setCensusPage(0);
   }, []);
 
   if (!state) {
-    return <div className="loading-text" data-testid="jobs-panel-loading">Loading…</div>;
+    return (
+      <div className="loading-text" data-testid="jobs-panel-loading">
+        Loading…
+      </div>
+    );
   }
 
   const { jobs, happiness, festivalDays } = extractVillageInfo(state);
   const happinessEntity = buildHappinessEntity(state);
   const visibility = deriveUiVisibility(state);
-  const visibleJobs = jobs.filter((job) => job.unlocked || visibility.jobs[job.name]?.visible === true);
+  const visibleJobs = jobs.filter(
+    (job) => job.unlocked || visibility.jobs[job.name]?.visible === true,
+  );
   const totalAssigned = jobs.reduce((sum, j) => sum + j.value, 0);
-  const villageRaw = (state as unknown as Record<string, unknown>).village as Record<string, unknown> | undefined;
+  const villageRaw = (state as unknown as Record<string, unknown>).village as
+    | Record<string, unknown>
+    | undefined;
   const totalKittens = typeof villageRaw?.kittens === "number" ? villageRaw.kittens : 0;
   const freeKittens = totalKittens - totalAssigned;
-  const villageName = typeof villageRaw?.name === "string" && villageRaw.name.trim() !== ""
-    ? villageRaw.name
-    : "Bonfire";
+  const villageName =
+    typeof villageRaw?.name === "string" && villageRaw.name.trim() !== ""
+      ? villageRaw.name
+      : "Bonfire";
   const buildingsRaw = (state as unknown as Record<string, unknown>).buildings as
     | Record<string, { val?: number }>
     | undefined;
@@ -323,82 +332,98 @@ export function JobsPanel({ state }: Props): React.ReactElement {
       ) : (
         <ul className="item-list">
           {visibleJobs.map((j) => (
-            <li key={j.name} data-testid={`job-${j.name}`} className="item-row job-row"
+            <li
+              key={j.name}
+              data-testid={`job-${j.name}`}
+              className="item-row job-row"
               onMouseEnter={() => setInspected(buildJobEntity(j.name))}
               onMouseLeave={clearInspected}
             >
               <div className="job-row__head">
-                <ResourceIcon name={j.name} size="xl" className="job-row__icon" aria-label={j.name} />
+                <ResourceIcon
+                  name={j.name}
+                  size="xl"
+                  className="job-row__icon"
+                  aria-label={j.name}
+                />
                 <div className="job-row__title">
                   <span className="item-row-name job-name">{j.name}</span>
-                  {JOB_FLAVOR[j.name] && (
-                    <span className="job-flavor">{JOB_FLAVOR[j.name]}</span>
-                  )}
+                  {JOB_FLAVOR[j.name] && <span className="job-flavor">{JOB_FLAVOR[j.name]}</span>}
                 </div>
               </div>
               <div className="job-row__controls">
                 <div className="job-stepper">
-                <button
-                  type="button"
-                  className="btn btn--secondary btn--xs"
-                  data-testid={`job-${j.name}-unassign-all`}
-                  disabled={isPending || j.value <= 0}
-                  onClick={() => mutate({ type: "UNASSIGN_JOB", job: j.name, count: j.value })}
-                  aria-label={`Remove all kittens from ${j.name}`}
-                >
-                  −All
-                </button>
-                <button
-                  type="button"
-                  className="btn btn--secondary btn--xs"
-                  data-testid={`job-${j.name}-unassign-5`}
-                  disabled={isPending || j.value <= 0}
-                  onClick={() => mutate({ type: "UNASSIGN_JOB", job: j.name, count: Math.min(5, j.value) })}
-                  aria-label={`Remove 5 kittens from ${j.name}`}
-                >
-                  −5
-                </button>
-                <button
-                  type="button"
-                  className="btn btn--secondary btn--icon"
-                  data-testid={`job-${j.name}-unassign`}
-                  disabled={isPending || j.value <= 0}
-                  onClick={() => mutate({ type: "UNASSIGN_JOB", job: j.name })}
-                  aria-label={`Remove kittens from ${j.name}`}
-                >
-                  −
-                </button>
-                <span className="job-count-display job-count">{j.value}</span>
-                <button
-                  type="button"
-                  className="btn btn--secondary btn--icon"
-                  data-testid={`job-${j.name}-assign`}
-                  disabled={isPending || freeKittens <= 0}
-                  onClick={(e) => mutate({ type: "ASSIGN_JOB", job: j.name, ...(e.shiftKey ? { count: freeKittens } : {}) })}
-                  aria-label={`Assign kittens to ${j.name}`}
-                >
-                  +
-                </button>
-                <button
-                  type="button"
-                  className="btn btn--secondary btn--xs"
-                  data-testid={`job-${j.name}-assign-5`}
-                  disabled={isPending || freeKittens <= 0}
-                  onClick={() => mutate({ type: "ASSIGN_JOB", job: j.name, count: Math.min(5, freeKittens) })}
-                  aria-label={`Assign 5 kittens to ${j.name}`}
-                >
-                  +5
-                </button>
-                <button
-                  type="button"
-                  className="btn btn--secondary btn--xs"
-                  data-testid={`job-${j.name}-assign-all`}
-                  disabled={isPending || freeKittens <= 0}
-                  onClick={() => mutate({ type: "ASSIGN_JOB", job: j.name, count: freeKittens })}
-                  aria-label={`Assign all free kittens to ${j.name}`}
-                >
-                  +All
-                </button>
+                  <button
+                    type="button"
+                    className="btn btn--secondary btn--xs"
+                    data-testid={`job-${j.name}-unassign-all`}
+                    disabled={isPending || j.value <= 0}
+                    onClick={() => mutate({ type: "UNASSIGN_JOB", job: j.name, count: j.value })}
+                    aria-label={`Remove all kittens from ${j.name}`}
+                  >
+                    −All
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn--secondary btn--xs"
+                    data-testid={`job-${j.name}-unassign-5`}
+                    disabled={isPending || j.value <= 0}
+                    onClick={() =>
+                      mutate({ type: "UNASSIGN_JOB", job: j.name, count: Math.min(5, j.value) })
+                    }
+                    aria-label={`Remove 5 kittens from ${j.name}`}
+                  >
+                    −5
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn--secondary btn--icon"
+                    data-testid={`job-${j.name}-unassign`}
+                    disabled={isPending || j.value <= 0}
+                    onClick={() => mutate({ type: "UNASSIGN_JOB", job: j.name })}
+                    aria-label={`Remove kittens from ${j.name}`}
+                  >
+                    −
+                  </button>
+                  <span className="job-count-display job-count">{j.value}</span>
+                  <button
+                    type="button"
+                    className="btn btn--secondary btn--icon"
+                    data-testid={`job-${j.name}-assign`}
+                    disabled={isPending || freeKittens <= 0}
+                    onClick={(e) =>
+                      mutate({
+                        type: "ASSIGN_JOB",
+                        job: j.name,
+                        ...(e.shiftKey ? { count: freeKittens } : {}),
+                      })
+                    }
+                    aria-label={`Assign kittens to ${j.name}`}
+                  >
+                    +
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn--secondary btn--xs"
+                    data-testid={`job-${j.name}-assign-5`}
+                    disabled={isPending || freeKittens <= 0}
+                    onClick={() =>
+                      mutate({ type: "ASSIGN_JOB", job: j.name, count: Math.min(5, freeKittens) })
+                    }
+                    aria-label={`Assign 5 kittens to ${j.name}`}
+                  >
+                    +5
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn--secondary btn--xs"
+                    data-testid={`job-${j.name}-assign-all`}
+                    disabled={isPending || freeKittens <= 0}
+                    onClick={() => mutate({ type: "ASSIGN_JOB", job: j.name, count: freeKittens })}
+                    aria-label={`Assign all free kittens to ${j.name}`}
+                  >
+                    +All
+                  </button>
                 </div>
               </div>
             </li>
@@ -458,13 +483,22 @@ interface CensusSectionProps {
 
 function CensusSection(props: CensusSectionProps): React.ReactElement {
   const {
-    state, censusPage, setCensusPage,
-    censusJobFilter, setCensusJobFilter,
-    censusTraitFilter, setCensusTraitFilter,
-    censusSort, setCensusSort,
-    censusPills, togglePill,
-    setInspected, clearInspected, setPinned,
-    mutate, isPending,
+    state,
+    censusPage,
+    setCensusPage,
+    censusJobFilter,
+    setCensusJobFilter,
+    censusTraitFilter,
+    setCensusTraitFilter,
+    censusSort,
+    setCensusSort,
+    censusPills,
+    togglePill,
+    setInspected,
+    clearInspected,
+    setPinned,
+    mutate,
+    isPending,
   } = props;
 
   const sim = React.useMemo(() => extractSim(state), [state]);
@@ -481,7 +515,9 @@ function CensusSection(props: CensusSectionProps): React.ReactElement {
     if (censusPills.size > 0) {
       out = out.filter((k) => {
         if (censusPills.has("featured")) {
-          const recentEvent = (k.lifeEvents ?? []).some((e) => e.year === currentYear && e.kind !== "spawn");
+          const recentEvent = (k.lifeEvents ?? []).some(
+            (e) => e.year === currentYear && e.kind !== "spawn",
+          );
           if (k.isLeader || k.isFavorite || recentEvent) return true;
           return false;
         }
@@ -508,7 +544,9 @@ function CensusSection(props: CensusSectionProps): React.ReactElement {
     else if (sortMode === "rank") out = [...out].sort((a, b) => b.rank - a.rank);
     else if (sortMode === "exp") out = [...out].sort((a, b) => (b.exp ?? 0) - (a.exp ?? 0));
     else if (sortMode === "interesting") {
-      out = [...out].sort((a, b) => interestingScore(b, currentYear) - interestingScore(a, currentYear));
+      out = [...out].sort(
+        (a, b) => interestingScore(b, currentYear) - interestingScore(a, currentYear),
+      );
     }
     return out;
   }, [sim, currentYear, censusJobFilter, censusTraitFilter, censusPills, censusSort, compactMode]);
@@ -551,19 +589,48 @@ function CensusSection(props: CensusSectionProps): React.ReactElement {
       )}
 
       <div className="panel-controls">
-        <select data-testid="census-filter-job" className="btn-select" value={censusJobFilter}
-          onChange={(e) => { setCensusJobFilter(e.target.value); setCensusPage(0); }}>
+        <select
+          data-testid="census-filter-job"
+          className="btn-select"
+          value={censusJobFilter}
+          onChange={(e) => {
+            setCensusJobFilter(e.target.value);
+            setCensusPage(0);
+          }}
+        >
           <option value="all">All jobs</option>
           <option value="free">Free</option>
-          {jobsInPop.map((j) => <option key={j} value={j}>{j}</option>)}
+          {jobsInPop.map((j) => (
+            <option key={j} value={j}>
+              {j}
+            </option>
+          ))}
         </select>
-        <select data-testid="census-filter-trait" className="btn-select" value={censusTraitFilter}
-          onChange={(e) => { setCensusTraitFilter(e.target.value); setCensusPage(0); }}>
+        <select
+          data-testid="census-filter-trait"
+          className="btn-select"
+          value={censusTraitFilter}
+          onChange={(e) => {
+            setCensusTraitFilter(e.target.value);
+            setCensusPage(0);
+          }}
+        >
           <option value="all">All traits</option>
-          {traitsInPop.map((t) => <option key={t} value={t}>{t}</option>)}
+          {traitsInPop.map((t) => (
+            <option key={t} value={t}>
+              {t}
+            </option>
+          ))}
         </select>
-        <select data-testid="census-sort" className="btn-select" value={censusSort}
-          onChange={(e) => { setCensusSort(e.target.value); setCensusPage(0); }}>
+        <select
+          data-testid="census-sort"
+          className="btn-select"
+          value={censusSort}
+          onChange={(e) => {
+            setCensusSort(e.target.value);
+            setCensusPage(0);
+          }}
+        >
           <option value="default">{compactMode ? "Featured first" : "Default"}</option>
           <option value="name">Name</option>
           <option value="age">Age</option>
@@ -573,7 +640,8 @@ function CensusSection(props: CensusSectionProps): React.ReactElement {
       </div>
 
       {compactMode && (
-        <div className="census-pills" role="group" aria-label="Quick filters">
+        <fieldset className="census-pills">
+          <legend className="sr-only">Quick filters</legend>
           {(["featured", "veterans", "rookies", "free"] as const).map((pill) => (
             <button
               key={pill}
@@ -585,7 +653,7 @@ function CensusSection(props: CensusSectionProps): React.ReactElement {
               {pill.charAt(0).toUpperCase() + pill.slice(1)}
             </button>
           ))}
-        </div>
+        </fieldset>
       )}
 
       {compactMode ? (
@@ -622,13 +690,25 @@ function CensusSection(props: CensusSectionProps): React.ReactElement {
 
       {totalPages > 1 && (
         <div className="census-pagination">
-          <button type="button" data-testid="census-page-prev" className="btn btn--xs btn--secondary"
-            disabled={page <= 0} onClick={() => setCensusPage(page - 1)}>
+          <button
+            type="button"
+            data-testid="census-page-prev"
+            className="btn btn--xs btn--secondary"
+            disabled={page <= 0}
+            onClick={() => setCensusPage(page - 1)}
+          >
             ◀
           </button>
-          <span className="census-page-info">{page + 1} / {totalPages}</span>
-          <button type="button" data-testid="census-page-next" className="btn btn--xs btn--secondary"
-            disabled={page >= totalPages - 1} onClick={() => setCensusPage(page + 1)}>
+          <span className="census-page-info">
+            {page + 1} / {totalPages}
+          </span>
+          <button
+            type="button"
+            data-testid="census-page-next"
+            className="btn btn--xs btn--secondary"
+            disabled={page >= totalPages - 1}
+            onClick={() => setCensusPage(page + 1)}
+          >
             ▶
           </button>
         </div>
@@ -647,13 +727,20 @@ interface KittenItemProps {
   kittenNameById?: Record<string, string>;
 }
 
-function CensusCard({ k, setInspected, clearInspected, setPinned, mutate, isPending, kittenNameById }: KittenItemProps): React.ReactElement {
+function CensusCard({
+  k,
+  setInspected,
+  clearInspected,
+  setPinned,
+  mutate,
+  isPending,
+  kittenNameById,
+}: KittenItemProps): React.ReactElement {
   const kittenEntity = buildKittenEntity(k, kittenNameById);
   return (
     <li
       data-testid={`census-kitten-${k.id}`}
       className="census-card"
-      tabIndex={0}
       onMouseEnter={() => setInspected(kittenEntity)}
       onMouseLeave={clearInspected}
       onFocus={() => setInspected(kittenEntity)}
@@ -670,39 +757,58 @@ function CensusCard({ k, setInspected, clearInspected, setPinned, mutate, isPend
         alt={`${k.name} ${k.surname}`}
         className="census-card__portrait"
       />
-      <button type="button" data-testid={`census-kitten-${k.id}-favorite`}
+      <button
+        type="button"
+        data-testid={`census-kitten-${k.id}-favorite`}
         className="btn btn--xs btn--icon census-favorite"
-        onClick={() => mutate({ type: "TOGGLE_FAVORITE", kittenId: k.id })}>
+        onClick={() => mutate({ type: "TOGGLE_FAVORITE", kittenId: k.id })}
+      >
         {k.isFavorite ? "★" : "☆"}
       </button>
       {k.isLeader && (
-        <span className="census-card__leader-mark" data-testid={`census-kitten-${k.id}-leader-mark`} title="Leader" aria-label="Leader">
+        <span
+          className="census-card__leader-mark"
+          data-testid={`census-kitten-${k.id}-leader-mark`}
+          title="Leader"
+          aria-label="Leader"
+        >
           ♛
         </span>
       )}
       <div className="census-card__name-strip">
-        <div className="census-card__name">{k.name} {k.surname}</div>
+        <div className="census-card__name">
+          {k.name} {k.surname}
+        </div>
         <div className="census-card__job">{k.job ?? "Free"}</div>
       </div>
       <div className="census-card__actions">
-        <button type="button" data-testid={`census-kitten-${k.id}-promote`}
+        <button
+          type="button"
+          data-testid={`census-kitten-${k.id}-promote`}
           className="btn btn--xs btn--secondary census-promote"
           disabled={isPending}
-          onClick={() => mutate({ type: "PROMOTE_KITTEN", kittenId: k.id })}>
+          onClick={() => mutate({ type: "PROMOTE_KITTEN", kittenId: k.id })}
+        >
           Promote
         </button>
         {k.job !== null && (
-          <button type="button" data-testid={`census-kitten-${k.id}-unassign`}
+          <button
+            type="button"
+            data-testid={`census-kitten-${k.id}-unassign`}
             className="btn btn--xs btn--secondary census-unassign"
             disabled={isPending}
-            onClick={() => mutate({ type: "UNASSIGN_KITTEN", kittenId: k.id })}>
+            onClick={() => mutate({ type: "UNASSIGN_KITTEN", kittenId: k.id })}
+          >
             Unassign
           </button>
         )}
-        <button type="button" data-testid={`census-kitten-${k.id}-leader`}
+        <button
+          type="button"
+          data-testid={`census-kitten-${k.id}-leader`}
           className={`btn btn--xs ${k.isLeader ? "btn--primary" : "btn--secondary"} census-leader`}
           disabled={isPending}
-          onClick={() => mutate({ type: "SET_LEADER", kittenId: k.id })}>
+          onClick={() => mutate({ type: "SET_LEADER", kittenId: k.id })}
+        >
           {k.isLeader ? "Leader" : "Make Leader"}
         </button>
       </div>
@@ -710,7 +816,15 @@ function CensusCard({ k, setInspected, clearInspected, setPinned, mutate, isPend
   );
 }
 
-function CompactKittenRow({ k, setInspected, clearInspected, setPinned, mutate, isPending, kittenNameById }: KittenItemProps): React.ReactElement {
+function CompactKittenRow({
+  k,
+  setInspected,
+  clearInspected,
+  setPinned,
+  mutate,
+  isPending,
+  kittenNameById,
+}: KittenItemProps): React.ReactElement {
   const kittenEntity = buildKittenEntity(k, kittenNameById);
   const [menuOpen, setMenuOpen] = React.useState(false);
   const storyHint = newestLifeEventText(k) ?? originShorthand(k);
@@ -719,7 +833,6 @@ function CompactKittenRow({ k, setInspected, clearInspected, setPinned, mutate, 
     <li
       data-testid={`census-kitten-${k.id}`}
       className={`census-row${k.isLeader ? " census-row--leader" : ""}${k.isFavorite ? " census-row--fav" : ""}`}
-      tabIndex={0}
       onMouseEnter={() => setInspected(kittenEntity)}
       onMouseLeave={clearInspected}
       onFocus={() => setInspected(kittenEntity)}
@@ -730,16 +843,30 @@ function CompactKittenRow({ k, setInspected, clearInspected, setPinned, mutate, 
         setPinned(kittenEntity);
       }}
     >
-      <img className="census-row__avatar" src={kittenAvatarPath(k)} alt="" role="presentation" />
+      <img className="census-row__avatar" src={kittenAvatarPath(k)} alt="" />
       <div className="census-row__name">
-        <span className="census-row__name-text">{k.name} {k.surname}</span>
-        {k.isLeader && <span className="census-row__leader-mark" title="Leader" aria-label="Leader">♛</span>}
-        {k.isFavorite && <span className="census-row__fav-mark" title="Favorite" aria-label="Favorite">★</span>}
+        <span className="census-row__name-text">
+          {k.name} {k.surname}
+        </span>
+        {k.isLeader && (
+          <span className="census-row__leader-mark" title="Leader" aria-label="Leader">
+            ♛
+          </span>
+        )}
+        {k.isFavorite && (
+          <span className="census-row__fav-mark" title="Favorite" aria-label="Favorite">
+            ★
+          </span>
+        )}
       </div>
       <span className="census-row__job">{k.job ?? "free"}</span>
-      <span className="census-row__trait" title={`Trait: ${k.trait}`}>{k.trait === "none" ? "—" : k.trait}</span>
+      <span className="census-row__trait" title={`Trait: ${k.trait}`}>
+        {k.trait === "none" ? "—" : k.trait}
+      </span>
       <span className="census-row__rank">R{k.rank}</span>
-      <span className="census-row__xp">{k.exp >= 1000 ? `${(k.exp / 1000).toFixed(1)}k` : k.exp.toFixed(0)}</span>
+      <span className="census-row__xp">
+        {k.exp >= 1000 ? `${(k.exp / 1000).toFixed(1)}k` : k.exp.toFixed(0)}
+      </span>
       {storyHint && <span className="census-row__story">{storyHint}</span>}
       <div className="census-row__actions" data-no-pin>
         <button
@@ -749,31 +876,62 @@ function CompactKittenRow({ k, setInspected, clearInspected, setPinned, mutate, 
           aria-label="Actions"
           aria-haspopup="menu"
           aria-expanded={menuOpen}
-          onClick={(e) => { e.stopPropagation(); setMenuOpen((v) => !v); }}
+          onClick={(e) => {
+            e.stopPropagation();
+            setMenuOpen((v) => !v);
+          }}
         >
           ⋯
         </button>
         {menuOpen && (
           <div className="census-row__menu" role="menu" onClick={(e) => e.stopPropagation()}>
-            <button type="button" role="menuitem" className="census-row__menu-item"
+            <button
+              type="button"
+              role="menuitem"
+              className="census-row__menu-item"
               disabled={isPending}
-              onClick={() => { mutate({ type: "TOGGLE_FAVORITE", kittenId: k.id }); setMenuOpen(false); }}>
+              onClick={() => {
+                mutate({ type: "TOGGLE_FAVORITE", kittenId: k.id });
+                setMenuOpen(false);
+              }}
+            >
               {k.isFavorite ? "Unfavorite" : "Favorite"}
             </button>
-            <button type="button" role="menuitem" className="census-row__menu-item"
+            <button
+              type="button"
+              role="menuitem"
+              className="census-row__menu-item"
               disabled={isPending}
-              onClick={() => { mutate({ type: "PROMOTE_KITTEN", kittenId: k.id }); setMenuOpen(false); }}>
+              onClick={() => {
+                mutate({ type: "PROMOTE_KITTEN", kittenId: k.id });
+                setMenuOpen(false);
+              }}
+            >
               Promote
             </button>
-            <button type="button" role="menuitem" className="census-row__menu-item"
+            <button
+              type="button"
+              role="menuitem"
+              className="census-row__menu-item"
               disabled={isPending}
-              onClick={() => { mutate({ type: "SET_LEADER", kittenId: k.id }); setMenuOpen(false); }}>
+              onClick={() => {
+                mutate({ type: "SET_LEADER", kittenId: k.id });
+                setMenuOpen(false);
+              }}
+            >
               {k.isLeader ? "Leader (active)" : "Make Leader"}
             </button>
             {k.job !== null && (
-              <button type="button" role="menuitem" className="census-row__menu-item"
+              <button
+                type="button"
+                role="menuitem"
+                className="census-row__menu-item"
                 disabled={isPending}
-                onClick={() => { mutate({ type: "UNASSIGN_KITTEN", kittenId: k.id }); setMenuOpen(false); }}>
+                onClick={() => {
+                  mutate({ type: "UNASSIGN_KITTEN", kittenId: k.id });
+                  setMenuOpen(false);
+                }}
+              >
                 Unassign
               </button>
             )}
@@ -792,7 +950,13 @@ interface FeaturedStripProps {
   kittenNameById?: Record<string, string>;
 }
 
-function FeaturedCitizensStrip({ featured, setInspected, clearInspected, setPinned, kittenNameById }: FeaturedStripProps): React.ReactElement {
+function FeaturedCitizensStrip({
+  featured,
+  setInspected,
+  clearInspected,
+  setPinned,
+  kittenNameById,
+}: FeaturedStripProps): React.ReactElement {
   return (
     <div className="featured-strip" data-testid="featured-citizens">
       <div className="featured-strip__label">Featured Citizens</div>
@@ -804,7 +968,6 @@ function FeaturedCitizensStrip({ featured, setInspected, clearInspected, setPinn
               key={k.id}
               className="featured-citizen"
               data-testid={`featured-${k.id}`}
-              tabIndex={0}
               onMouseEnter={() => setInspected(entity)}
               onMouseLeave={clearInspected}
               onFocus={() => setInspected(entity)}
@@ -815,10 +978,16 @@ function FeaturedCitizensStrip({ featured, setInspected, clearInspected, setPinn
                 setPinned(entity);
               }}
             >
-              <img className="featured-citizen__avatar" src={kittenAvatarPath(k)} alt="" role="presentation" />
+              <img className="featured-citizen__avatar" src={kittenAvatarPath(k)} alt="" />
               <div className="featured-citizen__meta">
-                <div className="featured-citizen__name">{k.name} {k.surname}</div>
-                <div className="featured-citizen__job">{k.job ?? "free"}{k.isLeader ? " · ♛" : ""}{k.isFavorite ? " · ★" : ""}</div>
+                <div className="featured-citizen__name">
+                  {k.name} {k.surname}
+                </div>
+                <div className="featured-citizen__job">
+                  {k.job ?? "free"}
+                  {k.isLeader ? " · ♛" : ""}
+                  {k.isFavorite ? " · ★" : ""}
+                </div>
               </div>
             </li>
           );

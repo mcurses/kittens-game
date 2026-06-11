@@ -9,19 +9,19 @@ import { BuildingManager } from "./buildings.js";
 import { CalendarManager, DAYS_PER_SEASON, SEASONS_PER_YEAR, TICKS_PER_DAY } from "./calendar.js";
 import { ChallengeManager } from "./challenges.js";
 import { DiplomacyManager } from "./diplomacy.js";
-import { type Manager } from "./manager.js";
+import { buildEffectCache } from "./effects.js";
+import type { Manager } from "./manager.js";
 import { PrestigeManager } from "./prestige.js";
 import { ReligionManager } from "./religion.js";
 import { createInitialResources } from "./resources.js";
+import { ResourceManager } from "./resources.js";
 import { ScienceManager } from "./science.js";
 import { SpaceManager } from "./space.js";
-import { createInitialState } from "./state.js";
-import { buildEffectCache } from "./effects.js";
+import type { createInitialState } from "./state.js";
 import { resetState, tick } from "./tick.js";
 import { TimeManager } from "./time.js";
 import { VillageManager } from "./village.js";
 import { WorkshopManager } from "./workshop.js";
-import { ResourceManager } from "./resources.js";
 
 function createManagers(): readonly Manager[] {
   return [
@@ -41,7 +41,11 @@ function createManagers(): readonly Manager[] {
   ];
 }
 
-function tickMany(state: ReturnType<typeof createInitialState>, managers: readonly Manager[], count: number) {
+function tickMany(
+  state: ReturnType<typeof createInitialState>,
+  managers: readonly Manager[],
+  count: number,
+) {
   let next = state;
   for (let i = 0; i < count; i++) {
     next = tick(next, managers);

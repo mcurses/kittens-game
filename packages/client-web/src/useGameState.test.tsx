@@ -1,6 +1,6 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { cleanup, renderHook, waitFor } from "@testing-library/react";
-import React from "react";
+import type React from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { useGameState } from "./useGameState.js";
 
@@ -29,9 +29,7 @@ function makeWrapper() {
     defaultOptions: { queries: { retry: false } },
   });
   function Wrapper({ children }: { children: React.ReactNode }) {
-    return (
-      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
-    );
+    return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
   }
   return { wrapper: Wrapper, queryClient };
 }
@@ -66,9 +64,7 @@ describe("useGameState", () => {
     mockFetch.mockResolvedValueOnce(makeResponse(state));
     const { wrapper, queryClient } = makeWrapper();
     renderHook(() => useGameState(), { wrapper });
-    await waitFor(() =>
-      expect(queryClient.getQueryData(["gameState", "default"])).toEqual(state),
-    );
+    await waitFor(() => expect(queryClient.getQueryData(["gameState", "default"])).toEqual(state));
   });
 
   it("uses queryKey ['gameState', slot] for named slot", async () => {
@@ -76,9 +72,7 @@ describe("useGameState", () => {
     mockFetch.mockResolvedValueOnce(makeResponse(state));
     const { wrapper, queryClient } = makeWrapper();
     renderHook(() => useGameState("mysave"), { wrapper });
-    await waitFor(() =>
-      expect(queryClient.getQueryData(["gameState", "mysave"])).toEqual(state),
-    );
+    await waitFor(() => expect(queryClient.getQueryData(["gameState", "mysave"])).toEqual(state));
     expect(mockFetch).toHaveBeenCalledWith("/api/game/state?slot=mysave");
   });
 });

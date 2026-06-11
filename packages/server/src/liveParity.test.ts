@@ -1,10 +1,10 @@
 import type { SerializedGameState } from "@kittens/engine";
 import { describe, expect, it } from "vitest";
 import {
+  type AuditSnapshot,
   captureAuditSnapshot,
   compareImportSnapshot,
   compareLiveSnapshot,
-  type AuditSnapshot,
 } from "./liveParity.js";
 
 const baseSnapshot: AuditSnapshot = {
@@ -104,9 +104,15 @@ describe("liveParity helpers", () => {
     };
 
     const mismatches = compareLiveSnapshot(brokenLiveSnapshot, baseSnapshot);
-    expect(mismatches).toContain("live.kittens overflow: expected kittens <= floor(maxKittens), got 580 / 579.7848879788996");
-    expect(mismatches).toContain("live.happiness: expected 5.330126107867796, got 5.025189225345603");
-    expect(mismatches).toContain("live.resources.catnip: expected over-cap preservation (> maxValue), got 19084828.04614975 / 19084828.04614975");
+    expect(mismatches).toContain(
+      "live.kittens overflow: expected kittens <= floor(maxKittens), got 580 / 579.7848879788996",
+    );
+    expect(mismatches).toContain(
+      "live.happiness: expected 5.330126107867796, got 5.025189225345603",
+    );
+    expect(mismatches).toContain(
+      "live.resources.catnip: expected over-cap preservation (> maxValue), got 19084828.04614975 / 19084828.04614975",
+    );
     expect(mismatches).toContain("live.automation.oilWell: expected true, got null");
     expect(mismatches).toContain("live.automation.reactor: expected false, got null");
   });
@@ -122,7 +128,7 @@ describe("liveParity helpers", () => {
         workshop: { upgrades: {} },
         time: {},
         effectCache: { maxKittens: 10 },
-      } as any;
+      } as unknown as SerializedGameState;
 
       const snapshot = captureAuditSnapshot(minimalState);
       expect(snapshot.calendar).toEqual({ year: 1, season: 0, day: 0 });
@@ -141,7 +147,7 @@ describe("liveParity helpers", () => {
         workshop: { upgrades: {} },
         time: {},
         effectCache: { maxKittens: 50 },
-      } as any;
+      } as unknown as SerializedGameState;
 
       const snapshot = captureAuditSnapshot(state);
       expect(snapshot.resources.catnip.value).toBe(100);
@@ -160,7 +166,7 @@ describe("liveParity helpers", () => {
         workshop: { upgrades: {} },
         time: {},
         effectCache: { maxKittens: 50 },
-      } as any;
+      } as unknown as SerializedGameState;
 
       const snapshot = captureAuditSnapshot(state);
       expect(snapshot.buildings.hut.val).toBe(5);
@@ -182,7 +188,7 @@ describe("liveParity helpers", () => {
         workshop: { upgrades: {} },
         time: {},
         effectCache: { maxKittens: 50 },
-      } as any;
+      } as unknown as SerializedGameState;
 
       const snapshot = captureAuditSnapshot(state);
       expect(snapshot.automation.oilWell).toBe(true);
@@ -200,7 +206,7 @@ describe("liveParity helpers", () => {
         workshop: { upgrades: { silos: { researched: true }, ironwood: { researched: false } } },
         time: { flux: 100.5, heat: 50.25 },
         effectCache: { maxKittens: 50 },
-      } as any;
+      } as unknown as SerializedGameState;
 
       const snapshot = captureAuditSnapshot(state);
       expect(snapshot.workshop.silos).toBe(true);
@@ -214,15 +220,24 @@ describe("liveParity helpers", () => {
 
   describe("compareImportSnapshot", () => {
     it("detects calendar mismatches", () => {
-      const actual: AuditSnapshot = { ...baseSnapshot, calendar: { year: 100, season: 1, day: 25 } };
-      const expected: AuditSnapshot = { ...baseSnapshot, calendar: { year: 100, season: 2, day: 25 } };
+      const actual: AuditSnapshot = {
+        ...baseSnapshot,
+        calendar: { year: 100, season: 1, day: 25 },
+      };
+      const expected: AuditSnapshot = {
+        ...baseSnapshot,
+        calendar: { year: 100, season: 2, day: 25 },
+      };
 
       const mismatches = compareImportSnapshot(actual, expected);
       expect(mismatches).toContain("calendar.season: expected 2, got 1");
     });
 
     it("detects building mismatches", () => {
-      const actual: AuditSnapshot = { ...baseSnapshot, buildings: { ...baseSnapshot.buildings, hut: { val: 100, on: 50 } } };
+      const actual: AuditSnapshot = {
+        ...baseSnapshot,
+        buildings: { ...baseSnapshot.buildings, hut: { val: 100, on: 50 } },
+      };
       const expected = baseSnapshot;
 
       const mismatches = compareImportSnapshot(actual, expected);
@@ -230,7 +245,13 @@ describe("liveParity helpers", () => {
     });
 
     it("detects resource value mismatches with tolerance", () => {
-      const actual: AuditSnapshot = { ...baseSnapshot, resources: { ...baseSnapshot.resources, catnip: { value: 837318451.904724000001, maxValue: 4232100 } } };
+      const actual: AuditSnapshot = {
+        ...baseSnapshot,
+        resources: {
+          ...baseSnapshot.resources,
+          catnip: { value: 837318451.904724, maxValue: 4232100 },
+        },
+      };
       const expected = baseSnapshot;
 
       const mismatches = compareImportSnapshot(actual, expected);
@@ -238,7 +259,10 @@ describe("liveParity helpers", () => {
     });
 
     it("detects null mismatches", () => {
-      const actual: AuditSnapshot = { ...baseSnapshot, village: { ...baseSnapshot.village, happiness: null } };
+      const actual: AuditSnapshot = {
+        ...baseSnapshot,
+        village: { ...baseSnapshot.village, happiness: null },
+      };
       const expected = baseSnapshot;
 
       const mismatches = compareImportSnapshot(actual, expected);
@@ -246,7 +270,10 @@ describe("liveParity helpers", () => {
     });
 
     it("detects automation mismatches", () => {
-      const actual: AuditSnapshot = { ...baseSnapshot, automation: { ...baseSnapshot.automation, oilWell: false } };
+      const actual: AuditSnapshot = {
+        ...baseSnapshot,
+        automation: { ...baseSnapshot.automation, oilWell: false },
+      };
       const expected = baseSnapshot;
 
       const mismatches = compareImportSnapshot(actual, expected);
@@ -254,7 +281,10 @@ describe("liveParity helpers", () => {
     });
 
     it("detects policy mismatches", () => {
-      const actual: AuditSnapshot = { ...baseSnapshot, policies: { ...baseSnapshot.policies, liberty: true } };
+      const actual: AuditSnapshot = {
+        ...baseSnapshot,
+        policies: { ...baseSnapshot.policies, liberty: true },
+      };
       const expected = baseSnapshot;
 
       const mismatches = compareImportSnapshot(actual, expected);
@@ -264,7 +294,10 @@ describe("liveParity helpers", () => {
 
   describe("compareLiveSnapshot", () => {
     it("allows calendar day to advance", () => {
-      const actual: AuditSnapshot = { ...baseSnapshot, calendar: { ...baseSnapshot.calendar, day: 100 } };
+      const actual: AuditSnapshot = {
+        ...baseSnapshot,
+        calendar: { ...baseSnapshot.calendar, day: 100 },
+      };
       const expected = baseSnapshot;
 
       const mismatches = compareLiveSnapshot(actual, expected);
@@ -272,7 +305,10 @@ describe("liveParity helpers", () => {
     });
 
     it("detects calendar day regression", () => {
-      const actual: AuditSnapshot = { ...baseSnapshot, calendar: { ...baseSnapshot.calendar, day: 20 } };
+      const actual: AuditSnapshot = {
+        ...baseSnapshot,
+        calendar: { ...baseSnapshot.calendar, day: 20 },
+      };
       const expected = baseSnapshot;
 
       const mismatches = compareLiveSnapshot(actual, expected);
@@ -280,11 +316,16 @@ describe("liveParity helpers", () => {
     });
 
     it("detects kittens overflow", () => {
-      const actual: AuditSnapshot = { ...baseSnapshot, village: { kittens: 600, maxKittens: 579, happiness: 5.33 } };
+      const actual: AuditSnapshot = {
+        ...baseSnapshot,
+        village: { kittens: 600, maxKittens: 579, happiness: 5.33 },
+      };
       const expected = baseSnapshot;
 
       const mismatches = compareLiveSnapshot(actual, expected);
-      expect(mismatches).toContain("live.kittens overflow: expected kittens <= floor(maxKittens), got 600 / 579");
+      expect(mismatches).toContain(
+        "live.kittens overflow: expected kittens <= floor(maxKittens), got 600 / 579",
+      );
     });
 
     it("allows resource values over maxValue in live mode", () => {

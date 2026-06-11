@@ -83,13 +83,9 @@ export async function createBunAdapter(path: string): Promise<SqliteAdapter> {
     )
   `);
 
-  const tableInfo = sqlite
-    .query("PRAGMA table_info(saves)")
-    .all() as Array<{ name?: unknown }>;
+  const tableInfo = sqlite.query("PRAGMA table_info(saves)").all() as Array<{ name?: unknown }>;
   const migration = planSavesTableMigration(
-    tableInfo
-      .map((row) => row.name)
-      .filter((name): name is string => typeof name === "string"),
+    tableInfo.map((row) => row.name).filter((name): name is string => typeof name === "string"),
   );
 
   if (migration.addStatus) {
@@ -108,10 +104,7 @@ export async function createBunAdapter(path: string): Promise<SqliteAdapter> {
     },
 
     listSlots(): string[] {
-      const rows = db
-        .select({ slot: savesTable.slot })
-        .from(savesTable)
-        .all();
+      const rows = db.select({ slot: savesTable.slot }).from(savesTable).all();
       return rows.map((row) => row.slot);
     },
 
@@ -195,10 +188,7 @@ export async function createBunAdapter(path: string): Promise<SqliteAdapter> {
       };
     },
 
-    updateSlotStatus(
-      slot: string,
-      status: "active" | "paused" | "archived"
-    ): void {
+    updateSlotStatus(slot: string, status: "active" | "paused" | "archived"): void {
       db.update(savesTable)
         .set({ status, updatedAt: Date.now() })
         .where(eq(savesTable.slot, slot))
@@ -253,10 +243,7 @@ export function createMemoryAdapter(): SqliteAdapter {
     getSlotMeta(slot: string): SlotMeta | null {
       return metadata.get(slot) ?? null;
     },
-    updateSlotStatus(
-      slot: string,
-      status: "active" | "paused" | "archived"
-    ): void {
+    updateSlotStatus(slot: string, status: "active" | "paused" | "archived"): void {
       const meta = metadata.get(slot);
       if (meta) {
         meta.status = status;

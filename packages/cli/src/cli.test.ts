@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createCli } from "./cli.js";
 
 // Mock HTTP client
@@ -93,9 +93,7 @@ describe("CLI — sessions create", () => {
   it("throws on invalid slot name", async () => {
     const cli = createCli(mockClient);
 
-    await expect(cli.sessionsCreate("invalid name")).rejects.toThrow(
-      /invalid slot name/i
-    );
+    await expect(cli.sessionsCreate("invalid name")).rejects.toThrow(/invalid slot name/i);
   });
 });
 

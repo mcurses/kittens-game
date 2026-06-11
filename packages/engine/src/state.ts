@@ -6,7 +6,12 @@ import { type ChallengeState, createInitialChallenges } from "./challenges.js";
 import { type DiplomacyState, createInitialDiplomacy } from "./diplomacy.js";
 import { type PrestigeState, createInitialPrestige } from "./prestige.js";
 import { type ReligionState, createInitialReligion } from "./religion.js";
-import { RESOURCE_NAMES, type ResourceState, calcResourcePerTick, createInitialResources } from "./resources.js";
+import {
+  RESOURCE_NAMES,
+  type ResourceState,
+  calcResourcePerTick,
+  createInitialResources,
+} from "./resources.js";
 import { type ScienceState, createInitialScience } from "./science.js";
 import { type SpaceState, createInitialSpace } from "./space.js";
 import { type TimeState, createInitialTime } from "./time.js";
@@ -84,7 +89,16 @@ export interface SerializedGameState {
   resources: Record<string, { value: number; maxValue: number; perTick: number }>;
   buildings: Record<
     string,
-    { val: number; on: number; unlocked?: boolean; unlockable?: boolean; jammed?: boolean; automationEnabled?: boolean; stage?: number; stageUnlocked?: boolean[] }
+    {
+      val: number;
+      on: number;
+      unlocked?: boolean;
+      unlockable?: boolean;
+      jammed?: boolean;
+      automationEnabled?: boolean;
+      stage?: number;
+      stageUnlocked?: boolean[];
+    }
   >;
   village: {
     name?: string;
@@ -92,9 +106,17 @@ export interface SerializedGameState {
     kittenProgress: number;
     jobs: Record<string, { value: number }>;
     sim?: Array<{
-      id: string; name: string; surname: string; age: number; trait: string;
-      job: string | null; skills: Record<string, number>; rank: number; exp: number;
-      isFavorite: boolean; isLeader: boolean;
+      id: string;
+      name: string;
+      surname: string;
+      age: number;
+      trait: string;
+      job: string | null;
+      skills: Record<string, number>;
+      rank: number;
+      exp: number;
+      isFavorite: boolean;
+      isLeader: boolean;
     }>;
     deadKittens?: number;
     happiness?: number;
@@ -172,7 +194,16 @@ export function serialize(state: GameState): SerializedGameState {
 
   const buildings: Record<
     string,
-    { val: number; on: number; unlocked?: boolean; unlockable?: boolean; jammed?: boolean; automationEnabled?: boolean; stage?: number; stageUnlocked?: boolean[] }
+    {
+      val: number;
+      on: number;
+      unlocked?: boolean;
+      unlockable?: boolean;
+      jammed?: boolean;
+      automationEnabled?: boolean;
+      stage?: number;
+      stageUnlocked?: boolean[];
+    }
   > = {};
   for (const [name, entry] of Object.entries(state.buildings)) {
     buildings[name] = {
@@ -181,7 +212,9 @@ export function serialize(state: GameState): SerializedGameState {
       ...(entry.unlocked !== undefined ? { unlocked: entry.unlocked } : {}),
       ...(entry.unlockable !== undefined ? { unlockable: entry.unlockable } : {}),
       ...(entry.jammed !== undefined ? { jammed: entry.jammed } : {}),
-      ...(entry.automationEnabled !== undefined ? { automationEnabled: entry.automationEnabled } : {}),
+      ...(entry.automationEnabled !== undefined
+        ? { automationEnabled: entry.automationEnabled }
+        : {}),
       ...(entry.stage !== undefined ? { stage: entry.stage } : {}),
       ...(entry.stageUnlocked !== undefined ? { stageUnlocked: [...entry.stageUnlocked] } : {}),
     };
@@ -238,7 +271,10 @@ export function serialize(state: GameState): SerializedGameState {
       crafts: Object.fromEntries(
         Object.entries(state.workshop.crafts).map(([n, e]) => [
           n,
-          { unlocked: e.unlocked, ...(e.engineers !== undefined ? { engineers: e.engineers } : {}) },
+          {
+            unlocked: e.unlocked,
+            ...(e.engineers !== undefined ? { engineers: e.engineers } : {}),
+          },
         ]),
       ),
     },
@@ -371,7 +407,16 @@ export function deserialize(data: SerializedGameState): GameState {
   const savedBuildings = data.buildings ?? {};
   const buildings: Record<
     string,
-    { val: number; on: number; unlocked?: boolean; unlockable?: boolean; jammed?: boolean; automationEnabled?: boolean; stage?: number; stageUnlocked?: readonly boolean[] }
+    {
+      val: number;
+      on: number;
+      unlocked?: boolean;
+      unlockable?: boolean;
+      jammed?: boolean;
+      automationEnabled?: boolean;
+      stage?: number;
+      stageUnlocked?: readonly boolean[];
+    }
   > = {
     ...createInitialBuildings(),
   };
@@ -408,10 +453,21 @@ export function deserialize(data: SerializedGameState): GameState {
     }
     const deadKittens = typeof savedVillage.deadKittens === "number" ? savedVillage.deadKittens : 0;
     const happiness = typeof savedVillage.happiness === "number" ? savedVillage.happiness : 1.0;
-    const sim = Array.isArray(savedVillage.sim) ? savedVillage.sim as unknown as VillageState["sim"] : [];
+    const sim = Array.isArray(savedVillage.sim)
+      ? (savedVillage.sim as unknown as VillageState["sim"])
+      : [];
     const leader = typeof savedVillage.leader === "string" ? savedVillage.leader : null;
     const villageName = typeof savedVillage.name === "string" ? savedVillage.name : "Bonfire";
-    village = { name: villageName, kittens, kittenProgress, jobs, sim, deadKittens, happiness, leader };
+    village = {
+      name: villageName,
+      kittens,
+      kittenProgress,
+      jobs,
+      sim,
+      deadKittens,
+      happiness,
+      leader,
+    };
   }
 
   const savedCalendar = data.calendar;
@@ -421,7 +477,10 @@ export function deserialize(data: SerializedGameState): GameState {
       day: typeof savedCalendar.day === "number" ? savedCalendar.day : 0,
       season: typeof savedCalendar.season === "number" ? savedCalendar.season : 0,
       year: typeof savedCalendar.year === "number" ? savedCalendar.year : 0,
-      festivalDays: typeof savedCalendar.festivalDays === "number" ? Math.max(0, savedCalendar.festivalDays) : 0,
+      festivalDays:
+        typeof savedCalendar.festivalDays === "number"
+          ? Math.max(0, savedCalendar.festivalDays)
+          : 0,
     };
   }
 
@@ -445,7 +504,10 @@ export function deserialize(data: SerializedGameState): GameState {
         if (entry && typeof entry.unlocked === "boolean") {
           crafts[name] = {
             unlocked: entry.unlocked,
-            engineers: typeof entry.engineers === "number" ? Math.max(0, entry.engineers) : (crafts[name]?.engineers ?? 0),
+            engineers:
+              typeof entry.engineers === "number"
+                ? Math.max(0, entry.engineers)
+                : (crafts[name]?.engineers ?? 0),
           };
         }
       }
@@ -492,6 +554,8 @@ export function deserialize(data: SerializedGameState): GameState {
     diplomacy,
     time,
     achievements,
-    hiddenResources: Array.isArray(data.hiddenResources) ? data.hiddenResources.filter((n): n is string => typeof n === "string") : [],
+    hiddenResources: Array.isArray(data.hiddenResources)
+      ? data.hiddenResources.filter((n): n is string => typeof n === "string")
+      : [],
   };
 }

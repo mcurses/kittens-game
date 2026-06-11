@@ -10,14 +10,14 @@ export interface JobSprite {
 }
 
 export const JOB_SPRITES: Record<string, JobSprite> = {
-  woodcutter: { glyph: "🪓", color: "var(--res-wood)",     iconPath: "/assets/icons/woodcutter.webp" },
-  farmer:     { glyph: "🌾", color: "var(--res-catnip)",   iconPath: "/assets/icons/farmer.webp" },
-  scholar:    { glyph: "📚", color: "var(--res-science)",  iconPath: "/assets/icons/scholar.webp" },
-  hunter:     { glyph: "🏹", color: "var(--accent)",       iconPath: "/assets/icons/hunter.webp" },
-  miner:      { glyph: "⛏",  color: "var(--res-minerals)", iconPath: "/assets/icons/miner.webp" },
-  geologist:  { glyph: "🪨", color: "var(--res-iron)",     iconPath: "/assets/icons/geologist.webp" },
-  priest:     { glyph: "✦",  color: "var(--res-faith)",    iconPath: "/assets/icons/priest.webp" },
-  engineer:   { glyph: "⚙",  color: "var(--cyber)",        iconPath: "/assets/icons/engineer.webp" },
+  woodcutter: { glyph: "🪓", color: "var(--res-wood)", iconPath: "/assets/icons/woodcutter.webp" },
+  farmer: { glyph: "🌾", color: "var(--res-catnip)", iconPath: "/assets/icons/farmer.webp" },
+  scholar: { glyph: "📚", color: "var(--res-science)", iconPath: "/assets/icons/scholar.webp" },
+  hunter: { glyph: "🏹", color: "var(--accent)", iconPath: "/assets/icons/hunter.webp" },
+  miner: { glyph: "⛏", color: "var(--res-minerals)", iconPath: "/assets/icons/miner.webp" },
+  geologist: { glyph: "🪨", color: "var(--res-iron)", iconPath: "/assets/icons/geologist.webp" },
+  priest: { glyph: "✦", color: "var(--res-faith)", iconPath: "/assets/icons/priest.webp" },
+  engineer: { glyph: "⚙", color: "var(--cyber)", iconPath: "/assets/icons/engineer.webp" },
 };
 
 // 32-bit FNV-1a, used as a deterministic seed source.

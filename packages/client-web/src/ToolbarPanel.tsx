@@ -1,6 +1,6 @@
 // ToolbarPanel — persistent HUD strip showing energy, sorrow, and UI controls
 import type { GameStateResponse } from "@kittens/api-spec";
-import React from "react";
+import type React from "react";
 import { useCardSize } from "./useCardSize.js";
 import { extractResources } from "./utils.js";
 
@@ -39,9 +39,7 @@ function computeEnergy(effectCache: Record<string, number>): {
 } {
   const prodRatio = 1 + (effectCache.energyProductionRatio ?? 0);
   const consRatio =
-    (1 +
-      (effectCache.energyConsumptionRatio ?? 0) +
-      (effectCache.energyConsumptionIncrease ?? 0));
+    1 + (effectCache.energyConsumptionRatio ?? 0) + (effectCache.energyConsumptionIncrease ?? 0);
   const prod = (effectCache.energyProduction ?? 0) * prodRatio;
   const cons = (effectCache.energyConsumption ?? 0) * consRatio;
   const net = prod - cons;

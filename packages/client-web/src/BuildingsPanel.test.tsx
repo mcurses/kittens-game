@@ -1,10 +1,10 @@
 import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
-import React from "react";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import type React from "react";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { BuildingsPanel } from "./BuildingsPanel.js";
 import { InspectorProvider } from "./InspectorContext.js";
 import { InspectorPanel } from "./InspectorPanel.js";
 import { SlotProvider } from "./SlotContext.js";
-import { BuildingsPanel } from "./BuildingsPanel.js";
 
 // Mock useGameAction
 const mockMutate = vi.fn();
@@ -16,13 +16,53 @@ vi.mock("./useGameAction.js", () => ({
 // Mock BUILDING_DEFS and getBuildingPrice from @kittens/engine
 vi.mock("@kittens/engine", () => ({
   RESOURCE_NAMES: [
-    "catnip", "wood", "minerals", "iron", "coal", "gold", "titanium", "oil",
-    "uranium", "unobtainium", "antimatter", "relic", "blueprint", "compedium",
-    "parchment", "manuscript", "science", "culture", "faith", "beam", "slab",
-    "plate", "steel", "gear", "scaffold", "megalith", "concrete", "alloy",
-    "eludium", "thorium", "kerosene", "starchart", "tanker", "ivory", "spice",
-    "furs", "catpower", "unicorns", "necrocorn", "tears", "karma", "paragon",
-    "burnedParagon", "timeCrystal", "void", "sorrow", "temporalFlux",
+    "catnip",
+    "wood",
+    "minerals",
+    "iron",
+    "coal",
+    "gold",
+    "titanium",
+    "oil",
+    "uranium",
+    "unobtainium",
+    "antimatter",
+    "relic",
+    "blueprint",
+    "compedium",
+    "parchment",
+    "manuscript",
+    "science",
+    "culture",
+    "faith",
+    "beam",
+    "slab",
+    "plate",
+    "steel",
+    "gear",
+    "scaffold",
+    "megalith",
+    "concrete",
+    "alloy",
+    "eludium",
+    "thorium",
+    "kerosene",
+    "starchart",
+    "tanker",
+    "ivory",
+    "spice",
+    "furs",
+    "catpower",
+    "unicorns",
+    "necrocorn",
+    "tears",
+    "karma",
+    "paragon",
+    "burnedParagon",
+    "timeCrystal",
+    "void",
+    "sorrow",
+    "temporalFlux",
   ],
   BUILDING_DEFS: [
     {
@@ -87,27 +127,39 @@ vi.mock("@kittens/engine", () => ({
     },
     {
       name: "harbor",
-      prices: [{ name: "wood", val: 500 }], priceRatio: 1.15, effects: {},
+      prices: [{ name: "wood", val: 500 }],
+      priceRatio: 1.15,
+      effects: {},
     },
     {
       name: "mint",
-      prices: [{ name: "minerals", val: 600 }], priceRatio: 1.15, effects: {},
+      prices: [{ name: "minerals", val: 600 }],
+      priceRatio: 1.15,
+      effects: {},
     },
     {
       name: "workshop",
-      prices: [{ name: "wood", val: 100 }], priceRatio: 1.15, effects: {},
+      prices: [{ name: "wood", val: 100 }],
+      priceRatio: 1.15,
+      effects: {},
     },
     {
       name: "ziggurat",
-      prices: [{ name: "megalith", val: 1 }], priceRatio: 1.15, effects: {},
+      prices: [{ name: "megalith", val: 1 }],
+      priceRatio: 1.15,
+      effects: {},
     },
     {
       name: "aiCore",
-      prices: [{ name: "science", val: 1000 }], priceRatio: 1.15, effects: {},
+      prices: [{ name: "science", val: 1000 }],
+      priceRatio: 1.15,
+      effects: {},
     },
     {
       name: "zebraOutpost",
-      prices: [{ name: "ivory", val: 100 }], priceRatio: 1.15, effects: {},
+      prices: [{ name: "ivory", val: 100 }],
+      priceRatio: 1.15,
+      effects: {},
     },
   ],
   STAGE_LABELS: {
@@ -129,7 +181,9 @@ vi.mock("@kittens/engine", () => ({
   },
   // getBuildingPrice returns base prices unchanged for test simplicity
   getBuildingPrice: (def: { prices: readonly { name: string; val: number }[] }) => def.prices,
-  deriveUiVisibility: (state: { science?: { techs?: Record<string, { researched?: boolean }> } }) => ({
+  deriveUiVisibility: (state: {
+    science?: { techs?: Record<string, { researched?: boolean }> };
+  }) => ({
     tabs: {},
     village: {},
     jobs: {},
@@ -149,7 +203,11 @@ vi.mock("@kittens/engine", () => ({
         toggleVisible: false,
         automationVisible: state.workshop?.upgrades?.carbonSequestration?.researched === true,
       },
-      mine: { controlMode: state.science?.techs?.ecology?.researched === true ? "count" : "none", toggleVisible: state.science?.techs?.ecology?.researched === true, automationVisible: false },
+      mine: {
+        controlMode: state.science?.techs?.ecology?.researched === true ? "count" : "none",
+        toggleVisible: state.science?.techs?.ecology?.researched === true,
+        automationVisible: false,
+      },
       field: { controlMode: "none", toggleVisible: false, automationVisible: false },
       hut: { controlMode: "none", toggleVisible: false, automationVisible: false },
       pasture: { controlMode: "none", toggleVisible: false, automationVisible: false },
@@ -163,7 +221,18 @@ vi.mock("@kittens/engine", () => ({
 }));
 
 function makeState(
-  buildings: Record<string, { val: number; on: number; unlocked?: boolean; automationEnabled?: boolean; jammed?: boolean; stage?: number; stageUnlocked?: boolean[] }>,
+  buildings: Record<
+    string,
+    {
+      val: number;
+      on: number;
+      unlocked?: boolean;
+      automationEnabled?: boolean;
+      jammed?: boolean;
+      stage?: number;
+      stageUnlocked?: boolean[];
+    }
+  >,
   resources?: Record<string, { value: number; maxValue: number }>,
 ) {
   return {
@@ -199,36 +268,63 @@ afterEach(() => {
 
 describe("BuildingsPanel", () => {
   it("shows loading placeholder when state is null", () => {
-    render(<WithInspector><BuildingsPanel state={null} /></WithInspector>);
+    render(
+      <WithInspector>
+        <BuildingsPanel state={null} />
+      </WithInspector>,
+    );
     expect(screen.getByTestId("buildings-panel-loading")).toBeTruthy();
   });
 
   it("shows loading placeholder when state is undefined", () => {
-    render(<WithInspector><BuildingsPanel state={undefined} /></WithInspector>);
+    render(
+      <WithInspector>
+        <BuildingsPanel state={undefined} />
+      </WithInspector>,
+    );
     expect(screen.getByTestId("buildings-panel-loading")).toBeTruthy();
   });
 
   it("shows no buildings message when buildings object is empty", () => {
-    render(<WithInspector><BuildingsPanel state={makeState({})} /></WithInspector>);
+    render(
+      <WithInspector>
+        <BuildingsPanel state={makeState({})} />
+      </WithInspector>,
+    );
     expect(screen.getByText("No buildings available.")).toBeTruthy();
   });
 
   it("shows unlocked buildings with val === 0 (not yet purchased)", () => {
-    const state = makeState({ field: { val: 0, on: 0, unlocked: true }, hut: { val: 1, on: 1, unlocked: true } });
-    render(<WithInspector><BuildingsPanel state={state} /></WithInspector>);
+    const state = makeState({
+      field: { val: 0, on: 0, unlocked: true },
+      hut: { val: 1, on: 1, unlocked: true },
+    });
+    render(
+      <WithInspector>
+        <BuildingsPanel state={state} />
+      </WithInspector>,
+    );
     expect(screen.getByTestId("building-field")).toBeTruthy();
     expect(screen.getByTestId("building-hut")).toBeTruthy();
   });
 
   it("hides locked buildings (unlocked=false)", () => {
     const state = makeState({ field: { val: 0, on: 0, unlocked: false } });
-    render(<WithInspector><BuildingsPanel state={state} /></WithInspector>);
+    render(
+      <WithInspector>
+        <BuildingsPanel state={state} />
+      </WithInspector>,
+    );
     expect(screen.getByText("No buildings available.")).toBeTruthy();
   });
 
   it("renders building name and count for unlocked building", () => {
     const state = makeState({ field: { val: 3, on: 3, unlocked: true } });
-    render(<WithInspector><BuildingsPanel state={state} /></WithInspector>);
+    render(
+      <WithInspector>
+        <BuildingsPanel state={state} />
+      </WithInspector>,
+    );
     expect(screen.getByTestId("building-field")).toBeTruthy();
     expect(screen.getByText(/field/i)).toBeTruthy();
     expect(screen.getByText(/3/)).toBeTruthy();
@@ -236,21 +332,36 @@ describe("BuildingsPanel", () => {
 
   it("renders building prices from BUILDING_DEFS", () => {
     const state = makeState({ field: { val: 1, on: 1, unlocked: true } });
-    render(<WithInspector><BuildingsPanel state={state} /></WithInspector>);
+    render(
+      <WithInspector>
+        <BuildingsPanel state={state} />
+      </WithInspector>,
+    );
     expect(screen.getByTestId("resource-icon-catnip")).toBeTruthy();
     expect(screen.getByLabelText(/Cost:.*10.*catnip/)).toBeTruthy();
   });
 
   it("renders multiple prices for a building", () => {
     const state = makeState({ pasture: { val: 2, on: 2, unlocked: true } });
-    render(<WithInspector><BuildingsPanel state={state} /></WithInspector>);
+    render(
+      <WithInspector>
+        <BuildingsPanel state={state} />
+      </WithInspector>,
+    );
     expect(screen.getByTestId("resource-icon-catnip")).toBeTruthy();
     expect(screen.getByTestId("resource-icon-wood")).toBeTruthy();
   });
 
   it("renders a Buy button for each unlocked building", () => {
-    const state = makeState({ field: { val: 1, on: 1, unlocked: true }, hut: { val: 2, on: 2, unlocked: true } });
-    render(<WithInspector><BuildingsPanel state={state} /></WithInspector>);
+    const state = makeState({
+      field: { val: 1, on: 1, unlocked: true },
+      hut: { val: 2, on: 2, unlocked: true },
+    });
+    render(
+      <WithInspector>
+        <BuildingsPanel state={state} />
+      </WithInspector>,
+    );
     const buyButtons = screen.getAllByRole("button", { name: /buy/i });
     expect(buyButtons.length).toBe(2);
   });
@@ -260,7 +371,11 @@ describe("BuildingsPanel", () => {
       { field: { val: 0, on: 0, unlocked: true } },
       { catnip: { value: 100, maxValue: 0 } },
     );
-    render(<WithInspector><BuildingsPanel state={state} /></WithInspector>);
+    render(
+      <WithInspector>
+        <BuildingsPanel state={state} />
+      </WithInspector>,
+    );
     const buyButton = screen.getByRole("button", { name: /buy/i });
     fireEvent.click(buyButton);
     expect(mockMutate).toHaveBeenCalledWith({ type: "BUY_BUILDING", name: "field" });
@@ -271,9 +386,17 @@ describe("BuildingsPanel", () => {
       { smelter: { val: 2, on: 2, unlocked: true } },
       { minerals: { value: 2000, maxValue: 0 } },
     );
-    render(<WithInspector><BuildingsPanel state={state} /></WithInspector>);
+    render(
+      <WithInspector>
+        <BuildingsPanel state={state} />
+      </WithInspector>,
+    );
     fireEvent.click(screen.getByTestId("building-smelter-disable-1"));
-    expect(mockMutate).toHaveBeenCalledWith({ type: "DISABLE_BUILDING", name: "smelter", amount: 1 });
+    expect(mockMutate).toHaveBeenCalledWith({
+      type: "DISABLE_BUILDING",
+      name: "smelter",
+      amount: 1,
+    });
   });
 
   it("dispatches ENABLE_BUILDING with amount 25 when count-adjust increment is clicked", () => {
@@ -281,9 +404,17 @@ describe("BuildingsPanel", () => {
       { smelter: { val: 30, on: 1, unlocked: true } },
       { minerals: { value: 2000, maxValue: 0 } },
     );
-    render(<WithInspector><BuildingsPanel state={state} /></WithInspector>);
+    render(
+      <WithInspector>
+        <BuildingsPanel state={state} />
+      </WithInspector>,
+    );
     fireEvent.click(screen.getByTestId("building-smelter-enable-25"));
-    expect(mockMutate).toHaveBeenCalledWith({ type: "ENABLE_BUILDING", name: "smelter", amount: 25 });
+    expect(mockMutate).toHaveBeenCalledWith({
+      type: "ENABLE_BUILDING",
+      name: "smelter",
+      amount: 25,
+    });
   });
 
   it("dispatches DISABLE_BUILDING_AUTOMATION when auto off is clicked", () => {
@@ -291,9 +422,16 @@ describe("BuildingsPanel", () => {
       { steamworks: { val: 1, on: 1, unlocked: true, automationEnabled: true } },
       { wood: { value: 2000, maxValue: 10000 } },
     );
-    render(<WithInspector><BuildingsPanel state={state} /></WithInspector>);
+    render(
+      <WithInspector>
+        <BuildingsPanel state={state} />
+      </WithInspector>,
+    );
     fireEvent.click(screen.getByRole("button", { name: /auto off/i }));
-    expect(mockMutate).toHaveBeenCalledWith({ type: "DISABLE_BUILDING_AUTOMATION", name: "steamworks" });
+    expect(mockMutate).toHaveBeenCalledWith({
+      type: "DISABLE_BUILDING_AUTOMATION",
+      name: "steamworks",
+    });
   });
 
   it("dispatches ENABLE_BUILDING_AUTOMATION when auto on is clicked", () => {
@@ -301,9 +439,16 @@ describe("BuildingsPanel", () => {
       { steamworks: { val: 1, on: 1, unlocked: true, automationEnabled: false } },
       { wood: { value: 2000, maxValue: 10000 } },
     );
-    render(<WithInspector><BuildingsPanel state={state} /></WithInspector>);
+    render(
+      <WithInspector>
+        <BuildingsPanel state={state} />
+      </WithInspector>,
+    );
     fireEvent.click(screen.getByRole("button", { name: /auto on/i }));
-    expect(mockMutate).toHaveBeenCalledWith({ type: "ENABLE_BUILDING_AUTOMATION", name: "steamworks" });
+    expect(mockMutate).toHaveBeenCalledWith({
+      type: "ENABLE_BUILDING_AUTOMATION",
+      name: "steamworks",
+    });
   });
 
   it("shows factory automation controls only after carbon sequestration and dispatches engine-backed actions", () => {
@@ -320,17 +465,32 @@ describe("BuildingsPanel", () => {
       crafts: {},
     };
 
-    const { rerender } = render(<WithInspector><BuildingsPanel state={hidden} /></WithInspector>);
+    const { rerender } = render(
+      <WithInspector>
+        <BuildingsPanel state={hidden} />
+      </WithInspector>,
+    );
     expect(screen.queryByRole("button", { name: /auto off/i })).toBeNull();
 
-    rerender(<WithInspector><BuildingsPanel state={shown as import("@kittens/api-spec").GameStateResponse} /></WithInspector>);
+    rerender(
+      <WithInspector>
+        <BuildingsPanel state={shown as import("@kittens/api-spec").GameStateResponse} />
+      </WithInspector>,
+    );
     fireEvent.click(screen.getByRole("button", { name: /auto off/i }));
-    expect(mockMutate).toHaveBeenCalledWith({ type: "DISABLE_BUILDING_AUTOMATION", name: "factory" });
+    expect(mockMutate).toHaveBeenCalledWith({
+      type: "DISABLE_BUILDING_AUTOMATION",
+      name: "factory",
+    });
   });
 
   it("uses the current slot when wiring building actions", () => {
     const state = makeState({ field: { val: 0, on: 0, unlocked: true } });
-    render(<WithInspector slot="new"><BuildingsPanel state={state} /></WithInspector>);
+    render(
+      <WithInspector slot="new">
+        <BuildingsPanel state={state} />
+      </WithInspector>,
+    );
     expect(mockUseGameAction).toHaveBeenCalledWith("new");
   });
 
@@ -339,7 +499,11 @@ describe("BuildingsPanel", () => {
       { field: { val: 0, on: 0, unlocked: true } },
       { catnip: { value: 5, maxValue: 0 } }, // need 10, only have 5
     );
-    render(<WithInspector><BuildingsPanel state={state} /></WithInspector>);
+    render(
+      <WithInspector>
+        <BuildingsPanel state={state} />
+      </WithInspector>,
+    );
     const buyButton = screen.getByRole("button", { name: /buy/i });
     expect(buyButton.hasAttribute("disabled")).toBe(true);
   });
@@ -349,7 +513,11 @@ describe("BuildingsPanel", () => {
       { field: { val: 0, on: 0, unlocked: true } },
       { catnip: { value: 50, maxValue: 0 } }, // need 10, have 50
     );
-    render(<WithInspector><BuildingsPanel state={state} /></WithInspector>);
+    render(
+      <WithInspector>
+        <BuildingsPanel state={state} />
+      </WithInspector>,
+    );
     const buyButton = screen.getByRole("button", { name: /buy/i });
     expect(buyButton.hasAttribute("disabled")).toBe(false);
   });
@@ -359,7 +527,11 @@ describe("BuildingsPanel", () => {
       { field: { val: 0, on: 0, unlocked: true } },
       { catnip: { value: 0, maxValue: 5 } },
     );
-    render(<WithInspector><BuildingsPanel state={state} /></WithInspector>);
+    render(
+      <WithInspector>
+        <BuildingsPanel state={state} />
+      </WithInspector>,
+    );
     const btn = screen.getByTestId("building-field-buy");
     expect(btn.textContent).toBe("Buy");
     expect(btn.className).toMatch(/btn--limited/);
@@ -372,7 +544,11 @@ describe("BuildingsPanel", () => {
       hut: { val: 2, on: 2, unlocked: true },
       pasture: { val: 0, on: 0, unlocked: false }, // locked — should NOT appear
     });
-    render(<WithInspector><BuildingsPanel state={state} /></WithInspector>);
+    render(
+      <WithInspector>
+        <BuildingsPanel state={state} />
+      </WithInspector>,
+    );
     expect(screen.getByTestId("building-field")).toBeTruthy();
     expect(screen.getByTestId("building-hut")).toBeTruthy();
     expect(screen.queryByTestId("building-pasture")).toBeNull();
@@ -381,7 +557,11 @@ describe("BuildingsPanel", () => {
   it("shows building details in inspector on hover", async () => {
     const state = makeState({ field: { val: 2, on: 2, unlocked: true } });
     const userEvent = (await import("@testing-library/user-event")).default;
-    render(<WithInspector><BuildingsPanel state={state} /></WithInspector>);
+    render(
+      <WithInspector>
+        <BuildingsPanel state={state} />
+      </WithInspector>,
+    );
     await userEvent.hover(screen.getByTestId("building-field"));
     expect(screen.getByTestId("inspector-panel")).toBeTruthy();
     // Inspector should show entity name
@@ -402,7 +582,11 @@ describe("BuildingsPanel", () => {
       zebraOutpost: { val: 1, on: 1, unlocked: true },
     });
 
-    render(<WithInspector><BuildingsPanel state={state} /></WithInspector>);
+    render(
+      <WithInspector>
+        <BuildingsPanel state={state} />
+      </WithInspector>,
+    );
 
     const food = screen.getByTestId("building-category-food-production");
     expect(within(food).getByTestId("building-field")).toBeTruthy();
@@ -433,7 +617,11 @@ describe("BuildingsPanel", () => {
 
   it("hides empty building categories", () => {
     const state = makeState({ field: { val: 1, on: 1, unlocked: true } });
-    render(<WithInspector><BuildingsPanel state={state} /></WithInspector>);
+    render(
+      <WithInspector>
+        <BuildingsPanel state={state} />
+      </WithInspector>,
+    );
 
     expect(screen.getByTestId("building-category-food-production")).toBeTruthy();
     expect(screen.queryByTestId("building-category-industry")).toBeNull();
@@ -446,13 +634,21 @@ describe("BuildingsPanel", () => {
 describe("Story 32-04: Buildings on/off display and labels", () => {
   it("shows 'on/val' when on < val", () => {
     const state = makeState({ hut: { val: 12, on: 9, unlocked: true } });
-    render(<WithInspector><BuildingsPanel state={state} /></WithInspector>);
+    render(
+      <WithInspector>
+        <BuildingsPanel state={state} />
+      </WithInspector>,
+    );
     expect(screen.getByText(/9\/12|9 \/ 12/)).toBeTruthy();
   });
 
   it("shows just val when on === val", () => {
     const state = makeState({ hut: { val: 5, on: 5, unlocked: true } });
-    render(<WithInspector><BuildingsPanel state={state} /></WithInspector>);
+    render(
+      <WithInspector>
+        <BuildingsPanel state={state} />
+      </WithInspector>,
+    );
     // Should show "5" without a slash
     const countEl = screen.getByTestId("building-hut").querySelector(".building-count");
     expect(countEl?.textContent).toBe("5");
@@ -460,7 +656,11 @@ describe("Story 32-04: Buildings on/off display and labels", () => {
 
   it("shows human-readable label instead of camelCase name", () => {
     const state = makeState({ hut: { val: 1, on: 1, unlocked: true } });
-    render(<WithInspector><BuildingsPanel state={state} /></WithInspector>);
+    render(
+      <WithInspector>
+        <BuildingsPanel state={state} />
+      </WithInspector>,
+    );
     // "hut" → "Hut" (single word); in a realistic case: "lumberMill" → "Lumber Mill"
     expect(screen.getByText(/^Hut$/)).toBeTruthy();
   });
@@ -470,7 +670,11 @@ describe("Story 32-04: Buildings on/off display and labels", () => {
       smelter: { val: 5, on: 3, unlocked: true },
       hut: { val: 5, on: 3, unlocked: true },
     });
-    render(<WithInspector><BuildingsPanel state={state} /></WithInspector>);
+    render(
+      <WithInspector>
+        <BuildingsPanel state={state} />
+      </WithInspector>,
+    );
     expect(screen.getByTestId("building-smelter-disable-1")).toBeTruthy();
     expect(screen.getByTestId("building-smelter-disable-25")).toBeTruthy();
     expect(screen.getByTestId("building-smelter-disable-all")).toBeTruthy();
@@ -486,7 +690,11 @@ describe("Story 32-04: Buildings on/off display and labels", () => {
     const state = makeState({
       steamworks: { val: 2, on: 1, unlocked: true, automationEnabled: false },
     });
-    render(<WithInspector><BuildingsPanel state={state} /></WithInspector>);
+    render(
+      <WithInspector>
+        <BuildingsPanel state={state} />
+      </WithInspector>,
+    );
     expect(screen.getByTestId("building-steamworks-enable-binary")).toBeTruthy();
     expect(screen.getByTestId("building-steamworks-disable-binary")).toBeTruthy();
     expect(screen.queryByTestId("building-steamworks-enable-25")).toBeNull();
@@ -495,7 +703,11 @@ describe("Story 32-04: Buildings on/off display and labels", () => {
 
   it("hides on/off controls for non-toggleable buildings", () => {
     const state = makeState({ hut: { val: 5, on: 3, unlocked: true } });
-    render(<WithInspector><BuildingsPanel state={state} /></WithInspector>);
+    render(
+      <WithInspector>
+        <BuildingsPanel state={state} />
+      </WithInspector>,
+    );
     expect(screen.queryByRole("button", { name: /on/i })).toBeNull();
     expect(screen.queryByRole("button", { name: /off/i })).toBeNull();
   });
@@ -508,10 +720,18 @@ describe("Story 32-04: Buildings on/off display and labels", () => {
       policies: {},
     };
 
-    const { rerender } = render(<WithInspector><BuildingsPanel state={hidden} /></WithInspector>);
+    const { rerender } = render(
+      <WithInspector>
+        <BuildingsPanel state={hidden} />
+      </WithInspector>,
+    );
     expect(screen.queryByTestId("building-mine-enable-1")).toBeNull();
 
-    rerender(<WithInspector><BuildingsPanel state={shown} /></WithInspector>);
+    rerender(
+      <WithInspector>
+        <BuildingsPanel state={shown} />
+      </WithInspector>,
+    );
     expect(screen.getByTestId("building-mine-enable-1")).toBeTruthy();
   });
 });
@@ -520,7 +740,11 @@ describe("camelCase prettifier (via BuildingsPanel)", () => {
   it("splits camelCase into Title Case words", () => {
     // We test via rendering; use "field" which maps to "Field"
     const state = makeState({ field: { val: 1, on: 1, unlocked: true } });
-    render(<WithInspector><BuildingsPanel state={state} /></WithInspector>);
+    render(
+      <WithInspector>
+        <BuildingsPanel state={state} />
+      </WithInspector>,
+    );
     expect(screen.getByText(/^Field$/)).toBeTruthy();
   });
 });
@@ -531,7 +755,7 @@ describe("Story 49-05: Building filter tabs", () => {
   const baseBuildings = {
     field: { val: 3, on: 3, unlocked: true },
     hut: { val: 1, on: 1, unlocked: true },
-    brewery: { val: 2, on: 1, unlocked: true },   // count controls, on > 0
+    brewery: { val: 2, on: 1, unlocked: true }, // count controls, on > 0
     steamworks: { val: 1, on: 0, unlocked: true }, // binary controls, on = 0
   };
   const baseResources = {
@@ -541,7 +765,11 @@ describe("Story 49-05: Building filter tabs", () => {
 
   it("renders filter tabs: All, Available, Enabled, Togglable", () => {
     const state = makeState(baseBuildings, baseResources);
-    render(<WithInspector><BuildingsPanel state={state} /></WithInspector>);
+    render(
+      <WithInspector>
+        <BuildingsPanel state={state} />
+      </WithInspector>,
+    );
     expect(screen.getByTestId("building-filter-all")).toBeTruthy();
     expect(screen.getByTestId("building-filter-available")).toBeTruthy();
     expect(screen.getByTestId("building-filter-enabled")).toBeTruthy();
@@ -550,7 +778,11 @@ describe("Story 49-05: Building filter tabs", () => {
 
   it("All tab shows all unlocked buildings (default)", () => {
     const state = makeState(baseBuildings, baseResources);
-    render(<WithInspector><BuildingsPanel state={state} /></WithInspector>);
+    render(
+      <WithInspector>
+        <BuildingsPanel state={state} />
+      </WithInspector>,
+    );
     expect(screen.getByTestId("building-field")).toBeTruthy();
     expect(screen.getByTestId("building-hut")).toBeTruthy();
     expect(screen.getByTestId("building-brewery")).toBeTruthy();
@@ -562,7 +794,11 @@ describe("Story 49-05: Building filter tabs", () => {
     // brewery costs 1000 wood (not affordable with 200 wood)
     // steamworks costs 100 steel (not affordable — no steel in resources)
     const state = makeState(baseBuildings, baseResources);
-    render(<WithInspector><BuildingsPanel state={state} /></WithInspector>);
+    render(
+      <WithInspector>
+        <BuildingsPanel state={state} />
+      </WithInspector>,
+    );
     fireEvent.click(screen.getByTestId("building-filter-available"));
     expect(screen.getByTestId("building-field")).toBeTruthy();
     expect(screen.getByTestId("building-hut")).toBeTruthy();
@@ -572,7 +808,11 @@ describe("Story 49-05: Building filter tabs", () => {
 
   it("Enabled tab shows only buildings with on > 0", () => {
     const state = makeState(baseBuildings, baseResources);
-    render(<WithInspector><BuildingsPanel state={state} /></WithInspector>);
+    render(
+      <WithInspector>
+        <BuildingsPanel state={state} />
+      </WithInspector>,
+    );
     fireEvent.click(screen.getByTestId("building-filter-enabled"));
     expect(screen.getByTestId("building-field")).toBeTruthy();
     expect(screen.getByTestId("building-hut")).toBeTruthy();
@@ -583,7 +823,11 @@ describe("Story 49-05: Building filter tabs", () => {
 
   it("Togglable tab shows only buildings with on/off controls", () => {
     const state = makeState(baseBuildings, baseResources);
-    render(<WithInspector><BuildingsPanel state={state} /></WithInspector>);
+    render(
+      <WithInspector>
+        <BuildingsPanel state={state} />
+      </WithInspector>,
+    );
     fireEvent.click(screen.getByTestId("building-filter-togglable"));
     // brewery has count controls, steamworks has binary controls
     expect(screen.getByTestId("building-brewery")).toBeTruthy();
@@ -595,7 +839,11 @@ describe("Story 49-05: Building filter tabs", () => {
 
   it("active tab is visually highlighted", () => {
     const state = makeState(baseBuildings, baseResources);
-    render(<WithInspector><BuildingsPanel state={state} /></WithInspector>);
+    render(
+      <WithInspector>
+        <BuildingsPanel state={state} />
+      </WithInspector>,
+    );
     const allTab = screen.getByTestId("building-filter-all");
     expect(allTab.getAttribute("data-active")).toBe("true");
     fireEvent.click(screen.getByTestId("building-filter-enabled"));
@@ -611,7 +859,11 @@ describe("Story 49-06: Stage UI controls", () => {
     const state = makeState({
       pasture: { val: 2, on: 2, unlocked: true, stage: 0, stageUnlocked: [true, true] },
     });
-    render(<WithInspector><BuildingsPanel state={state} /></WithInspector>);
+    render(
+      <WithInspector>
+        <BuildingsPanel state={state} />
+      </WithInspector>,
+    );
     expect(screen.getByTestId("building-pasture-upgrade")).toBeTruthy();
   });
 
@@ -619,7 +871,11 @@ describe("Story 49-06: Stage UI controls", () => {
     const state = makeState({
       pasture: { val: 2, on: 2, unlocked: true, stage: 0, stageUnlocked: [true, false] },
     });
-    render(<WithInspector><BuildingsPanel state={state} /></WithInspector>);
+    render(
+      <WithInspector>
+        <BuildingsPanel state={state} />
+      </WithInspector>,
+    );
     expect(screen.queryByTestId("building-pasture-upgrade")).toBeNull();
   });
 
@@ -627,7 +883,11 @@ describe("Story 49-06: Stage UI controls", () => {
     const state = makeState({
       pasture: { val: 0, on: 0, unlocked: true, stage: 1, stageUnlocked: [true, true] },
     });
-    render(<WithInspector><BuildingsPanel state={state} /></WithInspector>);
+    render(
+      <WithInspector>
+        <BuildingsPanel state={state} />
+      </WithInspector>,
+    );
     expect(screen.getByTestId("building-pasture-downgrade")).toBeTruthy();
   });
 
@@ -635,7 +895,11 @@ describe("Story 49-06: Stage UI controls", () => {
     const state = makeState({
       pasture: { val: 2, on: 2, unlocked: true, stage: 0, stageUnlocked: [true, true] },
     });
-    render(<WithInspector><BuildingsPanel state={state} /></WithInspector>);
+    render(
+      <WithInspector>
+        <BuildingsPanel state={state} />
+      </WithInspector>,
+    );
     expect(screen.queryByTestId("building-pasture-downgrade")).toBeNull();
   });
 
@@ -643,7 +907,11 @@ describe("Story 49-06: Stage UI controls", () => {
     const state = makeState({
       pasture: { val: 2, on: 2, unlocked: true, stage: 0, stageUnlocked: [true, true] },
     });
-    render(<WithInspector><BuildingsPanel state={state} /></WithInspector>);
+    render(
+      <WithInspector>
+        <BuildingsPanel state={state} />
+      </WithInspector>,
+    );
     fireEvent.click(screen.getByTestId("building-pasture-upgrade"));
     expect(mockMutate).toHaveBeenCalledWith({ type: "UPGRADE_BUILDING_STAGE", name: "pasture" });
   });
@@ -652,7 +920,11 @@ describe("Story 49-06: Stage UI controls", () => {
     const state = makeState({
       pasture: { val: 0, on: 0, unlocked: true, stage: 1, stageUnlocked: [true, true] },
     });
-    render(<WithInspector><BuildingsPanel state={state} /></WithInspector>);
+    render(
+      <WithInspector>
+        <BuildingsPanel state={state} />
+      </WithInspector>,
+    );
     fireEvent.click(screen.getByTestId("building-pasture-downgrade"));
     expect(mockMutate).toHaveBeenCalledWith({ type: "DOWNGRADE_BUILDING_STAGE", name: "pasture" });
   });
@@ -661,7 +933,11 @@ describe("Story 49-06: Stage UI controls", () => {
     const state = makeState({
       pasture: { val: 1, on: 1, unlocked: true, stage: 1, stageUnlocked: [true, true] },
     });
-    render(<WithInspector><BuildingsPanel state={state} /></WithInspector>);
+    render(
+      <WithInspector>
+        <BuildingsPanel state={state} />
+      </WithInspector>,
+    );
     expect(screen.getByText("Solar Farm")).toBeTruthy();
   });
 });

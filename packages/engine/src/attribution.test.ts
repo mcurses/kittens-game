@@ -22,8 +22,8 @@ describe("getResourceAttribution", () => {
     const sources = getResourceAttribution(state, "catnip");
     const fieldSource = sources.find((s) => s.label.startsWith("Field"));
     expect(fieldSource).toBeDefined();
-    expect(fieldSource!.amount).toBeCloseTo(0.125 * 10);
-    expect(fieldSource!.channel).toBe("base");
+    expect(fieldSource?.amount).toBeCloseTo(0.125 * 10);
+    expect(fieldSource?.channel).toBe("base");
   });
 
   it("attributes science production to libraries (ratio)", () => {
@@ -35,7 +35,7 @@ describe("getResourceAttribution", () => {
     const sources = getResourceAttribution(state, "science");
     const ratioSource = sources.find((s) => s.channel === "ratio");
     expect(ratioSource).toBeDefined();
-    expect(ratioSource!.amount).toBeCloseTo(0.1 * 5);
+    expect(ratioSource?.amount).toBeCloseTo(0.1 * 5);
   });
 
   it("attributes catnip production to farmers", () => {
@@ -55,8 +55,8 @@ describe("getResourceAttribution", () => {
     const sources = getResourceAttribution(state, "catnip");
     const farmerSource = sources.find((s) => s.label.startsWith("Farmer"));
     expect(farmerSource).toBeDefined();
-    expect(farmerSource!.amount).toBeCloseTo(1.0 * 3 * 1.0);
-    expect(farmerSource!.channel).toBe("base");
+    expect(farmerSource?.amount).toBeCloseTo(1.0 * 3 * 1.0);
+    expect(farmerSource?.channel).toBe("base");
   });
 
   it("attributes catnip consumption to kittens", () => {
@@ -76,10 +76,10 @@ describe("getResourceAttribution", () => {
     const sources = getResourceAttribution(state, "catnip");
     const kittenSource = sources.find((s) => s.label.startsWith("Kittens"));
     expect(kittenSource).toBeDefined();
-    expect(kittenSource!.amount).toBeLessThan(0);
-    expect(kittenSource!.channel).toBe("consumption");
+    expect(kittenSource?.amount).toBeLessThan(0);
+    expect(kittenSource?.channel).toBe("consumption");
     // 10 unassigned kittens × -0.85 = -8.5
-    expect(kittenSource!.amount).toBeCloseTo(-0.85 * 10);
+    expect(kittenSource?.amount).toBeCloseTo(-0.85 * 10);
   });
 
   it("attributes smelter iron production (static ratio + dynamic autoprod)", () => {
@@ -93,11 +93,13 @@ describe("getResourceAttribution", () => {
     // Static: ironRatio 0.5 × 3 on
     const ratioSource = sources.find((s) => s.label.startsWith("Smelter") && s.channel === "ratio");
     expect(ratioSource).toBeDefined();
-    expect(ratioSource!.amount).toBeCloseTo(0.5 * 3);
+    expect(ratioSource?.amount).toBeCloseTo(0.5 * 3);
     // Dynamic: ironPerTickAutoprod 0.02 × smelterRatio × 3 on
-    const autoprodSource = sources.find((s) => s.label.startsWith("Smelter") && s.channel === "autoprod");
+    const autoprodSource = sources.find(
+      (s) => s.label.startsWith("Smelter") && s.channel === "autoprod",
+    );
     expect(autoprodSource).toBeDefined();
-    expect(autoprodSource!.amount).toBeCloseTo(0.02 * 3);
+    expect(autoprodSource?.amount).toBeCloseTo(0.02 * 3);
   });
 
   it("attributes smelter wood consumption", () => {
@@ -110,8 +112,8 @@ describe("getResourceAttribution", () => {
     const sources = getResourceAttribution(state, "wood");
     const smelterSource = sources.find((s) => s.label.startsWith("Smelter"));
     expect(smelterSource).toBeDefined();
-    expect(smelterSource!.amount).toBeCloseTo(-0.05 * 2);
-    expect(smelterSource!.channel).toBe("consumption");
+    expect(smelterSource?.amount).toBeCloseTo(-0.05 * 2);
+    expect(smelterSource?.channel).toBe("consumption");
   });
 
   it("attributes aqueduct ratio bonus to catnip", () => {
@@ -123,8 +125,8 @@ describe("getResourceAttribution", () => {
     const sources = getResourceAttribution(state, "catnip");
     const aqueductSource = sources.find((s) => s.label.startsWith("Aqueduct"));
     expect(aqueductSource).toBeDefined();
-    expect(aqueductSource!.amount).toBeCloseTo(0.03 * 3);
-    expect(aqueductSource!.channel).toBe("ratio");
+    expect(aqueductSource?.amount).toBeCloseTo(0.03 * 3);
+    expect(aqueductSource?.channel).toBe("ratio");
   });
 
   it("returns multiple sources for a resource with complex production", () => {

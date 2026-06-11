@@ -478,7 +478,7 @@ export function getZigguratUpgradePrice(
 ): readonly PriceEntry[] {
   return def.prices.map((p) => ({
     name: p.name,
-    val: p.val * Math.pow(def.priceRatio, count),
+    val: p.val * def.priceRatio ** count,
   }));
 }
 
@@ -491,7 +491,7 @@ export function getTranscendenceUpgradePrice(
 ): readonly PriceEntry[] {
   return def.prices.map((p) => ({
     name: p.name,
-    val: p.val * Math.pow(def.priceRatio, count),
+    val: p.val * def.priceRatio ** count,
   }));
 }
 
@@ -547,7 +547,7 @@ export function getSolarRevolutionRatio(
   // getUnlimitedDR(x, ratio) = log(1 + x * ratio) / ratio
   const unlimitedDr = (x: number, ratio: number) => Math.log(1 + x * ratio) / ratio;
   const uncapped = unlimitedDr(worship, 1000) / 100;
-  const limit = 10 + (effectCache["solarRevolutionLimit"] ?? 0);
+  const limit = 10 + (effectCache.solarRevolutionLimit ?? 0);
   // getLimitedDR(x, limit) — from effects.ts pattern
   const limitedDr = (x: number, lim: number) => lim * (1 - Math.exp(-x / lim));
   return limitedDr(uncapped, limit);
@@ -607,7 +607,7 @@ export function applyBuyReligionUpgrade(state: GameState, name: string): GameSta
   // Price for religion upgrades uses priceRatio^val (each buy is more expensive)
   const prices: PriceEntry[] = def.prices.map((p) => ({
     name: p.name,
-    val: p.val * Math.pow(def.priceRatio, entry.val),
+    val: p.val * def.priceRatio ** entry.val,
   }));
 
   if (!canAfford(prices, state.resources)) return state;
@@ -757,7 +757,8 @@ export function applySacrificeUnicorns(state: GameState): GameState {
     const tears = draft.resources.tears;
     if (tears) {
       const gain = zigguratCount;
-      tears.value = tears.maxValue > 0 ? Math.min(tears.value + gain, tears.maxValue) : tears.value + gain;
+      tears.value =
+        tears.maxValue > 0 ? Math.min(tears.value + gain, tears.maxValue) : tears.value + gain;
     }
   });
 }
@@ -811,7 +812,8 @@ export function applyRefineTimeCrystals(state: GameState): GameState {
     if (timeCrystal) timeCrystal.value -= 25;
     const relics = draft.resources.relic;
     if (relics) {
-      relics.value = relics.maxValue > 0 ? Math.min(relics.value + gain, relics.maxValue) : relics.value + gain;
+      relics.value =
+        relics.maxValue > 0 ? Math.min(relics.value + gain, relics.maxValue) : relics.value + gain;
     }
   });
 }
@@ -823,7 +825,7 @@ export class ReligionManager implements Manager {
 
   update(state: GameState): GameState {
     // Faith per tick — faith resource accumulates based on effectCache
-    const faithPerTick = state.effectCache["faithPerTick"] ?? 0;
+    const faithPerTick = state.effectCache.faithPerTick ?? 0;
     if (faithPerTick <= 0) return state;
 
     const faithRes = state.resources.faith ?? { value: 0, maxValue: 0 };
@@ -865,7 +867,7 @@ export class ReligionManager implements Manager {
       if (def.name === "solarRevolution") {
         // Dynamic effect: calculate solarRevolutionRatio from worship
         const srRatio = getSolarRevolutionRatio(state.religion.worship, state.effectCache);
-        effects["solarRevolutionRatio"] = (effects["solarRevolutionRatio"] ?? 0) + srRatio * entry.on;
+        effects.solarRevolutionRatio = (effects.solarRevolutionRatio ?? 0) + srRatio * entry.on;
       } else {
         for (const [effectName, baseValue] of Object.entries(def.effects)) {
           effects[effectName] = (effects[effectName] ?? 0) + baseValue * entry.on;
@@ -881,8 +883,7 @@ export class ReligionManager implements Manager {
       if (def.name === "blackObelisk") {
         // solarRevolutionLimit = 0.05 * transcendenceTier per stack
         const perStack = 0.05 * state.religion.transcendenceTier;
-        effects["solarRevolutionLimit"] =
-          (effects["solarRevolutionLimit"] ?? 0) + perStack * entry.on;
+        effects.solarRevolutionLimit = (effects.solarRevolutionLimit ?? 0) + perStack * entry.on;
       } else {
         for (const [effectName, baseValue] of Object.entries(def.effects)) {
           effects[effectName] = (effects[effectName] ?? 0) + baseValue * entry.on;
@@ -925,32 +926,31 @@ export class ReligionManager implements Manager {
     if (!data || typeof data !== "object") return state;
     const d = data as Record<string, unknown>;
 
-    const worship = typeof d["worship"] === "number" ? d["worship"] : 0;
-    const faithRatio = typeof d["faithRatio"] === "number" ? d["faithRatio"] : 0;
-    const transcendenceTier =
-      typeof d["transcendenceTier"] === "number" ? d["transcendenceTier"] : 0;
+    const worship = typeof d.worship === "number" ? d.worship : 0;
+    const faithRatio = typeof d.faithRatio === "number" ? d.faithRatio : 0;
+    const transcendenceTier = typeof d.transcendenceTier === "number" ? d.transcendenceTier : 0;
 
     const initial = createInitialReligion();
 
     // Restore ziggurat upgrades
     const zigguratUpgrades = { ...initial.zigguratUpgrades };
-    const savedZu = d["zu"];
+    const savedZu = d.zu;
     if (savedZu && typeof savedZu === "object") {
       for (const [name, entry] of Object.entries(savedZu as Record<string, unknown>)) {
         if (
           entry &&
           typeof entry === "object" &&
-          typeof (entry as Record<string, unknown>)["val"] === "number" &&
-          typeof (entry as Record<string, unknown>)["on"] === "number"
+          typeof (entry as Record<string, unknown>).val === "number" &&
+          typeof (entry as Record<string, unknown>).on === "number"
         ) {
           const e = entry as Record<string, unknown>;
           const unlocked =
-            typeof e["unlocked"] === "boolean"
-              ? e["unlocked"]
+            typeof e.unlocked === "boolean"
+              ? e.unlocked
               : (zigguratUpgrades[name]?.unlocked ?? false);
           zigguratUpgrades[name] = {
-            val: e["val"] as number,
-            on: e["on"] as number,
+            val: e.val as number,
+            on: e.on as number,
             unlocked,
           };
         }
@@ -959,19 +959,19 @@ export class ReligionManager implements Manager {
 
     // Restore religion upgrades
     const religionUpgrades = { ...initial.religionUpgrades };
-    const savedRu = d["ru"];
+    const savedRu = d.ru;
     if (savedRu && typeof savedRu === "object") {
       for (const [name, entry] of Object.entries(savedRu as Record<string, unknown>)) {
         if (
           entry &&
           typeof entry === "object" &&
-          typeof (entry as Record<string, unknown>)["val"] === "number" &&
-          typeof (entry as Record<string, unknown>)["on"] === "number"
+          typeof (entry as Record<string, unknown>).val === "number" &&
+          typeof (entry as Record<string, unknown>).on === "number"
         ) {
           const e = entry as Record<string, unknown>;
           religionUpgrades[name] = {
-            val: e["val"] as number,
-            on: e["on"] as number,
+            val: e.val as number,
+            on: e.on as number,
           };
         }
       }
@@ -979,21 +979,20 @@ export class ReligionManager implements Manager {
 
     // Restore transcendence upgrades
     const transcendenceUpgrades = { ...initial.transcendenceUpgrades };
-    const savedTu = d["tu"];
+    const savedTu = d.tu;
     if (savedTu && typeof savedTu === "object") {
       for (const [name, entry] of Object.entries(savedTu as Record<string, unknown>)) {
         if (
           entry &&
           typeof entry === "object" &&
-          typeof (entry as Record<string, unknown>)["val"] === "number" &&
-          typeof (entry as Record<string, unknown>)["on"] === "number"
+          typeof (entry as Record<string, unknown>).val === "number" &&
+          typeof (entry as Record<string, unknown>).on === "number"
         ) {
           const e = entry as Record<string, unknown>;
-          const unlocked =
-            typeof e["unlocked"] === "boolean" ? e["unlocked"] : false;
+          const unlocked = typeof e.unlocked === "boolean" ? e.unlocked : false;
           transcendenceUpgrades[name] = {
-            val: e["val"] as number,
-            on: e["on"] as number,
+            val: e.val as number,
+            on: e.on as number,
             unlocked,
           };
         }

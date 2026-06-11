@@ -1,6 +1,6 @@
 // VillagePanel — read-only village summary as a header status pill
 import type { GameStateResponse } from "@kittens/api-spec";
-import React from "react";
+import type React from "react";
 import { useInspector } from "./InspectorContext.js";
 import { buildHappinessEntity } from "./happinessInspector.js";
 
@@ -22,8 +22,7 @@ function extractVillageInfo(state: GameStateResponse): VillageInfo {
   const happiness = typeof village?.happiness === "number" ? village.happiness : 1.0;
 
   const effectCache = raw.effectCache as Record<string, unknown> | null | undefined;
-  const maxKittens =
-    typeof effectCache?.maxKittens === "number" ? effectCache.maxKittens : 0;
+  const maxKittens = typeof effectCache?.maxKittens === "number" ? effectCache.maxKittens : 0;
 
   return { kittens, maxKittens, happiness };
 }
@@ -45,7 +44,9 @@ export function VillagePanel({ state }: Props): React.ReactElement {
 
   return (
     <div className="status-pill" data-testid="village-panel">
-      <span className="village-population">{kittens} / {maxKittens} kittens</span>
+      <span className="village-population">
+        {kittens} / {maxKittens} kittens
+      </span>
       <span className="status-pill-label"> — </span>
       <button
         type="button"

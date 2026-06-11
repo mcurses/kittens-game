@@ -2,10 +2,18 @@ import { describe, expect, it } from "vitest";
 import { applyAction } from "./actions.js";
 import { buildEffectCache } from "./effects.js";
 import {
+  BuildingManager,
+  CalendarManager,
+  ResourceManager,
+  ScienceManager,
+  VillageManager,
+  WorkshopManager,
+} from "./index.js";
+import {
   RELIGION_UPGRADE_DEFS,
+  ReligionManager,
   TRANSCENDENCE_UPGRADE_DEFS,
   ZIGGURAT_UPGRADE_DEFS,
-  ReligionManager,
   applyAdore,
   applyBuyReligionUpgrade,
   applyBuyTranscendenceUpgrade,
@@ -17,21 +25,13 @@ import {
   applyTranscend,
   createInitialReligion,
   getApocryphaBonus,
+  getSolarRevolutionRatio,
   getTranscendNextPrice,
   getTranscendTotalPrice,
-  getSolarRevolutionRatio,
 } from "./religion.js";
 import { createInitialResources } from "./resources.js";
 import { createInitialState } from "./state.js";
 import { tick } from "./tick.js";
-import {
-  BuildingManager,
-  CalendarManager,
-  ResourceManager,
-  ScienceManager,
-  VillageManager,
-  WorkshopManager,
-} from "./index.js";
 
 // ── Story 1: ReligionState shape and initial values ──────────────────────────
 
@@ -495,7 +495,7 @@ describe("ReligionManager.updateEffects", () => {
       },
     };
     const effects = mgr.updateEffects(state);
-    expect(effects["unicornsRatioReligion"]).toBeCloseTo(3 * 0.05, 10);
+    expect(effects.unicornsRatioReligion).toBeCloseTo(3 * 0.05, 10);
   });
 
   it("contributes faithRatioReligion from solarchant on=2", () => {
@@ -510,7 +510,7 @@ describe("ReligionManager.updateEffects", () => {
       },
     };
     const effects = mgr.updateEffects(state);
-    expect(effects["faithRatioReligion"]).toBeCloseTo(2 * 0.1, 10);
+    expect(effects.faithRatioReligion).toBeCloseTo(2 * 0.1, 10);
   });
 
   it("blackObelisk solarRevolutionLimit = 0.05 * tier * on", () => {
@@ -526,7 +526,7 @@ describe("ReligionManager.updateEffects", () => {
       },
     };
     const effects = mgr.updateEffects(state);
-    expect(effects["solarRevolutionLimit"]).toBeCloseTo(0.05 * 5 * 1, 10);
+    expect(effects.solarRevolutionLimit).toBeCloseTo(0.05 * 5 * 1, 10);
   });
 
   it("returns empty record when no upgrades are active", () => {
@@ -548,7 +548,7 @@ describe("ReligionManager.updateEffects", () => {
       },
     };
     const effects = mgr.updateEffects(state);
-    expect(effects["solarRevolutionRatio"]).toBeGreaterThan(0);
+    expect(effects.solarRevolutionRatio).toBeGreaterThan(0);
   });
 
   it("contributes non-blackObelisk TU effects (singularity globalResourceRatio)", () => {
@@ -564,7 +564,7 @@ describe("ReligionManager.updateEffects", () => {
       },
     };
     const effects = mgr.updateEffects(state);
-    expect(effects["globalResourceRatio"]).toBeCloseTo(2 * 0.1, 10);
+    expect(effects.globalResourceRatio).toBeCloseTo(2 * 0.1, 10);
   });
 });
 
@@ -671,16 +671,16 @@ describe("ReligionManager save/load/reset", () => {
     const saved = mgr.save(state);
     expect(typeof saved).toBe("object");
     const s = saved as Record<string, unknown>;
-    expect(s["worship"]).toBe(1234);
-    expect(s["faithRatio"]).toBe(5.5);
-    expect(s["transcendenceTier"]).toBe(3);
-    expect((s["zu"] as Record<string, unknown>)["unicornTomb"]).toEqual({
+    expect(s.worship).toBe(1234);
+    expect(s.faithRatio).toBe(5.5);
+    expect(s.transcendenceTier).toBe(3);
+    expect((s.zu as Record<string, unknown>).unicornTomb).toEqual({
       val: 2,
       on: 2,
       unlocked: true,
     });
-    expect((s["ru"] as Record<string, unknown>)["solarchant"]).toEqual({ val: 1, on: 1 });
-    expect((s["tu"] as Record<string, unknown>)["blackObelisk"]).toEqual({
+    expect((s.ru as Record<string, unknown>).solarchant).toEqual({ val: 1, on: 1 });
+    expect((s.tu as Record<string, unknown>).blackObelisk).toEqual({
       val: 1,
       on: 1,
       unlocked: true,
@@ -784,7 +784,7 @@ describe("cross-manager integration with ReligionManager", () => {
       },
     };
     const effects = buildEffectCache(managers, state);
-    expect(effects["unicornsRatioReligion"]).toBeCloseTo(2 * 0.05, 10);
+    expect(effects.unicornsRatioReligion).toBeCloseTo(2 * 0.05, 10);
   });
 });
 

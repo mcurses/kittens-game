@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { GameStateStore, SessionRegistry, isValidSlot } from "./store.js";
 import { createMemoryAdapter } from "./db.js";
+import { GameStateStore, SessionRegistry, isValidSlot } from "./store.js";
 
 // ── Story 22-6: Slot name validation ─────────────────────────────────────────
 describe("isValidSlot", () => {

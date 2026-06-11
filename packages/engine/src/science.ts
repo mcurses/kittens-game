@@ -1080,7 +1080,11 @@ export const POLICY_DEFS: readonly PolicyDef[] = [
   {
     name: "sharkRelationsScribes",
     prices: [{ name: "culture", val: 2200 }],
-    effects: { parchmentTradeChanceIncrease: 0.25, manuscriptTradeChanceIncrease: 0.15, ironBuyRatioIncrease: 0.5 },
+    effects: {
+      parchmentTradeChanceIncrease: 0.25,
+      manuscriptTradeChanceIncrease: 0.15,
+      ironBuyRatioIncrease: 0.5,
+    },
     blocks: ["sharkRelationsMerchants", "sharkRelationsBotanists"],
   },
   {

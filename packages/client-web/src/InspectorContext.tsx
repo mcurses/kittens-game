@@ -311,10 +311,7 @@ export function useInspector(): InspectorContextValue {
 
 /** Stable identity comparison for pin-marker rendering. Two entities of the
  *  same kind+name are treated as the same target. */
-export function isSameEntity(
-  a: InspectorEntity | null,
-  b: InspectorEntity | null,
-): boolean {
+export function isSameEntity(a: InspectorEntity | null, b: InspectorEntity | null): boolean {
   if (a === null || b === null) return a === b;
   if (a.kind !== b.kind) return false;
   // Kittens have non-unique names — use id for identity.

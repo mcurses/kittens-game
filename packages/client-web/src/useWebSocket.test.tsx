@@ -1,6 +1,6 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { act, cleanup, renderHook } from "@testing-library/react";
-import React from "react";
+import type React from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { GAME_STATE_QUERY_KEY } from "./useGameState.js";
 import { useWebSocket } from "./useWebSocket.js";
@@ -69,9 +69,7 @@ function makeWrapper() {
     defaultOptions: { queries: { retry: false } },
   });
   function Wrapper({ children }: { children: React.ReactNode }) {
-    return (
-      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
-    );
+    return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
   }
   return { wrapper: Wrapper, queryClient };
 }
@@ -92,10 +90,7 @@ describe("useWebSocket", () => {
 
   it("updates sessionId and cache on CONNECTED message", () => {
     const { wrapper, queryClient } = makeWrapper();
-    const { result } = renderHook(
-      () => useWebSocket("ws://localhost:3000/ws"),
-      { wrapper },
-    );
+    const { result } = renderHook(() => useWebSocket("ws://localhost:3000/ws"), { wrapper });
     const ws = MockWebSocket.instances[0];
     expect(ws).toBeDefined();
     const state = { version: 1, tick: 0 };
@@ -192,10 +187,7 @@ describe("useWebSocket", () => {
 
   it("closes WebSocket on unmount", () => {
     const { wrapper } = makeWrapper();
-    const { unmount } = renderHook(
-      () => useWebSocket("ws://localhost:3000/ws"),
-      { wrapper },
-    );
+    const { unmount } = renderHook(() => useWebSocket("ws://localhost:3000/ws"), { wrapper });
     const ws = MockWebSocket.instances[0];
     expect(ws).toBeDefined();
     unmount();
@@ -204,10 +196,7 @@ describe("useWebSocket", () => {
 
   it("does not reconnect after unmount", () => {
     const { wrapper } = makeWrapper();
-    const { unmount } = renderHook(
-      () => useWebSocket("ws://localhost:3000/ws"),
-      { wrapper },
-    );
+    const { unmount } = renderHook(() => useWebSocket("ws://localhost:3000/ws"), { wrapper });
     unmount();
     // Simulate close after unmount
     act(() => {
@@ -220,19 +209,13 @@ describe("useWebSocket", () => {
 
   it("starts with an empty messages array", () => {
     const { wrapper } = makeWrapper();
-    const { result } = renderHook(
-      () => useWebSocket("ws://localhost:3000/ws"),
-      { wrapper },
-    );
+    const { result } = renderHook(() => useWebSocket("ws://localhost:3000/ws"), { wrapper });
     expect(result.current.messages).toEqual([]);
   });
 
   it("appends log messages on LOG_MESSAGE envelope", () => {
     const { wrapper } = makeWrapper();
-    const { result } = renderHook(
-      () => useWebSocket("ws://localhost:3000/ws"),
-      { wrapper },
-    );
+    const { result } = renderHook(() => useWebSocket("ws://localhost:3000/ws"), { wrapper });
     const ws = MockWebSocket.instances[0];
     act(() => {
       ws?.simulateMessage({ type: "LOG_MESSAGE", payload: "Hello world", ts: 1 });
@@ -242,10 +225,7 @@ describe("useWebSocket", () => {
 
   it("supports legacy LOG_MESSAGE envelopes with object payloads", () => {
     const { wrapper } = makeWrapper();
-    const { result } = renderHook(
-      () => useWebSocket("ws://localhost:3000/ws"),
-      { wrapper },
-    );
+    const { result } = renderHook(() => useWebSocket("ws://localhost:3000/ws"), { wrapper });
     const ws = MockWebSocket.instances[0];
     act(() => {
       ws?.simulateMessage({
@@ -259,10 +239,7 @@ describe("useWebSocket", () => {
 
   it("trims log messages to last 50 entries", () => {
     const { wrapper } = makeWrapper();
-    const { result } = renderHook(
-      () => useWebSocket("ws://localhost:3000/ws"),
-      { wrapper },
-    );
+    const { result } = renderHook(() => useWebSocket("ws://localhost:3000/ws"), { wrapper });
     const ws = MockWebSocket.instances[0];
     act(() => {
       for (let i = 0; i < 55; i++) {

@@ -57,7 +57,9 @@ export function getResourceAttribution(state: GameState, resourceName: string): 
       const multiplier = effectName.endsWith("Max") ? entry.val : entry.on;
       if (multiplier === 0) continue;
 
-      const channel = CHANNEL_SUFFIXES.find((s) => effectName === `${resourceName}${s.suffix}`)?.channel;
+      const channel = CHANNEL_SUFFIXES.find(
+        (s) => effectName === `${resourceName}${s.suffix}`,
+      )?.channel;
       if (!channel) continue;
 
       const amount = rawBaseValue * multiplier;
@@ -103,7 +105,11 @@ export function getResourceAttribution(state: GameState, resourceName: string): 
 
 // ── Dynamic effect helpers ──────────────────────────────────────────────────
 
-function addSmelterAttribution(state: GameState, resourceName: string, sources: ProductionSource[]): void {
+function addSmelterAttribution(
+  state: GameState,
+  resourceName: string,
+  sources: ProductionSource[],
+): void {
   const smelter = state.buildings.smelter;
   if (!smelter || smelter.on <= 0) return;
   const smelterRatio = 1 + (state.effectCache.smelterRatio ?? 0);
@@ -130,7 +136,11 @@ function addSmelterAttribution(state: GameState, resourceName: string, sources: 
   }
 }
 
-function addBreweryAttribution(state: GameState, resourceName: string, sources: ProductionSource[]): void {
+function addBreweryAttribution(
+  state: GameState,
+  resourceName: string,
+  sources: ProductionSource[],
+): void {
   const brewery = state.buildings.brewery;
   if (!brewery || brewery.on <= 0) return;
   const brewRatio = state.effectCache.breweryConsumptionRatio ?? 0;
@@ -146,7 +156,11 @@ function addBreweryAttribution(state: GameState, resourceName: string, sources: 
   }
 }
 
-function addSteamworksAttribution(state: GameState, resourceName: string, sources: ProductionSource[]): void {
+function addSteamworksAttribution(
+  state: GameState,
+  resourceName: string,
+  sources: ProductionSource[],
+): void {
   const steamworks = state.buildings.steamworks;
   if (!steamworks || steamworks.on <= 0) return;
 
@@ -167,7 +181,11 @@ function addSteamworksAttribution(state: GameState, resourceName: string, source
   }
 }
 
-function addFactoryAttribution(state: GameState, resourceName: string, sources: ProductionSource[]): void {
+function addFactoryAttribution(
+  state: GameState,
+  resourceName: string,
+  _sources: ProductionSource[],
+): void {
   const factory = state.buildings.factory;
   if (!factory || factory.on <= 0) return;
 
@@ -176,11 +194,19 @@ function addFactoryAttribution(state: GameState, resourceName: string, sources: 
   // Factory with factoryLogistics adds extra craftRatio — already in static effects
 }
 
-function addTempleAttribution(state: GameState, resourceName: string, sources: ProductionSource[]): void {
+function addTempleAttribution(
+  _state: GameState,
+  _resourceName: string,
+  _sources: ProductionSource[],
+): void {
   // Temple dynamic happiness is not a per-resource effect, skip
 }
 
-function addKittenConsumption(state: GameState, resourceName: string, sources: ProductionSource[]): void {
+function addKittenConsumption(
+  state: GameState,
+  resourceName: string,
+  sources: ProductionSource[],
+): void {
   const kittens = state.village.kittens;
   if (kittens <= 0) return;
 

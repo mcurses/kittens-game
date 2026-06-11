@@ -1,5 +1,5 @@
 import { readFileSync } from "node:fs";
-import { migrateLegacySave, type SerializedGameState } from "@kittens/engine";
+import { type SerializedGameState, migrateLegacySave } from "@kittens/engine";
 import LZString from "lz-string";
 import { createMemoryAdapter } from "./db.js";
 import { GameStateStore } from "./store.js";
@@ -31,8 +31,20 @@ const BUILDING_NAMES = [
 ] as const;
 
 const AUTOMATION_BUILDINGS = ["oilWell", "factory", "reactor"] as const;
-const WORKSHOP_NAMES = ["silos", "stoneBarns", "concreteBarns", "reinforcedBarns", "ironwood"] as const;
-const POLICY_NAMES = ["liberty", "tradition", "fascism", "communism", "fullIndustrialization"] as const;
+const WORKSHOP_NAMES = [
+  "silos",
+  "stoneBarns",
+  "concreteBarns",
+  "reinforcedBarns",
+  "ironwood",
+] as const;
+const POLICY_NAMES = [
+  "liberty",
+  "tradition",
+  "fascism",
+  "communism",
+  "fullIndustrialization",
+] as const;
 
 export interface LegacyParityFixture {
   fixture: string;
@@ -86,7 +98,9 @@ export function loadRun8LegacyFixture(): LegacyParityFixture {
 
 export function loadRun8LegacySaveJson(): unknown {
   const compressed = readFileSync(
-    getRepoRelativeUrl("../../../agent-docs/example-saves/Kittens Game - Run 8 - Year 10527 - Autumn, day 48.txt"),
+    getRepoRelativeUrl(
+      "../../../agent-docs/example-saves/Kittens Game - Run 8 - Year 10527 - Autumn, day 48.txt",
+    ),
     "utf8",
   );
   const migrated = migrateLegacySave(JSON.parse(readLegacySaveString(compressed)));
@@ -105,7 +119,10 @@ function numberOrNull(value: number | undefined): number | null {
   return typeof value === "number" ? value : null;
 }
 
-function resourceValue(state: SerializedGameState, name: (typeof RESOURCE_NAMES)[number]): {
+function resourceValue(
+  state: SerializedGameState,
+  name: (typeof RESOURCE_NAMES)[number],
+): {
   value: number;
   maxValue: number | null;
 } {
@@ -116,7 +133,10 @@ function resourceValue(state: SerializedGameState, name: (typeof RESOURCE_NAMES)
   };
 }
 
-function buildingValue(state: SerializedGameState, name: (typeof BUILDING_NAMES)[number]): {
+function buildingValue(
+  state: SerializedGameState,
+  name: (typeof BUILDING_NAMES)[number],
+): {
   val: number;
   on: number | null;
 } {
@@ -127,11 +147,17 @@ function buildingValue(state: SerializedGameState, name: (typeof BUILDING_NAMES)
   };
 }
 
-function workshopResearched(state: SerializedGameState, name: (typeof WORKSHOP_NAMES)[number]): boolean | null {
+function workshopResearched(
+  state: SerializedGameState,
+  name: (typeof WORKSHOP_NAMES)[number],
+): boolean | null {
   return state.workshop?.upgrades[name]?.researched ?? null;
 }
 
-function policyResearched(state: SerializedGameState, name: (typeof POLICY_NAMES)[number]): boolean | null {
+function policyResearched(
+  state: SerializedGameState,
+  name: (typeof POLICY_NAMES)[number],
+): boolean | null {
   return state.science?.policies[name]?.researched ?? null;
 }
 
@@ -222,32 +248,66 @@ export function compareImportSnapshot(actual: AuditSnapshot, expected: AuditSnap
   compareNumber("calendar.day", actual.calendar.day, expected.calendar.day, mismatches);
   compareNumber("village.kittens", actual.village.kittens, expected.village.kittens, mismatches);
 
-  const actualMaxKittens = actual.village.maxKittens === null ? null : Math.floor(actual.village.maxKittens);
-  compareNumber("village.maxKittens.floor", actualMaxKittens, expected.village.maxKittens, mismatches);
+  const actualMaxKittens =
+    actual.village.maxKittens === null ? null : Math.floor(actual.village.maxKittens);
+  compareNumber(
+    "village.maxKittens.floor",
+    actualMaxKittens,
+    expected.village.maxKittens,
+    mismatches,
+  );
   // Tolerance 1e-5: pollution happiness uses Math.log(cathPollution) which introduces
   // ~1.8e-6 floating-point drift vs the legacy snapshot captured from a different JS engine.
-  compareNumber("village.happiness", actual.village.happiness, expected.village.happiness, mismatches, 1e-5);
+  compareNumber(
+    "village.happiness",
+    actual.village.happiness,
+    expected.village.happiness,
+    mismatches,
+    1e-5,
+  );
 
   for (const name of RESOURCE_NAMES) {
-    compareNumber(`resources.${name}.value`, actual.resources[name].value, expected.resources[name].value, mismatches, 1e-6);
+    compareNumber(
+      `resources.${name}.value`,
+      actual.resources[name].value,
+      expected.resources[name].value,
+      mismatches,
+      1e-6,
+    );
   }
   for (const name of BUILDING_NAMES) {
-    compareNumber(`buildings.${name}.val`, actual.buildings[name].val, expected.buildings[name].val, mismatches);
-    compareNumber(`buildings.${name}.on`, actual.buildings[name].on, expected.buildings[name].on, mismatches);
+    compareNumber(
+      `buildings.${name}.val`,
+      actual.buildings[name].val,
+      expected.buildings[name].val,
+      mismatches,
+    );
+    compareNumber(
+      `buildings.${name}.on`,
+      actual.buildings[name].on,
+      expected.buildings[name].on,
+      mismatches,
+    );
   }
   for (const name of AUTOMATION_BUILDINGS) {
     if (actual.automation[name] !== expected.automation[name]) {
-      mismatches.push(`automation.${name}: expected ${String(expected.automation[name])}, got ${String(actual.automation[name])}`);
+      mismatches.push(
+        `automation.${name}: expected ${String(expected.automation[name])}, got ${String(actual.automation[name])}`,
+      );
     }
   }
   for (const name of WORKSHOP_NAMES) {
     if (actual.workshop[name] !== expected.workshop[name]) {
-      mismatches.push(`workshop.${name}: expected ${String(expected.workshop[name])}, got ${String(actual.workshop[name])}`);
+      mismatches.push(
+        `workshop.${name}: expected ${String(expected.workshop[name])}, got ${String(actual.workshop[name])}`,
+      );
     }
   }
   for (const name of POLICY_NAMES) {
     if (actual.policies[name] !== expected.policies[name]) {
-      mismatches.push(`policies.${name}: expected ${String(expected.policies[name])}, got ${String(actual.policies[name])}`);
+      mismatches.push(
+        `policies.${name}: expected ${String(expected.policies[name])}, got ${String(actual.policies[name])}`,
+      );
     }
   }
   compareNumber("time.flux", actual.time.flux, expected.time.flux, mismatches, 1e-9);
@@ -260,17 +320,29 @@ export function compareLiveSnapshot(actual: AuditSnapshot, expected: AuditSnapsh
   compareNumber("calendar.year", actual.calendar.year, expected.calendar.year, mismatches);
   compareNumber("calendar.season", actual.calendar.season, expected.calendar.season, mismatches);
   if (actual.calendar.day < expected.calendar.day) {
-    mismatches.push(`calendar.day regressed: expected >= ${expected.calendar.day}, got ${actual.calendar.day}`);
+    mismatches.push(
+      `calendar.day regressed: expected >= ${expected.calendar.day}, got ${actual.calendar.day}`,
+    );
   }
 
-  const actualMaxKittens = actual.village.maxKittens === null ? null : Math.floor(actual.village.maxKittens);
+  const actualMaxKittens =
+    actual.village.maxKittens === null ? null : Math.floor(actual.village.maxKittens);
   compareNumber("live.maxKittens.floor", actualMaxKittens, expected.village.maxKittens, mismatches);
-  if (actual.village.maxKittens !== null && actual.village.kittens > Math.floor(actual.village.maxKittens)) {
+  if (
+    actual.village.maxKittens !== null &&
+    actual.village.kittens > Math.floor(actual.village.maxKittens)
+  ) {
     mismatches.push(
       `live.kittens overflow: expected kittens <= floor(maxKittens), got ${actual.village.kittens} / ${actual.village.maxKittens}`,
     );
   }
-  compareNumber("live.happiness", actual.village.happiness, expected.village.happiness, mismatches, 1e-5);
+  compareNumber(
+    "live.happiness",
+    actual.village.happiness,
+    expected.village.happiness,
+    mismatches,
+    1e-5,
+  );
 
   for (const name of RESOURCE_NAMES) {
     const resource = actual.resources[name];
@@ -281,8 +353,18 @@ export function compareLiveSnapshot(actual: AuditSnapshot, expected: AuditSnapsh
     }
   }
   for (const name of BUILDING_NAMES) {
-    compareNumber(`live.buildings.${name}.val`, actual.buildings[name].val, expected.buildings[name].val, mismatches);
-    compareNumber(`live.buildings.${name}.on`, actual.buildings[name].on, expected.buildings[name].on, mismatches);
+    compareNumber(
+      `live.buildings.${name}.val`,
+      actual.buildings[name].val,
+      expected.buildings[name].val,
+      mismatches,
+    );
+    compareNumber(
+      `live.buildings.${name}.on`,
+      actual.buildings[name].on,
+      expected.buildings[name].on,
+      mismatches,
+    );
   }
   for (const name of AUTOMATION_BUILDINGS) {
     if (actual.automation[name] !== expected.automation[name]) {
@@ -293,12 +375,16 @@ export function compareLiveSnapshot(actual: AuditSnapshot, expected: AuditSnapsh
   }
   for (const name of WORKSHOP_NAMES) {
     if (actual.workshop[name] !== expected.workshop[name]) {
-      mismatches.push(`live.workshop.${name}: expected ${String(expected.workshop[name])}, got ${String(actual.workshop[name])}`);
+      mismatches.push(
+        `live.workshop.${name}: expected ${String(expected.workshop[name])}, got ${String(actual.workshop[name])}`,
+      );
     }
   }
   for (const name of POLICY_NAMES) {
     if (actual.policies[name] !== expected.policies[name]) {
-      mismatches.push(`live.policies.${name}: expected ${String(expected.policies[name])}, got ${String(actual.policies[name])}`);
+      mismatches.push(
+        `live.policies.${name}: expected ${String(expected.policies[name])}, got ${String(actual.policies[name])}`,
+      );
     }
   }
   compareNumber("live.time.flux", actual.time.flux, expected.time.flux, mismatches, 1e-9);

@@ -1,6 +1,6 @@
 // CalendarDisplay — shows current season, year, and day as a header status pill
 import type { GameStateResponse } from "@kittens/api-spec";
-import React from "react";
+import type React from "react";
 
 const SEASON_NAMES = ["Spring", "Summer", "Autumn", "Winter"] as const;
 
@@ -10,7 +10,11 @@ interface Props {
 
 export function CalendarDisplay({ state }: Props): React.ReactElement {
   if (!state) {
-    return <div className="status-pill" data-testid="calendar-loading">—</div>;
+    return (
+      <div className="status-pill" data-testid="calendar-loading">
+        —
+      </div>
+    );
   }
 
   const raw = state as unknown as Record<string, unknown>;

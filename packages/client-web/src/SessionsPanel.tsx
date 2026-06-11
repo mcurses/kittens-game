@@ -78,9 +78,13 @@ function sortSessions(sessions: SlotMeta[]): SlotMeta[] {
 }
 
 export function SessionsPanel(): React.ReactElement {
-  const slot = useSlot();
+  const _slot = useSlot();
   const queryClient = useQueryClient();
-  const { data: sessions = [], isLoading, error } = useQuery({
+  const {
+    data: sessions = [],
+    isLoading,
+    error,
+  } = useQuery({
     queryKey: ["sessions"],
     queryFn: fetchSessions,
     refetchInterval: 5000, // Poll every 5s
@@ -125,9 +129,7 @@ export function SessionsPanel(): React.ReactElement {
       setNewSlotError("");
       await queryClient.invalidateQueries({ queryKey: ["sessions"] });
     } catch (err) {
-      setNewSlotError(
-        err instanceof Error ? err.message : "Failed to create session",
-      );
+      setNewSlotError(err instanceof Error ? err.message : "Failed to create session");
     }
   };
 
@@ -341,9 +343,7 @@ export function SessionsPanel(): React.ReactElement {
                   type="button"
                   title="Archive session"
                   className="btn btn--xs btn--warning"
-                  onClick={() =>
-                    setConfirmAction({ action: "archive", slot: session.slot })
-                  }
+                  onClick={() => setConfirmAction({ action: "archive", slot: session.slot })}
                 >
                   Archive
                 </button>
@@ -361,9 +361,7 @@ export function SessionsPanel(): React.ReactElement {
                   type="button"
                   title="Delete session"
                   className="btn btn--xs btn--danger"
-                  onClick={() =>
-                    setConfirmAction({ action: "delete", slot: session.slot })
-                  }
+                  onClick={() => setConfirmAction({ action: "delete", slot: session.slot })}
                 >
                   Delete
                 </button>
@@ -382,9 +380,8 @@ export function SessionsPanel(): React.ReactElement {
         <div className="confirm-overlay">
           <div className="confirm-dialog">
             <p>
-              Are you sure you want to{" "}
-              {confirmAction.action === "archive" ? "archive" : "delete"}{" "}
-              "{confirmAction.slot}"?
+              Are you sure you want to {confirmAction.action === "archive" ? "archive" : "delete"} "
+              {confirmAction.slot}"?
             </p>
             {confirmAction.action === "archive" && (
               <div className="confirm-detail">

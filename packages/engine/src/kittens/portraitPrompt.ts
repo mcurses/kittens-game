@@ -9,52 +9,59 @@
 import type { Accessory, Appearance, Body, Breed, Eyes } from "./appearance.js";
 
 const BREED_DETAIL: Record<Breed, string> = {
-  "tabby": "warm-brown tabby with cream chest, classic mackerel striping on flanks and tail",
-  "calico": "white base with asymmetric patches of warm orange and ink-brown",
-  "heilige-birma": "silky cream coat with darker sealpoint markings on face, ears, paws and tail, deep sapphire-eyed",
+  tabby: "warm-brown tabby with cream chest, classic mackerel striping on flanks and tail",
+  calico: "white base with asymmetric patches of warm orange and ink-brown",
+  "heilige-birma":
+    "silky cream coat with darker sealpoint markings on face, ears, paws and tail, deep sapphire-eyed",
   "maine-coon": "long-haired with mane ruff around neck, large tufted ears, sturdy build",
-  "siamese": "pale cream body with chocolate-brown points on face, ears, paws and tail",
+  siamese: "pale cream body with chocolate-brown points on face, ears, paws and tail",
   "black-shorthair": "solid ink-black short coat with faint warmer-brown undertones in light",
   "white-fluffy": "pure cream-white long fur slightly tousled, blush-pink paws and nose",
-  "tortoiseshell": "marbled black-and-orange coat with no distinct pattern lines",
-  "ginger": "warm orange-tabby coat with faint cream belly stripes",
+  tortoiseshell: "marbled black-and-orange coat with no distinct pattern lines",
+  ginger: "warm orange-tabby coat with faint cream belly stripes",
   "smoke-grey": "soft slate-grey coat with silver tips on the longest fur",
 };
 
 const BODY_DETAIL: Record<Body, string> = {
-  "slim": "lean elegant silhouette, long legs, narrow waist",
-  "plump": "rounded silhouette with chunky proportions and a soft belly",
-  "athletic": "balanced muscular build with visible shoulder definition",
-  "muscular": "broad chest and powerful hindquarters, scarred ear-tip suggesting a working life",
-  "fluffy": "rounded silhouette emphasised by thick fur, paws look mitten-like",
+  slim: "lean elegant silhouette, long legs, narrow waist",
+  plump: "rounded silhouette with chunky proportions and a soft belly",
+  athletic: "balanced muscular build with visible shoulder definition",
+  muscular: "broad chest and powerful hindquarters, scarred ear-tip suggesting a working life",
+  fluffy: "rounded silhouette emphasised by thick fur, paws look mitten-like",
 };
 
 const EYES_DETAIL: Record<Eyes, string> = {
   "large-amber": "large round amber eyes with a curious wide-open look",
   "narrow-green": "narrowed forest-green eyes giving an alert thoughtful expression",
   "wide-blue": "wide sky-blue eyes with a slightly innocent gaze",
-  "mismatched": "heterochromia — one amber, one pale-green",
+  mismatched: "heterochromia — one amber, one pale-green",
   "sleepy-golden": "half-lidded golden eyes, perpetually sleepy and content",
 };
 
 const ACCESSORY_DETAIL: Record<Exclude<Accessory, null>, string> = {
-  "scarf": "wears a hand-knit wool scarf in muted sage-green, slightly frayed at the edge",
+  scarf: "wears a hand-knit wool scarf in muted sage-green, slightly frayed at the edge",
   "flower-behind-ear": "a small dried marigold blossom tucked behind the left ear",
   "tiny-hat": "wears a tiny conical felt cap in toasted-brown, perched between the ears",
-  "bandana": "a small folded cotton bandana around the neck, pattern of faded paws",
+  bandana: "a small folded cotton bandana around the neck, pattern of faded paws",
   "leather-collar": "a worn leather collar with a single small brass bell",
   "feather-tucked-in-fur": "a single grey-blue feather tucked into the fur behind one ear",
 };
 
 const JOB_OUTFIT_DETAIL: Record<string, string> = {
-  "farmer": "wears a wide straw hat and a simple linen apron with a single catnip leaf in the front pocket",
-  "woodcutter": "wears a sleeveless leather vest over rolled-up linen sleeves, a small hand-axe at the hip",
-  "scholar": "wears a tiny round-collar tunic and small round-rimmed reading spectacles, a feather quill behind one ear",
-  "hunter": "wears a deep-green hooded cloak with fur trim, a quiver of small arrows across the back",
-  "miner": "wears a soot-streaked padded jacket and a small candle-lantern clipped to the chest",
-  "geologist": "wears a sand-coloured field vest with several small pockets, a magnifying glass on a leather cord",
-  "priest": "wears a long sage-green robe with a simple cord belt, a small wooden charm around the neck",
-  "engineer": "wears a cluttered tool-belt over a russet workshop apron, a pencil tucked behind one ear",
+  farmer:
+    "wears a wide straw hat and a simple linen apron with a single catnip leaf in the front pocket",
+  woodcutter:
+    "wears a sleeveless leather vest over rolled-up linen sleeves, a small hand-axe at the hip",
+  scholar:
+    "wears a tiny round-collar tunic and small round-rimmed reading spectacles, a feather quill behind one ear",
+  hunter: "wears a deep-green hooded cloak with fur trim, a quiver of small arrows across the back",
+  miner: "wears a soot-streaked padded jacket and a small candle-lantern clipped to the chest",
+  geologist:
+    "wears a sand-coloured field vest with several small pockets, a magnifying glass on a leather cord",
+  priest:
+    "wears a long sage-green robe with a simple cord belt, a small wooden charm around the neck",
+  engineer:
+    "wears a cluttered tool-belt over a russet workshop apron, a pencil tucked behind one ear",
 };
 
 const STYLE_STACK =
@@ -77,12 +84,11 @@ export function composeKittenPrompt(input: PortraitPromptInput): string {
   const breed = BREED_DETAIL[appearance.breed];
   const body = BODY_DETAIL[appearance.body];
   const eyes = EYES_DETAIL[appearance.eyes];
-  const accessory = appearance.accessory
-    ? ACCESSORY_DETAIL[appearance.accessory]
-    : null;
-  const outfit = job && JOB_OUTFIT_DETAIL[job]
-    ? JOB_OUTFIT_DETAIL[job]
-    : "wears simple village clothes — a plain off-white linen tunic";
+  const accessory = appearance.accessory ? ACCESSORY_DETAIL[appearance.accessory] : null;
+  const outfit =
+    job && JOB_OUTFIT_DETAIL[job]
+      ? JOB_OUTFIT_DETAIL[job]
+      : "wears simple village clothes — a plain off-white linen tunic";
 
   const subjectParts = [
     `A ${appearance.body} chibi cat character`,

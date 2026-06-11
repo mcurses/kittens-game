@@ -3,14 +3,20 @@ import type { GameStateResponse } from "@kittens/api-spec";
 import { CRAFT_DEFS, UPGRADE_DEFS } from "@kittens/engine";
 import React from "react";
 import { useInspector } from "./InspectorContext.js";
-import { useSlot } from "./SlotContext.js";
-import { useGameAction } from "./useGameAction.js";
-import { CRAFT_FLAVOR, UPGRADE_FLAVOR, prettifyName } from "./flavorText.js";
 import { PlaceholderImage } from "./PlaceholderImage.js";
+import { useSlot } from "./SlotContext.js";
+import { CRAFT_FLAVOR, UPGRADE_FLAVOR, prettifyName } from "./flavorText.js";
 import { spriteFor } from "./resourceSprites.js";
 import { ResourceIcon } from "./ui/index.js";
+import { useGameAction } from "./useGameAction.js";
 import { usePersistentUiState } from "./usePersistentUiState.js";
-import { type ResourceMap, canAfford, extractEffectCache, extractResources, isStorageLimited } from "./utils.js";
+import {
+  type ResourceMap,
+  canAfford,
+  extractEffectCache,
+  extractResources,
+  isStorageLimited,
+} from "./utils.js";
 
 interface UpgradeEntry {
   name: string;
@@ -45,7 +51,7 @@ function extractUpgrades(state: GameStateResponse): UpgradeEntry[] {
         researched: e.researched === true,
       };
     })
-    .filter((e): e is UpgradeEntry => e !== null && e.unlocked);
+    .filter((e): e is UpgradeEntry => e?.unlocked);
 }
 
 function extractCrafts(state: GameStateResponse): CraftEntry[] {
@@ -65,7 +71,7 @@ function extractCrafts(state: GameStateResponse): CraftEntry[] {
         progress: typeof e.progress === "number" ? e.progress : 0,
       };
     })
-    .filter((e): e is CraftEntry => e !== null && e.unlocked);
+    .filter((e): e is CraftEntry => e?.unlocked);
 }
 
 /** Check if mechanization tech is researched */
@@ -95,15 +101,18 @@ function getTotalEngineers(state: GameStateResponse): number {
 }
 
 /** Story 35-01: Compute adaptive craft shortcut amounts matching legacy left.jsx logic. */
-function computeCraftShortcuts(craftName: string, resources: ResourceMap): [number, number, number, number] {
+function computeCraftShortcuts(
+  craftName: string,
+  resources: ResourceMap,
+): [number, number, number, number] {
   const def = CRAFT_DEFS.find((d) => d.name === craftName);
   if (!def || def.prices.length === 0) return [1, 25, 100, 0];
-  let all = Infinity;
+  let all = Number.POSITIVE_INFINITY;
   for (const p of def.prices) {
     const v = resources[p.name]?.value ?? 0;
     all = Math.min(all, Math.floor(v / p.val));
   }
-  const n = all === Infinity ? 0 : all;
+  const n = all === Number.POSITIVE_INFINITY ? 0 : all;
   return [
     Math.max(1, Math.floor(n * 0.01)),
     Math.max(25, Math.floor(n * 0.05)),
@@ -113,7 +122,11 @@ function computeCraftShortcuts(craftName: string, resources: ResourceMap): [numb
 }
 
 /** Compute craft output for a given amount, respecting ignoreBonuses and tier ratios */
-function computeCraftOutput(craftName: string, amount: number, effectCache: Record<string, number>): number {
+function computeCraftOutput(
+  craftName: string,
+  amount: number,
+  effectCache: Record<string, number>,
+): number {
   const def = CRAFT_DEFS.find((d) => d.name === craftName);
   if (!def) return amount;
   if (def.ignoreBonuses) return amount;
@@ -140,7 +153,11 @@ export function WorkshopPanel({ state }: Props): React.ReactElement {
   );
 
   if (!state) {
-    return <div className="loading-text" data-testid="workshop-panel-loading">Loading…</div>;
+    return (
+      <div className="loading-text" data-testid="workshop-panel-loading">
+        Loading…
+      </div>
+    );
   }
 
   const upgrades = extractUpgrades(state);
@@ -180,7 +197,7 @@ export function WorkshopPanel({ state }: Props): React.ReactElement {
             const storageLimited = isStorageLimited(prices, resources);
             const costAriaLabel =
               prices.length > 0
-                ? "Cost: " + prices.map((p) => `${p.val} ${p.name}`).join(", ")
+                ? `Cost: ${prices.map((p) => `${p.val} ${p.name}`).join(", ")}`
                 : "";
             const upgradeEntity = () => ({
               kind: "upgrade" as const,
@@ -211,7 +228,6 @@ export function WorkshopPanel({ state }: Props): React.ReactElement {
                 onMouseLeave={clearInspected}
                 onFocus={inspect}
                 onBlur={clearInspected}
-                tabIndex={0}
               >
                 <div className="upgrade-card__image-wrap">
                   <PlaceholderImage
@@ -231,9 +247,7 @@ export function WorkshopPanel({ state }: Props): React.ReactElement {
                       Buy
                     </button>
                   )}
-                  {u.researched && (
-                    <span className="upgrade-card__done-badge">✓ Done</span>
-                  )}
+                  {u.researched && <span className="upgrade-card__done-badge">✓ Done</span>}
                 </div>
                 <div className="upgrade-card__footer">
                   <span className="upgrade-card__name">{prettifyName(u.name)}</span>
@@ -262,11 +276,9 @@ export function WorkshopPanel({ state }: Props): React.ReactElement {
           <div className="panel-sublabel">
             Crafting
             {craftRatio > 0 && (
-              <span
-                className="craft-effectiveness"
-                data-testid="craft-effectiveness"
-              >
-                {" "}(+{Math.round(craftRatio * 100)}% effectiveness)
+              <span className="craft-effectiveness" data-testid="craft-effectiveness">
+                {" "}
+                (+{Math.round(craftRatio * 100)}% effectiveness)
               </span>
             )}
           </div>
@@ -290,9 +302,9 @@ export function WorkshopPanel({ state }: Props): React.ReactElement {
               const progressStr = progressPct < 10 ? `0${progressPct}` : String(progressPct);
               const showProgress = mechanization && c.engineers > 0;
 
-              const outputSprite = spriteFor(c.name);
+              const _outputSprite = spriteFor(c.name);
               const inputPrice = def?.prices[0];
-              const inputSprite = inputPrice ? spriteFor(inputPrice.name) : undefined;
+              const _inputSprite = inputPrice ? spriteFor(inputPrice.name) : undefined;
               const craftEntity = () => ({
                 kind: "craft" as const,
                 name: c.name,
@@ -318,7 +330,6 @@ export function WorkshopPanel({ state }: Props): React.ReactElement {
                   onMouseLeave={clearInspected}
                   onFocus={inspect}
                   onBlur={clearInspected}
-                  tabIndex={0}
                 >
                   <ResourceIcon name={c.name} size="md" className="craft-row__icon" />
                   <div className="craft-row__content">
@@ -330,7 +341,11 @@ export function WorkshopPanel({ state }: Props): React.ReactElement {
                         aria-label={`Cost: ${inputPrice.val} ${inputPrice.name}`}
                       >
                         for {inputPrice.val}{" "}
-                        <ResourceIcon name={inputPrice.name} size="xs" aria-label={inputPrice.name} />
+                        <ResourceIcon
+                          name={inputPrice.name}
+                          size="xs"
+                          aria-label={inputPrice.name}
+                        />
                       </span>
                     )}
                   </div>

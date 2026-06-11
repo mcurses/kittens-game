@@ -1,5 +1,5 @@
-import { writeFileSync } from "fs";
-import { resolve } from "path";
+import { writeFileSync } from "node:fs";
+import { resolve } from "node:path";
 
 export interface SlotMeta {
   slot: string;
@@ -86,7 +86,7 @@ export function createCli(client: HttpClient) {
     async sessionsCreate(slot: string): Promise<string> {
       if (!isValidSlot(slot)) {
         throw new Error(
-          `Invalid slot name: "${slot}". Use alphanumeric, dash, or underscore (1-64 chars).`
+          `Invalid slot name: "${slot}". Use alphanumeric, dash, or underscore (1-64 chars).`,
         );
       }
 
@@ -98,25 +98,19 @@ export function createCli(client: HttpClient) {
     },
 
     async sessionsPause(slot: string): Promise<string> {
-      const result = (await client.post(
-        `/api/sessions/${slot}/pause`
-      )) as SlotMeta;
+      const result = (await client.post(`/api/sessions/${slot}/pause`)) as SlotMeta;
 
       return `Session "${result.slot}" paused.`;
     },
 
     async sessionsResume(slot: string): Promise<string> {
-      const result = (await client.post(
-        `/api/sessions/${slot}/resume`
-      )) as SlotMeta;
+      const result = (await client.post(`/api/sessions/${slot}/resume`)) as SlotMeta;
 
       return `Session "${result.slot}" resumed.`;
     },
 
     async sessionsArchive(slot: string): Promise<string> {
-      const result = (await client.post(
-        `/api/sessions/${slot}/archive`
-      )) as SlotMeta;
+      const result = (await client.post(`/api/sessions/${slot}/archive`)) as SlotMeta;
 
       return `Session "${result.slot}" archived.`;
     },
@@ -128,9 +122,7 @@ export function createCli(client: HttpClient) {
     },
 
     async sessionsExport(slot: string, outputFile?: string): Promise<string> {
-      const json = (await client.get(
-        `/api/sessions/${slot}/export`
-      )) as string;
+      const json = (await client.get(`/api/sessions/${slot}/export`)) as string;
 
       const filename = outputFile || `${slot}.json`;
       const filepath = resolve(filename);

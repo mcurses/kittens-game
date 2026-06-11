@@ -366,7 +366,7 @@ export function applyCompleteChallenge(state: GameState, name: string): GameStat
  * Port of the `getEffect` function in the legacy ChallengesManager constructor.
  */
 export function getChallengeEffectValue(
-  effectName: string,
+  _effectName: string,
   baseAmount: number,
   on: number,
   stackOptions?: StackOptions,
@@ -418,8 +418,7 @@ export class ChallengeManager implements Manager {
         for (const [effectName, baseValue] of Object.entries(def.activeEffects)) {
           // Special case: anarchy kittenLaziness is dynamic when active
           if (def.name === "anarchy" && effectName === "kittenLaziness") {
-            const dynamicLaziness =
-              0.5 + getLimitedDR(0.05 * entry.on, 0.25);
+            const dynamicLaziness = 0.5 + getLimitedDR(0.05 * entry.on, 0.25);
             effects[effectName] = (effects[effectName] ?? 0) + dynamicLaziness;
             continue;
           }
@@ -482,29 +481,22 @@ export class ChallengeManager implements Manager {
     if (!data || typeof data !== "object") return state;
     const d = data as Record<string, unknown>;
 
-    const savedChallenges = d["challenges"];
+    const savedChallenges = d.challenges;
     if (!savedChallenges || typeof savedChallenges !== "object") return state;
 
     const initial = createInitialChallenges();
     const challenges = { ...initial.challenges };
 
-    for (const [name, raw] of Object.entries(
-      savedChallenges as Record<string, unknown>,
-    )) {
+    for (const [name, raw] of Object.entries(savedChallenges as Record<string, unknown>)) {
       if (!raw || typeof raw !== "object") continue;
       const e = raw as Record<string, unknown>;
 
       const unlocked =
-        typeof e["unlocked"] === "boolean"
-          ? e["unlocked"]
-          : (challenges[name]?.unlocked ?? false);
-      const active =
-        typeof e["active"] === "boolean" ? e["active"] : false;
-      const researched =
-        typeof e["researched"] === "boolean" ? e["researched"] : false;
-      let on = typeof e["on"] === "number" ? e["on"] : 0;
-      const pending =
-        typeof e["pending"] === "boolean" ? e["pending"] : false;
+        typeof e.unlocked === "boolean" ? e.unlocked : (challenges[name]?.unlocked ?? false);
+      const active = typeof e.active === "boolean" ? e.active : false;
+      const researched = typeof e.researched === "boolean" ? e.researched : false;
+      let on = typeof e.on === "number" ? e.on : 0;
+      const pending = typeof e.pending === "boolean" ? e.pending : false;
 
       // Legacy compatibility: researched=true + on=0 → set on=1
       if (researched && on === 0) {
@@ -515,7 +507,7 @@ export class ChallengeManager implements Manager {
     }
 
     // Legacy save format: currentChallenge field
-    const currentChallenge = d["currentChallenge"];
+    const currentChallenge = d.currentChallenge;
     if (typeof currentChallenge === "string" && challenges[currentChallenge]) {
       const cur = challenges[currentChallenge];
       challenges[currentChallenge] = { ...cur, active: true };

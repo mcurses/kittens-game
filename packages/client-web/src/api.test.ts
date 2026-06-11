@@ -68,9 +68,7 @@ describe("fetchGameState", () => {
 
   it("throws on non-ok response", async () => {
     mockFetch.mockResolvedValueOnce(makeResponse({}, 500));
-    await expect(fetchGameState()).rejects.toThrow(
-      "Failed to fetch game state: 500",
-    );
+    await expect(fetchGameState()).rejects.toThrow("Failed to fetch game state: 500");
   });
 });
 
@@ -97,10 +95,7 @@ describe("postGameAction", () => {
     const actionResult = { ok: true, state: { version: 1, tick: 1 } };
     mockFetch.mockResolvedValueOnce(makeResponse(actionResult, 200));
     await postGameAction({ type: "GATHER_CATNIP" }, "mysave");
-    expect(mockFetch).toHaveBeenCalledWith(
-      "/api/game/action?slot=mysave",
-      expect.any(Object),
-    );
+    expect(mockFetch).toHaveBeenCalledWith("/api/game/action?slot=mysave", expect.any(Object));
   });
 
   it("returns error action result on 400", async () => {
@@ -149,9 +144,7 @@ describe("postLoad", () => {
 
   it("throws on non-ok response", async () => {
     mockFetch.mockResolvedValueOnce(makeResponse({}, 400));
-    await expect(postLoad({ data: {} })).rejects.toThrow(
-      "Failed to load save: 400",
-    );
+    await expect(postLoad({ data: {} })).rejects.toThrow("Failed to load save: 400");
   });
 });
 

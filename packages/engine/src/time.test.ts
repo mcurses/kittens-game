@@ -1,16 +1,16 @@
 import { describe, expect, it } from "vitest";
+import { DAYS_PER_SEASON, SEASONS_PER_YEAR, TICKS_PER_DAY } from "./calendar.js";
 import { buildEffectCache } from "./effects.js";
 import { type GameState, createInitialState } from "./state.js";
 import {
   CFU_DEFS,
-  VSU_DEFS,
   TimeManager,
+  VSU_DEFS,
   applyBuyCfu,
   applyBuyVsu,
   applyShatterTc,
   createInitialTime,
 } from "./time.js";
-import { TICKS_PER_DAY, DAYS_PER_SEASON, SEASONS_PER_YEAR } from "./calendar.js";
 
 // ── Helper ─────────────────────────────────────────────────────────────────────
 
@@ -519,7 +519,7 @@ describe("TimeManager integration", () => {
 // ── Story 19-1: Shatter produces resources ─────────────────────────────────────
 
 describe("applyShatterTc — resource production (Story 19-1)", () => {
-  const TICKS_PER_YEAR = TICKS_PER_DAY * DAYS_PER_SEASON * SEASONS_PER_YEAR; // 4000
+  const _TICKS_PER_YEAR = TICKS_PER_DAY * DAYS_PER_SEASON * SEASONS_PER_YEAR; // 4000
 
   function shatterState(extraEffects: Record<string, number>): GameState {
     const base = createInitialState();

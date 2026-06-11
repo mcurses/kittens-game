@@ -3,7 +3,7 @@
 
 import { createApp } from "./app.js";
 import { createBunAdapter } from "./db.js";
-import { getServerDbPath, getStartupSlots } from "./runtime.js";
+import { getServerDbPath } from "./runtime.js";
 import { SessionRegistry } from "./store.js";
 import { attachWebSocket, websocket } from "./ws.js";
 
@@ -24,8 +24,6 @@ async function main(): Promise<void> {
     fetch: app.fetch,
     websocket,
   });
-
-  console.log(`Kittens server running on http://localhost:${PORT}`);
 
   // Graceful shutdown
   function shutdown(): void {

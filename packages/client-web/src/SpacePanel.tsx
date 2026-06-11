@@ -1,39 +1,66 @@
 // SpacePanel — planet missions and space buildings
 import type { GameStateResponse } from "@kittens/api-spec";
 import { PROGRAM_DEFS, SPACE_BUILDING_DEFS } from "@kittens/engine";
-import React from "react";
+import type React from "react";
 import { useSlot } from "./SlotContext.js";
 import { useGameAction } from "./useGameAction.js";
 import { usePersistentUiState } from "./usePersistentUiState.js";
 import { canAfford, extractResources, isStorageLimited } from "./utils.js";
 
-interface ProgramEntry { name: string; val: number; on: number; unlocked: boolean; }
-interface SpaceBuildingEntry { name: string; val: number; on: number; unlocked: boolean; }
-interface Props { state: GameStateResponse | null | undefined; }
+interface ProgramEntry {
+  name: string;
+  val: number;
+  on: number;
+  unlocked: boolean;
+}
+interface SpaceBuildingEntry {
+  name: string;
+  val: number;
+  on: number;
+  unlocked: boolean;
+}
+interface Props {
+  state: GameStateResponse | null | undefined;
+}
 
-function extractSpace(state: GameStateResponse): { programs: ProgramEntry[]; spaceBuildings: SpaceBuildingEntry[]; } {
+function extractSpace(state: GameStateResponse): {
+  programs: ProgramEntry[];
+  spaceBuildings: SpaceBuildingEntry[];
+} {
   const raw = state as unknown as Record<string, unknown>;
   const space = raw.space as Record<string, unknown> | null | undefined;
   if (!space) return { programs: [], spaceBuildings: [] };
 
   const programsRaw = space.programs as Record<string, unknown> | null | undefined;
   const programs: ProgramEntry[] = programsRaw
-    ? Object.entries(programsRaw).map(([name, e]) => {
-        if (typeof e !== "object" || e === null) return null;
-        const entry = e as Record<string, unknown>;
-        return { name, val: typeof entry.val === "number" ? entry.val : 0,
-          on: typeof entry.on === "number" ? entry.on : 0, unlocked: entry.unlocked === true };
-      }).filter((e): e is ProgramEntry => e !== null && e.unlocked)
+    ? Object.entries(programsRaw)
+        .map(([name, e]) => {
+          if (typeof e !== "object" || e === null) return null;
+          const entry = e as Record<string, unknown>;
+          return {
+            name,
+            val: typeof entry.val === "number" ? entry.val : 0,
+            on: typeof entry.on === "number" ? entry.on : 0,
+            unlocked: entry.unlocked === true,
+          };
+        })
+        .filter((e): e is ProgramEntry => e?.unlocked)
     : [];
 
   const sbRaw = space.spaceBuildings as Record<string, unknown> | null | undefined;
   const spaceBuildings: SpaceBuildingEntry[] = sbRaw
-    ? Object.entries(sbRaw).map(([name, e]) => {
-        if (typeof e !== "object" || e === null) return null;
-        const entry = e as Record<string, unknown>;
-        return { name, val: typeof entry.val === "number" ? entry.val : 0,
-          on: typeof entry.on === "number" ? entry.on : 0, unlocked: entry.unlocked === true };
-      }).filter((e): e is SpaceBuildingEntry => e !== null && e.unlocked)
+    ? Object.entries(sbRaw)
+        .map(([name, e]) => {
+          if (typeof e !== "object" || e === null) return null;
+          const entry = e as Record<string, unknown>;
+          return {
+            name,
+            val: typeof entry.val === "number" ? entry.val : 0,
+            on: typeof entry.on === "number" ? entry.on : 0,
+            unlocked: entry.unlocked === true,
+          };
+        })
+        .filter((e): e is SpaceBuildingEntry => e?.unlocked)
     : [];
 
   return { programs, spaceBuildings };
@@ -49,7 +76,11 @@ export function SpacePanel({ state }: Props): React.ReactElement {
   );
 
   if (!state) {
-    return <div className="loading-text" data-testid="space-panel-loading">Loading…</div>;
+    return (
+      <div className="loading-text" data-testid="space-panel-loading">
+        Loading…
+      </div>
+    );
   }
 
   const { programs, spaceBuildings } = extractSpace(state);
@@ -89,12 +120,17 @@ export function SpacePanel({ state }: Props): React.ReactElement {
                 <li key={p.name} data-testid={`program-${p.name}`} className="item-row">
                   <span className="item-row-name">{p.name}</span>
                   {p.val > 0 ? (
-                    <span className="mission-reached" data-testid={`program-${p.name}-reached`}>Reached</span>
+                    <span className="mission-reached" data-testid={`program-${p.name}-reached`}>
+                      Reached
+                    </span>
                   ) : (
-                    <button type="button" data-testid={`program-${p.name}-launch`}
+                    <button
+                      type="button"
+                      data-testid={`program-${p.name}-launch`}
                       className={`btn btn--sm${affordable ? " btn--primary" : " btn--secondary"}${storageLimited ? " btn--limited" : ""}`}
                       disabled={isPending || !affordable}
-                      onClick={() => mutate({ type: "LAUNCH_MISSION", name: p.name })}>
+                      onClick={() => mutate({ type: "LAUNCH_MISSION", name: p.name })}
+                    >
                       Launch
                     </button>
                   )}
@@ -111,9 +147,12 @@ export function SpacePanel({ state }: Props): React.ReactElement {
           <ul className="card-grid">
             {spaceBuildings.map((b) => {
               const def = SPACE_BUILDING_DEFS.find((d) => d.name === b.name);
-              const prices = def ? def.prices.map((p) => ({
-                name: p.name, val: p.val * Math.pow(def.priceRatio, b.val),
-              })) : [];
+              const prices = def
+                ? def.prices.map((p) => ({
+                    name: p.name,
+                    val: p.val * def.priceRatio ** b.val,
+                  }))
+                : [];
               const affordable = canAfford(prices, resources);
               const storageLimited = isStorageLimited(prices, resources);
               return (
@@ -124,10 +163,13 @@ export function SpacePanel({ state }: Props): React.ReactElement {
                       {b.on < b.val ? `${b.on}/${b.val}` : b.val}
                     </span>
                   </div>
-                  <button type="button" data-testid={`sb-${b.name}-buy`}
+                  <button
+                    type="button"
+                    data-testid={`sb-${b.name}-buy`}
                     className={`btn btn--sm${affordable ? " btn--primary" : " btn--secondary"}${storageLimited ? " btn--limited" : ""}`}
                     disabled={isPending || !affordable}
-                    onClick={() => mutate({ type: "BUY_SPACE_BUILDING", name: b.name })}>
+                    onClick={() => mutate({ type: "BUY_SPACE_BUILDING", name: b.name })}
+                  >
                     Build
                   </button>
                 </li>

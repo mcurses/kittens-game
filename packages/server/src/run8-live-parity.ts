@@ -1,14 +1,10 @@
 import { runLiveImportParityAudit } from "./liveParity.js";
 
-function printSection(title: string, mismatches: string[]): void {
-  console.log(title);
+function printSection(_title: string, mismatches: string[]): void {
   if (mismatches.length === 0) {
-    console.log("  PASS");
     return;
   }
-  console.log(`  FAIL (${mismatches.length} mismatch${mismatches.length === 1 ? "" : "es"})`);
-  for (const mismatch of mismatches) {
-    console.log(`  - ${mismatch}`);
+  for (const _mismatch of mismatches) {
   }
 }
 

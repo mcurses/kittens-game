@@ -20,11 +20,7 @@ function isCardSize(value: unknown): value is CardSize {
  * from localStorage during SSR/hydration still takes effect.
  */
 export function useCardSize(): readonly [CardSize, React.Dispatch<React.SetStateAction<CardSize>>] {
-  const [value, setValue] = usePersistentUiState<CardSize>(
-    CARD_SIZE_KEY,
-    "compact",
-    isCardSize,
-  );
+  const [value, setValue] = usePersistentUiState<CardSize>(CARD_SIZE_KEY, "compact", isCardSize);
 
   React.useEffect(() => {
     if (typeof document !== "undefined" && document.documentElement) {

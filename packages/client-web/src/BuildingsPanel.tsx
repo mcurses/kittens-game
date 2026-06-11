@@ -1,14 +1,20 @@
 // BuildingsPanel — displays unlocked buildings as cards with buy controls
 import type { GameStateResponse } from "@kittens/api-spec";
-import { BUILDING_DEFS, deriveUiVisibility, getBuildingDisplayName, getBuildingPrice } from "@kittens/engine";
-import React, { useState } from "react";
+import {
+  BUILDING_DEFS,
+  deriveUiVisibility,
+  getBuildingDisplayName,
+  getBuildingPrice,
+} from "@kittens/engine";
+import type React from "react";
+import { useState } from "react";
 import { useInspector } from "./InspectorContext.js";
 import { PlaceholderImage } from "./PlaceholderImage.js";
 import { useSlot } from "./SlotContext.js";
-import { useGameAction } from "./useGameAction.js";
-import { ResourceIcon } from "./ui/index.js";
-import { BUILDING_FLAVOR, prettifyName } from "./flavorText.js";
 import { iconPathFor } from "./buildingIconTier.js";
+import { BUILDING_FLAVOR, prettifyName } from "./flavorText.js";
+import { ResourceIcon } from "./ui/index.js";
+import { useGameAction } from "./useGameAction.js";
 import { canAfford, extractEffectCache, extractResources, isStorageLimited } from "./utils.js";
 
 interface BuildingEntry {
@@ -81,7 +87,9 @@ const BUILDING_CATEGORIES = [
 
 const BUILDING_CATEGORY_INDEX = new Map(
   BUILDING_CATEGORIES.flatMap((category, categoryIndex) =>
-    category.buildings.map((name, buildingIndex) => [name, { categoryIndex, buildingIndex }] as const),
+    category.buildings.map(
+      (name, buildingIndex) => [name, { categoryIndex, buildingIndex }] as const,
+    ),
   ),
 );
 
@@ -99,13 +107,14 @@ function extractBuildings(state: GameStateResponse): BuildingEntry[] {
         val: typeof e.val === "number" ? e.val : 0,
         on: typeof e.on === "number" ? e.on : 0,
         unlocked: typeof e.unlocked === "boolean" ? e.unlocked : false,
-        automationEnabled: typeof e.automationEnabled === "boolean" ? e.automationEnabled : undefined,
+        automationEnabled:
+          typeof e.automationEnabled === "boolean" ? e.automationEnabled : undefined,
         jammed: typeof e.jammed === "boolean" ? e.jammed : undefined,
         stage: typeof e.stage === "number" ? e.stage : undefined,
-        stageUnlocked: Array.isArray(e.stageUnlocked) ? e.stageUnlocked as boolean[] : undefined,
+        stageUnlocked: Array.isArray(e.stageUnlocked) ? (e.stageUnlocked as boolean[]) : undefined,
       };
     })
-    .filter((e): e is BuildingEntry => e !== null && e.unlocked)
+    .filter((e): e is BuildingEntry => e?.unlocked)
     .sort((a, b) => {
       const left = BUILDING_CATEGORY_INDEX.get(a.name);
       const right = BUILDING_CATEGORY_INDEX.get(b.name);
@@ -147,7 +156,10 @@ function groupBuildings(buildings: readonly BuildingEntry[]): Array<{
     }
   }
 
-  if (fallback.buildings.length > 0 && grouped.every((category) => category.slug !== fallback.slug)) {
+  if (
+    fallback.buildings.length > 0 &&
+    grouped.every((category) => category.slug !== fallback.slug)
+  ) {
     grouped.push(fallback);
   }
 
@@ -160,7 +172,7 @@ type BuildingFilter = "all" | "available" | "enabled" | "togglable";
  *  hear the numbers even though the footer renders only icons. */
 function pricesAriaLabel(prices: readonly { name: string; val: number }[]): string {
   if (prices.length === 0) return "";
-  return "Cost: " + prices.map((p) => `${p.val.toFixed(0)} ${p.name}`).join(", ");
+  return `Cost: ${prices.map((p) => `${p.val.toFixed(0)} ${p.name}`).join(", ")}`;
 }
 
 const FILTER_TABS: { key: BuildingFilter; label: string }[] = [
@@ -178,7 +190,11 @@ export function BuildingsPanel({ state }: Props): React.ReactElement {
   const [activeFilter, setActiveFilter] = useState<BuildingFilter>("all");
 
   if (!state) {
-    return <div className="loading-text" data-testid="buildings-panel-loading">Loading…</div>;
+    return (
+      <div className="loading-text" data-testid="buildings-panel-loading">
+        Loading…
+      </div>
+    );
   }
 
   const buildings = extractBuildings(state);
@@ -241,10 +257,14 @@ export function BuildingsPanel({ state }: Props): React.ReactElement {
                   const prices = def ? getBuildingPrice(def, b.val, effectCache) : [];
                   const affordable = canAfford(prices, resources);
                   const storageLimited = isStorageLimited(prices, resources);
-                  const displayName = getBuildingDisplayName(b.name, b.stage ?? 0) ?? prettifyName(b.name);
+                  const displayName =
+                    getBuildingDisplayName(b.name, b.stage ?? 0) ?? prettifyName(b.name);
                   const currentStage = b.stage ?? 0;
                   const hasStages = b.stageUnlocked != null && b.stageUnlocked.length > 1;
-                  const canUpgrade = hasStages && currentStage < b.stageUnlocked!.length - 1 && b.stageUnlocked![currentStage + 1] === true;
+                  const canUpgrade =
+                    hasStages &&
+                    currentStage < b.stageUnlocked?.length - 1 &&
+                    b.stageUnlocked?.[currentStage + 1] === true;
                   const canDowngrade = hasStages && currentStage > 0;
 
                   const isPinnedHere = pinned?.kind === "building" && pinned.name === b.name;
@@ -303,7 +323,6 @@ export function BuildingsPanel({ state }: Props): React.ReactElement {
                         })
                       }
                       onBlur={clearInspected}
-                      tabIndex={0}
                     >
                       <PlaceholderImage
                         variant="building"
@@ -313,7 +332,9 @@ export function BuildingsPanel({ state }: Props): React.ReactElement {
                       />
                       <div className="item-card__overlay-top">
                         <span className="item-name building-name">{displayName}</span>
-                        <span className={`item-count building-count${b.val > 0 ? " item-count--has" : ""}`}>
+                        <span
+                          className={`item-count building-count${b.val > 0 ? " item-count--has" : ""}`}
+                        >
                           {b.on < b.val ? `${b.on}/${b.val}` : b.val}
                         </span>
                       </div>
@@ -326,7 +347,9 @@ export function BuildingsPanel({ state }: Props): React.ReactElement {
                               data-testid={`building-${b.name}-downgrade`}
                               className="btn btn--xs btn--secondary"
                               disabled={isPending}
-                              onClick={() => mutate({ type: "DOWNGRADE_BUILDING_STAGE", name: b.name })}
+                              onClick={() =>
+                                mutate({ type: "DOWNGRADE_BUILDING_STAGE", name: b.name })
+                              }
                             >
                               v
                             </button>
@@ -337,7 +360,9 @@ export function BuildingsPanel({ state }: Props): React.ReactElement {
                               data-testid={`building-${b.name}-upgrade`}
                               className="btn btn--xs btn--secondary"
                               disabled={isPending}
-                              onClick={() => mutate({ type: "UPGRADE_BUILDING_STAGE", name: b.name })}
+                              onClick={() =>
+                                mutate({ type: "UPGRADE_BUILDING_STAGE", name: b.name })
+                              }
                             >
                               ^
                             </button>
@@ -368,7 +393,7 @@ export function BuildingsPanel({ state }: Props): React.ReactElement {
                           </button>
                         </div>
 
-                        {b.val > 0 && (
+                        {b.val > 0 &&
                           (visibility.buildings[b.name]?.automationVisible ||
                             visibility.buildings[b.name]?.controlMode === "count" ||
                             visibility.buildings[b.name]?.controlMode === "binary") && (
@@ -379,7 +404,9 @@ export function BuildingsPanel({ state }: Props): React.ReactElement {
                                     type="button"
                                     className="btn btn--xs btn--secondary"
                                     disabled={isPending || b.automationEnabled === true}
-                                    onClick={() => mutate({ type: "ENABLE_BUILDING_AUTOMATION", name: b.name })}
+                                    onClick={() =>
+                                      mutate({ type: "ENABLE_BUILDING_AUTOMATION", name: b.name })
+                                    }
                                   >
                                     Auto On
                                   </button>
@@ -387,7 +414,9 @@ export function BuildingsPanel({ state }: Props): React.ReactElement {
                                     type="button"
                                     className="btn btn--xs btn--secondary"
                                     disabled={isPending || b.automationEnabled === false}
-                                    onClick={() => mutate({ type: "DISABLE_BUILDING_AUTOMATION", name: b.name })}
+                                    onClick={() =>
+                                      mutate({ type: "DISABLE_BUILDING_AUTOMATION", name: b.name })
+                                    }
                                   >
                                     Auto Off
                                   </button>
@@ -398,8 +427,7 @@ export function BuildingsPanel({ state }: Props): React.ReactElement {
                               {visibility.buildings[b.name]?.controlMode === "binary" &&
                                 renderBinaryControls(b, isPending, mutate)}
                             </div>
-                          )
-                        )}
+                          )}
                       </div>
                     </li>
                   );
@@ -428,7 +456,9 @@ function renderCountControls(
           data-testid={`building-${building.name}-disable-all`}
           className="btn btn--xs btn--secondary"
           disabled={isPending || offCount}
-          onClick={() => mutate({ type: "DISABLE_BUILDING", name: building.name, amount: building.on })}
+          onClick={() =>
+            mutate({ type: "DISABLE_BUILDING", name: building.name, amount: building.on })
+          }
           aria-label={`Disable all ${building.name}`}
         >
           −All
@@ -452,7 +482,9 @@ function renderCountControls(
           −
         </button>
       </div>
-      <span className="stage-counter__readout">{building.on}/{building.val}</span>
+      <span className="stage-counter__readout">
+        {building.on}/{building.val}
+      </span>
       <div className="stage-counter__group stage-counter__group--up">
         <button
           type="button"
@@ -478,7 +510,11 @@ function renderCountControls(
           className="btn btn--xs btn--secondary"
           disabled={isPending || fullCount}
           onClick={() =>
-            mutate({ type: "ENABLE_BUILDING", name: building.name, amount: building.val - building.on })
+            mutate({
+              type: "ENABLE_BUILDING",
+              name: building.name,
+              amount: building.val - building.on,
+            })
           }
           aria-label={`Enable all ${building.name}`}
         >
@@ -501,7 +537,9 @@ function renderBinaryControls(
         data-testid={`building-${building.name}-enable-binary`}
         className="btn btn--sm btn--secondary"
         disabled={isPending || building.on >= building.val}
-        onClick={() => mutate({ type: "ENABLE_BUILDING", name: building.name, amount: building.val })}
+        onClick={() =>
+          mutate({ type: "ENABLE_BUILDING", name: building.name, amount: building.val })
+        }
       >
         On
       </button>
@@ -510,7 +548,9 @@ function renderBinaryControls(
         data-testid={`building-${building.name}-disable-binary`}
         className="btn btn--sm btn--secondary"
         disabled={isPending || building.on <= 0}
-        onClick={() => mutate({ type: "DISABLE_BUILDING", name: building.name, amount: building.on })}
+        onClick={() =>
+          mutate({ type: "DISABLE_BUILDING", name: building.name, amount: building.on })
+        }
       >
         Off
       </button>

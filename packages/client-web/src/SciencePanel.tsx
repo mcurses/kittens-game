@@ -1,7 +1,7 @@
 // SciencePanel — displays technologies, policies, and prestige perks
 import type { GameStateResponse } from "@kittens/api-spec";
 import { PERK_DEFS, POLICY_DEFS, TECH_DEFS } from "@kittens/engine";
-import React from "react";
+import type React from "react";
 import { useInspector } from "./InspectorContext.js";
 import { PlaceholderImage } from "./PlaceholderImage.js";
 import { useSlot } from "./SlotContext.js";
@@ -50,7 +50,7 @@ function extractTechs(state: GameStateResponse): TechEntry[] {
         researched: e.researched === true,
       };
     })
-    .filter((e): e is TechEntry => e !== null && e.unlocked);
+    .filter((e): e is TechEntry => e?.unlocked);
 }
 
 function extractPolicies(state: GameStateResponse): PolicyEntry[] {
@@ -70,7 +70,7 @@ function extractPolicies(state: GameStateResponse): PolicyEntry[] {
         researched: e.researched === true,
       };
     })
-    .filter((e): e is PolicyEntry => e !== null && e.unlocked);
+    .filter((e): e is PolicyEntry => e?.unlocked);
 }
 
 function extractPerks(state: GameStateResponse): PerkEntry[] {
@@ -89,7 +89,7 @@ function extractPerks(state: GameStateResponse): PerkEntry[] {
         researched: e.researched === true,
       };
     })
-    .filter((e): e is PerkEntry => e !== null && e.unlocked);
+    .filter((e): e is PerkEntry => e?.unlocked);
 }
 
 export function SciencePanel({ state }: Props): React.ReactElement {
@@ -113,7 +113,11 @@ export function SciencePanel({ state }: Props): React.ReactElement {
   );
 
   if (!state) {
-    return <div className="loading-text" data-testid="science-panel-loading">Loading…</div>;
+    return (
+      <div className="loading-text" data-testid="science-panel-loading">
+        Loading…
+      </div>
+    );
   }
 
   const techs = extractTechs(state);
@@ -131,8 +135,7 @@ export function SciencePanel({ state }: Props): React.ReactElement {
   const metaphysicsTech = techs.find((t) => t.name === "metaphysics");
   const paragonVal = resources.paragon?.value ?? 0;
   const anyPerkResearched = perks.some((p) => p.researched);
-  const showMetaphysics =
-    (metaphysicsTech?.researched && paragonVal > 0) || anyPerkResearched;
+  const showMetaphysics = (metaphysicsTech?.researched && paragonVal > 0) || anyPerkResearched;
 
   return (
     <div data-testid="science-panel">
@@ -159,9 +162,7 @@ export function SciencePanel({ state }: Props): React.ReactElement {
             const affordable = canAfford(prices, resources);
             const storageLimited = isStorageLimited(prices, resources);
             const costLabel =
-              prices.length > 0
-                ? prices.map((p) => `${p.val} ${p.name}`).join(", ")
-                : "";
+              prices.length > 0 ? prices.map((p) => `${p.val} ${p.name}`).join(", ") : "";
 
             const isPinnedHere = pinned?.kind === "tech" && pinned.name === t.name;
             return (
@@ -213,7 +214,6 @@ export function SciencePanel({ state }: Props): React.ReactElement {
                   })
                 }
                 onBlur={clearInspected}
-                tabIndex={0}
               >
                 <PlaceholderImage
                   variant="book"
@@ -222,7 +222,9 @@ export function SciencePanel({ state }: Props): React.ReactElement {
                   className="tech-card__cover"
                 />
                 {t.researched && (
-                  <span className="tech-card__done-badge" aria-label="researched">✓ Done</span>
+                  <span className="tech-card__done-badge" aria-label="researched">
+                    ✓ Done
+                  </span>
                 )}
                 <div className="tech-card__strip">
                   <span className="tech-card__name tech-name">{t.name}</span>
@@ -277,9 +279,7 @@ export function SciencePanel({ state }: Props): React.ReactElement {
               const prices = def?.prices ?? [];
               const affordable = canAfford(prices, resources);
               const costLabel =
-                prices.length > 0
-                  ? prices.map((pr) => `${pr.val} ${pr.name}`).join(", ")
-                  : "";
+                prices.length > 0 ? prices.map((pr) => `${pr.val} ${pr.name}`).join(", ") : "";
 
               return (
                 <li
@@ -312,7 +312,6 @@ export function SciencePanel({ state }: Props): React.ReactElement {
                     })
                   }
                   onBlur={clearInspected}
-                  tabIndex={0}
                 >
                   <PlaceholderImage
                     variant="book"
@@ -321,10 +320,14 @@ export function SciencePanel({ state }: Props): React.ReactElement {
                     className="tech-card__cover"
                   />
                   {p.researched && (
-                    <span className="tech-card__done-badge" aria-label="adopted">✓ Adopted</span>
+                    <span className="tech-card__done-badge" aria-label="adopted">
+                      ✓ Adopted
+                    </span>
                   )}
                   {p.blocked && !p.researched && (
-                    <span className="tech-card__blocked-badge" aria-label="blocked">Blocked</span>
+                    <span className="tech-card__blocked-badge" aria-label="blocked">
+                      Blocked
+                    </span>
                   )}
                   <div className="tech-card__strip">
                     <span className="tech-card__name">{p.name}</span>
@@ -374,9 +377,7 @@ export function SciencePanel({ state }: Props): React.ReactElement {
                 const prices = def?.prices ?? [];
                 const affordable = canAfford(prices, resources);
                 const costLabel =
-                  prices.length > 0
-                    ? prices.map((pr) => `${pr.val} ${pr.name}`).join(", ")
-                    : "";
+                  prices.length > 0 ? prices.map((pr) => `${pr.val} ${pr.name}`).join(", ") : "";
 
                 return (
                   <li
@@ -407,7 +408,6 @@ export function SciencePanel({ state }: Props): React.ReactElement {
                       })
                     }
                     onBlur={clearInspected}
-                    tabIndex={0}
                   >
                     <span className="item-row-name">{p.name}</span>
                     {costLabel && !p.researched && (

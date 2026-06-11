@@ -1,6 +1,7 @@
 // Modal dialog for renaming the village. Recycles the .confirm-overlay /
 // .confirm-dialog pattern already used by SessionsPanel.
-import React, { useState } from "react";
+import type React from "react";
+import { useState } from "react";
 
 interface Props {
   currentName: string;
@@ -45,7 +46,6 @@ export function RenameVillageDialog({
           className="rename-village__input"
           value={value}
           maxLength={MAX_LEN}
-          autoFocus
           onChange={(e) => {
             setValue(e.target.value);
             setError(null);

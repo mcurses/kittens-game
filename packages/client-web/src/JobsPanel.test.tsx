@@ -1,5 +1,5 @@
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
-import React from "react";
+import type React from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { InspectorProvider } from "./InspectorContext.js";
 import { InspectorPanel } from "./InspectorPanel.js";
@@ -10,10 +10,7 @@ vi.mock("./useGameAction.js", () => ({
   useGameAction: () => ({ mutate: mockMutate, isPending: false, error: null }),
 }));
 
-function makeState(
-  jobs: Record<string, { value: number; unlocked?: boolean }>,
-  kittens = 5,
-) {
+function makeState(jobs: Record<string, { value: number; unlocked?: boolean }>, kittens = 5) {
   return {
     version: 1,
     tick: 0,
@@ -74,7 +71,10 @@ describe("JobsPanel", () => {
   });
 
   it("renders multiple jobs", () => {
-    const state = makeState({ farmer: { value: 2, unlocked: true }, scholar: { value: 1, unlocked: true } });
+    const state = makeState({
+      farmer: { value: 2, unlocked: true },
+      scholar: { value: 1, unlocked: true },
+    });
     render(<JobsPanel state={state} />);
     expect(screen.getByTestId("job-farmer")).toBeTruthy();
     expect(screen.getByTestId("job-scholar")).toBeTruthy();
@@ -128,7 +128,11 @@ describe("Story 32-07: Happiness display and festival in JobsPanel", () => {
       festivalRatio: 0.5,
     };
 
-    render(<WithInspector><JobsPanel state={state} /></WithInspector>);
+    render(
+      <WithInspector>
+        <JobsPanel state={state} />
+      </WithInspector>,
+    );
 
     fireEvent.focus(screen.getByTestId("jobs-happiness"));
     expect(screen.getByText("Happiness")).toBeTruthy();
@@ -177,7 +181,11 @@ describe("Story 32-07: Happiness display and festival in JobsPanel", () => {
 describe("Story 48-01: Job tooltips in inspector", () => {
   it("shows job details in inspector on hover", () => {
     const state = makeStateWithVillage({ farmer: { value: 2, unlocked: true } });
-    render(<WithInspector><JobsPanel state={state} /></WithInspector>);
+    render(
+      <WithInspector>
+        <JobsPanel state={state} />
+      </WithInspector>,
+    );
 
     fireEvent.mouseEnter(screen.getByTestId("job-farmer"));
     expect(screen.getByTestId("inspector-job-name")).toBeTruthy();
@@ -186,7 +194,11 @@ describe("Story 48-01: Job tooltips in inspector", () => {
 
   it("shows per-kitten production modifiers for woodcutter", () => {
     const state = makeStateWithVillage({ woodcutter: { value: 1, unlocked: true } });
-    render(<WithInspector><JobsPanel state={state} /></WithInspector>);
+    render(
+      <WithInspector>
+        <JobsPanel state={state} />
+      </WithInspector>,
+    );
 
     fireEvent.mouseEnter(screen.getByTestId("job-woodcutter"));
     const inspector = screen.getByTestId("inspector-panel");
@@ -197,7 +209,11 @@ describe("Story 48-01: Job tooltips in inspector", () => {
 
   it("shows flavor text for jobs that have it", () => {
     const state = makeStateWithVillage({ hunter: { value: 1, unlocked: true } });
-    render(<WithInspector><JobsPanel state={state} /></WithInspector>);
+    render(
+      <WithInspector>
+        <JobsPanel state={state} />
+      </WithInspector>,
+    );
 
     fireEvent.mouseEnter(screen.getByTestId("job-hunter"));
     const inspector = screen.getByTestId("inspector-panel");
@@ -206,7 +222,11 @@ describe("Story 48-01: Job tooltips in inspector", () => {
 
   it("clears inspector on mouse leave", () => {
     const state = makeStateWithVillage({ farmer: { value: 1, unlocked: true } });
-    render(<WithInspector><JobsPanel state={state} /></WithInspector>);
+    render(
+      <WithInspector>
+        <JobsPanel state={state} />
+      </WithInspector>,
+    );
 
     fireEvent.mouseEnter(screen.getByTestId("job-farmer"));
     expect(screen.getByTestId("inspector-job-name")).toBeTruthy();
@@ -217,7 +237,11 @@ describe("Story 48-01: Job tooltips in inspector", () => {
 
   it("shows no modifiers for engineer", () => {
     const state = makeStateWithVillage({ engineer: { value: 1, unlocked: true } });
-    render(<WithInspector><JobsPanel state={state} /></WithInspector>);
+    render(
+      <WithInspector>
+        <JobsPanel state={state} />
+      </WithInspector>,
+    );
 
     fireEvent.mouseEnter(screen.getByTestId("job-engineer"));
     const inspector = screen.getByTestId("inspector-panel");
@@ -469,10 +493,9 @@ describe("Story 48-07: Kitten management actions UI", () => {
   });
 
   it("shows unassign button when kitten has a job", () => {
-    const state = makeCensusState(
-      [makeKitten({ id: "k1", job: "farmer" })],
-      { farmer: { value: 1, unlocked: true } },
-    );
+    const state = makeCensusState([makeKitten({ id: "k1", job: "farmer" })], {
+      farmer: { value: 1, unlocked: true },
+    });
     render(<JobsPanel state={state} />);
 
     const btn = screen.getByTestId("census-kitten-k1-unassign");
@@ -521,15 +544,26 @@ describe("Story 48-08: Leader and government UI", () => {
   it("shows government info in management section", () => {
     // Management requires 5+ kittens
     const kittens = Array.from({ length: 5 }, (_, i) =>
-      makeKitten({ id: `k${i}`, name: `Cat${i}`, isLeader: i === 0, trait: i === 0 ? "scientist" : "none" }),
+      makeKitten({
+        id: `k${i}`,
+        name: `Cat${i}`,
+        isLeader: i === 0,
+        trait: i === 0 ? "scientist" : "none",
+      }),
     );
     const state = {
       ...makeCensusState(kittens),
       village: {
-        ...(makeCensusState(kittens) as unknown as Record<string, unknown>).village as Record<string, unknown>,
+        ...((makeCensusState(kittens) as unknown as Record<string, unknown>).village as Record<
+          string,
+          unknown
+        >),
         leader: "k0",
       },
-      science: { techs: { civil: { researched: true } }, policies: { theocracy: { researched: true } } },
+      science: {
+        techs: { civil: { researched: true } },
+        policies: { theocracy: { researched: true } },
+      },
     } as unknown as import("@kittens/api-spec").GameStateResponse;
 
     render(<JobsPanel state={state} />);

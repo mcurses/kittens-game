@@ -10,22 +10,14 @@
 
 import { getVillageTitle } from "@kittens/engine";
 
-export type VillageStageKey =
-  | "bonfire"
-  | "settlement"
-  | "village"
-  | "town"
-  | "city";
+export type VillageStageKey = "bonfire" | "settlement" | "village" | "town" | "city";
 
 export interface VillageStage {
   key: VillageStageKey;
   label: string;
 }
 
-export function deriveVillageStage(
-  kittens: number,
-  totalBuildings: number = 0,
-): VillageStage {
+export function deriveVillageStage(kittens: number, totalBuildings = 0): VillageStage {
   const label = getVillageTitle(kittens);
   const score = Math.max(kittens, Math.floor(totalBuildings / 4));
   let key: VillageStageKey;

@@ -1,8 +1,8 @@
 // InspectorContext tests
 import { act, cleanup, render, screen } from "@testing-library/react";
-import React from "react";
+import type React from "react";
 import { afterEach, describe, expect, it } from "vitest";
-import { InspectorProvider, type InspectorEntity, useInspector } from "./InspectorContext.js";
+import { type InspectorEntity, InspectorProvider, useInspector } from "./InspectorContext.js";
 
 afterEach(cleanup);
 

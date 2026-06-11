@@ -25,7 +25,7 @@ function isArr(v: unknown): v is unknown[] {
 }
 
 function num(v: unknown, fallback = 0): number {
-  return typeof v === "number" && isFinite(v) ? v : fallback;
+  return typeof v === "number" && Number.isFinite(v) ? v : fallback;
 }
 
 function bool(v: unknown, fallback = false): boolean {
@@ -59,7 +59,10 @@ function arrayToRecord<T>(arr: unknown[], pick: (item: Rec) => T | null): Record
  */
 function buildingsArrayToRecord(
   arr: unknown[],
-): Record<string, { val: number; on: number; unlocked?: boolean; automationEnabled?: boolean; stage?: number }> {
+): Record<
+  string,
+  { val: number; on: number; unlocked?: boolean; automationEnabled?: boolean; stage?: number }
+> {
   const result: Record<
     string,
     { val: number; on: number; unlocked?: boolean; automationEnabled?: boolean; stage?: number }
@@ -80,9 +83,7 @@ function buildingsArrayToRecord(
       ...(typeof item.isAutomationEnabled === "boolean"
         ? { automationEnabled: item.isAutomationEnabled }
         : {}),
-      ...(typeof item.stage === "number" && item.stage > 0
-        ? { stage: item.stage }
-        : {}),
+      ...(typeof item.stage === "number" && item.stage > 0 ? { stage: item.stage } : {}),
     };
   }
   return result;
@@ -102,7 +103,10 @@ function migrateResources(
 
 function migrateBuildings(
   raw: unknown,
-): Record<string, { val: number; on: number; unlocked?: boolean; automationEnabled?: boolean; stage?: number }> {
+): Record<
+  string,
+  { val: number; on: number; unlocked?: boolean; automationEnabled?: boolean; stage?: number }
+> {
   if (!isArr(raw)) return {};
 
   // Check if this is a named array (legacy test format) or numeric-indexed (actual legacy saves)
@@ -136,13 +140,9 @@ function migrateVillage(raw: unknown): SerializedGameState["village"] {
   const kittens = kittensArr.length;
 
   // kittenProgress renamed from nextKittenProgress
-  const kittenProgress = num(
-    isRec(v) && "nextKittenProgress" in v ? v.nextKittenProgress : 0,
-  );
+  const kittenProgress = num(isRec(v) && "nextKittenProgress" in v ? v.nextKittenProgress : 0);
 
-  const jobs = isArr(v.jobs)
-    ? arrayToRecord(v.jobs, (item) => ({ value: num(item.value) }))
-    : {};
+  const jobs = isArr(v.jobs) ? arrayToRecord(v.jobs, (item) => ({ value: num(item.value) })) : {};
 
   // Migrate individual kittens from legacy array
   const sim = kittensArr.map((k, i) => {
@@ -152,11 +152,16 @@ function migrateVillage(raw: unknown): SerializedGameState["village"] {
       name: typeof kr.name === "string" ? kr.name : "Unknown",
       surname: typeof kr.surname === "string" ? kr.surname : "Unknown",
       age: num(kr.age),
-      trait: typeof kr.trait === "object" && kr.trait !== null ? str((kr.trait as Record<string, unknown>).name) : "none",
+      trait:
+        typeof kr.trait === "object" && kr.trait !== null
+          ? str((kr.trait as Record<string, unknown>).name)
+          : "none",
       job: typeof kr.job === "string" ? kr.job : null,
-      skills: isRec(kr.skills) ? Object.fromEntries(
-        Object.entries(kr.skills as Record<string, unknown>).map(([k, v]) => [k, num(v)]),
-      ) : {},
+      skills: isRec(kr.skills)
+        ? Object.fromEntries(
+            Object.entries(kr.skills as Record<string, unknown>).map(([k, v]) => [k, num(v)]),
+          )
+        : {},
       rank: num(kr.rank),
       exp: num(kr.exp),
       isFavorite: kr.favorite === true,
@@ -225,7 +230,8 @@ function migrateWorkshop(raw: unknown): SerializedGameState["workshop"] {
 }
 
 function migrateReligion(raw: unknown): NonNullable<SerializedGameState["religion"]> {
-  if (!isRec(raw)) return { worship: 0, faithRatio: 0, transcendenceTier: 0, zu: {}, ru: {}, tu: {} };
+  if (!isRec(raw))
+    return { worship: 0, faithRatio: 0, transcendenceTier: 0, zu: {}, ru: {}, tu: {} };
   return {
     worship: num(raw.faith), // faith → worship
     faithRatio: num(raw.faithRatio),
@@ -424,7 +430,9 @@ export function migrateLegacySave(legacyJson: unknown): SerializedGameState {
     : [];
 
   // Preserve legacy maxKittens for import parity validation (Story 45-02)
-  const legacyMaxKittens = num(isRec(save.village) ? (save.village as Record<string, unknown>).maxKittens : 0);
+  const legacyMaxKittens = num(
+    isRec(save.village) ? (save.village as Record<string, unknown>).maxKittens : 0,
+  );
 
   // Preserve legacy cathPollution for pollution happiness calculation (Epic 45)
   const legacyCathPollution = num(save.cathPollution);

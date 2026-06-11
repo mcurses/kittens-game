@@ -1,21 +1,45 @@
 // ReligionPanel — faith, praise, ziggurat/religion/transcendence/TU upgrades
 import type { GameStateResponse } from "@kittens/api-spec";
-import { RELIGION_UPGRADE_DEFS, TRANSCENDENCE_UPGRADE_DEFS, ZIGGURAT_UPGRADE_DEFS } from "@kittens/engine";
-import React from "react";
+import {
+  RELIGION_UPGRADE_DEFS,
+  TRANSCENDENCE_UPGRADE_DEFS,
+  ZIGGURAT_UPGRADE_DEFS,
+} from "@kittens/engine";
+import type React from "react";
 import { useInspector } from "./InspectorContext.js";
 import { useSlot } from "./SlotContext.js";
 import { useGameAction } from "./useGameAction.js";
 import { canAfford, extractResources, isStorageLimited } from "./utils.js";
 
-interface ZuEntry { name: string; val: number; on: number; unlocked: boolean; }
-interface RuEntry { name: string; val: number; on: number; }
-interface TuEntry { name: string; val: number; on: number; unlocked: boolean; }
+interface ZuEntry {
+  name: string;
+  val: number;
+  on: number;
+  unlocked: boolean;
+}
+interface RuEntry {
+  name: string;
+  val: number;
+  on: number;
+}
+interface TuEntry {
+  name: string;
+  val: number;
+  on: number;
+  unlocked: boolean;
+}
 
-interface Props { state: GameStateResponse | null | undefined; }
+interface Props {
+  state: GameStateResponse | null | undefined;
+}
 
 function extractReligion(state: GameStateResponse): {
-  worship: number; faithRatio: number; transcendenceTier: number;
-  zu: ZuEntry[]; ru: RuEntry[]; tu: TuEntry[];
+  worship: number;
+  faithRatio: number;
+  transcendenceTier: number;
+  zu: ZuEntry[];
+  ru: RuEntry[];
+  tu: TuEntry[];
 } {
   const raw = state as unknown as Record<string, unknown>;
   const religion = raw.religion as Record<string, unknown> | null | undefined;
@@ -23,16 +47,23 @@ function extractReligion(state: GameStateResponse): {
 
   const worship = typeof religion.worship === "number" ? religion.worship : 0;
   const faithRatio = typeof religion.faithRatio === "number" ? religion.faithRatio : 0;
-  const transcendenceTier = typeof religion.transcendenceTier === "number" ? religion.transcendenceTier : 0;
+  const transcendenceTier =
+    typeof religion.transcendenceTier === "number" ? religion.transcendenceTier : 0;
 
   const zuRaw = religion.zu as Record<string, unknown> | null | undefined;
   const zu: ZuEntry[] = zuRaw
-    ? Object.entries(zuRaw).map(([name, e]) => {
-        if (typeof e !== "object" || e === null) return null;
-        const entry = e as Record<string, unknown>;
-        return { name, val: typeof entry.val === "number" ? entry.val : 0,
-          on: typeof entry.on === "number" ? entry.on : 0, unlocked: entry.unlocked === true };
-      }).filter((e): e is ZuEntry => e !== null && e.unlocked)
+    ? Object.entries(zuRaw)
+        .map(([name, e]) => {
+          if (typeof e !== "object" || e === null) return null;
+          const entry = e as Record<string, unknown>;
+          return {
+            name,
+            val: typeof entry.val === "number" ? entry.val : 0,
+            on: typeof entry.on === "number" ? entry.on : 0,
+            unlocked: entry.unlocked === true,
+          };
+        })
+        .filter((e): e is ZuEntry => e?.unlocked)
     : [];
 
   const ruRaw = religion.ru as Record<string, unknown> | null | undefined;
@@ -40,20 +71,32 @@ function extractReligion(state: GameStateResponse): {
     ? Object.entries(ruRaw).map(([name, e]) => {
         if (typeof e !== "object" || e === null) return { name, val: 0, on: 0 };
         const entry = e as Record<string, unknown>;
-        return { name, val: typeof entry.val === "number" ? entry.val : 0,
-          on: typeof entry.on === "number" ? entry.on : 0 };
+        return {
+          name,
+          val: typeof entry.val === "number" ? entry.val : 0,
+          on: typeof entry.on === "number" ? entry.on : 0,
+        };
       })
     : [];
 
   // TU (Transcendence Upgrades) — serialized as religion.tu or religion.transcendenceUpgrades
-  const tuRaw = (religion.tu ?? religion.transcendenceUpgrades) as Record<string, unknown> | null | undefined;
+  const tuRaw = (religion.tu ?? religion.transcendenceUpgrades) as
+    | Record<string, unknown>
+    | null
+    | undefined;
   const tu: TuEntry[] = tuRaw
-    ? Object.entries(tuRaw).map(([name, e]) => {
-        if (typeof e !== "object" || e === null) return null;
-        const entry = e as Record<string, unknown>;
-        return { name, val: typeof entry.val === "number" ? entry.val : 0,
-          on: typeof entry.on === "number" ? entry.on : 0, unlocked: entry.unlocked === true };
-      }).filter((e): e is TuEntry => e !== null && (e.unlocked || e.val > 0))
+    ? Object.entries(tuRaw)
+        .map(([name, e]) => {
+          if (typeof e !== "object" || e === null) return null;
+          const entry = e as Record<string, unknown>;
+          return {
+            name,
+            val: typeof entry.val === "number" ? entry.val : 0,
+            on: typeof entry.on === "number" ? entry.on : 0,
+            unlocked: entry.unlocked === true,
+          };
+        })
+        .filter((e): e is TuEntry => e !== null && (e.unlocked || e.val > 0))
     : [];
 
   return { worship, faithRatio, transcendenceTier, zu, ru, tu };
@@ -65,7 +108,11 @@ export function ReligionPanel({ state }: Props): React.ReactElement {
   const { setInspected, clearInspected } = useInspector();
 
   if (!state) {
-    return <div className="loading-text" data-testid="religion-panel-loading">Loading…</div>;
+    return (
+      <div className="loading-text" data-testid="religion-panel-loading">
+        Loading…
+      </div>
+    );
   }
 
   const { worship, faithRatio, transcendenceTier, zu, ru, tu } = extractReligion(state);
@@ -77,8 +124,12 @@ export function ReligionPanel({ state }: Props): React.ReactElement {
         <span className="worship-value">{worship.toFixed(1)}</span>
         <span className="worship-label">Faith (worship)</span>
         <div className="worship-actions">
-          <button type="button" className="btn btn--secondary btn--sm"
-            disabled={isPending} onClick={() => mutate({ type: "PRAISE" })}>
+          <button
+            type="button"
+            className="btn btn--secondary btn--sm"
+            disabled={isPending}
+            onClick={() => mutate({ type: "PRAISE" })}
+          >
             Praise
           </button>
           {faithRatio > 0 && (
@@ -86,8 +137,12 @@ export function ReligionPanel({ state }: Props): React.ReactElement {
               ×{faithRatio.toFixed(2)}
             </span>
           )}
-          <button type="button" className="btn btn--primary btn--sm"
-            disabled={isPending} onClick={() => mutate({ type: "ADORE" })}>
+          <button
+            type="button"
+            className="btn btn--primary btn--sm"
+            disabled={isPending}
+            onClick={() => mutate({ type: "ADORE" })}
+          >
             Adore
           </button>
         </div>
@@ -103,22 +158,44 @@ export function ReligionPanel({ state }: Props): React.ReactElement {
               const affordable = canAfford(prices, resources);
               const storageLimited = isStorageLimited(prices, resources);
               return (
-                <li key={u.name} data-testid={`zu-${u.name}`} className="item-row"
-                  onMouseEnter={() => setInspected({ kind: "zigguratUpgrade", name: u.name,
-                    description: def?.description, val: u.val, effects: def?.effects ?? {},
-                    prices, resources })}
+                <li
+                  key={u.name}
+                  data-testid={`zu-${u.name}`}
+                  className="item-row"
+                  onMouseEnter={() =>
+                    setInspected({
+                      kind: "zigguratUpgrade",
+                      name: u.name,
+                      description: def?.description,
+                      val: u.val,
+                      effects: def?.effects ?? {},
+                      prices,
+                      resources,
+                    })
+                  }
                   onMouseLeave={clearInspected}
-                  onFocus={() => setInspected({ kind: "zigguratUpgrade", name: u.name,
-                    description: def?.description, val: u.val, effects: def?.effects ?? {},
-                    prices, resources })}
+                  onFocus={() =>
+                    setInspected({
+                      kind: "zigguratUpgrade",
+                      name: u.name,
+                      description: def?.description,
+                      val: u.val,
+                      effects: def?.effects ?? {},
+                      prices,
+                      resources,
+                    })
+                  }
                   onBlur={clearInspected}
-                  tabIndex={0}>
+                >
                   <span className="item-row-name">{u.name}</span>
                   <span className="item-row-cost">×{u.val}</span>
-                  <button type="button" data-testid={`zu-${u.name}-buy`}
+                  <button
+                    type="button"
+                    data-testid={`zu-${u.name}-buy`}
                     className={`btn btn--sm${affordable ? " btn--primary" : " btn--secondary"}${storageLimited ? " btn--limited" : ""}`}
                     disabled={isPending || !affordable}
-                    onClick={() => mutate({ type: "BUY_ZIGGURAT_UPGRADE", name: u.name })}>
+                    onClick={() => mutate({ type: "BUY_ZIGGURAT_UPGRADE", name: u.name })}
+                  >
                     Buy
                   </button>
                 </li>
@@ -139,26 +216,48 @@ export function ReligionPanel({ state }: Props): React.ReactElement {
               const storageLimited = isStorageLimited(prices, resources);
               const isDone = def?.oneTime === true && u.val >= 1;
               return (
-                <li key={u.name} data-testid={`ru-${u.name}`} className="item-row"
-                  onMouseEnter={() => setInspected({ kind: "religionUpgrade", name: u.name,
-                    description: def?.description, val: u.val, effects: def?.effects ?? {},
-                    prices, resources })}
+                <li
+                  key={u.name}
+                  data-testid={`ru-${u.name}`}
+                  className="item-row"
+                  onMouseEnter={() =>
+                    setInspected({
+                      kind: "religionUpgrade",
+                      name: u.name,
+                      description: def?.description,
+                      val: u.val,
+                      effects: def?.effects ?? {},
+                      prices,
+                      resources,
+                    })
+                  }
                   onMouseLeave={clearInspected}
-                  onFocus={() => setInspected({ kind: "religionUpgrade", name: u.name,
-                    description: def?.description, val: u.val, effects: def?.effects ?? {},
-                    prices, resources })}
+                  onFocus={() =>
+                    setInspected({
+                      kind: "religionUpgrade",
+                      name: u.name,
+                      description: def?.description,
+                      val: u.val,
+                      effects: def?.effects ?? {},
+                      prices,
+                      resources,
+                    })
+                  }
                   onBlur={clearInspected}
-                  tabIndex={0}>
+                >
                   <span className="item-row-name">{u.name}</span>
                   {isDone ? (
                     <span className="item-row-done">✓ Done</span>
                   ) : (
                     <>
                       <span className="item-row-cost">×{u.val}</span>
-                      <button type="button" data-testid={`ru-${u.name}-buy`}
+                      <button
+                        type="button"
+                        data-testid={`ru-${u.name}-buy`}
                         className={`btn btn--sm${affordable ? " btn--primary" : " btn--secondary"}${storageLimited ? " btn--limited" : ""}`}
                         disabled={isPending || !affordable}
-                        onClick={() => mutate({ type: "BUY_RELIGION_UPGRADE", name: u.name })}>
+                        onClick={() => mutate({ type: "BUY_RELIGION_UPGRADE", name: u.name })}
+                      >
                         Buy
                       </button>
                     </>
@@ -175,8 +274,12 @@ export function ReligionPanel({ state }: Props): React.ReactElement {
         <div className="item-row">
           <span className="item-row-name">Transcendence</span>
           <span className="item-row-cost">Tier: {transcendenceTier}</span>
-          <button type="button" className="btn btn--sm btn--primary"
-            disabled={isPending} onClick={() => mutate({ type: "TRANSCEND" })}>
+          <button
+            type="button"
+            className="btn btn--sm btn--primary"
+            disabled={isPending}
+            onClick={() => mutate({ type: "TRANSCEND" })}
+          >
             Transcend
           </button>
         </div>
@@ -192,22 +295,44 @@ export function ReligionPanel({ state }: Props): React.ReactElement {
               const storageLimited = isStorageLimited(prices, resources);
               const affordable = canAfford(prices, resources);
               return (
-                <li key={u.name} data-testid={`tu-${u.name}`} className="item-row"
-                  onMouseEnter={() => setInspected({ kind: "zigguratUpgrade", name: u.name,
-                    description: undefined, val: u.val, effects: def?.effects ?? {},
-                    prices, resources })}
+                <li
+                  key={u.name}
+                  data-testid={`tu-${u.name}`}
+                  className="item-row"
+                  onMouseEnter={() =>
+                    setInspected({
+                      kind: "zigguratUpgrade",
+                      name: u.name,
+                      description: undefined,
+                      val: u.val,
+                      effects: def?.effects ?? {},
+                      prices,
+                      resources,
+                    })
+                  }
                   onMouseLeave={clearInspected}
-                  onFocus={() => setInspected({ kind: "zigguratUpgrade", name: u.name,
-                    description: undefined, val: u.val, effects: def?.effects ?? {},
-                    prices, resources })}
+                  onFocus={() =>
+                    setInspected({
+                      kind: "zigguratUpgrade",
+                      name: u.name,
+                      description: undefined,
+                      val: u.val,
+                      effects: def?.effects ?? {},
+                      prices,
+                      resources,
+                    })
+                  }
                   onBlur={clearInspected}
-                  tabIndex={0}>
+                >
                   <span className="item-row-name">{u.name}</span>
                   <span className="item-row-cost">×{u.val}</span>
-                  <button type="button" data-testid={`tu-${u.name}-buy`}
+                  <button
+                    type="button"
+                    data-testid={`tu-${u.name}-buy`}
                     className={`btn btn--sm${affordable ? " btn--primary" : " btn--secondary"}${storageLimited ? " btn--limited" : ""}`}
                     disabled={isPending || !affordable}
-                    onClick={() => mutate({ type: "BUY_TRANSCENDENCE_UPGRADE", name: u.name })}>
+                    onClick={() => mutate({ type: "BUY_TRANSCENDENCE_UPGRADE", name: u.name })}
+                  >
                     Buy
                   </button>
                 </li>

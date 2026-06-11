@@ -151,7 +151,7 @@ async function main() {
     while (s.buildings.hut?.unlocked && r(s, "wood") >= 5) {
       if (!(await tryBuy("hut"))) break;
       s = await getState();
-      console.log(`  🏠 Hut #${bldVal(s, "hut")} built (maxKittens=${(bldVal(s, "hut") * 2)})`);
+      console.log(`  🏠 Hut #${bldVal(s, "hut")} built (maxKittens=${bldVal(s, "hut") * 2})`);
     }
   }
   console.log(`  ✅ ${s.village.kittens} kittens arrived\n`);
@@ -167,7 +167,10 @@ async function main() {
       for (let i = 0; i < 5; i++) await act({ type: "GATHER_CATNIP" });
       s = await advanceTick(10);
       const woodCraftable = Math.floor(r(s, "catnip") / 100);
-      if (woodCraftable >= 1) { await tryCraft("wood", woodCraftable); s = await getState(); }
+      if (woodCraftable >= 1) {
+        await tryCraft("wood", woodCraftable);
+        s = await getState();
+      }
     }
     if (!(await tryBuy("hut"))) break;
     s = await getState();
@@ -176,7 +179,9 @@ async function main() {
 
   // Assign 2 woodcutters, rest scholars
   s = await setJobs(s, { woodcutter: 2, scholar: Math.max(0, s.village.kittens - 2) });
-  console.log(`  👷 Jobs: woodcutter=${jobCount(s, "woodcutter")} scholar=${jobCount(s, "scholar")}`);
+  console.log(
+    `  👷 Jobs: woodcutter=${jobCount(s, "woodcutter")} scholar=${jobCount(s, "scholar")}`,
+  );
 
   // Buy first library (costs 25 wood)
   while (bldVal(s, "library") < 1) {
@@ -198,7 +203,10 @@ async function main() {
     while (!researched(s, tech)) {
       // Scale up libraries as science cap fills
       if (bldVal(s, "library") < 3 && r(s, "wood") >= 25) {
-        if (await tryBuy("library")) { s = await getState(); console.log(`  📚 Library #${bldVal(s, "library")}`); }
+        if (await tryBuy("library")) {
+          s = await getState();
+          console.log(`  📚 Library #${bldVal(s, "library")}`);
+        }
       }
       if (unlocked(s, tech) && r(s, "science") >= cost) {
         await tryResearch(tech);
@@ -220,7 +228,10 @@ async function main() {
       logStatus(s);
     }
     if (bldVal(s, "hut") * 2 <= s.village.kittens + 1 && r(s, "wood") >= 5) {
-      if (await tryBuy("hut")) { s = await getState(); console.log(`  🏠 Hut #${bldVal(s, "hut")}`); }
+      if (await tryBuy("hut")) {
+        s = await getState();
+        console.log(`  🏠 Hut #${bldVal(s, "hut")}`);
+      }
     }
     s = await advanceTick(20);
     logStatus(s);
@@ -231,14 +242,20 @@ async function main() {
 
   // Build more libraries (up to 8)
   while (bldVal(s, "library") < 8) {
-    while (r(s, "wood") < 25) { s = await advanceTick(10); }
+    while (r(s, "wood") < 25) {
+      s = await advanceTick(10);
+    }
     if (!(await tryBuy("library"))) break;
     s = await getState();
     console.log(`  📚 Library #${bldVal(s, "library")}`);
   }
 
   // Research: metal, animal, engineering in order
-  for (const [tech, cost] of [["metal", 900], ["animal", 500], ["engineering", 1500]] as const) {
+  for (const [tech, cost] of [
+    ["metal", 900],
+    ["animal", 500],
+    ["engineering", 1500],
+  ] as const) {
     console.log(`  Researching ${tech} (needs ${cost} science)...`);
     while (!researched(s, tech)) {
       if (unlocked(s, tech) && r(s, "science") >= cost) {
@@ -255,7 +272,10 @@ async function main() {
   while (!researched(s, "writing")) {
     // Keep building libraries
     if (bldVal(s, "library") < 15 && r(s, "wood") >= 25) {
-      if (await tryBuy("library")) { s = await getState(); console.log(`  📚 Library #${bldVal(s, "library")}`); }
+      if (await tryBuy("library")) {
+        s = await getState();
+        console.log(`  📚 Library #${bldVal(s, "library")}`);
+      }
     }
     if (unlocked(s, "writing") && r(s, "science") >= 3600) {
       await tryResearch("writing");
@@ -278,7 +298,10 @@ async function main() {
   // Grow to 25 kittens
   while (s.village.kittens < 25) {
     if (bldVal(s, "hut") * 2 <= s.village.kittens + 1 && r(s, "wood") >= 5) {
-      if (await tryBuy("hut")) { s = await getState(); console.log(`  🏠 Hut #${bldVal(s, "hut")}`); }
+      if (await tryBuy("hut")) {
+        s = await getState();
+        console.log(`  🏠 Hut #${bldVal(s, "hut")}`);
+      }
     }
     s = await advanceTick(20);
     logStatus(s);
@@ -286,7 +309,9 @@ async function main() {
 
   // Assign hunters alongside scholars
   s = await setJobs(s, { woodcutter: 2, scholar: 15, hunter: 6 });
-  console.log(`  🏹 Jobs: woodcutter=${jobCount(s, "woodcutter")} scholar=${jobCount(s, "scholar")} hunter=${jobCount(s, "hunter")}`);
+  console.log(
+    `  🏹 Jobs: woodcutter=${jobCount(s, "woodcutter")} scholar=${jobCount(s, "scholar")} hunter=${jobCount(s, "hunter")}`,
+  );
 
   // Hunt + craft loop until 35 manuscripts
   console.log("  Hunting for furs and crafting manuscripts...");
@@ -299,7 +324,10 @@ async function main() {
 
     // Craft parchment from furs (175 furs each)
     const parchAmt = Math.floor(r(s, "furs") / 175);
-    if (parchAmt >= 1) { await tryCraft("parchment", parchAmt); s = await getState(); }
+    if (parchAmt >= 1) {
+      await tryCraft("parchment", parchAmt);
+      s = await getState();
+    }
 
     // Craft manuscript from parchment + culture (25 parchment + 400 culture each)
     const mssAmt = Math.floor(Math.min(r(s, "parchment") / 25, r(s, "culture") / 400));
@@ -327,7 +355,10 @@ async function main() {
     console.log(`  Researching ${tech} (needs ${cost} science)...`);
     while (!researched(s, tech)) {
       if (bldVal(s, "library") < 20 && r(s, "wood") >= 25) {
-        if (await tryBuy("library")) { s = await getState(); console.log(`  📚 Library #${bldVal(s, "library")}`); }
+        if (await tryBuy("library")) {
+          s = await getState();
+          console.log(`  📚 Library #${bldVal(s, "library")}`);
+        }
       }
       if (unlocked(s, tech) && r(s, "science") >= cost) {
         await tryResearch(tech);
@@ -343,15 +374,27 @@ async function main() {
   while (!researched(s, "theology")) {
     // Top up manuscripts if somehow consumed
     if (r(s, "manuscript") < 35) {
-      if (r(s, "catpower") >= 100) { await tryHunt(); s = await getState(); }
+      if (r(s, "catpower") >= 100) {
+        await tryHunt();
+        s = await getState();
+      }
       const p = Math.floor(r(s, "furs") / 175);
-      if (p >= 1) { await tryCraft("parchment", p); s = await getState(); }
+      if (p >= 1) {
+        await tryCraft("parchment", p);
+        s = await getState();
+      }
       const m = Math.floor(Math.min(r(s, "parchment") / 25, r(s, "culture") / 400));
-      if (m >= 1) { await tryCraft("manuscript", m); s = await getState(); }
+      if (m >= 1) {
+        await tryCraft("manuscript", m);
+        s = await getState();
+      }
     }
 
     if (bldVal(s, "library") < 25 && r(s, "wood") >= 25) {
-      if (await tryBuy("library")) { s = await getState(); console.log(`  📚 Library #${bldVal(s, "library")}`); }
+      if (await tryBuy("library")) {
+        s = await getState();
+        console.log(`  📚 Library #${bldVal(s, "library")}`);
+      }
     }
 
     if (unlocked(s, "theology") && r(s, "science") >= 20000 && r(s, "manuscript") >= 35) {

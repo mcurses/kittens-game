@@ -4,8 +4,8 @@ import React from "react";
 import { ActionPanel } from "./ActionPanel.js";
 import { CalendarDisplay } from "./CalendarDisplay.js";
 import { ImportSavePanel } from "./ImportSavePanel.js";
-import { InspectorPanel } from "./InspectorPanel.js";
 import { InspectorProvider } from "./InspectorContext.js";
+import { InspectorPanel } from "./InspectorPanel.js";
 import { LogPanel } from "./LogPanel.js";
 import { ResourcePanel } from "./ResourcePanel.js";
 import { SessionsPanel } from "./SessionsPanel.js";
@@ -114,9 +114,7 @@ function GameView(): React.ReactElement {
               >
                 {showImport ? "Hide Import" : "Import Legacy Save"}
               </button>
-              {showImport && (
-                <ImportSavePanel onClose={() => setShowImport(false)} />
-              )}
+              {showImport && <ImportSavePanel onClose={() => setShowImport(false)} />}
             </aside>
 
             {/* Center — Main content */}

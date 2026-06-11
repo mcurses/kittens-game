@@ -1,8 +1,9 @@
 // ImportSavePanel — paste or upload a legacy Kittens Game save string to import it
 import { useQueryClient } from "@tanstack/react-query";
-import React, { useRef, useState } from "react";
-import { postImportLegacy } from "./api.js";
+import type React from "react";
+import { useRef, useState } from "react";
 import { useSlot } from "./SlotContext.js";
+import { postImportLegacy } from "./api.js";
 import { GAME_STATE_QUERY_KEY } from "./useGameState.js";
 
 interface Props {
@@ -76,29 +77,19 @@ export function ImportSavePanel({ onClose }: Props): React.ReactElement {
           {status === "loading" ? "Importing…" : "Import Save"}
         </button>
         {onClose && (
-          <button
-            type="button"
-            onClick={onClose}
-            className="btn btn--sm btn--secondary"
-          >
+          <button type="button" onClick={onClose} className="btn btn--sm btn--secondary">
             Cancel
           </button>
         )}
       </div>
 
       {status === "success" && (
-        <p
-          data-testid="import-save-success"
-          className="status-message status-message--success"
-        >
+        <p data-testid="import-save-success" className="status-message status-message--success">
           Save imported successfully.
         </p>
       )}
       {status === "error" && (
-        <p
-          data-testid="import-save-error"
-          className="status-message status-message--error"
-        >
+        <p data-testid="import-save-error" className="status-message status-message--error">
           {errorMsg}
         </p>
       )}

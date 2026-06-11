@@ -156,35 +156,50 @@ describe("season advancement", () => {
 describe("CalendarManager.updateEffects — season catnip modifier", () => {
   it("Spring (season=0) contributes catnipRatio = 0.5", () => {
     const mgr = new CalendarManager();
-    const state = { ...createInitialState(), calendar: { day: 0, season: 0, year: 0, festivalDays: 0 } };
+    const state = {
+      ...createInitialState(),
+      calendar: { day: 0, season: 0, year: 0, festivalDays: 0 },
+    };
     const effects = mgr.updateEffects(state);
     expect(effects.catnipRatio).toBeCloseTo(0.5);
   });
 
   it("Summer (season=1) contributes catnipRatio = 0.0", () => {
     const mgr = new CalendarManager();
-    const state = { ...createInitialState(), calendar: { day: 0, season: 1, year: 0, festivalDays: 0 } };
+    const state = {
+      ...createInitialState(),
+      calendar: { day: 0, season: 1, year: 0, festivalDays: 0 },
+    };
     const effects = mgr.updateEffects(state);
     expect(effects.catnipRatio).toBeCloseTo(0.0);
   });
 
   it("Autumn (season=2) contributes catnipRatio = 0.0", () => {
     const mgr = new CalendarManager();
-    const state = { ...createInitialState(), calendar: { day: 0, season: 2, year: 0, festivalDays: 0 } };
+    const state = {
+      ...createInitialState(),
+      calendar: { day: 0, season: 2, year: 0, festivalDays: 0 },
+    };
     const effects = mgr.updateEffects(state);
     expect(effects.catnipRatio).toBeCloseTo(0.0);
   });
 
   it("Winter (season=3) contributes catnipRatio = -0.75", () => {
     const mgr = new CalendarManager();
-    const state = { ...createInitialState(), calendar: { day: 0, season: 3, year: 0, festivalDays: 0 } };
+    const state = {
+      ...createInitialState(),
+      calendar: { day: 0, season: 3, year: 0, festivalDays: 0 },
+    };
     const effects = mgr.updateEffects(state);
     expect(effects.catnipRatio).toBeCloseTo(-0.75);
   });
 
   it("out-of-bounds season index falls back to catnipRatio = 0.0", () => {
     const mgr = new CalendarManager();
-    const state = { ...createInitialState(), calendar: { day: 0, season: 99, year: 0, festivalDays: 0 } };
+    const state = {
+      ...createInitialState(),
+      calendar: { day: 0, season: 99, year: 0, festivalDays: 0 },
+    };
     const effects = mgr.updateEffects(state);
     expect(effects.catnipRatio).toBeCloseTo(0.0);
   });
@@ -251,7 +266,9 @@ describe("CalendarManager save/load/reset", () => {
     const baseState = { ...createInitialState(), calendar: createInitialCalendar() };
     // Pass an object with invalid (non-number) field values
     const restored = mgr.load(
-      { day: "bad", season: null, year: undefined, festivalDays: 0 } as unknown as Parameters<typeof mgr.load>[0],
+      { day: "bad", season: null, year: undefined, festivalDays: 0 } as unknown as Parameters<
+        typeof mgr.load
+      >[0],
       baseState,
     );
     expect(restored.calendar.day).toBe(0);

@@ -597,13 +597,10 @@ function canAfford(prices: readonly PriceEntry[], resources: ResourceState): boo
 
 // ── Helper: getSpaceBuildingPrice ─────────────────────────────────────────────
 
-export function getSpaceBuildingPrice(
-  def: SpaceBuildingDef,
-  count: number,
-): readonly PriceEntry[] {
+export function getSpaceBuildingPrice(def: SpaceBuildingDef, count: number): readonly PriceEntry[] {
   return def.prices.map((p) => ({
     name: p.name,
-    val: p.val * Math.pow(def.priceRatio, count),
+    val: p.val * def.priceRatio ** count,
   }));
 }
 
@@ -778,7 +775,9 @@ export function applyBuySpaceBuilding(state: GameState, name: string): GameState
 function getUnlimitedDR(value: number, stripe: number): number {
   if (stripe === 0) return 0;
   const ratio = (Math.sqrt(1 + (value / stripe) * 8) - 1) / 2;
-  return ratio === Infinity ? (Math.sqrt(value) / Math.sqrt(stripe)) * Math.SQRT2 : ratio;
+  return ratio === Number.POSITIVE_INFINITY
+    ? (Math.sqrt(value) / Math.sqrt(stripe)) * Math.SQRT2
+    : ratio;
 }
 
 /**
@@ -876,10 +875,10 @@ export class SpaceManager implements Manager {
     const effects: Record<string, number> = {};
 
     // Compute terraformingMaxKittensRatio from hydroponics.on count
-    const hydroponics = state.space.spaceBuildings["hydroponics"];
+    const hydroponics = state.space.spaceBuildings.hydroponics;
     const hydroponicsOn = hydroponics?.on ?? 0;
     if (hydroponicsOn > 0) {
-      effects["terraformingMaxKittensRatio"] = getTerraformingMaxKittensRatio(hydroponicsOn);
+      effects.terraformingMaxKittensRatio = getTerraformingMaxKittensRatio(hydroponicsOn);
     }
 
     for (const def of SPACE_BUILDING_DEFS) {
@@ -889,8 +888,8 @@ export class SpaceManager implements Manager {
       // terraformingStation uses dynamic ratio from hydroponics
       if (def.name === "terraformingStation") {
         // maxKittens = 1 + terraformingMaxKittensRatio (static 1 + dynamic ratio)
-        const dynamicRatio = effects["terraformingMaxKittensRatio"] ?? 0;
-        effects["maxKittens"] = (effects["maxKittens"] ?? 0) + (1 + dynamicRatio) * bld.on;
+        const dynamicRatio = effects.terraformingMaxKittensRatio ?? 0;
+        effects.maxKittens = (effects.maxKittens ?? 0) + (1 + dynamicRatio) * bld.on;
         continue;
       }
 

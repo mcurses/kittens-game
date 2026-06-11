@@ -3,9 +3,7 @@ import { createMemoryAdapter, planSavesTableMigration } from "./db.js";
 
 describe("planSavesTableMigration", () => {
   it("adds both missing Epic 44 columns for legacy saves tables", () => {
-    expect(
-      planSavesTableMigration(["id", "slot", "state_json", "updated_at"]),
-    ).toEqual({
+    expect(planSavesTableMigration(["id", "slot", "state_json", "updated_at"])).toEqual({
       addStatus: true,
       addCreatedAt: true,
       backfillCreatedAt: true,
@@ -14,14 +12,7 @@ describe("planSavesTableMigration", () => {
 
   it("does nothing when the saves table is already migrated", () => {
     expect(
-      planSavesTableMigration([
-        "id",
-        "slot",
-        "state_json",
-        "status",
-        "created_at",
-        "updated_at",
-      ]),
+      planSavesTableMigration(["id", "slot", "state_json", "status", "created_at", "updated_at"]),
     ).toEqual({
       addStatus: false,
       addCreatedAt: false,
@@ -110,7 +101,7 @@ describe("SlotMeta and slot lifecycle methods", () => {
 
     const meta = adapter.listSlotMeta();
     expect(meta).toHaveLength(3);
-    const bySlot = new Map(meta.map(m => [m.slot, m]));
+    const bySlot = new Map(meta.map((m) => [m.slot, m]));
     expect(bySlot.get("active1")?.status).toBe("active");
     expect(bySlot.get("paused1")?.status).toBe("paused");
     expect(bySlot.get("archived1")?.status).toBe("archived");
@@ -164,7 +155,7 @@ describe("SlotMeta and slot lifecycle methods", () => {
     const originalUpdatedAt = originalMeta.updatedAt;
 
     // Small delay to ensure time has passed
-    await new Promise(resolve => setTimeout(resolve, 10));
+    await new Promise((resolve) => setTimeout(resolve, 10));
     adapter.updateSlotStatus("test", "paused");
 
     const newMeta = adapter.getSlotMeta("test")!;
@@ -206,7 +197,7 @@ describe("SlotMeta and slot lifecycle methods", () => {
     const originalCreatedAt = originalMeta.createdAt;
 
     // Small delay and upsert
-    await new Promise(resolve => setTimeout(resolve, 10));
+    await new Promise((resolve) => setTimeout(resolve, 10));
     adapter.saveSlot("test", '{"tick":5}');
 
     const newMeta = adapter.getSlotMeta("test")!;
@@ -220,7 +211,7 @@ describe("SlotMeta and slot lifecycle methods", () => {
     const originalUpdatedAt = originalMeta.updatedAt;
 
     // Small delay and upsert
-    await new Promise(resolve => setTimeout(resolve, 10));
+    await new Promise((resolve) => setTimeout(resolve, 10));
     adapter.saveSlot("test", '{"tick":5}');
 
     const newMeta = adapter.getSlotMeta("test")!;

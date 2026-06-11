@@ -1,7 +1,7 @@
 // TabContainer — tab navigation for main game panels
 import type { GameStateResponse } from "@kittens/api-spec";
-import { deriveUiVisibility, type UiMainTabId } from "@kittens/engine";
-import React from "react";
+import { type UiMainTabId, deriveUiVisibility } from "@kittens/engine";
+import type React from "react";
 import { AchievementsPanel } from "./AchievementsPanel.js";
 import { BuildingsPanel } from "./BuildingsPanel.js";
 import { ChallengesPanel } from "./ChallengesPanel.js";
@@ -12,8 +12,8 @@ import { SciencePanel } from "./SciencePanel.js";
 import { SpacePanel } from "./SpacePanel.js";
 import { StatsPanel } from "./StatsPanel.js";
 import { TimePanel } from "./TimePanel.js";
-import { usePersistentUiState } from "./usePersistentUiState.js";
 import { WorkshopPanel } from "./WorkshopPanel.js";
+import { usePersistentUiState } from "./usePersistentUiState.js";
 
 type TabId = UiMainTabId;
 
@@ -51,17 +51,17 @@ export function TabContainer({ state }: Props): React.ReactElement {
       </nav>
 
       <div className="tab-content" role="tabpanel">
-        {effectiveTab === "buildings"    && <BuildingsPanel state={state} />}
-        {effectiveTab === "jobs"         && <JobsPanel state={state} />}
-        {effectiveTab === "science"      && <SciencePanel state={state} />}
-        {effectiveTab === "workshop"     && <WorkshopPanel state={state} />}
-        {effectiveTab === "religion"     && <ReligionPanel state={state} />}
-        {effectiveTab === "space"        && <SpacePanel state={state} />}
-        {effectiveTab === "time"         && <TimePanel state={state} />}
-        {effectiveTab === "trade"        && <DiplomacyPanel state={state} />}
+        {effectiveTab === "buildings" && <BuildingsPanel state={state} />}
+        {effectiveTab === "jobs" && <JobsPanel state={state} />}
+        {effectiveTab === "science" && <SciencePanel state={state} />}
+        {effectiveTab === "workshop" && <WorkshopPanel state={state} />}
+        {effectiveTab === "religion" && <ReligionPanel state={state} />}
+        {effectiveTab === "space" && <SpacePanel state={state} />}
+        {effectiveTab === "time" && <TimePanel state={state} />}
+        {effectiveTab === "trade" && <DiplomacyPanel state={state} />}
         {effectiveTab === "achievements" && <AchievementsPanel state={state} />}
-        {effectiveTab === "stats"        && <StatsPanel />}
-        {effectiveTab === "challenges"   && <ChallengesPanel />}
+        {effectiveTab === "stats" && <StatsPanel />}
+        {effectiveTab === "challenges" && <ChallengesPanel />}
       </div>
     </div>
   );

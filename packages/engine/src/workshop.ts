@@ -1447,27 +1447,193 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
 // ── CRAFT_DEFS ────────────────────────────────────────────────────────────────
 
 export const CRAFT_DEFS: readonly CraftDef[] = [
-  { name: "wood", prices: [{ name: "catnip", val: 100 }], ignoreBonuses: true, tier: 1, progressHandicap: 1 },
-  { name: "beam", prices: [{ name: "wood", val: 175 }], ignoreBonuses: false, tier: 1, progressHandicap: 1 },
-  { name: "slab", prices: [{ name: "minerals", val: 250 }], ignoreBonuses: false, tier: 1, progressHandicap: 1 },
-  { name: "plate", prices: [{ name: "iron", val: 125 }], ignoreBonuses: false, tier: 1, progressHandicap: 4 },
-  { name: "steel", prices: [{ name: "coal", val: 100 }, { name: "iron", val: 100 }], ignoreBonuses: false, tier: 2, progressHandicap: 4 },
-  { name: "concrate", prices: [{ name: "slab", val: 2500 }, { name: "steel", val: 25 }], ignoreBonuses: false, tier: 4, progressHandicap: 9 },
-  { name: "gear", prices: [{ name: "steel", val: 15 }], ignoreBonuses: false, tier: 3, progressHandicap: 5 },
-  { name: "alloy", prices: [{ name: "titanium", val: 10 }, { name: "steel", val: 75 }], ignoreBonuses: false, tier: 4, progressHandicap: 7 },
-  { name: "eludium", prices: [{ name: "unobtainium", val: 1000 }, { name: "alloy", val: 2500 }], ignoreBonuses: false, tier: 5, progressHandicap: 300 },
-  { name: "scaffold", prices: [{ name: "beam", val: 50 }], ignoreBonuses: false, tier: 2, progressHandicap: 2 },
-  { name: "ship", prices: [{ name: "starchart", val: 25 }, { name: "plate", val: 150 }, { name: "scaffold", val: 100 }], ignoreBonuses: false, tier: 3, progressHandicap: 20 },
-  { name: "tanker", prices: [{ name: "alloy", val: 1250 }, { name: "ship", val: 200 }, { name: "blueprint", val: 5 }], ignoreBonuses: false, tier: 5, progressHandicap: 20 },
-  { name: "kerosene", prices: [{ name: "oil", val: 7500 }], ignoreBonuses: false, tier: 2, progressHandicap: 5 },
-  { name: "parchment", prices: [{ name: "furs", val: 175 }], ignoreBonuses: false, tier: 1, progressHandicap: 1 },
-  { name: "manuscript", prices: [{ name: "culture", val: 400 }, { name: "parchment", val: 25 }], ignoreBonuses: false, tier: 2, progressHandicap: 2 },
-  { name: "compedium", prices: [{ name: "science", val: 10000 }, { name: "manuscript", val: 50 }], ignoreBonuses: false, tier: 3, progressHandicap: 5 },
-  { name: "blueprint", prices: [{ name: "science", val: 25000 }, { name: "compedium", val: 25 }], ignoreBonuses: false, tier: 3, progressHandicap: 10 },
-  { name: "thorium", prices: [{ name: "uranium", val: 250 }], ignoreBonuses: false, tier: 3, progressHandicap: 5 },
-  { name: "megalith", prices: [{ name: "beam", val: 25 }, { name: "slab", val: 50 }, { name: "plate", val: 5 }], ignoreBonuses: false, tier: 3, progressHandicap: 5 },
-  { name: "bloodstone", prices: [{ name: "timeCrystal", val: 5000 }, { name: "relic", val: 10000 }], ignoreBonuses: false, tier: 5, progressHandicap: 7500 },
-  { name: "tMythril", prices: [{ name: "bloodstone", val: 5 }, { name: "ivory", val: 1000 }, { name: "titanium", val: 500 }], ignoreBonuses: false, tier: 7, progressHandicap: 10000 },
+  {
+    name: "wood",
+    prices: [{ name: "catnip", val: 100 }],
+    ignoreBonuses: true,
+    tier: 1,
+    progressHandicap: 1,
+  },
+  {
+    name: "beam",
+    prices: [{ name: "wood", val: 175 }],
+    ignoreBonuses: false,
+    tier: 1,
+    progressHandicap: 1,
+  },
+  {
+    name: "slab",
+    prices: [{ name: "minerals", val: 250 }],
+    ignoreBonuses: false,
+    tier: 1,
+    progressHandicap: 1,
+  },
+  {
+    name: "plate",
+    prices: [{ name: "iron", val: 125 }],
+    ignoreBonuses: false,
+    tier: 1,
+    progressHandicap: 4,
+  },
+  {
+    name: "steel",
+    prices: [
+      { name: "coal", val: 100 },
+      { name: "iron", val: 100 },
+    ],
+    ignoreBonuses: false,
+    tier: 2,
+    progressHandicap: 4,
+  },
+  {
+    name: "concrate",
+    prices: [
+      { name: "slab", val: 2500 },
+      { name: "steel", val: 25 },
+    ],
+    ignoreBonuses: false,
+    tier: 4,
+    progressHandicap: 9,
+  },
+  {
+    name: "gear",
+    prices: [{ name: "steel", val: 15 }],
+    ignoreBonuses: false,
+    tier: 3,
+    progressHandicap: 5,
+  },
+  {
+    name: "alloy",
+    prices: [
+      { name: "titanium", val: 10 },
+      { name: "steel", val: 75 },
+    ],
+    ignoreBonuses: false,
+    tier: 4,
+    progressHandicap: 7,
+  },
+  {
+    name: "eludium",
+    prices: [
+      { name: "unobtainium", val: 1000 },
+      { name: "alloy", val: 2500 },
+    ],
+    ignoreBonuses: false,
+    tier: 5,
+    progressHandicap: 300,
+  },
+  {
+    name: "scaffold",
+    prices: [{ name: "beam", val: 50 }],
+    ignoreBonuses: false,
+    tier: 2,
+    progressHandicap: 2,
+  },
+  {
+    name: "ship",
+    prices: [
+      { name: "starchart", val: 25 },
+      { name: "plate", val: 150 },
+      { name: "scaffold", val: 100 },
+    ],
+    ignoreBonuses: false,
+    tier: 3,
+    progressHandicap: 20,
+  },
+  {
+    name: "tanker",
+    prices: [
+      { name: "alloy", val: 1250 },
+      { name: "ship", val: 200 },
+      { name: "blueprint", val: 5 },
+    ],
+    ignoreBonuses: false,
+    tier: 5,
+    progressHandicap: 20,
+  },
+  {
+    name: "kerosene",
+    prices: [{ name: "oil", val: 7500 }],
+    ignoreBonuses: false,
+    tier: 2,
+    progressHandicap: 5,
+  },
+  {
+    name: "parchment",
+    prices: [{ name: "furs", val: 175 }],
+    ignoreBonuses: false,
+    tier: 1,
+    progressHandicap: 1,
+  },
+  {
+    name: "manuscript",
+    prices: [
+      { name: "culture", val: 400 },
+      { name: "parchment", val: 25 },
+    ],
+    ignoreBonuses: false,
+    tier: 2,
+    progressHandicap: 2,
+  },
+  {
+    name: "compedium",
+    prices: [
+      { name: "science", val: 10000 },
+      { name: "manuscript", val: 50 },
+    ],
+    ignoreBonuses: false,
+    tier: 3,
+    progressHandicap: 5,
+  },
+  {
+    name: "blueprint",
+    prices: [
+      { name: "science", val: 25000 },
+      { name: "compedium", val: 25 },
+    ],
+    ignoreBonuses: false,
+    tier: 3,
+    progressHandicap: 10,
+  },
+  {
+    name: "thorium",
+    prices: [{ name: "uranium", val: 250 }],
+    ignoreBonuses: false,
+    tier: 3,
+    progressHandicap: 5,
+  },
+  {
+    name: "megalith",
+    prices: [
+      { name: "beam", val: 25 },
+      { name: "slab", val: 50 },
+      { name: "plate", val: 5 },
+    ],
+    ignoreBonuses: false,
+    tier: 3,
+    progressHandicap: 5,
+  },
+  {
+    name: "bloodstone",
+    prices: [
+      { name: "timeCrystal", val: 5000 },
+      { name: "relic", val: 10000 },
+    ],
+    ignoreBonuses: false,
+    tier: 5,
+    progressHandicap: 7500,
+  },
+  {
+    name: "tMythril",
+    prices: [
+      { name: "bloodstone", val: 5 },
+      { name: "ivory", val: 1000 },
+      { name: "titanium", val: 500 },
+    ],
+    ignoreBonuses: false,
+    tier: 7,
+    progressHandicap: 10000,
+  },
 ];
 
 // ── Initial sets ──────────────────────────────────────────────────────────────
@@ -1608,7 +1774,10 @@ export function applyCraft(state: GameState, craftName: string, amt: number): Ga
 }
 
 export function getAssignedCraftEngineers(state: Pick<GameState, "workshop">): number {
-  return Object.values(state.workshop.crafts).reduce((total, craft) => total + (craft.engineers ?? 0), 0);
+  return Object.values(state.workshop.crafts).reduce(
+    (total, craft) => total + (craft.engineers ?? 0),
+    0,
+  );
 }
 
 export function applyAssignCraftEngineer(state: GameState, craftName: string): GameState {
@@ -1659,7 +1828,7 @@ export class WorkshopManager implements Manager {
 
       const engineers = entry.engineers ?? 0;
       const progressPerTick = engineers / (TICKS_PER_CRAFT_CYCLE * def.progressHandicap);
-      let newProgress = (entry.progress ?? 0) + progressPerTick;
+      const newProgress = (entry.progress ?? 0) + progressPerTick;
 
       // When progress >= 1, attempt to craft one unit
       if (newProgress >= 1) {
@@ -1748,7 +1917,9 @@ export class WorkshopManager implements Manager {
                 ? su.unlocked || (upgrades[name]?.unlocked ?? false)
                 : (upgrades[name]?.unlocked ?? false),
             researched:
-              typeof su.researched === "boolean" ? su.researched : (upgrades[name]?.researched ?? false),
+              typeof su.researched === "boolean"
+                ? su.researched
+                : (upgrades[name]?.researched ?? false),
           };
         }
       }
@@ -1767,7 +1938,10 @@ export class WorkshopManager implements Manager {
               typeof sc.unlocked === "boolean"
                 ? sc.unlocked || (crafts[name]?.unlocked ?? false)
                 : (crafts[name]?.unlocked ?? false),
-            engineers: typeof sc.engineers === "number" ? Math.max(0, sc.engineers) : (crafts[name]?.engineers ?? 0),
+            engineers:
+              typeof sc.engineers === "number"
+                ? Math.max(0, sc.engineers)
+                : (crafts[name]?.engineers ?? 0),
             progress: typeof sc.progress === "number" ? Math.max(0, sc.progress) : 0,
           };
         }

@@ -1,6 +1,6 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
-import React from "react";
+import type React from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ActionPanel } from "./ActionPanel.js";
 import { SlotProvider } from "./SlotContext.js";
@@ -41,10 +41,12 @@ describe("ActionPanel", () => {
     mockFetch.mockImplementation(() => new Promise(() => {}));
     renderWithClient(
       <ActionPanel
-        state={{
-          resources: { catpower: { value: 250 } },
-          science: { techs: { archery: { researched: true } } },
-        } as never}
+        state={
+          {
+            resources: { catpower: { value: 250 } },
+            science: { techs: { archery: { researched: true } } },
+          } as never
+        }
       />,
     );
     expect(screen.getByTestId("btn-gather-catnip")).toBeTruthy();
@@ -113,9 +115,7 @@ describe("ActionPanel", () => {
     mockFetch.mockImplementation(() => new Promise(() => {}));
     renderWithClient(<ActionPanel />);
     // Before clicking — not pending
-    expect(
-      (screen.getByTestId("btn-gather-catnip") as HTMLButtonElement).disabled,
-    ).toBe(false);
+    expect((screen.getByTestId("btn-gather-catnip") as HTMLButtonElement).disabled).toBe(false);
     expect(screen.queryByTestId("btn-hunt")).toBeNull();
   });
 
@@ -138,10 +138,12 @@ describe("ActionPanel", () => {
     mockFetch.mockImplementation(() => new Promise(() => {}));
     renderWithClient(
       <ActionPanel
-        state={{
-          resources: { catpower: { value: 250 } },
-          effectCache: {},
-        } as never}
+        state={
+          {
+            resources: { catpower: { value: 250 } },
+            effectCache: {},
+          } as never
+        }
       />,
     );
     expect(screen.queryByTestId("btn-hunt")).toBeNull();

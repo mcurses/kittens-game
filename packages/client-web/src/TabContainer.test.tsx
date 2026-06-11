@@ -1,5 +1,4 @@
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
-import React from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { TabContainer } from "./TabContainer.js";
 
@@ -46,7 +45,10 @@ const withCalendar = { science: { techs: { calendar: { researched: true } } } };
 const withTradeUnlocked = { diplomacy: { races: { lizards: { unlocked: true } } } };
 const withAchievement = { achievements: { achievements: [{ unlocked: true }] } };
 const withWorkshop = { buildings: { workshop: { val: 1, on: 1 } } };
-const withVillage = { buildings: { hut: { val: 1, on: 1 } }, village: { kittens: 3, jobs: { woodcutter: { value: 1 } } } };
+const withVillage = {
+  buildings: { hut: { val: 1, on: 1 } },
+  village: { kittens: 3, jobs: { woodcutter: { value: 1 } } },
+};
 const withStats = { resources: { karma: { value: 1 } } };
 const withChallenges = { prestige: { perks: { adjustmentBureau: { researched: true } } } };
 
@@ -179,7 +181,9 @@ describe("TabContainer", () => {
 
     render(<TabContainer state={withLibrary as never} />);
     expect(screen.getByTestId("science-panel")).toBeTruthy();
-    expect(screen.getByRole("button", { name: /science/i }).getAttribute("data-active")).toBe("true");
+    expect(screen.getByRole("button", { name: /science/i }).getAttribute("data-active")).toBe(
+      "true",
+    );
   });
 
   it("falls back to buildings if saved tab becomes hidden", () => {
@@ -214,6 +218,8 @@ describe("TabContainer", () => {
     expect(buildingsBtn.getAttribute("data-active")).toBe("true");
     fireEvent.click(screen.getByRole("button", { name: /buildings/i }));
     expect(buildingsBtn.getAttribute("data-active")).toBe("true");
-    expect(screen.getByRole("button", { name: /small village/i }).getAttribute("data-active")).toBe("false");
+    expect(screen.getByRole("button", { name: /small village/i }).getAttribute("data-active")).toBe(
+      "false",
+    );
   });
 });

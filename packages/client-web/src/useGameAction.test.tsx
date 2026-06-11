@@ -1,6 +1,6 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { cleanup, renderHook, waitFor } from "@testing-library/react";
-import React from "react";
+import type React from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { useGameAction } from "./useGameAction.js";
 
@@ -29,9 +29,7 @@ function makeWrapper() {
     defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
   });
   function Wrapper({ children }: { children: React.ReactNode }) {
-    return (
-      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
-    );
+    return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
   }
   return { wrapper: Wrapper, queryClient };
 }

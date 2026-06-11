@@ -1,5 +1,4 @@
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
-import React from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { SpacePanel } from "./SpacePanel.js";
 
@@ -25,7 +24,10 @@ function makeState(
       spaceBuildings: space.spaceBuildings ?? {},
     },
     resources: Object.fromEntries(
-      Object.entries(resources).map(([k, v]) => [k, { value: v.value, maxValue: v.maxValue ?? 0, perTick: 0 }]),
+      Object.entries(resources).map(([k, v]) => [
+        k,
+        { value: v.value, maxValue: v.maxValue ?? 0, perTick: 0 },
+      ]),
     ),
   } as unknown as import("@kittens/api-spec").GameStateResponse;
 }

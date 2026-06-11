@@ -1,4 +1,4 @@
-import { HttpClient } from "./cli.js";
+import type { HttpClient } from "./cli.js";
 
 export function createHttpClient(serverUrl: string): HttpClient {
   return {
@@ -21,7 +21,7 @@ export function createHttpClient(serverUrl: string): HttpClient {
       }
 
       const contentType = response.headers.get("content-type");
-      if (contentType && contentType.includes("application/json")) {
+      if (contentType?.includes("application/json")) {
         return response.json();
       }
 
@@ -53,7 +53,7 @@ export function createHttpClient(serverUrl: string): HttpClient {
       }
 
       const contentType = response.headers.get("content-type");
-      if (contentType && contentType.includes("application/json")) {
+      if (contentType?.includes("application/json")) {
         return response.json();
       }
 

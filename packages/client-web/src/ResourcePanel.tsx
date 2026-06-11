@@ -1,13 +1,24 @@
 // ResourcePanel — resource inventory with rates and progress bars
 import type { GameStateResponse } from "@kittens/api-spec";
-import { CRAFT_DEFS, RESOURCE_DISPLAY, RESOURCE_NAMES, SEASON_DEFS, deriveUiVisibility, getResourceAttribution } from "@kittens/engine";
+import {
+  CRAFT_DEFS,
+  RESOURCE_DISPLAY,
+  RESOURCE_NAMES,
+  SEASON_DEFS,
+  deriveUiVisibility,
+  getResourceAttribution,
+} from "@kittens/engine";
 import React from "react";
-import { type ResourceAttributionEntry, type ResourceEntity, useInspector } from "./InspectorContext.js";
+import {
+  type ResourceAttributionEntry,
+  type ResourceEntity,
+  useInspector,
+} from "./InspectorContext.js";
 import { useSlot } from "./SlotContext.js";
 import { type IngredientNode, expandCraftCosts } from "./expandCraftCosts.js";
+import { ResourceIcon } from "./ui/index.js";
 import { useGameAction } from "./useGameAction.js";
 import { usePersistentUiState } from "./usePersistentUiState.js";
-import { ResourceIcon } from "./ui/index.js";
 import { formatDuration } from "./utils.js";
 
 const TICKS_PER_SECOND = 5;
@@ -60,7 +71,9 @@ function extractHiddenResources(state: GameStateResponse): Set<string> {
   return new Set(hidden.filter((n): n is string => typeof n === "string"));
 }
 
-function extractCalendar(state: GameStateResponse): { day: number; season: number; year: number } | null {
+function extractCalendar(
+  state: GameStateResponse,
+): { day: number; season: number; year: number } | null {
   const raw = state as unknown as Record<string, unknown>;
   const cal = raw.calendar;
   if (typeof cal !== "object" || cal === null) return null;
@@ -89,7 +102,11 @@ function extractUnlockedCraftNames(state: GameStateResponse): Set<string> {
   if (typeof crafts !== "object" || crafts === null) return new Set();
   const result = new Set<string>();
   for (const [name, entry] of Object.entries(crafts as Record<string, unknown>)) {
-    if (typeof entry === "object" && entry !== null && (entry as Record<string, unknown>).unlocked === true) {
+    if (
+      typeof entry === "object" &&
+      entry !== null &&
+      (entry as Record<string, unknown>).unlocked === true
+    ) {
       result.add(name);
     }
   }
@@ -121,12 +138,12 @@ function computeCraftShortcuts(
   const def = CRAFT_DEFS.find((d) => d.name === craftName);
   if (!def || def.prices.length === 0) return [1, 25, 100, 0];
   const resMap = new Map(resources.map((r) => [r.name, r.value]));
-  let all = Infinity;
+  let all = Number.POSITIVE_INFINITY;
   for (const p of def.prices) {
     const v = resMap.get(p.name) ?? 0;
     all = Math.min(all, Math.floor(v / p.val));
   }
-  const n = all === Infinity ? 0 : all;
+  const n = all === Number.POSITIVE_INFINITY ? 0 : all;
   return [
     Math.max(1, Math.floor(n * 0.01)),
     Math.max(25, Math.floor(n * 0.05)),
@@ -163,7 +180,11 @@ export function ResourcePanel({ state }: Props): React.ReactElement {
   }, [state]);
 
   if (!state) {
-    return <div className="loading-text" data-testid="resource-panel-loading">Loading resources...</div>;
+    return (
+      <div className="loading-text" data-testid="resource-panel-loading">
+        Loading resources...
+      </div>
+    );
   }
 
   const resources = extractResources(state);
@@ -222,11 +243,7 @@ export function ResourcePanel({ state }: Props): React.ReactElement {
         </button>
       </div>
 
-      <ul
-        className="resource-list"
-        data-testid="resource-panel"
-        aria-label="Resources"
-      >
+      <ul className="resource-list" data-testid="resource-panel" aria-label="Resources">
         {visibleResources.length === 0 ? (
           <li className="panel-empty">No resources yet.</li>
         ) : (
@@ -352,16 +369,10 @@ function TargetMarker({
   const markerClass = storeLimited
     ? "resource-bar-target resource-bar-target--limited"
     : met
-    ? "resource-bar-target resource-bar-target--met"
-    : "resource-bar-target resource-bar-target--unmet";
+      ? "resource-bar-target resource-bar-target--met"
+      : "resource-bar-target resource-bar-target--unmet";
 
-  return (
-    <div
-      className={markerClass}
-      style={{ left: `${pctLeft * 100}%` }}
-      aria-hidden="true"
-    />
-  );
+  return <div className={markerClass} style={{ left: `${pctLeft * 100}%` }} aria-hidden="true" />;
 }
 
 function EtaLabel({
@@ -431,17 +442,17 @@ function ResourceItem({
     pct === null
       ? ""
       : pct >= 0.99
-      ? "resource-bar-fill--capped"
-      : pct < 0.10
-      ? "resource-bar-fill--low"
-      : "";
+        ? "resource-bar-fill--capped"
+        : pct < 0.1
+          ? "resource-bar-fill--low"
+          : "";
 
   const rateSign =
     resource.perTick === undefined || resource.perTick === 0
       ? null
       : resource.perTick > 0
-      ? "pos"
-      : "neg";
+        ? "pos"
+        : "neg";
 
   const handleInspect = () => {
     const entity: ResourceEntity = {
@@ -500,7 +511,6 @@ function ResourceItem({
       onMouseLeave={clearInspected}
       onFocus={handleInspect}
       onBlur={clearInspected}
-      tabIndex={0}
     >
       {/* Name + value row */}
       <div className="resource-item-main">
@@ -508,17 +518,23 @@ function ResourceItem({
         <span
           className={getResourceNameClass(resource.name)}
           style={getResourceNameStyle(resource.name)}
-          onClick={onToggleVisibility ? (e) => {
-            if (e.ctrlKey || e.metaKey) {
-              e.preventDefault();
-              onToggleVisibility(resource.name);
-            }
-          } : undefined}
+          onClick={
+            onToggleVisibility
+              ? (e) => {
+                  if (e.ctrlKey || e.metaKey) {
+                    e.preventDefault();
+                    onToggleVisibility(resource.name);
+                  }
+                }
+              : undefined
+          }
         >
           {resource.name}
         </span>
         <span className="resource-values">
-          <span className={getCapacityClass(resource.value, resource.maxValue)}>{formatValue(resource.value)}</span>
+          <span className={getCapacityClass(resource.value, resource.maxValue)}>
+            {formatValue(resource.value)}
+          </span>
           {resource.maxValue !== undefined && resource.maxValue > 0 ? (
             <span className="resource-max">/{formatValue(resource.maxValue)}</span>
           ) : node ? (
@@ -531,13 +547,8 @@ function ResourceItem({
       <div className="resource-item-meta">
         {pct !== null ? (
           <div className="resource-bar" aria-hidden="true">
-            <div
-              className={`resource-bar-fill ${fillClass}`}
-              style={{ width: `${pct * 100}%` }}
-            />
-            {node && (
-              <TargetMarker resource={resource} node={node} />
-            )}
+            <div className={`resource-bar-fill ${fillClass}`} style={{ width: `${pct * 100}%` }} />
+            {node && <TargetMarker resource={resource} node={node} />}
           </div>
         ) : (
           <div style={{ flex: 1 }} />
@@ -550,13 +561,15 @@ function ResourceItem({
         ) : (
           <span className="rate-badge" />
         )}
-        <WeatherBadge resourceName={resource.name} perTick={resource.perTick} seasonIndex={seasonIndex} />
+        <WeatherBadge
+          resourceName={resource.name}
+          perTick={resource.perTick}
+          seasonIndex={seasonIndex}
+        />
       </div>
 
       {/* ETA label (only when highlighted and deficit exists) */}
-      {node && (
-        <EtaLabel resource={resource} node={node} />
-      )}
+      {node && <EtaLabel resource={resource} node={node} />}
 
       {/* Inline craft shortcuts for craftable resources */}
       {craftable && (
@@ -568,7 +581,6 @@ function ResourceItem({
           isPending={isPending}
         />
       )}
-
     </li>
   );
 }
@@ -674,7 +686,7 @@ function getResourceNameClass(name: string): string {
 function getResourceNameStyle(name: string): React.CSSProperties | undefined {
   const meta = RESOURCE_DISPLAY[name];
   if (!meta?.color) return undefined;
-  if (meta.type === "rare") return { color: meta.color, textShadow: `1px 0px 10px Coral` };
+  if (meta.type === "rare") return { color: meta.color, textShadow: "1px 0px 10px Coral" };
   return { color: meta.color };
 }
 
@@ -708,7 +720,12 @@ function WeatherBadge({
   const sign = pct > 0 ? "+" : "";
   const cls = pct > 0 ? "weather-badge weather-badge--pos" : "weather-badge weather-badge--neg";
 
-  return <span className={cls}>[{sign}{pct}%]</span>;
+  return (
+    <span className={cls}>
+      [{sign}
+      {pct}%]
+    </span>
+  );
 }
 
 // ── Formatting helpers ─────────────────────────────────────

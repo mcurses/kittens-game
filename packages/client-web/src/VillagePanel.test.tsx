@@ -1,5 +1,5 @@
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
-import React from "react";
+import type React from "react";
 import { afterEach, describe, expect, it } from "vitest";
 import { InspectorProvider } from "./InspectorContext.js";
 import { InspectorPanel } from "./InspectorPanel.js";
@@ -50,10 +50,7 @@ describe("VillagePanel", () => {
   });
 
   it("shows N kittens with happiness %", () => {
-    const state = makeState(
-      { kittens: 5, happiness: 0.82 },
-      { maxKittens: 10 },
-    );
+    const state = makeState({ kittens: 5, happiness: 0.82 }, { maxKittens: 10 });
     render(<VillagePanel state={state} />);
     expect(screen.getByText(/5 \/ 10 kittens/)).toBeTruthy();
     expect(screen.getByText(/82% happy/)).toBeTruthy();
@@ -114,7 +111,11 @@ describe("VillagePanel", () => {
       },
     } as unknown as import("@kittens/api-spec").GameStateResponse;
 
-    render(<WithInspector><VillagePanel state={state} /></WithInspector>);
+    render(
+      <WithInspector>
+        <VillagePanel state={state} />
+      </WithInspector>,
+    );
     fireEvent.mouseEnter(screen.getByTestId("village-happiness"));
 
     expect(screen.getByText("Happiness")).toBeTruthy();

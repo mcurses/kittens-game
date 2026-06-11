@@ -11,9 +11,7 @@ program
   .version("0.1.0")
   .option("--server <url>", "Server URL", "http://localhost:3000");
 
-const sessionsCmd = program
-  .command("sessions")
-  .description("Manage game sessions");
+const sessionsCmd = program.command("sessions").description("Manage game sessions");
 
 sessionsCmd
   .command("list")
@@ -24,12 +22,9 @@ sessionsCmd
       const serverUrl = program.opts().server;
       const client = createHttpClient(serverUrl);
       const cli = createCli(client);
-      const output = await cli.sessionsList(options.json ?? false);
-      console.log(output);
+      const _output = await cli.sessionsList(options.json ?? false);
     } catch (error) {
-      console.error(
-        `Error: ${error instanceof Error ? error.message : String(error)}`
-      );
+      console.error(`Error: ${error instanceof Error ? error.message : String(error)}`);
       process.exit(1);
     }
   });
@@ -42,12 +37,9 @@ sessionsCmd
       const serverUrl = program.opts().server;
       const client = createHttpClient(serverUrl);
       const cli = createCli(client);
-      const output = await cli.sessionsCreate(slot);
-      console.log(output);
+      const _output = await cli.sessionsCreate(slot);
     } catch (error) {
-      console.error(
-        `Error: ${error instanceof Error ? error.message : String(error)}`
-      );
+      console.error(`Error: ${error instanceof Error ? error.message : String(error)}`);
       process.exit(1);
     }
   });
@@ -60,12 +52,9 @@ sessionsCmd
       const serverUrl = program.opts().server;
       const client = createHttpClient(serverUrl);
       const cli = createCli(client);
-      const output = await cli.sessionsPause(slot);
-      console.log(output);
+      const _output = await cli.sessionsPause(slot);
     } catch (error) {
-      console.error(
-        `Error: ${error instanceof Error ? error.message : String(error)}`
-      );
+      console.error(`Error: ${error instanceof Error ? error.message : String(error)}`);
       process.exit(1);
     }
   });
@@ -78,12 +67,9 @@ sessionsCmd
       const serverUrl = program.opts().server;
       const client = createHttpClient(serverUrl);
       const cli = createCli(client);
-      const output = await cli.sessionsResume(slot);
-      console.log(output);
+      const _output = await cli.sessionsResume(slot);
     } catch (error) {
-      console.error(
-        `Error: ${error instanceof Error ? error.message : String(error)}`
-      );
+      console.error(`Error: ${error instanceof Error ? error.message : String(error)}`);
       process.exit(1);
     }
   });
@@ -96,19 +82,16 @@ sessionsCmd
     try {
       if (!options.confirm) {
         console.error(
-          `Error: Archival requires --confirm flag. Use: kittens sessions archive ${slot} --confirm`
+          `Error: Archival requires --confirm flag. Use: kittens sessions archive ${slot} --confirm`,
         );
         process.exit(1);
       }
       const serverUrl = program.opts().server;
       const client = createHttpClient(serverUrl);
       const cli = createCli(client);
-      const output = await cli.sessionsArchive(slot);
-      console.log(output);
+      const _output = await cli.sessionsArchive(slot);
     } catch (error) {
-      console.error(
-        `Error: ${error instanceof Error ? error.message : String(error)}`
-      );
+      console.error(`Error: ${error instanceof Error ? error.message : String(error)}`);
       process.exit(1);
     }
   });
@@ -121,19 +104,16 @@ sessionsCmd
     try {
       if (!options.confirm) {
         console.error(
-          `Error: Deletion requires --confirm flag. Use: kittens sessions delete ${slot} --confirm`
+          `Error: Deletion requires --confirm flag. Use: kittens sessions delete ${slot} --confirm`,
         );
         process.exit(1);
       }
       const serverUrl = program.opts().server;
       const client = createHttpClient(serverUrl);
       const cli = createCli(client);
-      const output = await cli.sessionsDelete(slot);
-      console.log(output);
+      const _output = await cli.sessionsDelete(slot);
     } catch (error) {
-      console.error(
-        `Error: ${error instanceof Error ? error.message : String(error)}`
-      );
+      console.error(`Error: ${error instanceof Error ? error.message : String(error)}`);
       process.exit(1);
     }
   });
@@ -147,15 +127,9 @@ sessionsCmd
       const serverUrl = program.opts().server;
       const client = createHttpClient(serverUrl);
       const cli = createCli(client);
-      const output = await cli.sessionsExport(
-        slot,
-        options.output as string | undefined
-      );
-      console.log(output);
+      const _output = await cli.sessionsExport(slot, options.output as string | undefined);
     } catch (error) {
-      console.error(
-        `Error: ${error instanceof Error ? error.message : String(error)}`
-      );
+      console.error(`Error: ${error instanceof Error ? error.message : String(error)}`);
       process.exit(1);
     }
   });

@@ -10,11 +10,7 @@
       "@kittens/api-spec": ["../api-spec/src/index.ts"]
     }
   },
-  "references": [
-    { "path": "../shared" },
-    { "path": "../engine" },
-    { "path": "../api-spec" }
-  ],
+  "references": [{ "path": "../shared" }, { "path": "../engine" }, { "path": "../api-spec" }],
   "include": ["src/**/*"],
   "exclude": ["dist", "node_modules"]
 }
