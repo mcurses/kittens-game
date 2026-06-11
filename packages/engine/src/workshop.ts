@@ -18,6 +18,8 @@ export interface UpgradeDef {
   readonly prices: readonly PriceEntry[];
   readonly effects?: Readonly<Record<string, number>>;
   readonly unlocks?: UpgradeUnlocks;
+  /** Optional asset path for the upgrade cover (Higgsfield-generated certificate). */
+  readonly iconPath?: string;
 }
 
 export interface UpgradeEntry {
@@ -56,6 +58,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   {
     name: "mineralHoes",
     description: "Mineral-tipped hoes boost farmer productivity by 50%.",
+    iconPath: "/assets/upgrades/mineralHoes.webp",
     effects: { catnipJobRatio: 0.5 },
     prices: [
       { name: "minerals", val: 275 },
@@ -86,6 +89,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   {
     name: "ironAxes",
     description: "Iron axes cut more wood per trip through the forest.",
+    iconPath: "/assets/upgrades/ironAxes.webp",
     effects: { woodJobRatio: 0.5 },
     prices: [
       { name: "iron", val: 50 },
@@ -104,6 +108,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   {
     name: "reinforcedSaw",
     description: "Reinforced blades increase lumber mill output.",
+    iconPath: "/assets/upgrades/reinforcedSaw.webp",
     effects: { lumberMillRatio: 0.2 },
     prices: [
       { name: "iron", val: 1000 },
@@ -450,6 +455,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   },
   {
     name: "ironwood",
+    iconPath: "/assets/upgrades/ironwood.webp",
     description: "Ironwood composites halve the cost of building new huts.",
     effects: { hutPriceRatio: -0.5 },
     prices: [
@@ -512,6 +518,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   // ─── hunt upgrades ───
   {
     name: "compositeBow",
+    iconPath: "/assets/upgrades/compositeBow.webp",
     description: "Composite bows allow hunters to gather significantly more catpower.",
     effects: { catpowerJobRatio: 0.5 },
     prices: [
@@ -617,6 +624,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   },
   {
     name: "geodesy",
+    iconPath: "/assets/upgrades/geodesy.webp",
     description: "Geological survey techniques improving mineral location.",
     effects: {},
     prices: [
@@ -706,6 +714,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   },
   {
     name: "oxidation",
+    iconPath: "/assets/upgrades/oxidation.webp",
     description: "Oxidation chambers dramatically boost calciner output.",
     effects: { calcinerRatio: 0.95 },
     prices: [
@@ -996,6 +1005,7 @@ export const UPGRADE_DEFS: readonly UpgradeDef[] = [
   // ─── science upgrades ───
   {
     name: "celestialMechanics",
+    iconPath: "/assets/upgrades/celestialMechanics.webp",
     description: "Orbital calculations enabling advanced tech research.",
     effects: {},
     prices: [{ name: "science", val: 250 }],

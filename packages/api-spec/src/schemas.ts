@@ -70,6 +70,16 @@ export const GameActionRequestSchema = z.discriminatedUnion("type", [
   z.object({ type: z.literal("REFINE_TIME_CRYSTALS") }),
   z.object({ type: z.literal("HUNT") }),
   z.object({ type: z.literal("HOLD_FESTIVAL") }),
+  z.object({ type: z.literal("RENAME_VILLAGE"), name: s }),
+  z.object({ type: z.literal("PROMOTE_KITTEN"), kittenId: s }),
+  z.object({ type: z.literal("TOGGLE_FAVORITE"), kittenId: s }),
+  z.object({ type: z.literal("UNASSIGN_KITTEN"), kittenId: s }),
+  z.object({ type: z.literal("SET_LEADER"), kittenId: s }),
+  z.object({ type: z.literal("REMOVE_LEADER") }),
+  z.object({ type: z.literal("SET_KITTEN_PORTRAIT"), kittenId: s, path: z.union([s, z.null()]) }),
+  z.object({ type: z.literal("UPGRADE_BUILDING_STAGE"), name: s }),
+  z.object({ type: z.literal("DOWNGRADE_BUILDING_STAGE"), name: s }),
+  z.object({ type: z.literal("TOGGLE_RESOURCE_VISIBILITY"), name: s }),
 ]);
 export type GameActionRequest = z.infer<typeof GameActionRequestSchema>;
 

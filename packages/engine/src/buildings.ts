@@ -42,6 +42,12 @@ export interface BuildingDef {
    * 0.3 means 30% of price required. Port of legacy `unlockRatio`.
    */
   readonly unlockRatio?: number;
+  /**
+   * Optional absolute URL for a hover-card hero image (e.g. "/assets/buildings/field.webp").
+   * Renderers should fall back gracefully (hide the image slot) when missing or when the
+   * file 404s. See assets/README.md for the asset workflow.
+   */
+  readonly iconPath?: string;
 }
 
 /** Runtime state for a single building */
@@ -117,6 +123,7 @@ export const BUILDING_DEFS: readonly BuildingDef[] = [
     effects: { catnipPerTickBase: 0.125 },
     defaultUnlockable: true,
     unlockRatio: 0.3,
+    iconPath: "/assets/buildings/field.webp",
   },
   {
     name: "pasture",
@@ -191,6 +198,7 @@ export const BUILDING_DEFS: readonly BuildingDef[] = [
     ],
     defaultUnlockable: true,
     unlockRatio: 0.3,
+    iconPath: "/assets/buildings/library.webp",
   },
   {
     name: "academy",
@@ -229,6 +237,7 @@ export const BUILDING_DEFS: readonly BuildingDef[] = [
       goldMax: 10,
     },
     unlockRatio: 0.3,
+    iconPath: "/assets/buildings/barn.webp",
   },
   {
     name: "warehouse",

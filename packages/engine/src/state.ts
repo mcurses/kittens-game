@@ -87,6 +87,7 @@ export interface SerializedGameState {
     { val: number; on: number; unlocked?: boolean; unlockable?: boolean; jammed?: boolean; automationEnabled?: boolean; stage?: number; stageUnlocked?: boolean[] }
   >;
   village: {
+    name?: string;
     kittens: number;
     kittenProgress: number;
     jobs: Record<string, { value: number }>;
@@ -198,6 +199,7 @@ export function serialize(state: GameState): SerializedGameState {
     resources,
     buildings,
     village: {
+      name: state.village.name,
       kittens: state.village.kittens,
       kittenProgress: state.village.kittenProgress,
       jobs,
@@ -408,7 +410,8 @@ export function deserialize(data: SerializedGameState): GameState {
     const happiness = typeof savedVillage.happiness === "number" ? savedVillage.happiness : 1.0;
     const sim = Array.isArray(savedVillage.sim) ? savedVillage.sim as unknown as VillageState["sim"] : [];
     const leader = typeof savedVillage.leader === "string" ? savedVillage.leader : null;
-    village = { kittens, kittenProgress, jobs, sim, deadKittens, happiness, leader };
+    const villageName = typeof savedVillage.name === "string" ? savedVillage.name : "Bonfire";
+    village = { name: villageName, kittens, kittenProgress, jobs, sim, deadKittens, happiness, leader };
   }
 
   const savedCalendar = data.calendar;

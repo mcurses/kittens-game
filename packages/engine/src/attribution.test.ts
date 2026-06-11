@@ -48,6 +48,7 @@ describe("getResourceAttribution", () => {
         deadKittens: 0,
         happiness: 1.0,
         leader: null,
+        name: "Bonfire",
       },
       effectCache: {},
     });
@@ -68,6 +69,7 @@ describe("getResourceAttribution", () => {
         deadKittens: 0,
         happiness: 1.0,
         leader: null,
+        name: "Bonfire",
       },
       effectCache: {},
     });
@@ -139,6 +141,7 @@ describe("getResourceAttribution", () => {
         deadKittens: 0,
         happiness: 1.0,
         leader: null,
+        name: "Bonfire",
       },
       effectCache: {},
     });

@@ -4,7 +4,7 @@
 export type { GameState, SerializedGameState } from "./state.js";
 export { createInitialState, serialize, deserialize } from "./state.js";
 export type { DerivedUiVisibility, UiMainTabId, UiTabVisibility } from "./ui-visibility.js";
-export { deriveUiVisibility, getVisibleMainTabs } from "./ui-visibility.js";
+export { deriveUiVisibility, getVillageTitle, getVisibleMainTabs } from "./ui-visibility.js";
 export { migrateLegacySave } from "./legacy-migration.js";
 export type { GameAction } from "./actions.js";
 export { applyAction } from "./actions.js";
@@ -39,6 +39,7 @@ export {
   computeHappiness,
   createInitialVillage,
   generateKitten,
+  getFavoriteContributions,
   getLeaderBonus,
   totalAssignedKittens,
 } from "./village.js";
