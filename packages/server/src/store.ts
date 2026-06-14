@@ -295,8 +295,29 @@ export function isValidSlot(name: string): boolean {
 export class SessionRegistry {
   private stores = new Map<string, GameStateStore>();
   private autoTickIntervals = new Map<string, ReturnType<typeof setInterval>>();
+  /**
+   * Per-slot speed multiplier for the auto-tick loop. `1` = normal (1 tick per
+   * 100ms interval). `N` = N ticks per interval. Reset to 1 on server restart
+   * — debug-only, not persisted.
+   */
+  private speedMultipliers = new Map<string, number>();
 
   constructor(private db: SqliteAdapter) {}
+
+  /** Get the current speed multiplier for a slot. Defaults to 1. */
+  getSpeed(slot: string): number {
+    return this.speedMultipliers.get(slot) ?? 1;
+  }
+
+  /**
+   * Set the speed multiplier for a slot (clamped to [1, 500]). Takes effect
+   * on the next tick — no restart needed. Returns the actual applied value.
+   */
+  setSpeed(slot: string, multiplier: number): number {
+    const clamped = Math.max(1, Math.min(500, Math.floor(multiplier)));
+    this.speedMultipliers.set(slot, clamped);
+    return clamped;
+  }
 
   /** Create a new session with the given slot name. */
   create(slot: string): GameStateStore {
@@ -435,12 +456,15 @@ export class SessionRegistry {
       return; // Already running
     }
     const interval = setInterval(() => {
-      try {
-        store.advanceTick();
-      } catch {
-        // Ignore errors in auto-tick; do not crash the registry
+      const ticks = this.getSpeed(slot);
+      for (let i = 0; i < ticks; i++) {
+        try {
+          store.advanceTick();
+        } catch {
+          // Ignore errors in auto-tick; do not crash the registry
+        }
       }
-    }, 100); // 100ms = 10 ticks/sec
+    }, 100); // 100ms cadence — multiplier scales ticks-per-interval, not interval itself
     this.autoTickIntervals.set(slot, interval);
   }
 

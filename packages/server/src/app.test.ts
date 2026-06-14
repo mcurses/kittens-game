@@ -502,6 +502,22 @@ describe("GET /api/sessions", () => {
     expect(typeof slot?.createdAt).toBe("number");
     expect(typeof slot?.updatedAt).toBe("number");
   });
+
+  it("includes the speed multiplier for every slot (default 1, reflects setSpeed)", async () => {
+    const { app, registry } = makeApp();
+    registry.create("normal");
+    registry.create("turbo");
+    registry.setSpeed("turbo", 50);
+
+    const res = await req(app, "/api/sessions");
+    const body = (await res.json()) as {
+      sessions: Array<{ slot: string; multiplier: number }>;
+    };
+    const normal = body.sessions.find((s) => s.slot === "normal");
+    const turbo = body.sessions.find((s) => s.slot === "turbo");
+    expect(normal!.multiplier).toBe(1);
+    expect(turbo!.multiplier).toBe(50);
+  });
 });
 
 describe("POST /api/sessions", () => {
