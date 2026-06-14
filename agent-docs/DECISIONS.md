@@ -327,3 +327,54 @@ The rewrite will preserve gameplay semantics, not the legacy aliasing trick:
 - Population-related gameplay code should read `state.village.kittens` or a dedicated population helper, not `state.resources.kittens`
 - Save/load and migration code should not treat `resources.kittens` as authoritative state
 - UI parity stays honest: we keep useful population feedback, but we do not preserve a misleading resource-table artifact just because legacy exposed one internally
+
+---
+
+## ADR-019: Branches stay single-concern (design vs. engine vs. docs)
+**Date:** 2026-06-14
+**Status:** Accepted
+
+### Context
+`design-systems-core` was a long-lived branch carrying both UI/asset work
+(8 client-only commits with Higgsfield hero images, card layouts, typography,
+census-compact mode, building tiers) and engine/server work (kitten lineage,
+richer lifeline, English lore migration, skeleton-heal, demo-save fixtures,
+per-session speed multiplier).
+
+In parallel main moved forward with its own design-system sweep (`c227231`
++ `bc06e69` biome auto-fixes) that touched the same panel files. When we
+tried to pull main into the branch, the merge produced ~50 conflicts across
+57 files (heavy in `styles.css`, `JobsPanel.tsx`, `InspectorPanel.tsx`,
+nearly every test file). Triaging them per panel and reconciling two
+parallel design directions in one merge was unworkable.
+
+We salvaged the engine + dev-tool work as a clean two-commit PR
+(`engine-features`, off `origin/main`) and consciously dropped the eight
+client/design commits — main already had its own design sweep. The branch
+itself remains as an archive of the discovery work, but no further merges
+or commits land on it.
+
+### Decision
+Branches are single-concern, off `origin/main`, and named for their scope:
+
+- `design-assets` — UI / style / asset / CSS work only. Allowed scopes:
+  `assets/`, `kittens-game-design-system/`,
+  `packages/client-web/src/styles.css`, `packages/client-web/src/ui/`,
+  new icon/illustration files.
+- `feature/*` or `engine-*` — any engine, server, panel logic, schema, or
+  test change.
+- `docs/*` — repo policy, ADRs, agent-docs.
+- `design-systems-core` is archive-only. Discovery sandbox from spring
+  2026. No new commits, no merges from it into main.
+
+If a branch ends up straddling lanes, split it before pushing. The PR scope
+must match the branch name.
+
+### Consequences
+- Branch lifetime stays short and topic-focused; rebasing onto a moving
+  main rarely produces more than a handful of conflicts.
+- Cross-cutting refactors (touching both engine and styles) need an
+  explicit decision: usually two PRs in dependency order, occasionally a
+  shared base branch with a clear merge plan.
+- Repository onboarding (and AI assistants) read the same policy from
+  `CLAUDE.md` at the repo root.
