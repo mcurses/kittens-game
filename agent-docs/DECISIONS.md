@@ -381,56 +381,60 @@ must match the branch name.
 
 ---
 
-## ADR-020: Higgsfield asset pipeline has two variants — Standard and Village-Ausnahme
+## ADR-020: Building-card pipeline is 1024² native via direct cwebp
 **Date:** 2026-06-14
 **Status:** Accepted
 
 ### Context
-The asset-generation pipeline produces pixel-art WEBPs from Higgsfield raw
-PNGs via `sips` + `cwebp`. The canonical doc is
-`assets/higgsfield/LOCKED-STACK.md` (v2.2, on `design-systems-core` branch).
-It defines a Standard pipeline used for all tier-tree assets and a
-Village-Ausnahme (added 2026-06-04) that skips the NN-pixelation pass for
-the Village-stage buildings + maps.
+`assets/higgsfield/LOCKED-STACK.md` v2.2 (on `design-systems-core`,
+2026-06-03) specified a 512×512 export via
+`sips -Z 512 → -Z 256 → -Z 512 → cwebp lossless` for every tier-tree
+asset, with a 2026-06-04 "Village-Ausnahme" that skipped the NN round-trip
+for `hut`, `logHouse`, `mansion`, and `village-*` maps only.
 
-In June 2026 the Field tier expansion (`field-xl/xxl/mega/giant`) was
-generated through the Village-Ausnahme by mistake. Those files exported at
-260–304 KB (native 1024² direct cwebp) while the original `field-{s,m,l}`
-sit at 582–999 KB (Standard, with the 512→256→512 round-trip). The
-inconsistency reads as "pixelig/matschig" on cards because the larger Field
-tiers lose the NN pixel-floor that the design language relies on.
+The repo's actual state in June 2026 diverged from that doc: every
+building card (`mine-l`, `library-l`, `academy-l`, `observatory-l`,
+`workshop-l`, `aqueduct-l`, `brewery-l`, …) sits at 1024×1024 native via
+direct `cwebp`, not 512² with NN round-trip. The exception became the
+norm; the 512² pipeline was retired without LOCKED-STACK getting a
+version bump. `LOCKED-STACK.md` is therefore stale.
 
-The pipeline doc is on a gitignored branch, so a fresh Claude session
-working on main has no quick way to look up which rule applies — exactly
-the recipe for re-introducing the same mistake.
+The Field tier expansion (`field-xl/xxl/mega/giant`) generated on
+2026-06-10 followed the *documented* (stale) Standard rule — 512² with NN
+round-trip — and shipped at 260–304 KB. Next to the existing
+`field-{s,m,l}` (1024² direct cwebp, 580–1000 KB) the new tiers read as
+washed-out: same prompt, different pipeline, visible quality regression.
 
 ### Decision
-The pipeline rules live in three mutually-reinforcing places:
+Building cards (every tier, every category-internal subfolder under
+`assets/exports/buildings/`) ship at 1024×1024 native via direct
+`cwebp -lossless -q 100 raw.png -o assets/exports/buildings/<asset>-<tier>.webp`.
+No NN round-trip. `village-*` maps follow the same rule on 1376×768 native.
 
-1. `assets/higgsfield/LOCKED-STACK.md` (canonical, on `design-systems-core`).
-2. `CLAUDE.md` "Asset pipeline" section at the repo root (visible on every
-   branch, the version every new agent reads first).
-3. This ADR-020, for the architecture history.
+The 512² NN-pixelation pipeline from LOCKED-STACK v2.2 is retired for
+building cards. If a future asset category genuinely benefits from the NN
+round-trip (e.g. small icons), that category gets a new ADR and a new
+`CLAUDE.md` rule.
 
-The Standard pipeline (`sips -Z 512 → -Z 256 → -Z 512 → cwebp lossless`)
-applies to all tier-tree assets and any new asset name not explicitly in
-the Village list. The Village-Ausnahme (`cwebp lossless` direct on the raw,
-no NN pass) applies ONLY to `hut-{s,m,l}`, `logHouse-{s,m,l}`,
-`mansion-{s,m,l}`, and `village-*` maps. Anything else through the
-Village-Ausnahme is a bug.
+The canonical reference for tomorrow's session is `CLAUDE.md` at the repo
+root (always visible) plus this ADR. `assets/higgsfield/LOCKED-STACK.md`
+remains accurate for the prompt-anchoring text but should not be relied on
+for the pipeline section until a new version supersedes v2.2.
 
-File-size sanity check: a tier-tree asset under 400 KB indicates the wrong
-pipeline. Standard tiers land at 600–1000 KB; Village-Ausnahme outputs at
-~260–300 KB. Always check `ls -la assets/exports/<category>/<asset>.webp`
-after generating.
+File-size sanity check: a building-card tier under 400 KB or at 512×512
+indicates the wrong (retired) pipeline. A correctly-exported tier sits at
+~600 KB–1.5 MB and 1024×1024. Always run
+`ls -la assets/exports/buildings/<asset>-<tier>.webp` and
+`sips -g pixelWidth -g pixelHeight ...` after generating.
 
 ### Consequences
-- Any new asset names get the Standard pipeline by default; the Village
-  list is closed.
-- Re-export work (e.g. fixing the Field tier mistake) goes through the
-  Standard pipeline, not the Village-Ausnahme.
-- Future asset categories (planets, space buildings) follow Standard. If a
-  category turns out to need a different pipeline, a new ADR documents it
-  explicitly and adds the rule to `CLAUDE.md`.
+- Field tiers `xl/xxl/mega/giant` were re-exported under this rule in
+  `feature/field-pipeline-fix`; they are now 1.1–1.5 MB at 1024² to match
+  `field-{s,m,l}`.
+- New building cards (e.g. Space-Stage buildings) follow the 1024²
+  direct-cwebp rule by default — no decision needed per asset.
+- `LOCKED-STACK.md` will get a v3 update on the next visit to
+  `design-systems-core` to document the retirement of the 512² pipeline.
 - When the Higgsfield pipeline graduates from `design-systems-core` into
-  its own repo or a `packages/cli` script, this ADR is the migration anchor.
+  its own repo or a `packages/cli` script, this ADR is the migration
+  anchor and `CLAUDE.md` stays the always-on cheat sheet.
