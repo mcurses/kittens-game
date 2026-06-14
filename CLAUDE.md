@@ -49,6 +49,48 @@ End-to-end automated: prompt → Higgsfield MCP → raw → sips + cwebp → WEB
 into `assets/exports/` → INDEX + log update. `iconPath` is already in
 `BUILDING_DEFS`. See `agent-docs/` for the higgsfield pipeline notes.
 
+### Quality rules — Standard vs. Village-Ausnahme (load-bearing, see ADR-020)
+
+There are **two** pipelines and one is easy to apply to the wrong asset.
+The canonical doc lives in `assets/higgsfield/LOCKED-STACK.md` (on the
+`design-systems-core` branch, gitignored on main). Repeating the rules
+here so every branch sees them.
+
+**Standard pipeline — default for all tier-tree and category assets**
+(`field-*`, `mine-*`, `library-*`, `academy-*`, …):
+
+```sh
+sips -Z 512 raw.png --out /tmp/int-512.png
+sips -Z 256 /tmp/int-512.png --out /tmp/px-256.png   # native pixel-art floor
+sips -Z 512 /tmp/px-256.png --out /tmp/px-512.png    # NN upscale back
+cwebp -lossless -q 100 /tmp/px-512.png \
+  -o assets/exports/<category>/<asset>-<tier>.webp
+```
+
+Output: ~600–1000 KB. The 256-px round-trip is the NN-pixelation pass.
+
+**Village-Ausnahme — ONLY** for `hut-{s,m,l}`, `logHouse-{s,m,l}`,
+`mansion-{s,m,l}`, and `village-*` maps. Skips the NN pass:
+
+```sh
+cwebp -lossless -q 100 raw.png \
+  -o assets/exports/<category>/<asset>.webp
+```
+
+Output: 1024×1024 native (buildings) or 1376×768 (maps). Reason: the
+round-trip collapsed outline details on Village-tier card sizes
+(Retina × large-mode ≈ 376 phys-px), and the user read that as
+"pixelig/matschig". On non-Village assets the round-trip is what KEEPS
+the pixel-art look — skipping it makes them look washed-out.
+
+**File-size sanity check**: after exporting a tier-tree asset, check
+the bytes. **< 400 KB on a tier asset = wrong pipeline was applied.**
+Standard tiers land at 600–1000 KB; Village-Ausnahme files at
+~260–300 KB. Mixing them = the symptom the user keeps catching.
+
+If you generate a new asset name that isn't in the Village list above,
+use the Standard pipeline. When in doubt: Standard.
+
 ## Local-only content
 
 Anything under `local/` is gitignored per-developer working material that

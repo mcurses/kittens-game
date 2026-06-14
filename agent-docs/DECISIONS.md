@@ -378,3 +378,59 @@ must match the branch name.
   shared base branch with a clear merge plan.
 - Repository onboarding (and AI assistants) read the same policy from
   `CLAUDE.md` at the repo root.
+
+---
+
+## ADR-020: Higgsfield asset pipeline has two variants — Standard and Village-Ausnahme
+**Date:** 2026-06-14
+**Status:** Accepted
+
+### Context
+The asset-generation pipeline produces pixel-art WEBPs from Higgsfield raw
+PNGs via `sips` + `cwebp`. The canonical doc is
+`assets/higgsfield/LOCKED-STACK.md` (v2.2, on `design-systems-core` branch).
+It defines a Standard pipeline used for all tier-tree assets and a
+Village-Ausnahme (added 2026-06-04) that skips the NN-pixelation pass for
+the Village-stage buildings + maps.
+
+In June 2026 the Field tier expansion (`field-xl/xxl/mega/giant`) was
+generated through the Village-Ausnahme by mistake. Those files exported at
+260–304 KB (native 1024² direct cwebp) while the original `field-{s,m,l}`
+sit at 582–999 KB (Standard, with the 512→256→512 round-trip). The
+inconsistency reads as "pixelig/matschig" on cards because the larger Field
+tiers lose the NN pixel-floor that the design language relies on.
+
+The pipeline doc is on a gitignored branch, so a fresh Claude session
+working on main has no quick way to look up which rule applies — exactly
+the recipe for re-introducing the same mistake.
+
+### Decision
+The pipeline rules live in three mutually-reinforcing places:
+
+1. `assets/higgsfield/LOCKED-STACK.md` (canonical, on `design-systems-core`).
+2. `CLAUDE.md` "Asset pipeline" section at the repo root (visible on every
+   branch, the version every new agent reads first).
+3. This ADR-020, for the architecture history.
+
+The Standard pipeline (`sips -Z 512 → -Z 256 → -Z 512 → cwebp lossless`)
+applies to all tier-tree assets and any new asset name not explicitly in
+the Village list. The Village-Ausnahme (`cwebp lossless` direct on the raw,
+no NN pass) applies ONLY to `hut-{s,m,l}`, `logHouse-{s,m,l}`,
+`mansion-{s,m,l}`, and `village-*` maps. Anything else through the
+Village-Ausnahme is a bug.
+
+File-size sanity check: a tier-tree asset under 400 KB indicates the wrong
+pipeline. Standard tiers land at 600–1000 KB; Village-Ausnahme outputs at
+~260–300 KB. Always check `ls -la assets/exports/<category>/<asset>.webp`
+after generating.
+
+### Consequences
+- Any new asset names get the Standard pipeline by default; the Village
+  list is closed.
+- Re-export work (e.g. fixing the Field tier mistake) goes through the
+  Standard pipeline, not the Village-Ausnahme.
+- Future asset categories (planets, space buildings) follow Standard. If a
+  category turns out to need a different pipeline, a new ADR documents it
+  explicitly and adds the rule to `CLAUDE.md`.
+- When the Higgsfield pipeline graduates from `design-systems-core` into
+  its own repo or a `packages/cli` script, this ADR is the migration anchor.
