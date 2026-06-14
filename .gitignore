@@ -21,3 +21,9 @@ packages/cli/src/generate-asset-gemini.ts
 packages/cli/src/generate-kitten-prompts.ts
 scripts/check-css-coverage.mjs
 .stylelintrc.json
+
+# Per-developer working directory. Anything in here is local-only —
+# savestate JSON exports, Higgsfield prompt drafts, pipeline experiments,
+# personal notes. NEVER pushed to main. See CLAUDE.md and
+# local-example/README.md for the canonical layout.
+local/

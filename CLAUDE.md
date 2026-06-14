@@ -48,3 +48,21 @@ PR scope to the branch name.
 End-to-end automated: prompt → Higgsfield MCP → raw → sips + cwebp → WEBP
 into `assets/exports/` → INDEX + log update. `iconPath` is already in
 `BUILDING_DEFS`. See `agent-docs/` for the higgsfield pipeline notes.
+
+## Local-only content
+
+Anything under `local/` is gitignored per-developer working material that
+must never reach main. Canonical layout (mirror of `local-example/`):
+
+- `local/saves/` — exported savestate JSONs from
+  `GET /api/sessions/:slot/export`. Re-import via `POST /api/game/load`
+  or the SessionsPanel Import dialog.
+- `local/prompts/` — Higgsfield prompt drafts, character + building
+  composer notes, asset wishlists.
+- `local/pipeline/` — work-in-progress generation scripts before they
+  earn a place in `packages/cli/`.
+- `local/notes/` — design intent doodles, balance spreadsheets, screenshots.
+
+On a fresh clone: `cp -r local-example local` to seed the structure.
+Nothing here ships. When a piece of work matures, lift it onto a proper
+branch (design-assets / feature/\* / docs/\*).
