@@ -101,8 +101,9 @@ export const ACHIEVEMENT_DEFS: readonly AchievementDef[] = [
     condition: (_state) => false,
   },
   {
+    // Play through 100 in-game years in a single run.
     name: "hundredYearsSolitude",
-    condition: (_state) => false,
+    condition: (state) => state.calendar.year >= 100,
   },
   {
     name: "soilUptuned",
@@ -182,17 +183,22 @@ export const ACHIEVEMENT_DEFS: readonly AchievementDef[] = [
   },
   {
     name: "utopiaProject",
-    condition: (state) => state.village.happiness >= 1.5 && getKittenCount(state) > 35,
-    starCondition: (state) => state.village.happiness >= 5.0 && getKittenCount(state) > 35,
+    condition: (state) =>
+      state.village.happiness >= 1.5 && getKittenCount(state) > 35,
+    starCondition: (state) =>
+      state.village.happiness >= 5.0 && getKittenCount(state) > 35,
   },
   {
     name: "deathStranding",
     condition: (state) => state.space.planets.furthestRing?.reached === true,
   },
   {
-    // cathammer requires stats.totalYears and darkFutureBeginning — stub false.
+    // Play through 40000 in-game years. Legacy uses stats.totalYears across all
+    // runs; we approximate with the current calendar.year (per-run) since the
+    // rewrite doesn't yet aggregate years across resets. Good enough until
+    // prestige/reset-stats tracking lands.
     name: "cathammer",
-    condition: (_state) => false,
+    condition: (state) => state.calendar.year >= 40000,
     starCondition: (_state) => false,
   },
   {
@@ -251,7 +257,8 @@ export const BADGE_DEFS: readonly BadgeDef[] = [
   {
     name: "deadSpace",
     difficulty: "S",
-    condition: (state) => getKittenCount(state) >= 1000 && getMaxKittens(state) === 0,
+    condition: (state) =>
+      getKittenCount(state) >= 1000 && getMaxKittens(state) === 0,
   },
   {
     name: "reginaNoctis",
@@ -484,10 +491,15 @@ export class AchievementManager implements Manager {
       }
     }
 
-    return {
+    const loadedState = {
       ...state,
       achievements: { badgesUnlocked, achievements, badges },
     };
+    // Re-evaluate immediately so eligible-but-not-yet-unlocked achievements
+    // fire on load. Otherwise a save where the player already met a condition
+    // (e.g. enough kittens for serenity) would stay locked until the next tick,
+    // and a paused session would never tick.
+    return this.update(loadedState);
   }
 
   resetState(state: GameState): GameState {

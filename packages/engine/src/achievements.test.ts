@@ -699,4 +699,28 @@ describe("Story 12: Cross-manager integration test", () => {
       expect(typeof ach.unlocked).toBe("boolean");
     }
   });
+
+  it("load() re-evaluates so eligible achievements unlock on save load without a tick", () => {
+    const manager = new AchievementManager();
+    // Build a state that satisfies serenity (kittens>=50, deadKittens===0) and
+    // hundredYearsSolitude (year>=100), but the persisted achievements blob
+    // claims neither is unlocked yet — e.g. condition only became true after
+    // the save was written but before reload.
+    const state = produce(createInitialState(), (draft) => {
+      draft.village.kittens = 50;
+      draft.village.deadKittens = 0;
+      draft.calendar.year = 150;
+    });
+    const persisted = {
+      badgesUnlocked: false,
+      achievements: [
+        { name: "serenity", unlocked: false, starUnlocked: false },
+        { name: "hundredYearsSolitude", unlocked: false, starUnlocked: false },
+      ],
+      badges: [],
+    };
+    const loaded = manager.load(persisted, state);
+    expect(loaded.achievements.achievements.serenity?.unlocked).toBe(true);
+    expect(loaded.achievements.achievements.hundredYearsSolitude?.unlocked).toBe(true);
+  });
 });
