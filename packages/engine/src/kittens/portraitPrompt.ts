@@ -1,10 +1,11 @@
-// Compose a full Higgsfield prompt string for a kitten's unique portrait.
+// Compose a full image-prompt string for a kitten's unique portrait.
 // Layered: breed → body → eyes → accessory → job-outfit → master style stack.
 //
-// The phrase tables are inline (instead of parsed from the markdown spec) so
-// the engine can compose deterministically without runtime file I/O. The
-// markdown spec at assets/higgsfield/prompts/character-kitten-composer.md is
-// the human-readable mirror — keep both in sync when adding new options.
+// The phrase tables are inline so the engine can compose deterministically
+// without runtime file I/O. Kitten portrait generation is not yet wired to
+// the asset pipeline (local/pipeline/generate-asset-*.ts) — when it is, add
+// a portrait-specific prompt template alongside the building prompts there
+// and keep the phrase tables here as the canonical source.
 
 import type { Accessory, Appearance, Body, Breed, Eyes } from "./appearance.js";
 
