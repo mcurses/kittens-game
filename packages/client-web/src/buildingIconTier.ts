@@ -5,9 +5,31 @@ export type BuildingTier = "s" | "m" | "l" | "xl" | "xxl" | "mega" | "giant";
  * by `minVal` — the first row whose threshold is ≤ `val` wins.
  *
  * `field` has a granular 7-step schema so end-game megafields read
- * differently from early-game patches. All other buildings keep the
- * default 3-step schema.
+ * differently from early-game patches. The 10 industry/cosmos/sacred buildings
+ * with full 5-tier hero-card sets get a matching 5-step schema. All other
+ * buildings keep the default 3-step schema.
  */
+const FIVE_TIER_SCHEMA: ReadonlyArray<readonly [number, BuildingTier]> = [
+  [200, "xxl"],
+  [100, "xl"],
+  [50, "l"],
+  [20, "m"],
+  [1, "s"],
+];
+
+const FIVE_TIER_BUILDINGS = [
+  "biolab",
+  "harbor",
+  "oilWell",
+  "accelerator",
+  "steamworks",
+  "magneto",
+  "factory",
+  "reactor",
+  "ziggurat",
+  "chronosphere",
+] as const;
+
 const TIER_OVERRIDES: Record<string, ReadonlyArray<readonly [number, BuildingTier]>> = {
   field: [
     [500, "giant"],
@@ -18,6 +40,7 @@ const TIER_OVERRIDES: Record<string, ReadonlyArray<readonly [number, BuildingTie
     [10, "m"],
     [1, "s"],
   ],
+  ...Object.fromEntries(FIVE_TIER_BUILDINGS.map((name) => [name, FIVE_TIER_SCHEMA])),
 };
 
 const DEFAULT_THRESHOLDS: ReadonlyArray<readonly [number, BuildingTier]> = [
