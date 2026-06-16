@@ -166,8 +166,10 @@ describe("App", () => {
       expect(screen.getByText(/no sessions yet/i)).toBeTruthy();
     });
 
-    expect(mockFetch).toHaveBeenCalledTimes(1);
+    // Sessions panel triggers both /api/sessions (table data) and
+    // /api/demo-saves (Load-demo dropdown catalog). Assert both, not exact count.
     expect(mockFetch).toHaveBeenCalledWith("/api/sessions");
+    expect(mockFetch).toHaveBeenCalledWith("/api/demo-saves");
     expect(MockWebSocket.instances).toHaveLength(0);
     expect(screen.queryByText("Kittens Game")).toBeNull();
   });

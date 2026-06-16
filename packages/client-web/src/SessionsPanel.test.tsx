@@ -207,35 +207,26 @@ describe("SessionsPanel", () => {
   });
 
   it("creates a new session", async () => {
-    mockFetch
-      .mockResolvedValueOnce(
-        makeResponse({
-          sessions: [],
-        }),
-      )
-      .mockResolvedValueOnce(
-        makeResponse(
-          {
-            slot: "newsave",
-            status: "active",
-            createdAt: 1609459200000,
-            updatedAt: 1609459200000,
-          },
-          201,
-        ),
-      )
-      .mockResolvedValueOnce(
-        makeResponse({
-          sessions: [
-            {
-              slot: "newsave",
-              status: "active",
-              createdAt: 1609459200000,
-              updatedAt: 1609459200000,
-            },
-          ],
-        }),
-      );
+    // Two queries fire on mount: /api/sessions (table) and /api/demo-saves
+    // (Load-demo dropdown). React-query order isn't deterministic, so use a
+    // URL-dispatching mock instead of the strict mockResolvedValueOnce chain.
+    let sessions: Array<{ slot: string; status: string; createdAt: number; updatedAt: number }> = [];
+    mockFetch.mockImplementation(async (input: RequestInfo, init?: RequestInit) => {
+      const url = typeof input === "string" ? input : (input as Request).url;
+      if (url === "/api/sessions" && (!init || init.method !== "POST")) {
+        return makeResponse({ sessions });
+      }
+      if (url === "/api/sessions" && init?.method === "POST") {
+        const created = {
+          slot: "newsave", status: "active" as const,
+          createdAt: 1609459200000, updatedAt: 1609459200000,
+        };
+        sessions = [created];
+        return makeResponse(created, 201);
+      }
+      if (url === "/api/demo-saves") return makeResponse({ ok: true, saves: [] });
+      return makeResponse({}, 404);
+    });
 
     render(
       <QueryClientProvider client={queryClient}>
@@ -576,6 +567,155 @@ describe("SessionsPanel", () => {
     await waitFor(() => {
       expect(mockFetch).toHaveBeenCalledWith(expect.stringContaining("/api/sessions/game1/export"));
     });
+  });
+
+  it("applies a new speed multiplier via input + Apply", async () => {
+    mockFetch
+      .mockResolvedValueOnce(
+        makeResponse({
+          sessions: [
+            {
+              slot: "game1",
+              status: "active",
+              createdAt: 1609459200000,
+              updatedAt: 1609459200000,
+              multiplier: 1,
+            },
+          ],
+        }),
+      )
+      .mockResolvedValueOnce(makeResponse({ slot: "game1", multiplier: 25 }))
+      .mockResolvedValueOnce(
+        makeResponse({
+          sessions: [
+            {
+              slot: "game1",
+              status: "active",
+              createdAt: 1609459200000,
+              updatedAt: 1609459200000,
+              multiplier: 25,
+            },
+          ],
+        }),
+      );
+
+    render(
+      <QueryClientProvider client={queryClient}>
+        <SlotProvider slot="default">
+          <SessionsPanel />
+        </SlotProvider>
+      </QueryClientProvider>,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText("game1")).toBeDefined();
+    });
+
+    const input = screen.getByTestId("speed-input-game1") as HTMLInputElement;
+    expect(input.value).toBe("1");
+    fireEvent.change(input, { target: { value: "25" } });
+
+    const applyBtn = screen.getByTestId("speed-apply-game1") as HTMLButtonElement;
+    expect(applyBtn.disabled).toBe(false);
+    fireEvent.click(applyBtn);
+
+    await waitFor(() => {
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.stringContaining("/api/sessions/game1/speed"),
+        expect.objectContaining({
+          method: "POST",
+          body: JSON.stringify({ multiplier: 25 }),
+        }),
+      );
+    });
+  });
+
+  it("disables Apply when input is out of range or non-numeric", async () => {
+    mockFetch.mockResolvedValueOnce(
+      makeResponse({
+        sessions: [
+          {
+            slot: "game1",
+            status: "active",
+            createdAt: 1609459200000,
+            updatedAt: 1609459200000,
+            multiplier: 1,
+          },
+        ],
+      }),
+    );
+
+    render(
+      <QueryClientProvider client={queryClient}>
+        <SlotProvider slot="default">
+          <SessionsPanel />
+        </SlotProvider>
+      </QueryClientProvider>,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText("game1")).toBeDefined();
+    });
+
+    const input = screen.getByTestId("speed-input-game1") as HTMLInputElement;
+    const applyBtn = screen.getByTestId("speed-apply-game1") as HTMLButtonElement;
+
+    // Out of range high
+    fireEvent.change(input, { target: { value: "9999" } });
+    expect(applyBtn.disabled).toBe(true);
+
+    // Out of range low
+    fireEvent.change(input, { target: { value: "0" } });
+    expect(applyBtn.disabled).toBe(true);
+
+    // Non-numeric
+    fireEvent.change(input, { target: { value: "abc" } });
+    expect(applyBtn.disabled).toBe(true);
+
+    // Same as current (no change → still disabled)
+    fireEvent.change(input, { target: { value: "1" } });
+    expect(applyBtn.disabled).toBe(true);
+
+    // Valid + dirty
+    fireEvent.change(input, { target: { value: "10" } });
+    expect(applyBtn.disabled).toBe(false);
+  });
+
+  it("hides the speed control for archived sessions", async () => {
+    mockFetch.mockResolvedValueOnce(
+      makeResponse({
+        sessions: [
+          {
+            slot: "archived-game",
+            status: "archived",
+            createdAt: 1609459200000,
+            updatedAt: 1609459200000,
+            multiplier: 1,
+          },
+        ],
+      }),
+    );
+
+    render(
+      <QueryClientProvider client={queryClient}>
+        <SlotProvider slot="default">
+          <SessionsPanel />
+        </SlotProvider>
+      </QueryClientProvider>,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByLabelText(/show archived/i)).toBeDefined();
+    });
+
+    fireEvent.click(screen.getByLabelText(/show archived/i));
+
+    await waitFor(() => {
+      expect(screen.getByText("archived-game")).toBeDefined();
+    });
+
+    expect(screen.queryByTestId("speed-input-archived-game")).toBeNull();
+    expect(screen.queryByTestId("speed-apply-archived-game")).toBeNull();
   });
 
   it("opens a session by navigating to the game root with the slot query", async () => {

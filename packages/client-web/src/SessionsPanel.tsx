@@ -8,9 +8,22 @@ interface SlotMeta {
   status: "active" | "paused" | "archived";
   createdAt: number;
   updatedAt: number;
+  multiplier?: number;
 }
 
 const SLOT_PATTERN = /^[a-zA-Z0-9_-]{1,64}$/;
+const SPEED_MIN = 1;
+const SPEED_MAX = 500;
+
+function parseSpeedInput(raw: string): { ok: true; value: number } | { ok: false } {
+  const trimmed = raw.trim();
+  if (trimmed === "") return { ok: false };
+  const n = Number(trimmed);
+  if (!Number.isFinite(n)) return { ok: false };
+  const floored = Math.floor(n);
+  if (floored < SPEED_MIN || floored > SPEED_MAX) return { ok: false };
+  return { ok: true, value: floored };
+}
 const STATUS_PRIORITY: Record<SlotMeta["status"], number> = {
   active: 0,
   paused: 1,
@@ -89,6 +102,21 @@ export function SessionsPanel(): React.ReactElement {
     queryFn: fetchSessions,
     refetchInterval: 5000, // Poll every 5s
   });
+  const { data: demoSaves = [] } = useQuery({
+    queryKey: ["demo-saves"],
+    queryFn: async (): Promise<Array<{ name: string; description: string }>> => {
+      try {
+        const response = await fetch("/api/demo-saves");
+        if (!response?.ok) return [];
+        const json = await response.json() as { ok?: boolean; saves?: Array<{ name: string; description: string }> };
+        return json.saves ?? [];
+      } catch {
+        return [];
+      }
+    },
+    staleTime: Infinity,
+    retry: false,
+  });
 
   const [newSlotName, setNewSlotName] = React.useState("");
   const [newSlotError, setNewSlotError] = React.useState("");
@@ -165,6 +193,23 @@ export function SessionsPanel(): React.ReactElement {
     }
   };
 
+  const handleLoadDemo = async (slotName: string, demoName: string) => {
+    if (!demoName) return;
+    try {
+      const response = await fetch(`/api/sessions/${slotName}/load-demo`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: demoName }),
+      });
+      if (!response.ok) {
+        throw new Error(`Failed to load demo: ${response.status}`);
+      }
+      await queryClient.invalidateQueries({ queryKey: ["sessions"] });
+    } catch (err) {
+      console.error("Load demo failed:", err);
+    }
+  };
+
   const handleArchiveSession = async (slotName: string) => {
     try {
       const response = await fetch(`/api/sessions/${slotName}/archive`, {
@@ -222,6 +267,22 @@ export function SessionsPanel(): React.ReactElement {
 
   const handleOpenSession = (slotName: string) => {
     window.location.assign(`/?slot=${encodeURIComponent(slotName)}`);
+  };
+
+  const handleApplySpeed = async (slotName: string, multiplier: number) => {
+    try {
+      const response = await fetch(`/api/sessions/${slotName}/speed`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ multiplier }),
+      });
+      if (!response.ok) {
+        throw new Error(`Failed to set speed: ${response.status}`);
+      }
+      await queryClient.invalidateQueries({ queryKey: ["sessions"] });
+    } catch (err) {
+      console.error("Set speed failed:", err);
+    }
   };
 
   if (isLoading) {
@@ -284,6 +345,7 @@ export function SessionsPanel(): React.ReactElement {
             <th>Name</th>
             <th>Status</th>
             <th>Last Saved</th>
+            <th>Speed</th>
             <th>Actions</th>
           </tr>
         </thead>
@@ -296,6 +358,17 @@ export function SessionsPanel(): React.ReactElement {
                 <span className="status-label">{getStatusLabel(session.status)}</span>
               </td>
               <td className="last-saved">{formatDate(session.updatedAt)}</td>
+              <td className="speed-cell">
+                {session.status === "archived" ? (
+                  <span className="speed-na">—</span>
+                ) : (
+                  <SpeedControl
+                    slot={session.slot}
+                    current={session.multiplier ?? 1}
+                    onApply={handleApplySpeed}
+                  />
+                )}
+              </td>
               <td className="actions-cell">
                 {session.status === "active" && (
                   <>
@@ -357,6 +430,26 @@ export function SessionsPanel(): React.ReactElement {
                   Export
                 </button>
 
+                {demoSaves.length > 0 && (
+                  <select
+                    className="btn btn--xs btn--info"
+                    title="Replace this session's state with a demo save"
+                    defaultValue=""
+                    onChange={(e) => {
+                      const name = e.target.value;
+                      e.target.value = "";
+                      if (name) handleLoadDemo(session.slot, name);
+                    }}
+                  >
+                    <option value="">Load demo …</option>
+                    {demoSaves.map((d) => (
+                      <option key={d.name} value={d.name} title={d.description}>
+                        {d.name}
+                      </option>
+                    ))}
+                  </select>
+                )}
+
                 <button
                   type="button"
                   title="Delete session"
@@ -414,6 +507,68 @@ export function SessionsPanel(): React.ReactElement {
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+interface SpeedControlProps {
+  slot: string;
+  current: number;
+  onApply: (slot: string, multiplier: number) => Promise<void>;
+}
+
+function SpeedControl({ slot, current, onApply }: SpeedControlProps): React.ReactElement {
+  const [draft, setDraft] = React.useState<string>(String(current));
+  const lastSyncedRef = React.useRef<number>(current);
+
+  // Sync draft when server value changes (e.g. after invalidate) — but only if
+  // the user isn't mid-edit. We compare against the last value we synced from.
+  React.useEffect(() => {
+    if (current !== lastSyncedRef.current) {
+      setDraft(String(current));
+      lastSyncedRef.current = current;
+    }
+  }, [current]);
+
+  const parsed = parseSpeedInput(draft);
+  const dirty = parsed.ok ? parsed.value !== current : draft !== String(current);
+  const canApply = parsed.ok && dirty;
+
+  const handleSubmit = () => {
+    if (!parsed.ok) return;
+    void onApply(slot, parsed.value);
+  };
+
+  return (
+    <div className="speed-control">
+      <input
+        type="number"
+        min={SPEED_MIN}
+        max={SPEED_MAX}
+        step={1}
+        value={draft}
+        onChange={(e) => setDraft(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" && canApply) {
+            handleSubmit();
+          }
+        }}
+        className={`speed-input${parsed.ok ? "" : " speed-input--invalid"}`}
+        aria-label={`Speed multiplier for ${slot}`}
+        title={`Range ${SPEED_MIN}–${SPEED_MAX}`}
+        data-testid={`speed-input-${slot}`}
+      />
+      <span className="speed-x">×</span>
+      <button
+        type="button"
+        className="btn btn--xs btn--primary"
+        disabled={!canApply}
+        onClick={handleSubmit}
+        title={`Apply speed for ${slot}`}
+        data-testid={`speed-apply-${slot}`}
+      >
+        Apply
+      </button>
     </div>
   );
 }

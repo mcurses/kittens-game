@@ -3507,6 +3507,49 @@ span.resource-icon--xl {
   font-family: var(--ff-mono);
 }
 
+.sessions-table .speed-cell {
+  white-space: nowrap;
+}
+
+.speed-control {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-1);
+}
+
+.speed-input {
+  width: 4.5rem;
+  padding: var(--sp-1) var(--sp-2);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  font-family: var(--ff-mono);
+  font-size: var(--text-sm);
+  text-align: right;
+  background: var(--surface);
+  color: var(--t1);
+}
+
+.speed-input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent-soft);
+}
+
+.speed-input--invalid {
+  border-color: var(--red);
+}
+
+.speed-x {
+  color: var(--t3);
+  font-family: var(--ff-mono);
+  font-size: var(--text-sm);
+}
+
+.speed-na {
+  color: var(--t3);
+  font-family: var(--ff-mono);
+}
+
 .sessions-table .status-cell {
   display: inline-flex;
   align-items: center;
