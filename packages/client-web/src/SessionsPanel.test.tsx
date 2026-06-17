@@ -210,7 +210,8 @@ describe("SessionsPanel", () => {
     // Two queries fire on mount: /api/sessions (table) and /api/demo-saves
     // (Load-demo dropdown). React-query order isn't deterministic, so use a
     // URL-dispatching mock instead of the strict mockResolvedValueOnce chain.
-    let sessions: Array<{ slot: string; status: string; createdAt: number; updatedAt: number }> = [];
+    let sessions: Array<{ slot: string; status: string; createdAt: number; updatedAt: number }> =
+      [];
     mockFetch.mockImplementation(async (input: RequestInfo, init?: RequestInit) => {
       const url = typeof input === "string" ? input : (input as Request).url;
       if (url === "/api/sessions" && (!init || init.method !== "POST")) {
@@ -218,8 +219,10 @@ describe("SessionsPanel", () => {
       }
       if (url === "/api/sessions" && init?.method === "POST") {
         const created = {
-          slot: "newsave", status: "active" as const,
-          createdAt: 1609459200000, updatedAt: 1609459200000,
+          slot: "newsave",
+          status: "active" as const,
+          createdAt: 1609459200000,
+          updatedAt: 1609459200000,
         };
         sessions = [created];
         return makeResponse(created, 201);

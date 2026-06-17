@@ -135,8 +135,8 @@ export const BUILDING_DEFS: readonly BuildingDef[] = [
     priceRatio: 1.15,
     effects: { catnipDemandRatio: -0.005 },
     stageEffects: [
-      { catnipDemandRatio: -0.005 },                // stage 0: pasture
-      { energyProduction: 2 },                       // stage 1: solar farm
+      { catnipDemandRatio: -0.005 }, // stage 0: pasture
+      { energyProduction: 2 }, // stage 1: solar farm
     ],
     unlockRatio: 0.3,
   },
@@ -147,8 +147,8 @@ export const BUILDING_DEFS: readonly BuildingDef[] = [
     priceRatio: 1.12,
     effects: { catnipRatio: 0.03 },
     stageEffects: [
-      { catnipRatio: 0.03 },                        // stage 0: aqueduct
-      { energyProduction: 5 },                       // stage 1: hydro plant
+      { catnipRatio: 0.03 }, // stage 0: aqueduct
+      { energyProduction: 5 }, // stage 1: hydro plant
     ],
     unlockRatio: 0.3,
   },
@@ -193,7 +193,7 @@ export const BUILDING_DEFS: readonly BuildingDef[] = [
     priceRatio: 1.15,
     effects: { scienceRatio: 0.1, scienceMax: 250, cultureMax: 10 },
     stageEffects: [
-      { scienceRatio: 0.1, scienceMax: 250, cultureMax: 10 },            // stage 0: library
+      { scienceRatio: 0.1, scienceMax: 250, cultureMax: 10 }, // stage 0: library
       { scienceMaxCompendia: 1000, cultureMax: 25, energyConsumption: 2 }, // stage 1: data center
     ],
     defaultUnlockable: true,
@@ -224,7 +224,8 @@ export const BUILDING_DEFS: readonly BuildingDef[] = [
   // ── Resource storage ─────────────────────────────────────────────────────────
   {
     name: "barn",
-    description: "Large storage structure that dramatically increases capacity for all basic resources.",
+    description:
+      "Large storage structure that dramatically increases capacity for all basic resources.",
     prices: [{ name: "wood", val: 50 }],
     priceRatio: 1.75,
     effects: {
@@ -257,8 +258,13 @@ export const BUILDING_DEFS: readonly BuildingDef[] = [
       goldMax: 5,
     },
     stageEffects: [
-      { woodMax: 150, mineralsMax: 200, coalMax: 30, ironMax: 25, titaniumMax: 10, goldMax: 5 },  // stage 0
-      { moonBaseStorageBonus: 0.0085, planetCrackerStorageBonus: 0.0085, cryostationStorageBonus: 0.0085, energyConsumption: 5 }, // stage 1: spaceport
+      { woodMax: 150, mineralsMax: 200, coalMax: 30, ironMax: 25, titaniumMax: 10, goldMax: 5 }, // stage 0
+      {
+        moonBaseStorageBonus: 0.0085,
+        planetCrackerStorageBonus: 0.0085,
+        cryostationStorageBonus: 0.0085,
+        energyConsumption: 5,
+      }, // stage 1: spaceport
     ],
     unlockRatio: 0.3,
   },
@@ -280,8 +286,8 @@ export const BUILDING_DEFS: readonly BuildingDef[] = [
     },
     // Port of legacy buildings.js amphitheatre stages[0/1].effects
     stageEffects: [
-      { culturePerTickBase: 0.005, cultureMax: 50, unhappinessRatio: -0.048 },        // stage 0
-      { culturePerTickBase: 1, cultureMax: 300, unhappinessRatio: -0.75 },            // stage 1 (broadcastTower)
+      { culturePerTickBase: 0.005, cultureMax: 50, unhappinessRatio: -0.048 }, // stage 0
+      { culturePerTickBase: 1, cultureMax: 300, unhappinessRatio: -0.75 }, // stage 1 (broadcastTower)
     ],
     unlockRatio: 0.3,
   },
@@ -641,7 +647,7 @@ export const BUILDING_DEFS: readonly BuildingDef[] = [
       { name: "slab", val: 100 },
       { name: "alloy", val: 25 },
     ],
-    priceRatio: 1.10,
+    priceRatio: 1.1,
     effects: {
       scienceRatio: 0.35,
       refineRatio: 0.1,
@@ -725,8 +731,12 @@ export const BUILDING_DEFS: readonly BuildingDef[] = [
   // Dynamic effect scaling deferred — using base-mode static effects.
   {
     name: "ivoryTemple",
-    description: "Ivory temple that converts ivory into minerals (and more when whispers researched).",
-    prices: [{ name: "tMythril", val: 1 }, { name: "ivory", val: 100 }],
+    description:
+      "Ivory temple that converts ivory into minerals (and more when whispers researched).",
+    prices: [
+      { name: "tMythril", val: 1 },
+      { name: "ivory", val: 100 },
+    ],
     priceRatio: 1.15,
     defaultUnlockable: true,
     unlockRatio: 0.1,
@@ -853,7 +863,10 @@ function getSteamworksCraftCount(
   if (!resource || resource.maxValue <= 0) return 0;
   const threshold = resource.maxValue * (1 - STEAMWORKS_AUTOMATION_BASE_RATE);
   if (resource.value < threshold) return 0;
-  return Math.max(0, Math.floor((Math.min(resource.value, resource.maxValue) * automationRate) / price));
+  return Math.max(
+    0,
+    Math.floor((Math.min(resource.value, resource.maxValue) * automationRate) / price),
+  );
 }
 
 export function applySteamworksAutomation(state: GameState): GameState {
@@ -884,13 +897,14 @@ export function applySteamworksAutomation(state: GameState): GameState {
     STEAMWORKS_AUTOMATION_PRICE_BY_RESOURCE.minerals,
     automationRate,
   );
-  const plateCrafts = state.workshop.upgrades.pneumaticPress?.researched === true
-    ? getSteamworksCraftCount(
-      state.resources.iron,
-      STEAMWORKS_AUTOMATION_PRICE_BY_RESOURCE.iron,
-      automationRate,
-    )
-    : 0;
+  const plateCrafts =
+    state.workshop.upgrades.pneumaticPress?.researched === true
+      ? getSteamworksCraftCount(
+          state.resources.iron,
+          STEAMWORKS_AUTOMATION_PRICE_BY_RESOURCE.iron,
+          automationRate,
+        )
+      : 0;
 
   if (beamCrafts === 0 && slabCrafts === 0 && plateCrafts === 0) {
     return { ...state, buildings };
@@ -1149,34 +1163,41 @@ export class BuildingManager implements Manager {
     const brewery = state.buildings.brewery;
     if (brewery && brewery.on > 0) {
       const brewRatio = state.effectCache.breweryConsumptionRatio ?? 0;
-      effects.catnipPerTickCon = (effects.catnipPerTickCon ?? 0) + -1 * brewery.on * (1 + brewRatio);
-      effects.spicePerTickCon = (effects.spicePerTickCon ?? 0) + -0.1 * brewery.on * (1 + brewRatio);
+      effects.catnipPerTickCon =
+        (effects.catnipPerTickCon ?? 0) + -1 * brewery.on * (1 + brewRatio);
+      effects.spicePerTickCon =
+        (effects.spicePerTickCon ?? 0) + -0.1 * brewery.on * (1 + brewRatio);
     }
 
     // ── Smelter dynamic autoproduction + consumption parity ───────────────────
     const smelter = state.buildings.smelter;
     if (smelter && smelter.on > 0) {
       const smelterRatio = 1 + (state.effectCache.smelterRatio ?? 0);
-      effects.ironPerTickAutoprod = (effects.ironPerTickAutoprod ?? 0) + 0.02 * smelterRatio * smelter.on;
+      effects.ironPerTickAutoprod =
+        (effects.ironPerTickAutoprod ?? 0) + 0.02 * smelterRatio * smelter.on;
       effects.woodPerTickCon = (effects.woodPerTickCon ?? 0) - 0.05 * smelter.on;
       effects.mineralsPerTickCon = (effects.mineralsPerTickCon ?? 0) - 0.1 * smelter.on;
 
       if (this.isUpgradeResearched(state, "coalFurnace")) {
-        effects.coalPerTickAutoprod = (effects.coalPerTickAutoprod ?? 0) + 0.005 * smelterRatio * smelter.on;
+        effects.coalPerTickAutoprod =
+          (effects.coalPerTickAutoprod ?? 0) + 0.005 * smelterRatio * smelter.on;
       }
       if (this.isUpgradeResearched(state, "goldOre")) {
         effects.goldPerTickAutoprod = (effects.goldPerTickAutoprod ?? 0) + 0.001 * smelter.on;
       }
       if (this.isUpgradeResearched(state, "nuclearSmelters")) {
-        effects.titaniumPerTickAutoprod = (effects.titaniumPerTickAutoprod ?? 0) + 0.0015 * smelter.on;
+        effects.titaniumPerTickAutoprod =
+          (effects.titaniumPerTickAutoprod ?? 0) + 0.0015 * smelter.on;
       }
     }
 
     // ── Steamworks dynamic effect parity ──────────────────────────────────────
     const steamworks = state.buildings.steamworks;
     if (steamworks && steamworks.on > 0) {
-      effects.coalRatioGlobal = (-0.8 + (state.effectCache.coalRatioGlobalReduction ?? 0)) * steamworks.on;
-      effects.magnetoBoostRatio = (0.15 + (state.effectCache.magnetoBoostBonusPolicy ?? 0)) * steamworks.on;
+      effects.coalRatioGlobal =
+        (-0.8 + (state.effectCache.coalRatioGlobalReduction ?? 0)) * steamworks.on;
+      effects.magnetoBoostRatio =
+        (0.15 + (state.effectCache.magnetoBoostBonusPolicy ?? 0)) * steamworks.on;
 
       let manuscriptPerTickProd = 0;
       if (this.isUpgradeResearched(state, "printingPress")) {
@@ -1190,7 +1211,8 @@ export class BuildingManager implements Manager {
       }
 
       if (manuscriptPerTickProd > 0) {
-        effects.manuscriptPerTickProd = (effects.manuscriptPerTickProd ?? 0) + manuscriptPerTickProd * steamworks.on;
+        effects.manuscriptPerTickProd =
+          (effects.manuscriptPerTickProd ?? 0) + manuscriptPerTickProd * steamworks.on;
       }
     }
 
@@ -1202,8 +1224,7 @@ export class BuildingManager implements Manager {
       }
 
       const hasCarbonSequestration = this.isUpgradeResearched(state, "carbonSequestration");
-      const automationEnabled = hasCarbonSequestration
-        && (factory.automationEnabled ?? true);
+      const automationEnabled = hasCarbonSequestration && (factory.automationEnabled ?? true);
 
       if (automationEnabled) {
         effects.energyConsumption = (effects.energyConsumption ?? 0) + 2 * factory.on;
@@ -1224,7 +1245,15 @@ export class BuildingManager implements Manager {
     // first, then apply cargoShips to all keys by treating the post-barges total as "harbor contribution".
     const harbor = state.buildings.harbor;
     if (harbor && harbor.val > 0) {
-      const storageKeys = ["catnipMax", "woodMax", "mineralsMax", "coalMax", "ironMax", "titaniumMax", "goldMax"];
+      const storageKeys = [
+        "catnipMax",
+        "woodMax",
+        "mineralsMax",
+        "coalMax",
+        "ironMax",
+        "titaniumMax",
+        "goldMax",
+      ];
 
       // Step 1: Apply barges (harborCoalRatio) multiplier to coalMax total FIRST
       const bargesRatio = state.effectCache.harborCoalRatio ?? 0;
@@ -1243,7 +1272,8 @@ export class BuildingManager implements Manager {
         const reactorOn = reactor?.on ?? 0;
         const shipLimitEffect = state.effectCache.shipLimit ?? 0;
         const harborLimitRatioPolicyEffect = state.effectCache.harborLimitRatioPolicy ?? 0;
-        const harborRatioLimit = 2.25 + shipLimitEffect * reactorOn * (1 + harborLimitRatioPolicyEffect);
+        const harborRatioLimit =
+          2.25 + shipLimitEffect * reactorOn * (1 + harborLimitRatioPolicyEffect);
 
         const cargoShipsEffectValue = cargoShipsRatio * shipVal;
         const limitedCargoShipsRatio = getLimitedDR(cargoShipsEffectValue, harborRatioLimit);
@@ -1254,8 +1284,8 @@ export class BuildingManager implements Manager {
         // only multiplying storage keys that came from harbor.
         if (bargesRatio === 0) {
           // Only cargoShips: multiply harbor's contribution to each key
-          const harborDef = BUILDING_DEFS.find(d => d.name === "harbor");
-          if (harborDef && harborDef.effects) {
+          const harborDef = BUILDING_DEFS.find((d) => d.name === "harbor");
+          if (harborDef?.effects) {
             for (const key of storageKeys) {
               const effectKey = key as keyof typeof harborDef.effects;
               if (!(effectKey in harborDef.effects)) continue;
@@ -1314,10 +1344,12 @@ export class BuildingManager implements Manager {
         if (thoriumAvailable) {
           const thoriumPerTickBase = state.effectCache.reactorThoriumPerTick ?? 0;
           if (thoriumPerTickBase > 0) {
-            effects.thoriumPerTickCon = (effects.thoriumPerTickCon ?? 0) - thoriumPerTickBase * reactor.on;
+            effects.thoriumPerTickCon =
+              (effects.thoriumPerTickCon ?? 0) - thoriumPerTickBase * reactor.on;
             // Thorium mode increases energy production
             const thoriumEnergyBonus = 0.5; // Legacy scaling factor
-            effects.energyProduction = (effects.energyProduction ?? 0) + thoriumEnergyBonus * reactor.on;
+            effects.energyProduction =
+              (effects.energyProduction ?? 0) + thoriumEnergyBonus * reactor.on;
           }
         }
       }
@@ -1379,7 +1411,9 @@ export class BuildingManager implements Manager {
             ? { automationEnabled: e.automationEnabled }
             : {}),
           ...(typeof e.stage === "number" ? { stage: e.stage } : {}),
-          ...(Array.isArray(e.stageUnlocked) ? { stageUnlocked: e.stageUnlocked as boolean[] } : {}),
+          ...(Array.isArray(e.stageUnlocked)
+            ? { stageUnlocked: e.stageUnlocked as boolean[] }
+            : {}),
         };
       }
     }
