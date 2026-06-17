@@ -1,7 +1,20 @@
 import type { Tick } from "@kittens/shared";
 import { produce } from "immer";
-import { BUILDING_DEFS, canAfford, getBuildingPrice, applyUpgradeBuildingStage, applyDowngradeBuildingStage } from "./buildings.js";
+import {
+  BUILDING_DEFS,
+  applyDowngradeBuildingStage,
+  applyUpgradeBuildingStage,
+  canAfford,
+  getBuildingPrice,
+} from "./buildings.js";
 import { applyCompleteChallenge, applyStartChallenge } from "./challenges.js";
+import { applySendEmbassy, applyTrade } from "./diplomacy.js";
+import {
+  describeJobAssigned,
+  describeJobLeft,
+  describeMilestoneBuilding,
+  describeMilestoneResearch,
+} from "./kittens/loreTemplates.js";
 import type { Manager } from "./manager.js";
 import { applyBurnParagon, applyPurchasePerk, applySoftReset } from "./prestige.js";
 import {
@@ -16,13 +29,25 @@ import {
   applyTranscend,
 } from "./religion.js";
 import { applyResearch, applyResearchPolicy } from "./science.js";
-import { applySendEmbassy, applyTrade } from "./diplomacy.js";
 import { applyBuySpaceBuilding, applyLaunchMission } from "./space.js";
-import { applyBuyCfu, applyBuyVsu, applyShatterTc } from "./time.js";
 import type { GameState } from "./state.js";
-import { JOB_DEFS, applyHunt, applyHoldFestival, applyMilestoneWitnesses, applyPromoteKitten, applyRemoveLeader, applySetKittenPortrait, applySetLeader, applyToggleFavorite, applyUnassignKitten, pickKittensForJob, sanitizeVillageName, totalAssignedKittens } from "./village.js";
+import { applyBuyCfu, applyBuyVsu, applyShatterTc } from "./time.js";
+import {
+  JOB_DEFS,
+  applyHoldFestival,
+  applyHunt,
+  applyMilestoneWitnesses,
+  applyPromoteKitten,
+  applyRemoveLeader,
+  applySetKittenPortrait,
+  applySetLeader,
+  applyToggleFavorite,
+  applyUnassignKitten,
+  pickKittensForJob,
+  sanitizeVillageName,
+  totalAssignedKittens,
+} from "./village.js";
 import type { KittenTrait } from "./village.js";
-import { describeJobAssigned, describeJobLeft, describeMilestoneBuilding, describeMilestoneResearch } from "./kittens/loreTemplates.js";
 
 /**
  * Per-building trait affinity for milestone witness selection. The first
@@ -52,15 +77,29 @@ const BUILDING_MILESTONE_TRAITS: Record<string, readonly KittenTrait[]> = {
   tradepost: ["merchant"],
   mint: ["merchant"],
 };
-import { applyAssignCraftEngineer, applyCraft, applyPurchaseUpgrade, applyUnassignCraftEngineer, getAssignedCraftEngineers } from "./workshop.js";
+import {
+  applyAssignCraftEngineer,
+  applyCraft,
+  applyPurchaseUpgrade,
+  applyUnassignCraftEngineer,
+  getAssignedCraftEngineers,
+} from "./workshop.js";
 
 /** Discriminated union of all possible game actions */
 export type GameAction =
   | { readonly type: "TICK" }
   | { readonly type: "GATHER_CATNIP" }
   | { readonly type: "BUY_BUILDING"; readonly name: string }
-  | { readonly type: "ENABLE_BUILDING"; readonly name: string; readonly amount?: number | undefined }
-  | { readonly type: "DISABLE_BUILDING"; readonly name: string; readonly amount?: number | undefined }
+  | {
+      readonly type: "ENABLE_BUILDING";
+      readonly name: string;
+      readonly amount?: number | undefined;
+    }
+  | {
+      readonly type: "DISABLE_BUILDING";
+      readonly name: string;
+      readonly amount?: number | undefined;
+    }
   | { readonly type: "ENABLE_BUILDING_AUTOMATION"; readonly name: string }
   | { readonly type: "DISABLE_BUILDING_AUTOMATION"; readonly name: string }
   | { readonly type: "ASSIGN_JOB"; readonly job: string; readonly count?: number | undefined }
@@ -99,7 +138,11 @@ export type GameAction =
   | { readonly type: "UNASSIGN_KITTEN"; readonly kittenId: string }
   | { readonly type: "SET_LEADER"; readonly kittenId: string }
   | { readonly type: "REMOVE_LEADER" }
-  | { readonly type: "SET_KITTEN_PORTRAIT"; readonly kittenId: string; readonly path: string | null }
+  | {
+      readonly type: "SET_KITTEN_PORTRAIT";
+      readonly kittenId: string;
+      readonly path: string | null;
+    }
   | { readonly type: "UPGRADE_BUILDING_STAGE"; readonly name: string }
   | { readonly type: "DOWNGRADE_BUILDING_STAGE"; readonly name: string }
   | { readonly type: "TOGGLE_RESOURCE_VISIBILITY"; readonly name: string }
@@ -425,9 +468,8 @@ export function applyAction(
       const idx = hidden.indexOf(action.name);
       return {
         ...state,
-        hiddenResources: idx >= 0
-          ? hidden.filter((n) => n !== action.name)
-          : [...hidden, action.name],
+        hiddenResources:
+          idx >= 0 ? hidden.filter((n) => n !== action.name) : [...hidden, action.name],
       };
     }
     case "RENAME_VILLAGE": {

@@ -84,7 +84,7 @@ describe("GameStateStore", () => {
     restored.init();
 
     const restoredState = restored.getSerialized();
-    expect(restoredState.challenges?.challenges["unicornTears"]?.active).toBe(false);
+    expect(restoredState.challenges?.challenges.unicornTears?.active).toBe(false);
     expect(restoredState.effectCache.unicornsMax).toBeUndefined();
     expect(restoredState.resources.unicorns?.maxValue).toBe(0);
   });
@@ -219,6 +219,7 @@ describe("GameStateStore", () => {
 
   it("applyGameAction refreshes resource maxValue immediately after purchasing stoneBarns", () => {
     const prevState = store.getState();
+    // biome-ignore lint/complexity/useLiteralKeys: bracket access escapes TypeScript's private-field check on GameStateStore.state
     store["state"] = {
       ...prevState,
       resources: {
@@ -244,6 +245,7 @@ describe("GameStateStore", () => {
 
   it("applyGameAction refreshes resource maxValue immediately after buying a barn", () => {
     const prevState = store.getState();
+    // biome-ignore lint/complexity/useLiteralKeys: bracket access escapes TypeScript's private-field check on GameStateStore.state
     store["state"] = {
       ...prevState,
       resources: {
@@ -342,6 +344,7 @@ describe("GameStateStore", () => {
   it("broadcasts LOG_MESSAGE when a kitten is born during a tick", () => {
     // Inject state with maxKittens > 0 and kittenProgress near 1
     const prevState = store.getState();
+    // biome-ignore lint/complexity/useLiteralKeys: bracket access escapes TypeScript's private-field check on GameStateStore.state
     store["state"] = {
       ...prevState,
       effectCache: { ...prevState.effectCache, maxKittens: 5, kittensPerTickBase: 1 },
@@ -361,6 +364,7 @@ describe("GameStateStore", () => {
   it("broadcasts LOG_MESSAGE when BUY_BUILDING succeeds", () => {
     // Give enough wood to buy a hut
     const prevState = store.getState();
+    // biome-ignore lint/complexity/useLiteralKeys: bracket access escapes TypeScript's private-field check on GameStateStore.state
     store["state"] = {
       ...prevState,
       resources: {
@@ -452,6 +456,7 @@ describe("GameStateStore", () => {
     // Set calendar near end of season (season 0, day near DAYS_PER_SEASON)
     const prevState = store.getState();
     // DAYS_PER_SEASON = 100, TICKS_PER_DAY = 10 -> last day = 99
+    // biome-ignore lint/complexity/useLiteralKeys: bracket access escapes TypeScript's private-field check on GameStateStore.state
     store["state"] = {
       ...prevState,
       calendar: { day: 99.9, season: 0, year: 0, festivalDays: 0 },
@@ -476,6 +481,7 @@ describe("GameStateStore", () => {
     store.addClient(client);
     // Force a kitten birth so we get a LOG_MESSAGE + STATE_DELTA pair
     const prevState = store.getState();
+    // biome-ignore lint/complexity/useLiteralKeys: bracket access escapes TypeScript's private-field check on GameStateStore.state
     store["state"] = {
       ...prevState,
       effectCache: { ...prevState.effectCache, maxKittens: 5, kittensPerTickBase: 1 },

@@ -183,10 +183,8 @@ export const ACHIEVEMENT_DEFS: readonly AchievementDef[] = [
   },
   {
     name: "utopiaProject",
-    condition: (state) =>
-      state.village.happiness >= 1.5 && getKittenCount(state) > 35,
-    starCondition: (state) =>
-      state.village.happiness >= 5.0 && getKittenCount(state) > 35,
+    condition: (state) => state.village.happiness >= 1.5 && getKittenCount(state) > 35,
+    starCondition: (state) => state.village.happiness >= 5.0 && getKittenCount(state) > 35,
   },
   {
     name: "deathStranding",
@@ -257,8 +255,7 @@ export const BADGE_DEFS: readonly BadgeDef[] = [
   {
     name: "deadSpace",
     difficulty: "S",
-    condition: (state) =>
-      getKittenCount(state) >= 1000 && getMaxKittens(state) === 0,
+    condition: (state) => getKittenCount(state) >= 1000 && getMaxKittens(state) === 0,
   },
   {
     name: "reginaNoctis",

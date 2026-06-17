@@ -1,3 +1,6 @@
+import { existsSync, readFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 import {
   type ActionResult,
   ActionResultSchema,
@@ -11,9 +14,6 @@ import {
 } from "@kittens/api-spec";
 import type { SerializedGameState } from "@kittens/engine";
 import { migrateLegacySave } from "@kittens/engine";
-import { existsSync, readFileSync } from "node:fs";
-import { dirname, join } from "node:path";
-import { fileURLToPath } from "node:url";
 // Hono app factory — creates the HTTP + WS app given a SessionRegistry
 import { Hono } from "hono";
 import type { Context } from "hono";
@@ -26,8 +26,14 @@ import { DEFAULT_SLOT, type GameStateStore, type SessionRegistry, isValidSlot } 
 const DEMO_SAVES = [
   { name: "early", description: "Stage 4–5: ~5 kittens, hut + field + library, first jobs." },
   { name: "mid", description: "Stage 7–9: ~30 kittens, full normal buildings, trade + hunt." },
-  { name: "late", description: "Stage 10–11: ~120 kittens, industry, religion-tier 3, first rocket." },
-  { name: "endgame", description: "~350 kittens, all planets except Furthest Ring, deep prestige." },
+  {
+    name: "late",
+    description: "Stage 10–11: ~120 kittens, industry, religion-tier 3, first rocket.",
+  },
+  {
+    name: "endgame",
+    description: "~350 kittens, all planets except Furthest Ring, deep prestige.",
+  },
 ] as const;
 
 const DEMO_SAVES_DIR = (() => {
@@ -361,8 +367,8 @@ export function createApp(registry: SessionRegistry): Hono {
       return c.json({ ok: false, error: "Invalid slot name" }, 400);
     }
     try {
-      const body = await c.req.json().catch(() => ({})) as { multiplier?: unknown };
-      const m = typeof body.multiplier === "number" ? body.multiplier : NaN;
+      const body = (await c.req.json().catch(() => ({}))) as { multiplier?: unknown };
+      const m = typeof body.multiplier === "number" ? body.multiplier : Number.NaN;
       if (!Number.isFinite(m)) {
         return c.json({ ok: false, error: "Body must be { multiplier: number }" }, 400);
       }
@@ -470,8 +476,10 @@ export function createApp(registry: SessionRegistry): Hono {
     } catch {
       return c.json({ ok: false, error: "Invalid JSON body" }, 400);
     }
-    const name = (body && typeof body === "object" && "name" in body)
-      ? String((body as Record<string, unknown>).name) : "";
+    const name =
+      body && typeof body === "object" && "name" in body
+        ? String((body as Record<string, unknown>).name)
+        : "";
     const save = readDemoSave(name);
     if (!save) return c.json({ ok: false, error: `Unknown demo save: ${name}` }, 404);
     const store = registry.getOrCreate(slot);

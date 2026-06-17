@@ -57,6 +57,7 @@
       ".turbo",
       "packages/server/test-*.mjs",
       "packages/server/play-test.ts",
+      "packages/server/demo-saves",
       "packages/cli/game1.json",
       "packages/cli/myfile.json",
       "packages/cli/bin/*.js"

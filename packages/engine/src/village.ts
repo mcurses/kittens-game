@@ -1,15 +1,8 @@
 import type { Serializable } from "@kittens/shared";
 import { produce } from "immer";
-import type { Manager } from "./manager.js";
-import { DAYS_PER_SEASON, SEASON_DEFS, SEASONS_PER_YEAR } from "./calendar.js";
-import { calcResourcePerTick } from "./resources.js";
-import type { GameState } from "./state.js";
+import { DAYS_PER_SEASON, SEASONS_PER_YEAR, SEASON_DEFS } from "./calendar.js";
 import {
-  type Accessory,
   type Appearance,
-  type Body,
-  type Breed,
-  type Eyes,
   generateAppearance,
   hashString,
   mulberry32,
@@ -30,6 +23,9 @@ import {
   generateTraitFlavor,
   generateYearlyEvent,
 } from "./kittens/loreTemplates.js";
+import type { Manager } from "./manager.js";
+import { calcResourcePerTick } from "./resources.js";
+import type { GameState } from "./state.js";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -48,7 +44,15 @@ export interface JobEntry {
 }
 
 /** Kitten trait names matching legacy */
-export type KittenTrait = "scientist" | "manager" | "engineer" | "merchant" | "wise" | "metallurgist" | "chemist" | "none";
+export type KittenTrait =
+  | "scientist"
+  | "manager"
+  | "engineer"
+  | "merchant"
+  | "wise"
+  | "metallurgist"
+  | "chemist"
+  | "none";
 
 /** Kinds of events that can land in a kitten's life timeline. */
 export type LifeEventKind =
@@ -155,20 +159,87 @@ export function sanitizeVillageName(input: string): string | null {
 // ── Kitten name pool (legacy village.js) ──────────────────────────────────
 
 const KITTEN_NAMES = [
-  "Angel", "Charlie", "Mittens", "Oreo", "Lily", "Ellie", "Amber", "Molly", "Jasper",
-  "Oscar", "Theo", "Maddie", "Cassie", "Timber", "Meeko", "Micha", "Tami", "Plato",
-  "Bea", "Cedar", "Cleo", "Dali", "Fiona", "Hazel", "Iggi", "Jasmine", "Kali", "Luna",
-  "Reilly", "Reo", "Rikka", "Ruby", "Tammy", "Amy", "Henry",
+  "Angel",
+  "Charlie",
+  "Mittens",
+  "Oreo",
+  "Lily",
+  "Ellie",
+  "Amber",
+  "Molly",
+  "Jasper",
+  "Oscar",
+  "Theo",
+  "Maddie",
+  "Cassie",
+  "Timber",
+  "Meeko",
+  "Micha",
+  "Tami",
+  "Plato",
+  "Bea",
+  "Cedar",
+  "Cleo",
+  "Dali",
+  "Fiona",
+  "Hazel",
+  "Iggi",
+  "Jasmine",
+  "Kali",
+  "Luna",
+  "Reilly",
+  "Reo",
+  "Rikka",
+  "Ruby",
+  "Tammy",
+  "Amy",
+  "Henry",
 ];
 
 const KITTEN_SURNAMES = [
-  "Smoke", "Dust", "Chalk", "Fur", "Clay", "Paws", "Tails", "Sand", "Scratch", "Berry", "Shadow",
-  "Ash", "Bark", "Bowl", "Brass", "Dusk", "Gaze", "Gleam", "Grass", "Moss", "Plaid", "Puff", "Rain",
-  "Silk", "Silver", "Speck", "Stripes", "Tingle", "Wool", "Yarn", "Snail", "Rabbit",
+  "Smoke",
+  "Dust",
+  "Chalk",
+  "Fur",
+  "Clay",
+  "Paws",
+  "Tails",
+  "Sand",
+  "Scratch",
+  "Berry",
+  "Shadow",
+  "Ash",
+  "Bark",
+  "Bowl",
+  "Brass",
+  "Dusk",
+  "Gaze",
+  "Gleam",
+  "Grass",
+  "Moss",
+  "Plaid",
+  "Puff",
+  "Rain",
+  "Silk",
+  "Silver",
+  "Speck",
+  "Stripes",
+  "Tingle",
+  "Wool",
+  "Yarn",
+  "Snail",
+  "Rabbit",
 ];
 
 const KITTEN_TRAITS: readonly KittenTrait[] = [
-  "scientist", "manager", "engineer", "merchant", "wise", "metallurgist", "chemist", "none",
+  "scientist",
+  "manager",
+  "engineer",
+  "merchant",
+  "wise",
+  "metallurgist",
+  "chemist",
+  "none",
 ];
 
 let nextKittenId = 0;
@@ -176,8 +247,12 @@ let nextKittenId = 0;
 function isPersistedAppearance(v: unknown): v is Appearance {
   if (!v || typeof v !== "object") return false;
   const a = v as Record<string, unknown>;
-  return typeof a.breed === "string" && typeof a.body === "string" && typeof a.eyes === "string"
-    && (a.accessory === null || typeof a.accessory === "string");
+  return (
+    typeof a.breed === "string" &&
+    typeof a.body === "string" &&
+    typeof a.eyes === "string" &&
+    (a.accessory === null || typeof a.accessory === "string")
+  );
 }
 
 /**
@@ -192,10 +267,7 @@ function isPersistedAppearance(v: unknown): v is Appearance {
  * (a "wildcard"). Matches the existing lore that kittens are individuals,
  * not deterministic copies of their parents.
  */
-export function generateKitten(
-  currentYear: number = 0,
-  parentCandidates?: readonly Kitten[],
-): Kitten {
+export function generateKitten(currentYear = 0, parentCandidates?: readonly Kitten[]): Kitten {
   const id = `k${++nextKittenId}`;
   // Adult parents: age ≥ 5 and not the same individual (set-dedup not needed
   // because sim entries already are distinct).
@@ -240,7 +312,7 @@ export function generateKitten(
     const surnameRoll = seededRng();
     const fatherSurname = parentCandidates.find((k) => k.id === fatherId)?.surname;
     const motherSurname = parentCandidates.find((k) => k.id === motherId)?.surname;
-    if (surnameRoll < 0.60 && fatherSurname) {
+    if (surnameRoll < 0.6 && fatherSurname) {
       surname = fatherSurname;
     } else if (surnameRoll < 0.85 && motherSurname) {
       surname = motherSurname;
@@ -251,9 +323,8 @@ export function generateKitten(
     surname = freshSurname;
   }
 
-  const trait = inheritedTrait
-    ?? KITTEN_TRAITS[Math.floor(seededRng() * KITTEN_TRAITS.length)]
-    ?? "none";
+  const trait =
+    inheritedTrait ?? KITTEN_TRAITS[Math.floor(seededRng() * KITTEN_TRAITS.length)] ?? "none";
 
   // Native-born (parents present): age 0 + currentYear birth. Legacy seed-pop
   // path keeps the random older-arrival distribution.
@@ -280,10 +351,26 @@ export function generateKitten(
   );
   const lifeEvents: LifeEvent[] = [{ year: birthYear, kind: "spawn", text: spawnText }];
   return {
-    id, name, surname, age, trait, job: null, skills: {}, rank: 0, exp: 0,
-    isFavorite: false, isLeader: false,
-    birthYear, appearance, originStory, traitFlavor, lifeEvents, portraitPath: null,
-    motherId, fatherId, childIds: [],
+    id,
+    name,
+    surname,
+    age,
+    trait,
+    job: null,
+    skills: {},
+    rank: 0,
+    exp: 0,
+    isFavorite: false,
+    isLeader: false,
+    birthYear,
+    appearance,
+    originStory,
+    traitFlavor,
+    lifeEvents,
+    portraitPath: null,
+    motherId,
+    fatherId,
+    childIds: [],
   };
 }
 
@@ -299,7 +386,9 @@ export function appendLifeEvent(k: Kitten, event: LifeEvent): Kitten {
  */
 function looksGerman(text: string): boolean {
   if (/[äöüÄÖÜß]/.test(text)) return true;
-  return /\b(Im Jahr|Geboren|Stammt|Kam vor|verbrachte|verliebte|Verstarb|Trauerte|Mutter von|Vater von|Genoss das|Tanzte|Erlag|Verhungerte|Schlief|wurde im Dorf|Wurde zum|Wurde dem|Verließ|jüngst|berufen|zugewiesen)\b/.test(text);
+  return /\b(Im Jahr|Geboren|Stammt|Kam vor|verbrachte|verliebte|Verstarb|Trauerte|Mutter von|Vater von|Genoss das|Tanzte|Erlag|Verhungerte|Schlief|wurde im Dorf|Wurde zum|Wurde dem|Verließ|jüngst|berufen|zugewiesen)\b/.test(
+    text,
+  );
 }
 
 /**
@@ -312,13 +401,22 @@ function looksGerman(text: string): boolean {
  * since their original arguments aren't stored on the event.
  */
 function migrateGermanLore(sim: readonly Kitten[]): Kitten[] {
-  const peers: YearlyPeer[] = sim.map((k) => ({ id: k.id, name: k.name, surname: k.surname, age: k.age }));
+  const peers: YearlyPeer[] = sim.map((k) => ({
+    id: k.id,
+    name: k.name,
+    surname: k.surname,
+    age: k.age,
+  }));
   const nameById = new Map<string, string>(sim.map((k) => [k.id, k.name]));
   return sim.map((k) => {
     const newOrigin = looksGerman(k.originStory) ? generateOrigin(k.id, k.age) : k.originStory;
-    const newFlavor = looksGerman(k.traitFlavor) ? generateTraitFlavor(k.id, k.trait) : k.traitFlavor;
+    const newFlavor = looksGerman(k.traitFlavor)
+      ? generateTraitFlavor(k.id, k.trait)
+      : k.traitFlavor;
     const otherPeers = peers.filter((p) => p.id !== k.id);
-    const sameJob = k.job ? otherPeers.filter((p) => sim.find((s) => s.id === p.id)?.job === k.job) : [];
+    const sameJob = k.job
+      ? otherPeers.filter((p) => sim.find((s) => s.id === p.id)?.job === k.job)
+      : [];
     const newEvents: LifeEvent[] = k.lifeEvents.map((e) => {
       if (!looksGerman(e.text)) return e;
       if (e.kind === "spawn") {
@@ -334,7 +432,16 @@ function migrateGermanLore(sim: readonly Kitten[]): Kitten[] {
       if (e.kind === "yearly") {
         const seasonIdx = Math.abs(hashString(`${k.id}:${e.year}`)) % SEASON_DEFS.length;
         const seasonName = SEASON_DEFS[seasonIdx]!.name;
-        const ev = generateYearlyEvent(k.id, e.year, k.job, k.trait, seasonName, otherPeers, sameJob, k.age);
+        const ev = generateYearlyEvent(
+          k.id,
+          e.year,
+          k.job,
+          k.trait,
+          seasonName,
+          otherPeers,
+          sameJob,
+          k.age,
+        );
         return ev.relatedKittenId
           ? { year: e.year, kind: "yearly", text: ev.text, relatedKittenId: ev.relatedKittenId }
           : { year: e.year, kind: "yearly", text: ev.text };
@@ -380,7 +487,9 @@ function reanimateSkeletonKittens(
     const noAge = k.age === 0 && k.birthYear < currentYear - 1;
     return nameDefault && surnameDefault && noTrait && noAge;
   }
-  const usedSurnames = new Set<string>(sim.map((k) => k.surname).filter((s) => s && s !== "Unknown"));
+  const usedSurnames = new Set<string>(
+    sim.map((k) => k.surname).filter((s) => s && s !== "Unknown"),
+  );
   const repaired = sim.map((k) => {
     if (!isSkeleton(k)) return k;
     const rng = mulberry32(hashString(`reanimate:${k.id}`));
@@ -443,7 +552,12 @@ function reanimateSkeletonKittens(
  * don't record per-event season.
  */
 function backfillBackstory(sim: readonly Kitten[], currentYear: number): Kitten[] {
-  const peers: YearlyPeer[] = sim.map((k) => ({ id: k.id, name: k.name, surname: k.surname, age: k.age }));
+  const peers: YearlyPeer[] = sim.map((k) => ({
+    id: k.id,
+    name: k.name,
+    surname: k.surname,
+    age: k.age,
+  }));
   return sim.map((k) => {
     if (k.lifeEvents.length > 1) return k as Kitten;
     if (k.age < 3) return k as Kitten;
@@ -453,16 +567,27 @@ function backfillBackstory(sim: readonly Kitten[], currentYear: number): Kitten[
     const latest = Math.max(earliest, currentYear - 1);
     const span = Math.max(1, latest - earliest);
     const otherPeers = peers.filter((p) => p.id !== k.id);
-    const sameJob = k.job ? otherPeers.filter((p) => {
-      const peerKitten = sim.find((s) => s.id === p.id);
-      return peerKitten?.job === k.job;
-    }) : [];
+    const sameJob = k.job
+      ? otherPeers.filter((p) => {
+          const peerKitten = sim.find((s) => s.id === p.id);
+          return peerKitten?.job === k.job;
+        })
+      : [];
     const added: LifeEvent[] = [];
     for (let i = 0; i < eventCount; i++) {
       const year = earliest + Math.floor((span * (i + 1)) / (eventCount + 1));
       const seasonIdx = Math.abs(hashString(`${k.id}:${year}`)) % SEASON_DEFS.length;
       const seasonName = SEASON_DEFS[seasonIdx]!.name;
-      const ev = generateYearlyEvent(k.id, year, k.job, k.trait, seasonName, otherPeers, sameJob, k.age);
+      const ev = generateYearlyEvent(
+        k.id,
+        year,
+        k.job,
+        k.trait,
+        seasonName,
+        otherPeers,
+        sameJob,
+        k.age,
+      );
       const e: LifeEvent = ev.relatedKittenId
         ? { year, kind: "yearly", text: ev.text, relatedKittenId: ev.relatedKittenId }
         : { year, kind: "yearly", text: ev.text };
@@ -483,9 +608,21 @@ function backfillBackstory(sim: readonly Kitten[], currentYear: number): Kitten[
  * Exotic: relic, void, elderBox, wrappingPaper, blackcoin, bloodstone, tMythril
  */
 export const LUXURY_RESOURCE_NAMES: ReadonlySet<string> = new Set([
-  "furs", "ivory", "spice",
-  "unicorns", "alicorn", "necrocorn", "tears", "karma",
-  "relic", "void", "elderBox", "wrappingPaper", "blackcoin", "bloodstone", "tMythril",
+  "furs",
+  "ivory",
+  "spice",
+  "unicorns",
+  "alicorn",
+  "necrocorn",
+  "tears",
+  "karma",
+  "relic",
+  "void",
+  "elderBox",
+  "wrappingPaper",
+  "blackcoin",
+  "bloodstone",
+  "tMythril",
 ]);
 
 /**
@@ -635,14 +772,14 @@ const POL_LBASE = 10_000_000;
  */
 export function computePollutionHappines(cathPollution: number): number {
   if (cathPollution <= 0) return 0;
-  const pollutionLevel = Math.max(Math.floor(Math.log10(cathPollution * 10 / POL_LBASE)), 0);
+  const pollutionLevel = Math.max(Math.floor(Math.log10((cathPollution * 10) / POL_LBASE)), 0);
 
   if (pollutionLevel >= 4) return -Math.log(cathPollution) * 1.2;
   if (pollutionLevel === 3) return -Math.log(cathPollution) * 1.18;
   if (pollutionLevel === 2) return -Math.log(cathPollution) * 1.08;
   if (pollutionLevel === 1) {
     // Linear ramp starting at 50% of level-1 range
-    const halfThreshold = POL_LBASE * 10 / 2;
+    const halfThreshold = (POL_LBASE * 10) / 2;
     return cathPollution >= halfThreshold ? -0.00000032 * (cathPollution - halfThreshold) : 0;
   }
   return 0;
@@ -676,7 +813,10 @@ export function computeHappiness(state: GameState): number {
     (state.effectCache.environmentUnhappiness ?? 0) +
     pollutionHappines;
 
-  happinessPct += (state.effectCache.happiness ?? 0) + environmentEffect + (state.effectCache.challengeHappiness ?? 0);
+  happinessPct +=
+    (state.effectCache.happiness ?? 0) +
+    environmentEffect +
+    (state.effectCache.challengeHappiness ?? 0);
 
   const happinessPerLuxury = 10 + (state.effectCache.luxuryHappinessBonus ?? 0);
   const consumableLuxuryHappiness = state.effectCache.consumableLuxuryHappiness ?? 0;
@@ -835,7 +975,10 @@ export class VillageManager implements Manager {
     });
 
     // ── Happiness calculation ──────────────────────────────────────────────────
-    const stateForHappiness = { ...state, village: { ...state.village, kittens, kittenProgress, jobs, sim, deadKittens } };
+    const stateForHappiness = {
+      ...state,
+      village: { ...state.village, kittens, kittenProgress, jobs, sim, deadKittens },
+    };
     const happiness = computeHappiness(stateForHappiness);
 
     return {
@@ -912,8 +1055,6 @@ export class VillageManager implements Manager {
     return state.village as unknown as Serializable;
   }
 
-
-
   load(saved: Serializable, state: GameState): GameState {
     if (!saved || typeof saved !== "object" || Array.isArray(saved)) {
       return { ...state, village: createInitialVillage() };
@@ -949,7 +1090,8 @@ export class VillageManager implements Manager {
     const currentYear = state.calendar?.year ?? 0;
     let sim: Kitten[] = [];
     if (Array.isArray(raw.sim)) {
-      sim = (raw.sim as unknown[]).filter((k): k is Record<string, unknown> => k != null && typeof k === "object")
+      sim = (raw.sim as unknown[])
+        .filter((k): k is Record<string, unknown> => k != null && typeof k === "object")
         .map((k) => {
           const id = typeof k.id === "string" ? k.id : `k${++nextKittenId}`;
           const age = typeof k.age === "number" ? k.age : 0;
@@ -959,8 +1101,10 @@ export class VillageManager implements Manager {
           const appearance = isPersistedAppearance(k.appearance)
             ? (k.appearance as Appearance)
             : generateAppearance(id);
-          const originStory = typeof k.originStory === "string" ? k.originStory : generateOrigin(id, age);
-          const traitFlavor = typeof k.traitFlavor === "string" ? k.traitFlavor : generateTraitFlavor(id, trait);
+          const originStory =
+            typeof k.originStory === "string" ? k.originStory : generateOrigin(id, age);
+          const traitFlavor =
+            typeof k.traitFlavor === "string" ? k.traitFlavor : generateTraitFlavor(id, trait);
           const lifeEvents: readonly LifeEvent[] = Array.isArray(k.lifeEvents)
             ? (k.lifeEvents as unknown[])
                 .filter((e): e is Record<string, unknown> => e != null && typeof e === "object")
@@ -990,22 +1134,32 @@ export class VillageManager implements Manager {
             age,
             trait,
             job: typeof k.job === "string" ? k.job : null,
-            skills: (k.skills && typeof k.skills === "object" && !Array.isArray(k.skills))
-              ? k.skills as Record<string, number> : {},
+            skills:
+              k.skills && typeof k.skills === "object" && !Array.isArray(k.skills)
+                ? (k.skills as Record<string, number>)
+                : {},
             rank: typeof k.rank === "number" ? k.rank : 0,
             exp: typeof k.exp === "number" ? k.exp : 0,
             isFavorite: k.isFavorite === true,
             isLeader: k.isLeader === true,
-            birthYear, appearance, originStory, traitFlavor, lifeEvents, portraitPath,
-            motherId, fatherId, childIds,
+            birthYear,
+            appearance,
+            originStory,
+            traitFlavor,
+            lifeEvents,
+            portraitPath,
+            motherId,
+            fatherId,
+            childIds,
           };
         });
     }
 
-    const leader = typeof saved.leader === "string" ? saved.leader as string : null;
-    const name = typeof raw.name === "string" && sanitizeVillageName(raw.name)
-      ? (sanitizeVillageName(raw.name) as string)
-      : initial.name;
+    const leader = typeof saved.leader === "string" ? (saved.leader as string) : null;
+    const name =
+      typeof raw.name === "string" && sanitizeVillageName(raw.name)
+        ? (sanitizeVillageName(raw.name) as string)
+        : initial.name;
 
     // Migrate German lore strings from older saves before backfill: origin,
     // trait flavor, and per-event text get regenerated in English when the
@@ -1025,7 +1179,19 @@ export class VillageManager implements Manager {
     // once events exist, this loop is a no-op on subsequent loads.
     const filledSim = backfillBackstory(livingSim, currentYear);
 
-    return { ...state, village: { name, kittens, kittenProgress, jobs, sim: filledSim, deadKittens, happiness, leader } };
+    return {
+      ...state,
+      village: {
+        name,
+        kittens,
+        kittenProgress,
+        jobs,
+        sim: filledSim,
+        deadKittens,
+        happiness,
+        leader,
+      },
+    };
   }
 
   resetState(state: GameState): GameState {
@@ -1045,7 +1211,16 @@ export class VillageManager implements Manager {
       }
       const peers = state.village.sim.filter((p) => p.id !== k.id);
       const sameJob = k.job ? peers.filter((p) => p.job === k.job) : [];
-      const ev = generateYearlyEvent(k.id, newYear, k.job, k.trait, seasonName, peers, sameJob, k.age);
+      const ev = generateYearlyEvent(
+        k.id,
+        newYear,
+        k.job,
+        k.trait,
+        seasonName,
+        peers,
+        sameJob,
+        k.age,
+      );
       const newEvent: LifeEvent = ev.relatedKittenId
         ? { year: newYear, kind: "yearly", text: ev.text, relatedKittenId: ev.relatedKittenId }
         : { year: newYear, kind: "yearly", text: ev.text };
@@ -1149,10 +1324,10 @@ interface LeaderBonus {
 const LEADER_TRAIT_BONUSES: Record<string, { type: string; base: number }> = {
   engineer: { type: "craftBonus", base: 0.05 },
   merchant: { type: "tradeBonus", base: 0.03 },
-  manager: { type: "huntBonus", base: 0.50 },
+  manager: { type: "huntBonus", base: 0.5 },
   scientist: { type: "scienceDiscount", base: 0.05 },
-  wise: { type: "religionDiscount", base: 0.10 },
-  metallurgist: { type: "smelterBonus", base: 0.10 },
+  wise: { type: "religionDiscount", base: 0.1 },
+  metallurgist: { type: "smelterBonus", base: 0.1 },
   chemist: { type: "chemistBonus", base: 0.05 },
 };
 
@@ -1164,14 +1339,14 @@ const LEADER_TRAIT_BONUSES: Record<string, { type: string; base: number }> = {
  * with vocations rather than fungible labor slots.
  */
 export const TRAIT_JOB_AFFINITY: Record<KittenTrait, readonly string[]> = {
-  scientist:    ["scholar"],
+  scientist: ["scholar"],
   metallurgist: ["miner", "geologist"],
-  chemist:      ["geologist", "priest"],
-  engineer:     ["engineer", "woodcutter"],
-  merchant:     ["hunter"],
-  manager:      ["farmer", "woodcutter"],
-  wise:         ["priest"],
-  none:         [],
+  chemist: ["geologist", "priest"],
+  engineer: ["engineer", "woodcutter"],
+  merchant: ["hunter"],
+  manager: ["farmer", "woodcutter"],
+  wise: ["priest"],
+  none: [],
 };
 
 /** Score: 2 = primary match, 1 = secondary, 0 = none. */
@@ -1217,9 +1392,7 @@ export function getLeaderBonus(kitten: Kitten): LeaderBonus | null {
  * with id as deterministic tiebreak. Bonus is half the leader value so
  * favorites feel meaningful but don't replace leader strategy.
  */
-export function getFavoriteContributions(
-  sim: readonly Kitten[],
-): Record<string, number> {
+export function getFavoriteContributions(sim: readonly Kitten[]): Record<string, number> {
   const applied = new Set<string>();
   const favs = sim
     .filter((k) => k.isFavorite && !k.isLeader && LEADER_TRAIT_BONUSES[k.trait])
@@ -1284,7 +1457,7 @@ export function applyRemoveLeader(state: GameState): GameState {
 
 /** Promote cost: 500 * 1.75^rank exp, 25 * (rank + 1) gold */
 function promoteExpCost(rank: number): number {
-  return Math.floor(500 * Math.pow(1.75, rank));
+  return Math.floor(500 * 1.75 ** rank);
 }
 function promoteGoldCost(rank: number): number {
   return 25 * (rank + 1);

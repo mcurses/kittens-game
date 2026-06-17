@@ -108,13 +108,16 @@ export function SessionsPanel(): React.ReactElement {
       try {
         const response = await fetch("/api/demo-saves");
         if (!response?.ok) return [];
-        const json = await response.json() as { ok?: boolean; saves?: Array<{ name: string; description: string }> };
+        const json = (await response.json()) as {
+          ok?: boolean;
+          saves?: Array<{ name: string; description: string }>;
+        };
         return json.saves ?? [];
       } catch {
         return [];
       }
     },
-    staleTime: Infinity,
+    staleTime: Number.POSITIVE_INFINITY,
     retry: false,
   });
 
